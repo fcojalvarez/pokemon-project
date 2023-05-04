@@ -15,9 +15,11 @@
     "iconoir": "^6.6.0",
     "pinia": "^2.0.32",
     "vue": "^3.2.47",
+    "vue-i18n": "^9.2.2",
     "vue-router": "^4.1.6"
   },
   "devDependencies": {
+    "@intlify/vite-plugin-vue-i18n": "^7.0.0",
     "@rushstack/eslint-patch": "^1.2.0",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/eslint-config-prettier": "^7.1.0",
@@ -30,6 +32,7 @@
     "prettier": "^2.8.4",
     "tailwindcss": "^3.3.2",
     "vite": "^4.1.4",
-    "vitest": "^0.29.1"
+    "vitest": "^0.29.1",
+    "vue-cli-plugin-i18n": "~2.3.2"
   }
 }

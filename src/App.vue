@@ -1,27 +1,10 @@
 <script setup>
-import { onBeforeMount, ref } from "vue";
-import axios from 'axios';
+import { onBeforeMount } from 'vue';
+import { usePokemons } from './composables/usePokemons';
 
-const pokemonsName = ref([]);
+import {HeaderComponent } from './components/index';
 
-const getPokemonsName = async() => {
-  try {
-    const { status, data: allPokemons } = await axios.get('https://pogoapi.net/api/v1/pokemon_names.json');
-    if(status === 200) {
-      const arrPokemonsName = [];
-      
-      for (const pokemonId in allPokemons) {
-        if (Object.hasOwnProperty.call(allPokemons, pokemonId)) {
-          arrPokemonsName.push(allPokemons[pokemonId].name);
-        }
-      }
-
-      localStorage.setItem('pokemonsName', JSON.stringify(arrPokemonsName));
-    }
-  } catch (error) {
-    console.log(error);
-  }
-}
+const { getPokemonsName } = usePokemons();
 
 onBeforeMount(() => {
   const pokemonsName = JSON.parse(localStorage.getItem('pokemonsName'));
@@ -32,7 +15,8 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  {{ pokemonsName }}
+  <HeaderComponent />
+
   <RouterView />
 </template>
 
