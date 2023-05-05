@@ -1,10 +1,12 @@
 <script setup>
-    import { SearchBar } from './index';
+    import { SearchBar, ToogleDarkMode } from './index';
 </script>
 
 <template>
-    <SearchBar class="w-5/6" />
-
+    <section class="flex gap-3 h-full">
+        <SearchBar class="w-5/6" />
+        <ToogleDarkMode class="w-1/6" />
+    </section>
 </template>
 
 <style scoped>

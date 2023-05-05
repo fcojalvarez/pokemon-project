@@ -2,20 +2,17 @@
 import { onBeforeMount } from 'vue';
 import { usePokemons } from './composables/usePokemons';
 
-import {HeaderComponent } from './components/index';
+import { HeaderComponent } from './components/index';
 
 const { getPokemonsName } = usePokemons();
 
 onBeforeMount(() => {
-  const pokemonsName = JSON.parse(localStorage.getItem('pokemonsName'));
-  if(pokemonsName.length ===  0) {
-    getPokemonsName();
-  }
+  getPokemonsName();
 })
 </script>
 
 <template>
-  <HeaderComponent />
+  <HeaderComponent class="mb-6" />
 
   <RouterView />
 </template>

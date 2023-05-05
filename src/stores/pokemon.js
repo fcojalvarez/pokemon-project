@@ -2,13 +2,22 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const usePokemonStore = defineStore('pokemon', () => {
-    const pokemonsName = ref([]);
+    const pokemons = ref([]);
+    const pokemonsFiltered = ref([]);
 
-    function setPokemonsName(arrPokemonsName) {
-        console.log(pokemonsName.value);
-        pokemonsName.value = [...arrPokemonsName];
-        console.log(pokemonsName.value);
+    function setPokemons(arrPokemons) {
+        pokemons.value = [...arrPokemons];
+        pokemonsFiltered.value = [...arrPokemons];
     }
 
-    return { pokemonsName, setPokemonsName }
+    function filterPokemons(pokemonsFiltered) {
+        pokemonsFiltered.value = [...pokemonsFiltered];
+    }
+
+    return { 
+        filterPokemons,
+        pokemons,
+        pokemonsFiltered,
+        setPokemons
+    }
 })
