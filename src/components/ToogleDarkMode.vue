@@ -12,7 +12,7 @@ const srcIcon = computed({
 </script>
 
 <template>
-    <img :src="srcIcon" @click="isDarkMode = !isDarkMode" class="w-100 h-7 w-7 mb-auto mt-2 mx-2" :alt="$t('light')">
+    <img :src="srcIcon" @click="isDarkMode = !isDarkMode" class="w-100 h-6 w-6 mb-auto mt-3 mx-2" :alt="$t('light')">
 </template>
 
 <style scoped>
