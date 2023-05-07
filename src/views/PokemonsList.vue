@@ -1,9 +1,7 @@
 <script setup>
 import { PokemonView } from '../components/index';
-
 import { storeToRefs } from 'pinia';
 import { usePokemonsStore } from '@/stores/pokemons';
-
 const pokemonStore = usePokemonsStore();
 const { pokemonsFiltered } = storeToRefs(pokemonStore);
 </script>
