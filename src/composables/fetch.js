@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { status200 } from '../utils/Settings';
-import { useLocalStorage } from './useLocalStorage';
+import { useLocalStorage } from './localStorage';
 
 const { setJsonToLocalStorage } = useLocalStorage();
 

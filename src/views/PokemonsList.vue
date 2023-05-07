@@ -1,18 +1,21 @@
 <script setup>
-import { usePokemonStore } from '../stores/pokemon';
+import { PokemonView } from '../components/index';
 
-const pokemon = usePokemonStore();
+import { storeToRefs } from 'pinia';
+import { usePokemonsStore } from '@/stores/pokemons';
 
+const pokemonStore = usePokemonsStore();
+const { pokemonsFiltered } = storeToRefs(pokemonStore);
 </script>
 
 <template>
     <section class="flex flex-wrap px-4">
-        {{ pokemonsFilteredByName }}
-        <div v-for="pokemon in pokemon.pokemonsFiltered" class="w-4/8 md:w-3/8 p-8 m-auto" :key="pokemon.id">
-                {{ pokemon.name }}
+        <div
+            v-for="{ name, id } in pokemonsFiltered"
+            class="w-4/8 md:w-3/8 p-8 m-auto"
+            :key="id"
+        >
+            <PokemonView :id="id" :name="name" class="w-32"/>
         </div>
     </section>   
 </template>
-
-<style scoped>
-</style>

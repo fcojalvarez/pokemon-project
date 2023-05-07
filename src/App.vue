@@ -3,8 +3,8 @@ import { onBeforeMount, ref } from 'vue';
 
 import { HeaderComponent, SpinnerComponent } from './components/index';
 import { status200 } from './utils/Settings';
-import { useFetch } from './composables/useFetch';
-import { useLocalStorage } from './composables/useLocalStorage';
+import { useFetch } from './composables/fetch';
+import { useLocalStorage } from './composables/localStorage';
 
 const { getPogoApi } = useFetch();
 const { getJsonToLocalStorage, setJsonToLocalStorage } = useLocalStorage();

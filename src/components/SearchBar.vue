@@ -1,19 +1,16 @@
 <script setup>
-import { usePokemons } from '../composables/usePokemons';
-
-const { filterPokemonsStore } = usePokemons();
-
-const arrPokemonsName = JSON.parse(localStorage.getItem('pokemonsName'));
+import { usePokemonsStore } from '@/stores/pokemons';
+const { filterPokemons } = usePokemonsStore();
 
 const inputSearch = ( { target }) => {
     const inputValue = target.value;
-    filterPokemonsStore(inputValue);
+    filterPokemons(inputValue);
 }
 </script>
 
 <template>
-    <section class="w-full height-8">
-        <input type="text" class="bg-transparent border-b py-2 px-3 w-full md:w-1/2 lg:w-64 outline-none" :placeholder="$t('searchPokemon')" :dataAutocomplete="arrPokemonsName" @input="inputSearch">
+    <section class="w-full md:w-1/2 lg:w-64 height-8">
+        <input type="text" class="w-full bg-transparent border-b py-2 px-3 outline-none" :placeholder="$t('searchPokemon')" :dataAutocomplete="arrPokemonsName" @input="inputSearch">
         <img src="../assets/icons/search-icon.svg" alt="$('search')" class="absolute bottom-2 right-2 w-5" type="submit">
     </section>
 </template>
