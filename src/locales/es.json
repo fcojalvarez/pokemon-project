@@ -1,5 +1,6 @@
 {
-    "searchPokemon": "Buscar pokemon...",
+    "back": "Volver",
+    "image": "Imágen",
     "light": "Luz",
-    "image": "Imágen"
+    "searchPokemon": "Buscar pokemon..."
 }

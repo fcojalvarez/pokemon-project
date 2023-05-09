@@ -1,5 +1,6 @@
 {
-    "searchPokemon": "Search pokemon...",
+    "back": "Back",
+    "image": "Image",
     "light": "Light",
-    "image": "Image"
+    "searchPokemon": "Search pokemon..."
 }
