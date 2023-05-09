@@ -13,7 +13,7 @@
   "dependencies": {
     "axios": "^1.4.0",
     "iconoir": "^6.8.0",
-    "pinia": "^2.0.35",
+    "pinia": "^2.0.36",
     "vue": "^3.2.47",
     "vue-i18n": "^9.2.2",
     "vue-router": "^4.1.6",
