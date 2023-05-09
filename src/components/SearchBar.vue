@@ -10,7 +10,7 @@ const inputSearch = ( { target }) => {
 
 <template>
     <section class="w-full md:w-1/2 lg:w-64 height-8">
-        <input type="text" class="w-full bg-transparent border-b py-2 px-3 outline-none" :placeholder="$t('searchPokemon')" :dataAutocomplete="arrPokemonsName" @input="inputSearch">
+        <input type="text" class="w-full bg-transparent border-b py-2 px-3 outline-none" :placeholder="$t('searchPokemon')"  @input="inputSearch">
         <img src="../assets/icons/search-icon.svg" alt="$('search')" class="absolute bottom-2 right-2 w-5" type="submit">
     </section>
 </template>

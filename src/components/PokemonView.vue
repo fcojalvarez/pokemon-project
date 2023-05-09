@@ -3,7 +3,7 @@
     import { useRouter } from 'vue-router';
 
     const props = defineProps({
-        id: String,
+        id: Number,
         name: String
     })
     const router = useRouter();
@@ -27,6 +27,6 @@
             class="w-24 h-24 mx-auto group-hover:animate-bounce"
             loading="lazy"
         >
-        <p class="text-center mt-4 mb-auto group-hover:font-semibold">{{ props.name }}</p>
+        <p class="text-center mt-4 mb-auto group-hover:font-semibold">{{props.id}} {{ props.name }}</p>
     </section>
 </template>

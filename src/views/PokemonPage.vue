@@ -4,7 +4,7 @@
 
 <template>
     <section>
-        <button class="border-2 py-2 px-12 mb-12 rounded-md" @click="$router.push('/')">{{ $t('volver') }}</button>
+        <button class="border-2 py-2 px-12 mb-12 rounded-md" @click="$router.push('/')">{{ $t('back') }}</button>
         
         <h1>POKEMON PAGE</h1> 
     </section>
