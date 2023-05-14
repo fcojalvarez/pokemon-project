@@ -4,6 +4,7 @@
 
     const props = defineProps({
         id: Number,
+        isReleased: Boolean,
         name: String
     })
     const router = useRouter();
@@ -20,13 +21,23 @@
 </script>
 
 <template>
-    <section class="cursor-pointer rounded-xl p-4 group" @click="goToPokemonPage(props.id)">   
+    <section
+        :class="[props.isReleased? 'cursor-pointer' : '', 'rounded-xl p-2 group']"
+        @click="goToPokemonPage(props.id)"
+    >   
         <img
             :src="pokemonImage"
             :alt="`${props.name} ${$t('image')}`"
-            class="w-24 h-24 mx-auto group-hover:animate-bounce"
+            :class="[props.isReleased? 'group-hover:animate-bounce drop-shadow-[5px_5px_10px_#555]': 'grayscale opacity-40', 'w-24 h-24 mx-auto ']"
             loading="lazy"
         >
-        <p class="text-center mt-4 mb-auto group-hover:font-semibold">{{props.id}} {{ props.name }}</p>
+        <div class="flex-row mt-2">
+            <span class="flex justify-center mb-2 font-semibold rounded bg-gray-500/30 mx-8">
+                {{ props.id }}
+            </span>
+            <span :class="[props.isReleased? 'group-hover:font-semibold' : '', 'text-center block']">
+                {{ props.name }}
+            </span>
+        </div>
     </section>
 </template>

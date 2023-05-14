@@ -29,12 +29,13 @@ onUnmounted(() => {
 <template>
     <section class="flex flex-wrap px-4">
         <div
-            v-for="{ name, id } in pokemonsFiltered"
+            v-for="{ name, id, isReleased, types } in pokemonsFiltered"
             class="w-4/8 md:w-3/8 p-8 m-auto"
             :key="id"
             :scroll="scrollHandlerEvent"
         >
-            <PokemonView :id="id" :name="name" class="w-32"/>
+        {{ types }}
+            <PokemonView :id="id" :name="name" :isReleased="isReleased" class="w-32"/>
         </div>
     </section>   
 </template>
