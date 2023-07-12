@@ -16,7 +16,7 @@
     })
 
     const goToPokemonPage = (pokemonId) => {
-        pokemonId && router.push(`/${pokemonId}`);
+        pokemonId && router.push(`/pokemon/${pokemonId}`);
     }
 </script>
 
@@ -28,7 +28,7 @@
         <img
             :src="pokemonImage"
             :alt="`${props.name} ${$t('image')}`"
-            :class="[props.isReleased? 'group-hover:animate-bounce drop-shadow-[5px_5px_10px_#555]': 'grayscale opacity-40', 'w-24 h-24 mx-auto ']"
+            :class="[props.isReleased? 'group-hover:animate-bounce drop-shadow-[5px_5px_10px_#333]': 'grayscale opacity-40', 'w-24 h-24 mx-auto ']"
             loading="lazy"
         >
         <div class="flex-row mt-2">
