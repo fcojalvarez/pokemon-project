@@ -2,7 +2,7 @@
 </script>
 
 <template>
-    <div class='spinner'></div>
+  <div class='spinner'></div>
 </template>
 
 <style scoped>
@@ -10,8 +10,8 @@
   border: 4px solid rgba(255, 255, 255, 0.1);
   border-left-color: transparent;
   border-radius: 50%;
-  width: 36px;
-  height: 36px;
+  width: 75px ;
+  height: 75px;
   
   animation: spin 1s linear infinite;
 }

@@ -39,12 +39,14 @@ onBeforeMount(async() => {
 </script>
 
 <template>
-  <HeaderComponent class="mb-6" />
-
-  <section v-if="isLoading" class="flex justify-center items-center w-100 h-screen">
-    <SpinnerComponent />
+  <section class="bg-white dark:bg-gray-900 px-8 md:px-16 xl:px-24 2xl:px-32">
+    <HeaderComponent class="mb-6 pt-6" />
+  
+    <section v-if="isLoading" class="flex justify-center items-center w-100 h-screen">
+      <SpinnerComponent />
+    </section>
+    <RouterView v-else />
   </section>
-  <RouterView v-else />
 </template>
 
 <style scoped>

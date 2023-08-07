@@ -24,8 +24,8 @@
 
 <template>
     <section
-        :class="[props.isReleased? 'cursor-pointer' : '', 'bg-white rounded-xl p-2 group']"
-        @click="goToPokemonPage(props.id)"
+        :class="[props.isReleased? 'cursor-pointer' : '', 'p-2 group']"
+        @click="props.isReleased && goToPokemonPage(props.id)"
     >   
         <img
             :src="pokemonImage"
@@ -33,11 +33,11 @@
             :class="[props.isReleased? 'group-hover:animate-bounce drop-shadow-[5px_5px_10px_#333]': 'grayscale opacity-40', 'w-24 h-24 mx-auto ']"
             loading="lazy"
         >
-        <div class="flex-row mt-2 text-gray-800 font-semibold">
+        <div class="flex-row mt-2 text-gray-800 dark:text-gray-300 font-semibold">
             <span :class="[props.isReleased? '' : 'line-through', 'font-semibold text-center block']">
                 {{ props.name }}
             </span>
-            <span class="flex justify-center mb-2 mt-1 mx-8 font-semibold rounded bg-gray-500/30 text-xs">
+            <span class="flex justify-center mb-2 mt-1 mx-8 py-1 font-semibold rounded bg-gray-500/30 text-xs">
                 #{{ pokemonId }}
             </span>
         </div>

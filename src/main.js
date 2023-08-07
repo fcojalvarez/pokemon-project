@@ -10,10 +10,10 @@ import i18n from './plugins/i18n';
 import './assets/main.css';
 import './index.css';
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(createPinia())
-app.use(router)
-app.use(i18n)
+app.use(createPinia());
+app.use(router);
+app.use(i18n);
 
-app.mount('#app')
+app.mount('#app');

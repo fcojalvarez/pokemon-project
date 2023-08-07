@@ -27,10 +27,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <section class="flex flex-wrap px-4">
+    <section class="flex flex-wrap">
         <div
             v-for="{ name, id, isReleased } in pokemonsFiltered"
-            class="w-4/8 md:w-3/8 p-8 m-auto"
+            class="w-4/8 md:w-3/8 p-4 m-auto"
             :key="id"
             :scroll="scrollHandlerEvent"
         >

@@ -3,9 +3,9 @@
 </script>
 
 <template>
-    <section class="flex gap-3 h-full sm:px-16">
-        <SearchBar class="w-5/6" />
-        <ToogleDarkMode class="w-1/6 ml-auto cursor-pointer" />
+    <section class="flex gap-3 h-full">
+        <SearchBar class="w-8/12" />
+        <ToogleDarkMode class="w-3/12 ml-auto cursor-pointer" />
     </section>
 </template>
 
