@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { PokemonView } from '../components/index';
+import { PokemonView, SpinnerComponent } from '../components/index';
 import { storeToRefs } from 'pinia';
 import { usePokemonsStore } from '@/stores/pokemons';
 const pokemonStore = usePokemonsStore();
-const { pokemonsFiltered, isAllPokemonsLoad } = storeToRefs(pokemonStore);
+const { pokemonsFiltered, isAllPokemonsLoad, isLoading } = storeToRefs(pokemonStore);
 
 const scrollToLoad = 5000;
 const totalScroll = ref(scrollToLoad);
@@ -28,13 +28,16 @@ onUnmounted(() => {
 
 <template>
     <section class="flex flex-wrap">
-        <div
-            v-for="{ name, id, isReleased } in pokemonsFiltered"
-            class="w-4/8 md:w-3/8 p-4 m-auto"
-            :key="id"
-            :scroll="scrollHandlerEvent"
-        >
-            <PokemonView :id="id" :name="name" :isReleased="isReleased" class="w-32"/>
-        </div>
+        <SpinnerComponent v-if="isLoading" />
+        <template v-else>
+            <div
+                v-for="{ name, id, isReleased } in pokemonsFiltered"
+                class="w-4/8 md:w-3/8 p-4 m-auto"
+                :key="id"
+                :scroll="scrollHandlerEvent"
+            >
+                <PokemonView :id="id" :name="name" :isReleased="isReleased" class="w-32"/>
+            </div>
+        </template>
     </section>   
 </template>

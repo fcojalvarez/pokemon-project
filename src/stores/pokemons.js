@@ -6,8 +6,10 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     const releasedPokemons = Object.values( JSON.parse(localStorage.getItem('released_pokemon')) );
     const pokemonsTypes = Object.values( JSON.parse(localStorage.getItem('pokemon_types')));
     const isAllPokemonsLoad = computed(() => pokemons.value.length === pokemonsFiltered.value.length);
+
     const pokemons = ref([]);
     const pokemonsFiltered = ref([]);
+    const isLoading = ref(true);
 
     const getPokemonsToLS = () => {
         const allNamesPokemonsReleased = releasedPokemons.map( ({ name }) => name.toLowerCase() );
