@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 const isDarkModeLS = localStorage.getItem('isDarkMode');
 const isDarkMode = ref(JSON.parse(isDarkModeLS) || false);
-console.log(isDarkMode.value);
+
 const srcIcon = computed({
     get() {
         const icon = isDarkMode.value? 'lightbulb' : 'moon';  

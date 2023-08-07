@@ -20,7 +20,6 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             isReleased: allNamesPokemonsReleased.includes(name.toLowerCase())
         }) )
 
-        console.log(pokemonsTypes);
         pokemonsFiltered.value = [...pokemons.value]
     }
 

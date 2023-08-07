@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
-import { PokemonView, SpinnerComponent } from '../components/index';
+import { PokemonView, ScrollUpButton, SpinnerComponent } from '../components/index';
 import { storeToRefs } from 'pinia';
 import { usePokemonsStore } from '@/stores/pokemons';
 const pokemonStore = usePokemonsStore();
@@ -38,6 +38,7 @@ onUnmounted(() => {
             >
                 <PokemonView :id="id" :name="name" :isReleased="isReleased" class="w-32"/>
             </div>
+            <scroll-up-button />
         </template>
     </section>   
 </template>
