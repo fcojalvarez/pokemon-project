@@ -15,8 +15,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         pokemons.value = [...allPokemons].map( ({ id, name }) => ({
             id,
             name,
-            isReleased: allNamesPokemonsReleased.includes(name.toLowerCase()),
-            types: pokemonsTypes.filter( (pokemon_id, form ) => pokemon_id === id )
+            isReleased: allNamesPokemonsReleased.includes(name.toLowerCase())
         }) )
 
         console.log(pokemonsTypes);
@@ -43,9 +42,12 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             pokemonsFiltered.value.push(...pokemons.value.slice(lastLength, lastLength + 100))
         }
     }
+
+    const getPokemon = (id) => pokemons.value.find( poke => String(poke.id) === id);
   
     return {
         filterPokemons,
+        getPokemon,
         getPokemonsToScroll,
         isAllPokemonsLoad,
         pokemons,

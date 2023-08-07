@@ -15,6 +15,8 @@
         }
     })
 
+    const pokemonId = computed(() => props.id.toString().padStart(3, '0'))
+
     const goToPokemonPage = (pokemonId) => {
         pokemonId && router.push(`/pokemon/${pokemonId}`);
     }
@@ -22,7 +24,7 @@
 
 <template>
     <section
-        :class="[props.isReleased? 'cursor-pointer' : '', 'rounded-xl p-2 group']"
+        :class="[props.isReleased? 'cursor-pointer' : '', 'bg-white rounded-xl p-2 group']"
         @click="goToPokemonPage(props.id)"
     >   
         <img
@@ -31,12 +33,12 @@
             :class="[props.isReleased? 'group-hover:animate-bounce drop-shadow-[5px_5px_10px_#333]': 'grayscale opacity-40', 'w-24 h-24 mx-auto ']"
             loading="lazy"
         >
-        <div class="flex-row mt-2">
-            <span class="flex justify-center mb-2 font-semibold rounded bg-gray-500/30 mx-8">
-                {{ props.id }}
-            </span>
-            <span :class="[props.isReleased? 'group-hover:font-semibold' : '', 'text-center block']">
+        <div class="flex-row mt-2 text-gray-800 font-semibold">
+            <span :class="[props.isReleased? '' : 'line-through', 'font-semibold text-center block']">
                 {{ props.name }}
+            </span>
+            <span class="flex justify-center mb-2 mt-1 mx-8 font-semibold rounded bg-gray-500/30 text-xs">
+                #{{ pokemonId }}
             </span>
         </div>
     </section>
