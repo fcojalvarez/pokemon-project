@@ -5,9 +5,16 @@
     const props = defineProps({
         id: Number,
         isReleased: Boolean,
-        name: String
+        name: String,
+        types: Array
     })
     const router = useRouter();
+
+    const bgClass = computed({
+        get() {
+            return `bg-${props.types? props.types[0] : ''} bg-${props.types? props.types[1] : 'Fire'}`
+        }
+    })
 
     const pokemonImage = computed({
         get() {
@@ -27,6 +34,7 @@
         :class="[props.isReleased? 'cursor-pointer' : '', 'p-2 group']"
         @click="props.isReleased && goToPokemonPage(props.id)"
     >   
+    {{ props.types }}
         <img
             :src="pokemonImage"
             :alt="`${props.name} ${$t('image')}`"
@@ -40,6 +48,10 @@
             <span class="flex justify-center mb-2 mt-1 mx-8 py-1 font-semibold rounded bg-gray-500/30 text-xs">
                 #{{ pokemonId }}
             </span>
+        </div>
+        <div class="flex justify-between">
+            <div v-if="props.types && props.types[0]" :class="`h-3 w-3 rounded-full m-auto ${bgClass}`"></div>
+            <div v-if="props.types && props.types[1]" :class="`h-3 w-3 rounded-full m-auto ${bgClass}`"></div>
         </div>
     </section>
 </template>

@@ -31,12 +31,12 @@ onUnmounted(() => {
         <SpinnerComponent v-if="isLoading" />
         <template v-else>
             <div
-                v-for="{ name, id, isReleased } in pokemonsFiltered"
+                v-for="{ name, id, isReleased, types } in pokemonsFiltered"
                 class="w-4/8 md:w-3/8 p-4 m-auto"
                 :key="id"
                 :scroll="scrollHandlerEvent"
             >
-                <PokemonView :id="id" :name="name" :isReleased="isReleased" class="w-32"/>
+                <PokemonView :id="id" :name="name" :isReleased="isReleased" :types="types" class="w-32"/>
             </div>
             <scroll-up-button />
         </template>

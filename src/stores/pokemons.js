@@ -17,9 +17,10 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         pokemons.value = [...allPokemons].map( ({ id, name }) => ({
             id,
             name,
-            isReleased: allNamesPokemonsReleased.includes(name.toLowerCase())
+            isReleased: allNamesPokemonsReleased.includes(name.toLowerCase()),
+            types: pokemonsTypes.find( ({pokemon_id, form}) => pokemon_id === id && form === 'Normal' )?.type
         }) )
-
+        console.log(pokemons.value);
         pokemonsFiltered.value = [...pokemons.value]
     }
 
