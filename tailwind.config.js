@@ -3,6 +3,12 @@ module.exports = {
     darkMode: 'class', // or 'media' or 'class'
     theme: {
         extend: {
+            dropShadow: {
+                'svg': '0 3px 3px rgba(0, 0, 0, 0.2)',
+            },
+            lineHeight: {
+                'none': '0px',
+            },
             colors: {
                 'Grass': '#035c26',
                 'Poison': '#51069c',

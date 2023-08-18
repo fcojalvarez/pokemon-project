@@ -6,7 +6,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     const pokemons = ref([]);
     const pokemonsFiltered = ref([]);
     const isLoading = ref(false);
-    const { setJsonToLocalStorage, getJsonToLocalStorage } = useLocalStorage();
+    const { setJsonToLocalStorage } = useLocalStorage();
 
     
     const isAllPokemonsLoad = computed(() => pokemons.value.length === pokemonsFiltered.value.length);
@@ -25,14 +25,16 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             }
         } */
 
-        const allPokemons = Object.values( JSON.parse(localStorage.getItem('pokemon_names') ||'')) || [];
-        const releasedPokemons = Object.values( JSON.parse(localStorage.getItem('released_pokemon')) ) || [];
-        const allNamesPokemonsReleased = releasedPokemons.map( ({ name }) => name.toLowerCase() );
-        const pokemonsTypes = Object.values( JSON.parse(localStorage.getItem('pokemon_types'))) || [];
-        const pokemonsMoves = Object.values( JSON.parse(localStorage.getItem('current_pokemon_moves')) ) || [];
-        const pokemonsStats = Object.values( JSON.parse(localStorage.getItem('pokemon_stats')) ) || [];
-        const pokemonsMaxCP = Object.values( JSON.parse(localStorage.getItem('pokemon_max_cp')) ) || [];
 
+        const allPokemons = Object.values( JSON.parse(localStorage.getItem('pokemon_names') ));
+        const releasedPokemons = Object.values( JSON.parse(localStorage.getItem('released_pokemon') ));
+        const pokemonsTypes = Object.values( JSON.parse(localStorage.getItem('pokemon_types') ));
+        const pokemonsMoves = Object.values( JSON.parse(localStorage.getItem('current_pokemon_moves') ));
+        const pokemonsStats = Object.values( JSON.parse(localStorage.getItem('pokemon_stats') ));
+        const pokemonsMaxCP = Object.values( JSON.parse(localStorage.getItem('pokemon_max_cp') ));
+        const pokemonsShinies = Object.values( JSON.parse(localStorage.getItem('shiny_pokemon') ));
+        
+        const allNamesPokemonsReleased = releasedPokemons.map( ({ name }) => name.toLowerCase() );
         
         pokemons.value = [...allPokemons].map( ({ id, name }) => ({
             id,
@@ -42,9 +44,12 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             moves: getMovesFromPokemon(pokemonsMoves, id),
             stats: {
                 max_cp: pokemonsMaxCP.find( ({pokemon_id, form}) => pokemon_id === id && form === 'Normal' )?.max_cp,
-                ...getStatsFromPokemon(pokemonsStats, id)},
-
+                ...getStatsFromPokemon(pokemonsStats, id)
+            },
+            is_released_shiny: checkReleasedShiny(pokemonsShinies, id)
         }))
+
+        console.log(pokemons.value);
 
         setJsonToLocalStorage('all_pokemon_data', JSON.stringify(pokemons.value));
         pokemonsFiltered.value = [...pokemons.value];
@@ -74,6 +79,16 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             stamina: stats.base_stamina
         }
     }
+
+    const checkReleasedShiny = (dataArr, pokemonId) => {
+        const pokemon = dataArr.find( ({id}) => pokemonId === id);
+        if(!pokemon) return false;
+
+        const { id, name, ...shinyData } = pokemon; 
+
+
+        return pokemon && Object.values(shinyData).some(isShinyReleased => isShinyReleased)
+    } 
 
     const filterPokemons = (inputValue) => {
         const value = inputValue.toLowerCase().trim();
