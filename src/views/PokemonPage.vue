@@ -26,5 +26,7 @@ onMounted(() => {
         </button>
         
         <h1>POKEMON PAGE</h1> 
+
+        {{ pokemon }}
     </section>
 </template>
