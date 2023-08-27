@@ -17,7 +17,7 @@ export function useFetch() {
 
             if(status === status200) {
                 const fileName = endpoint.match(/\/([^/]+)\./)[1];
-                if(!endpoint.includes('hashes')) setJsonToLocalStorage(fileName , data);
+                if(!endpoint.includes('hashes')) return await setJsonToLocalStorage(fileName , data);
             }
             return response
         } catch (error) {

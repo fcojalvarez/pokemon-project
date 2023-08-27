@@ -24,21 +24,26 @@ const getHashesPogoApi = async() => {
   }
 }
 
-const checkHashesLocalToLS = (data, apiHashesJsonLS) => {
+const checkHashesLocalToLS = async(data, apiHashesJsonLS) => {
   let isNewContent = false;
-  Object.values(data).forEach( async({ api_filename, hash_md5, full_path }) => {
+  await Object.values(data).forEach( async({ api_filename, hash_md5, full_path }) => {
     const hashMd5Localstorage = apiHashesJsonLS && apiHashesJsonLS[api_filename]?.hash_md5;
     if(hashMd5Localstorage === hash_md5 ) return;
     await getPogoApi(full_path);
     isNewContent = true;
   });
-  setJsonToLocalStorage('api_hashes', data)
-  createPokemonData(isNewContent);
+
+  await setJsonToLocalStorage('api_hashes', data);
+
+    
+    createPokemonData(isNewContent);
+
 }
 
 onBeforeMount(async() => {
   await getHashesPogoApi();
-  const isDarkModeLS = JSON.parse(await getJsonToLocalStorage('isDarkMode')) || false;
+  
+  const isDarkModeLS = JSON.parse(await getJsonToLocalStorage('isDarkMode')) || true;
   isDarkModeLS && document.documentElement.classList.toggle('dark');
 })
 </script>

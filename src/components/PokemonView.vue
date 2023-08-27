@@ -17,7 +17,7 @@
         }
     })
 
-    const pokemonId = computed(() => props.id.toString().padStart(3, '0'))
+    const pokemonId = computed(() => props.id?.toString().padStart(3, '0'))
 
     const goToPokemonPage = (pokemonId) => {
         pokemonId && router.push(`/pokemon/${pokemonId}`);
@@ -40,7 +40,7 @@
             <span class="block leading-none">✦✦</span>
         </div>
         <div class="flex-row mt-1 text-gray-800 dark:text-gray-300 font-semibold">
-            <span class="flex justify-center mx-8 pt-1 font-semibold rounded text-xs">
+            <span v-if="pokemonId" class="flex justify-center mx-8 pt-1 font-semibold rounded text-xs">
                 #{{ pokemonId }}
             </span>
             <span :class="[props.isReleased? '' : 'line-through', 'font-semibold text-center block']">

@@ -4,6 +4,15 @@
 
 <template>
     <section class="flex gap-3 h-full">
+        <!-- <button
+            v-if="$route.name !== 'home'"
+            class="border border-gray-400 py-2 px-12 mb-12 rounded-xl shadow-md"
+            @click="$router.push('/')"
+        >
+            <span class="text-gray-800 dark:text-white">
+                {{ $t('back') }}
+            </span>
+        </button> -->
         <SearchBar class="w-8/12" />
         <ToogleDarkMode class="w-3/12 ml-auto cursor-pointer" />
     </section>
