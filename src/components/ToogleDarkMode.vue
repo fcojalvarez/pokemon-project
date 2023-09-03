@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 const isDarkModeLS = localStorage.getItem('isDarkMode');
-const isDarkMode = ref(JSON.parse(isDarkModeLS) || false);
+const isDarkMode = ref(JSON.parse(isDarkModeLS) || true);
 
 const srcIcon = computed({
     get() {
