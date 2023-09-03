@@ -36,8 +36,7 @@ const checkHashesLocalToLS = async(data, apiHashesJsonLS) => {
   await setJsonToLocalStorage('api_hashes', data);
 
     
-    createPokemonData(isNewContent);
-
+  createPokemonData(isNewContent);
 }
 
 onBeforeMount(async() => {
