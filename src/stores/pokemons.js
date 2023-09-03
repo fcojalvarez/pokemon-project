@@ -34,8 +34,8 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             id,
             name,
             isReleased: allNamesPokemonsReleased.includes(name.toLowerCase()),
-            types: pokemonsTypes.find( ({pokemon_id, form}) => pokemon_id === id && form === 'Normal')?.type,
-            is_released_shiny: checkReleasedShiny(pokemonsShinies, id)
+            /* types: pokemonsTypes.find( ({pokemon_id, form}) => pokemon_id === id && form === 'Normal')?.type,
+            is_released_shiny: checkReleasedShiny(pokemonsShinies, id) */
         }))
 
         setJsonToLocalStorage('all_pokemon_data', JSON.stringify(pokemons.value));

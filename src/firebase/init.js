@@ -1,16 +1,3 @@
-import { createApp } from 'vue';
-import { createPinia } from 'pinia';
-
-import App from './App.vue';
-import router from './router';
-
-// plugins
-import i18n from './plugins/i18n';
-
-import './assets/main.css';
-import './index.css';
-
-// Firebase
 import { initializeApp } from "firebase/app";
 // import { getAnalytics } from "firebase/analytics";
 
@@ -24,15 +11,5 @@ const firebaseConfig = {
   measurementId: "G-M5VVMK07SK"
 };
 
-// Initialize Firebase
-const firebase = initializeApp(firebaseConfig);
+initializeApp(firebaseConfig);
 // const analytics = getAnalytics(app);
-
-const app = createApp(App);
-
-app.use(createPinia());
-app.use(router);
-app.use(i18n);
-app.use(firebase);
-
-app.mount('#app');

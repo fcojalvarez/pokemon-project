@@ -6,7 +6,7 @@ import { usePokemonsStore } from '@/stores/pokemons';
 const pokemonStore = usePokemonsStore();
 const { pokemonsFiltered, isAllPokemonsLoad, isLoading } = storeToRefs(pokemonStore);
 
-const scrollToLoad = 5000;
+const scrollToLoad = 3000;
 const totalScroll = ref(scrollToLoad);
 
 const scrollHandlerEvent = () => {

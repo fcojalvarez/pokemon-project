@@ -41,7 +41,7 @@ const checkHashesLocalToLS = async(data, apiHashesJsonLS) => {
 }
 
 onBeforeMount(async() => {
-  await getHashesPogoApi();
+  // await getHashesPogoApi();
   
   const isDarkModeLS = JSON.parse(await getJsonToLocalStorage('isDarkMode')) || true;
   isDarkModeLS && document.documentElement.classList.toggle('dark');

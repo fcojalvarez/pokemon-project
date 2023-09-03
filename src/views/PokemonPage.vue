@@ -17,6 +17,5 @@ onMounted(() => {
 <template>
     <section class="min-h-screen px-16">
         
-
     </section>
 </template>
