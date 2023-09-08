@@ -27,6 +27,9 @@ module.exports = {
                 'Ghost': '#705e8c',
                 'Steel': '#ff0000',
                 'Dark': '#cccccc',
+            },
+            transitionProperty: {
+                'position': 'left, right' 
             }
         },
     },

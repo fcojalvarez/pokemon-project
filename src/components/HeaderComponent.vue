@@ -6,28 +6,54 @@
     const route = useRoute();
 
     const pokemonListRoute = 'PokemonList';
-    const isShowBackButton = ref(false);
+    const backButtonRef = ref(null);
 
     watch(route, async (newRoute, oldRoute) => {
-        isShowBackButton.value = newRoute.name !== pokemonListRoute;
+        if(newRoute.name !== pokemonListRoute) {
+            backButtonRef.value.classList.add('show-back-btn');
+            document.getElementById('search-bar').classList.add('search-bar-moved');
+        } else {
+            backButtonRef.value.classList.remove('show-back-btn');
+            document.getElementById('search-bar').classList.remove('search-bar-moved');
+        }
     })
 </script>
 
 <template>
-    <section class="flex gap-3 h-full">
+    <div class="relative h-16 flex gap-3">
         <button
-            v-if="isShowBackButton"
-            class="border border-gray-400 py-2 px-12 mb-12 rounded-xl shadow-md"
+            ref="backButtonRef"
+            class="h-100 w-2/12 sm:2-1/12 border border-gray-400 py-2 px-4 md:px-12 rounded-xl shadow-md absolute left-[-100%] transition-position duration-300"
             @click="$router.push('/')"
         >
-            <span class="text-gray-800 dark:text-white">
+            <div class="flex md:hidden justify-center items-center">
+                <svg width="20" height="20" fill="none" stroke-width="1.5" color="#000">
+                    <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" d="M21 12H3m0 0 8.5-8.5M3 12l8.5 8.5"/>
+                </svg>
+            </div>
+
+            <span class="hidden md:block text-gray-800 dark:text-white">
                 {{ $t('back') }}
             </span>
         </button>
-        <SearchBar class="w-8/12" />
-        <ToogleDarkMode class="w-3/12 ml-auto cursor-pointer" />
-    </section>
+
+        <SearchBar id="search-bar" class="w-6/12 md:w-7/12 xl:w-8/12 h-100 search-bar md:absolute left-0 transition-position duration-300" />
+
+        <ToogleDarkMode class="w-100 h-100 px-4 ml-auto cursor-pointer" />
+    </div>
 </template>
 
 <style scoped>
+.search-bar-moved {
+    left: 6rem;
+}
+.show-back-btn {
+    left: 0px;
+}
+@media(min-width: 648px) {
+    .search-bar-moved { left: 9rem; }
+}
+@media(min-width: 1024px) {
+    .search-bar-moved { left: 12rem; }
+}
 </style>

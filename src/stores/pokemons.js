@@ -1,28 +1,23 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { useLocalStorage, } from '../composables/localStorage';
+import { supabase } from '../lib/supabaseClient';
 
 export const usePokemonsStore = defineStore('pokemon', () => {
+    // STATE
     const pokemons = ref([]);
     const pokemonsFiltered = ref([]);
     const isLoading = ref(false);
     const { setJsonToLocalStorage, getObjectValuesFromLocalStorage } = useLocalStorage();
+    const pokemonTypes = ref([]);
 
+    // GETTERS
     const isAllPokemonsLoad = computed(() => pokemons.value.length === pokemonsFiltered.value.length);
+    const types = computed(() => pokemonTypes.value)
 
-    const createPokemonData = async(isNewContent = false) => {
+    //ACTIONS
+    const createPokemonData = async() => {
         isLoading.value = true;
-
-        if(!isNewContent) {
-            const pokemonData = JSON.parse(localStorage.getItem('all_pokemon_data'));
-            if(pokemonData) {
-                pokemons.value = [...pokemonData];
-                pokemonsFiltered.value = [...pokemons.value];
-                isLoading.value = false;
-                return;
-            }
-        }
-
         const allPokemons = await getObjectValuesFromLocalStorage('pokemon_names');
         const releasedPokemons = Object.values( JSON.parse(localStorage.getItem('released_pokemon') ));
         const pokemonsTypes = Object.values( JSON.parse(localStorage.getItem('pokemon_types') ));
@@ -98,7 +93,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     }
 
     const getPokemon = (id) => {
-        let pokemon = pokemons.value.find( poke => String(poke.id) === id);
+        /* let pokemon = pokemons.value.find( poke => String(poke.id) === id);
         
         const pokemonsMoves = Object.values( JSON.parse(localStorage.getItem('current_pokemon_moves') ));
         const pokemonsStats = Object.values( JSON.parse(localStorage.getItem('pokemon_stats') ));
@@ -113,16 +108,27 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             ...pokemon
         }
 
-        return pokemon;
+        return pokemon; */
     }
+
+    const getTypes = async() => {
+        const { data: types, error } = await supabase
+            .from('types')
+            .select('*')
+    }
+
+    // MUTATIONS
+    const setTypes = (typesArr) => types.value = typesArr;
   
     return {
         createPokemonData,
         filterPokemons,
         getPokemon,
         getPokemonsToScroll,
+        getTypes,
         isAllPokemonsLoad,
         isLoading,
+        types,
         pokemons,
         pokemonsFiltered
     }
