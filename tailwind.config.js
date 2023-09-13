@@ -29,7 +29,8 @@ module.exports = {
                 'Dark': '#cccccc',
             },
             transitionProperty: {
-                'position': 'left, right' 
+                'position': 'left, right, top, bottom',
+                'clip': 'clip-path'
             }
         },
     },

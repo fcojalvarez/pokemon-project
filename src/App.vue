@@ -1,48 +1,9 @@
 <script setup>
 import { onBeforeMount } from 'vue';
-import { storeToRefs } from 'pinia';
-
 import { HeaderComponent, SpinnerComponent } from './components/index';
-import { status200 } from './utils/Settings';
-import { useFetch } from './composables/fetch';
-import { useLocalStorage } from './composables/localStorage';
-import { usePokemonsStore } from './stores/pokemons';
 
-const { getPogoApi } = useFetch();
-const pokemonStore = usePokemonsStore();
-const { isLoading } = storeToRefs(pokemonStore);
-const { createPokemonData } = pokemonStore;
-const { getJsonToLocalStorage, setJsonToLocalStorage } = useLocalStorage();
-
-const getHashesPogoApi = async() => {
-  const { data, status } = await getPogoApi('/api/v1/api_hashes.json');
-  
-  if(status === status200) {
-    const apiHashesJsonLS = await getJsonToLocalStorage('api_hashes');
-
-    await checkHashesLocalToLS(data, apiHashesJsonLS);
-  }
-}
-
-const checkHashesLocalToLS = async(data, apiHashesJsonLS) => {
-  let isNewContent = false;
-  await Object.values(data).forEach( async({ api_filename, hash_md5, full_path }) => {
-    const hashMd5Localstorage = apiHashesJsonLS && apiHashesJsonLS[api_filename]?.hash_md5;
-    if(hashMd5Localstorage === hash_md5 ) return;
-    await getPogoApi(full_path);
-    isNewContent = true;
-  });
-
-  await setJsonToLocalStorage('api_hashes', data);
-
-    
-  createPokemonData(isNewContent);
-}
-
-onBeforeMount(async() => {
-  await getHashesPogoApi();
-  
-  const isDarkModeLS = JSON.parse(await getJsonToLocalStorage('isDarkMode')) || true;
+onBeforeMount(() => {
+  const isDarkModeLS = JSON.parse(localStorage.getItem('isDarkMode')) || true;
   isDarkModeLS && document.documentElement.classList.toggle('dark');
 })
 </script>
@@ -54,6 +15,7 @@ onBeforeMount(async() => {
     <section v-if="isLoading" class="flex justify-center items-center w-100 h-screen">
       <SpinnerComponent />
     </section>
+
     <RouterView v-else />
   </section>
 </template>

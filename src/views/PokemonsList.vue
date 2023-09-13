@@ -1,28 +1,13 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
-import { PokemonView, ScrollUpButton, SpinnerComponent } from '../components/index';
+import { onMounted } from 'vue';
+import { ItemPokemonList, ScrollUpButton, SpinnerComponent } from '../components/index';
 import { storeToRefs } from 'pinia';
 import { usePokemonsStore } from '@/stores/pokemons';
 const pokemonStore = usePokemonsStore();
-const { pokemonsFiltered, isAllPokemonsLoad, isLoading } = storeToRefs(pokemonStore);
+const { pokemons, isLoading } = storeToRefs(pokemonStore);
 
-const scrollToLoad = 3000;
-const totalScroll = ref(scrollToLoad);
+onMounted(async() => {
 
-const scrollHandlerEvent = () => {
-    if(isAllPokemonsLoad.value) return;
-
-    if(Math.round(window.pageYOffset) > totalScroll.value) {
-        totalScroll.value += scrollToLoad;
-        pokemonStore.getPokemonsToScroll(pokemonsFiltered.value.length );
-    }
-}
-
-onMounted(() => {
-    window.addEventListener('scroll', scrollHandlerEvent);
-})
-onUnmounted(() => {
-    window.removeEventListener('scroll', scrollHandlerEvent);
 })
 </script>
 
@@ -31,12 +16,12 @@ onUnmounted(() => {
         <SpinnerComponent v-if="isLoading" />
         <template v-else>
             <div
-                v-for="{ name, id, isReleased, types, is_released_shiny } in pokemonsFiltered"
+                v-for="{ id, name, pokemon_id, is_relased, types, sprites, is_shiny_relased } in pokemons"
                 class="w-4/8 md:w-3/8 p-4 m-auto"
                 :key="id"
                 :scroll="scrollHandlerEvent"
             >
-                <PokemonView :id="id" :name="name" :isReleased="isReleased" :types="types" :is_released_shiny="is_released_shiny" class="w-32"/>
+                <ItemPokemonList :id="pokemon_id" :image="sprites.male" :name="name" :is_relased="is_relased" :types="types" :is_shiny_relased="is_shiny_relased" class="w-32"/>
             </div>
             <scroll-up-button />
         </template>

@@ -1,135 +1,229 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
-import { useLocalStorage, } from '../composables/localStorage';
 import { supabase } from '../lib/supabaseClient';
+
+//
+/* import shinies from '../utils/shiny.json';
+import shiniesReleasedes from '../utils/shiny_released.json';
+import releasedes from '../utils/released.json';
+import pokemonDB from '../utils/latest.json';
+import pokemonMoves from '../utils/pokemon_moves.json';
+import pokemonTypesJSON from '../utils/types.json';
+import rarities from '../utils/rarity.json';
+import generations from '../utils/generations.json';
+import shadowPokemons from '../utils/shadow_pokemons.json';
+import genders from '../utils/genders.json'; */
+//
 
 export const usePokemonsStore = defineStore('pokemon', () => {
     // STATE
-    const pokemons = ref([]);
-    const pokemonsFiltered = ref([]);
-    const isLoading = ref(false);
-    const { setJsonToLocalStorage, getObjectValuesFromLocalStorage } = useLocalStorage();
+    const pokemonsState = ref([]);
+    const isLoadingPokemons = ref(false);
     const pokemonTypes = ref([]);
 
     // GETTERS
-    const isAllPokemonsLoad = computed(() => pokemons.value.length === pokemonsFiltered.value.length);
     const types = computed(() => pokemonTypes.value)
+    const pokemons = computed(() => pokemonsState.value)
+    const isLoading = computed(() => isLoadingPokemons.value)
 
     //ACTIONS
-    const createPokemonData = async() => {
-        isLoading.value = true;
-        const allPokemons = await getObjectValuesFromLocalStorage('pokemon_names');
-        const releasedPokemons = Object.values( JSON.parse(localStorage.getItem('released_pokemon') ));
-        const pokemonsTypes = Object.values( JSON.parse(localStorage.getItem('pokemon_types') ));
-        const pokemonsShinies = Object.values( JSON.parse(localStorage.getItem('shiny_pokemon') ));
-        
-        const allNamesPokemonsReleased = releasedPokemons.map( ({ name }) => name.toLowerCase() );
-        
-        pokemons.value = [...allPokemons].map( ({ id, name }) => {
-            if(id > 100) return;
-            return {id,
-            name,
-            isReleased: allNamesPokemonsReleased.includes(name.toLowerCase()),
-            types: pokemonsTypes.find( ({pokemon_id, form}) => pokemon_id === id && form === 'Normal')?.type,
-            is_released_shiny: checkReleasedShiny(pokemonsShinies, id)
-        }} )
-
-        setJsonToLocalStorage('all_pokemon_data', JSON.stringify(pokemons.value));
-        pokemonsFiltered.value = [...pokemons.value.splice(0,100)];
-        isLoading.value = false;
-    }
-
-    const getMovesFromPokemon = (pokemonsArr, pokemonIDToFound) => {
-        const pokemon = pokemonsArr.find( ({pokemon_id, form}) => pokemon_id === pokemonIDToFound && form === 'Normal' );
-        
-        if(!pokemon) return null;
-
-        return {
-            charged: pokemon.charged_moves,
-            elite_charged: pokemon.elite_charged_moves,
-            elite_fast: pokemon.elite_fast_moves,
-            fast: pokemon.fast_moves,
-        }
-    }
-
-    const getStatsFromPokemon = (dataArr, pokemonIdToFound) => {
-        const stats = dataArr.find( ({pokemon_id, form}) => pokemon_id === pokemonIdToFound && form === 'Normal');
-        if(!stats) return null;
-
-        return {
-            attack: stats.base_attack,
-            defense: stats.base_defense,
-            stamina: stats.base_stamina
-        }
-    }
-
-    const checkReleasedShiny = (dataArr, pokemonId) => {
-        const pokemon = dataArr.find( ({id}) => pokemonId === id);
-        if(!pokemon) return false;
-
-        const { id, name, ...shinyData } = pokemon; 
-
-
-        return pokemon && Object.values(shinyData).some(isShinyReleased => isShinyReleased)
-    } 
-
     const filterPokemons = (inputValue) => {
         const value = inputValue.toLowerCase().trim();
 
-        if(!value) {
-            pokemonsFiltered.value = pokemons.value.slice(0, 150);
+       /*  if(!value) {
+            pokemons.value = pokemons.value.slice(0, 150);
             return;
         }
         if(value.length > 2) {
             pokemonsFiltered.value = pokemons.value.filter( ({ name }) => name.toLowerCase().includes( value ));
             return;
-        }
+        } */
     }
 
-    const getPokemonsToScroll = (lastLength, isSearch = false, inputSearch = '') => {
-        if(!isSearch) {
-            pokemonsFiltered.value.push(...pokemons.value.slice(lastLength, lastLength + 100))
-        }
-    }
-
-    const getPokemon = (id) => {
-        /* let pokemon = pokemons.value.find( poke => String(poke.id) === id);
+    const getPokemons = async() => {
+        isLoadingPokemons.value = true;
+        const { data: pokemons, error } = await supabase.from('pokemons').select('*').range(0, 2);
         
-        const pokemonsMoves = Object.values( JSON.parse(localStorage.getItem('current_pokemon_moves') ));
-        const pokemonsStats = Object.values( JSON.parse(localStorage.getItem('pokemon_stats') ));
-        const pokemonsMaxCP = Object.values( JSON.parse(localStorage.getItem('pokemon_max_cp') ));
+        if(error) console.log(error);
+        
+        setPokemons([...pokemons]);
+        isLoadingPokemons.value = false;
+    }
 
-        pokemon = {
-            moves: getMovesFromPokemon(pokemonsMoves, id),
-            stats: {
-                max_cp: pokemonsMaxCP.find( ({pokemon_id, form}) => pokemon_id === id && form === 'Normal' )?.max_cp,
-                ...getStatsFromPokemon(pokemonsStats, id)
-            },
-            ...pokemon
-        }
 
-        return pokemon; */
+    const getPokemon = async(id) => {
+        if(!id) console.log('No se ha encontrado ID para buscar al pokemon.');
+        return pokemons.value.find( pokemon => pokemon.id === id );
     }
 
     const getTypes = async() => {
         const { data: types, error } = await supabase
             .from('types')
             .select('*')
+
+        setTypes(types);
     }
+
+    const createPokemonData = async() => {
+        const pokemonsArr = [];
+        const max_pokemons_actual = 1008;
+        const idPossibleDitto = [23, 92, 177, 283, 456, 506, 557, 684];
+        const idPvpExclusive = [619, 620];
+        const pokemonsLegendary = rarities.Legendary.map( x => x.pokemon_id);
+        const pokemonsMythic = rarities.Mythic.map( x => x.pokemon_id);
+        const gen1 = generations['Generation 1'].map(x => x.id);
+        const gen2 = generations['Generation 2'].map(x => x.id);
+        const gen3 = generations['Generation 3'].map(x => x.id);
+        const gen4 = generations['Generation 4'].map(x => x.id);
+        const gen5 = generations['Generation 5'].map(x => x.id);
+        const gen6 = generations['Generation 6'].map(x => x.id);
+        const gen7 = generations['Generation 7'].map(x => x.id);
+        const gen8 = generations['Generation 8'].map(x => x.id);
+        
+        for (let index = 1; index <= max_pokemons_actual; index++) {
+            const pokemon = {};
+            const search_key = `V${String(index).padStart(4, 0)}_POKEMON_`;
+            
+            const pokemonFromDB = await pokemonDB.find( x => x.templateId.startsWith(search_key) && x.data.pokemonSettings)?.data?.pokemonSettings;
+           
+            if(!pokemonFromDB) {console.log('Falta el pokemon con id: ',  index); continue}
+
+            const base_image_url = 'https://vtqaqsmlponqciuwqqcn.supabase.co/storage/v1/object/public/pokemon_sprites/';
+            
+            pokemon.pokemon_id = index;
+            pokemon.name = pokemonFromDB.pokemonId.toLowerCase();
+            pokemon.sprites = {
+                male: `${base_image_url}${index}/normal/male.png`,
+                male_shiny: `${base_image_url}${index}/normal/male_shiny.png`,
+                female: `${base_image_url}${index}/normal/female.png`,
+                female_shiny: `${base_image_url}${index}/normal/female_shiny.png`
+            }
+            pokemon.is_shiny_relased = Boolean(shiniesReleasedes[String(index)])
+            pokemon.is_relased = Boolean(releasedes[String(index)]);
+            if(shinies[index]) {
+                pokemon.shiny_found = {
+                    egg: shinies[index].found_egg,
+                    raid: shinies[index].found_raid,
+                    wild: shinies[index].found_photobomb,
+                    research: shinies[index].found_research,
+                    evolution: shinies[index].found_evolution,
+                    photobomb: shinies[index].found_photobomb
+                }
+            }
+            pokemon.is_possible_ditto = idPossibleDitto.includes(index)
+            pokemon.forms = [];
+            pokemon.stats = {
+                base_attack: pokemonFromDB.stats.baseAttack,
+                base_defense: pokemonFromDB.stats.baseDefense,
+                base_stamina: pokemonFromDB.stats.baseStamina
+            }
+            const movesPoke = pokemonMoves.find( ({pokemon_id}) => pokemon_id === index)
+
+            pokemon.moves = {
+                charged: movesPoke?.charged_moves.map( x => x.toLocaleLowerCase()) || [],
+                fast: movesPoke?.fast_moves.map( x => x.toLocaleLowerCase()) || [],
+                elite_charged: movesPoke?.elite_charged_moves.map( x => x.toLocaleLowerCase()) || [],
+                elite_fast: movesPoke?.elite_fast_moves.map( x => x.toLocaleLowerCase()) || [] 
+            }
+            pokemon.buddy = {
+                candy_distance: pokemonFromDB.kmBuddyDistance,
+                mega_distance: pokemonFromDB.kmBuddyDistance,
+                candy_rewards: 1,
+                mega_rewards: pokemonFromDB.buddyWalkedMegaEnergyAward
+            },
+            pokemon.pokemon_encounter_data = {
+                gender: {
+                    male_percent: genders.find(({pokemon_id, form}) => form === 'Normal' && pokemon_id === index )?.gender.male_percent || 0,
+                    female_percent: genders.find(({pokemon_id, form}) => form === 'Normal' && pokemon_id === index )?.gender.female_percent || 0
+                },
+                jump_time: pokemonFromDB.encounter.jumpTimeS,
+                attack_timer: pokemonFromDB.encounter.attackTimerS,
+                dodge_distance: pokemonFromDB.encounter.dodgeDistance,
+                dodge_duration: pokemonFromDB.encounter.dodgeDurationS,
+                movement_timer: pokemonFromDB.encounter.movementTimerS,
+                dodge_probability: pokemonFromDB.encounter.dodgeProbability,
+                attack_probabbility: pokemonFromDB.encounter.attackProbability,
+                max_pokemon_action_frequency: pokemonFromDB.encounter.maxPokemonActionFrequencyS,
+                min_pokemon_action_frequency: pokemonFromDB.encounter.minPokemonActionFrequencyS,
+                ob_shadow_form_base_capture_rate: pokemonFromDB.encounter.obShadowFormBaseCaptureRate || null,
+                ob_shadow_form_dodge_probability: pokemonFromDB.encounter.obShadowFormDodgeProbability || null,
+                ob_shadow_form_attack_probability: pokemonFromDB.encounter.obShadowFormAttackProbability || null
+            }
+            pokemon.types = pokemonTypesJSON.find( ({pokemon_id, form}) => pokemon_id === index && form === 'Normal')?.type;
+            pokemon.rarity = pokemonsLegendary.includes(index) ? 'legendary' : pokemonsMythic.includes(index) ? 'mythic': 'standard';
+            pokemon.generation = gen1.includes(index)? 1: gen2.includes(index)? 2 : gen3.includes(index)? 3 : gen4.includes(index)? 4 : gen5.includes(index)? 5 : gen6.includes(index)? 6 : gen7.includes(index)? 7 : gen8.includes(index)? 8 : 9;
+
+            pokemon.is_shadow_released = Object.keys(shadowPokemons).map( id => Number(id)).includes(index)
+            if(pokemon.is_shadow_released) {
+                pokemon.shadow_info = {
+                    candy_required_purification: pokemonFromDB.shadow.purificationCandyNeeded,
+                    stardust_required_purification: pokemonFromDB.shadow.purificationStardustNeeded,
+                    shadow_charge_move: pokemonFromDB.shadow.shadowChargeMove.toLocaleLowerCase(),
+                    purified_charge_move: pokemonFromDB.shadow.purifiedChargeMove.toLocaleLowerCase()
+                }
+            }
+            pokemon.is_pvp_exclusive = idPvpExclusive.includes(index)
+            pokemon.evolution_info = []
+            pokemon.third_move = {
+                startdust_required: pokemonFromDB.thirdMove.stardustToUnlock,
+                candy_required: pokemonFromDB.thirdMove.candyToUnlock
+            }
+            pokemon.is_tradeable = pokemonFromDB.isTradable
+            pokemon.is_transferable = pokemonFromDB.isTransferable
+            pokemon.is_deployable = pokemonFromDB.isDeployable
+          
+            /* const idsError = [];
+            const { data, error } = await supabase.from('pokemons').insert({
+                pokemon_id: index,
+                name: pokemon.name,
+                sprites: pokemon.sprites,
+                is_shiny_relased: pokemon.is_shiny_relased,
+                is_relased: pokemon.is_relased,
+                shiny_found: pokemon.shiny_found,
+                is_raid_exclusive: pokemon.is_raid_exclusive,
+                is_possible_ditto: pokemon.is_possible_ditto,
+                forms: pokemon.forms,
+                stats: pokemon.stats,
+                moves: pokemon.moves,
+                buddy: pokemon.buddy,
+                pokemon_encounter_data: pokemon.pokemon_encounter_data,
+                types: pokemon.types,
+                rarity: pokemon.rarity,
+                generation: pokemon.generation,
+                is_shadow_released: pokemon.is_shadow_released,
+                shadow_info: pokemon.shadow_info,
+                is_pvp_exclusive: pokemon.is_pvp_exclusive,
+                evolution_info: pokemon.evolution_info,
+                third_move: pokemon.third_move,
+                is_tradeable: pokemon.is_tradeable,
+                is_transferable: pokemon.is_transferable,
+                is_deployable: pokemon.is_deployable,
+            })
+
+            if(error) {
+                idsError.push(index)
+            }; 
+            console.log(idsError)
+            */
+
+            pokemonsArr.push(pokemon);
+        }
+    }
+
+    // createPokemonData()
 
     // MUTATIONS
     const setTypes = (typesArr) => types.value = typesArr;
+
+    const setPokemons = (pokemonsArr) => pokemonsState.value = [...pokemonsArr];
   
     return {
-        createPokemonData,
         filterPokemons,
         getPokemon,
-        getPokemonsToScroll,
+        getPokemons,
         getTypes,
-        isAllPokemonsLoad,
         isLoading,
         types,
-        pokemons,
-        pokemonsFiltered
+        pokemons
     }
   })

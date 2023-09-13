@@ -8,7 +8,7 @@
     const pokemonListRoute = 'PokemonList';
     const backButtonRef = ref(null);
 
-    watch(route, async (newRoute, oldRoute) => {
+    watch(route, async (newRoute) => {
         if(newRoute.name !== pokemonListRoute) {
             backButtonRef.value.classList.add('show-back-btn');
             document.getElementById('search-bar').classList.add('search-bar-moved');
@@ -23,7 +23,7 @@
     <div class="relative h-16 flex gap-3">
         <button
             ref="backButtonRef"
-            class="h-100 w-2/12 sm:2-1/12 border border-gray-400 py-2 px-4 md:px-12 rounded-xl shadow-md absolute left-[-100%] transition-position duration-300"
+            class="h-100 w-2/12 md:max-w-[150px] border border-gray-400 py-2 px-4 md:px-12 rounded-xl shadow-md absolute left-[-100%] transition-position duration-300"
             @click="$router.push('/')"
         >
             <div class="flex md:hidden justify-center items-center">
@@ -37,7 +37,7 @@
             </span>
         </button>
 
-        <SearchBar id="search-bar" class="w-6/12 md:w-7/12 xl:w-8/12 h-100 search-bar md:absolute left-0 transition-position duration-300" />
+        <SearchBar id="search-bar" class="w-6/12 md:w-7/12 xl:w-8/12 md:max-w-lg h-100 search-bar md:absolute left-0 transition-position duration-300" />
 
         <ToogleDarkMode class="w-100 h-100 px-4 ml-auto cursor-pointer" />
     </div>
