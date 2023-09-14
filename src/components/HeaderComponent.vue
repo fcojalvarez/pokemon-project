@@ -2,7 +2,10 @@
     import { ref, watch } from 'vue';
     import { useRoute } from 'vue-router';
     import { SearchBar, ToogleDarkMode } from './index';
+    import { useMainStore } from '../stores/main';
+    import { storeToRefs } from 'pinia';
 
+    const { isDarkMode } = storeToRefs(useMainStore);
     const route = useRoute();
 
     const pokemonListRoute = 'PokemonList';
@@ -23,12 +26,12 @@
     <div class="relative h-16 flex gap-3">
         <button
             ref="backButtonRef"
-            class="h-100 w-2/12 md:max-w-[150px] border border-gray-400 py-2 px-4 md:px-12 rounded-xl shadow-md absolute left-[-100%] transition-position duration-300"
+            class="h-100 w-2/12 md:max-w-[150px] border border-gray-400 py-2 px-4 md:px-12 rounded-xl shadow-md absolute left-[-100%] transition-position duration-300 bg-white dark:bg-gray-900"
             @click="$router.push('/')"
         >
             <div class="flex md:hidden justify-center items-center">
                 <svg width="20" height="20" fill="none" stroke-width="1.5" color="#000">
-                    <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" d="M21 12H3m0 0 8.5-8.5M3 12l8.5 8.5"/>
+                    <path :stroke="isDarkMode?'#fff':'#ccc'" stroke-linecap="round" stroke-linejoin="round" d="M21 12H3m0 0 8.5-8.5M3 12l8.5 8.5"/>
                 </svg>
             </div>
 
@@ -46,6 +49,7 @@
 <style scoped>
 .search-bar-moved {
     left: 6rem;
+    width: 60%;
 }
 .show-back-btn {
     left: 0px;

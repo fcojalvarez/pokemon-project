@@ -1,7 +1,11 @@
 <script setup>
-import { ref, computed } from 'vue';
-const isDarkModeLS = localStorage.getItem('isDarkMode');
-const isDarkMode = ref(JSON.parse(isDarkModeLS) || true);
+import { computed, onBeforeMount } from 'vue';
+import { useMainStore } from '../stores/main';
+import { storeToRefs } from 'pinia';
+
+const mainStore = useMainStore();
+const { isDarkMode } = storeToRefs(mainStore);
+const { setDarkMode } = mainStore;
 
 const srcIcon = computed({
     get() {
@@ -12,10 +16,19 @@ const srcIcon = computed({
 })
 
 const toggleDarkMode = () => {
-    isDarkMode.value = !isDarkMode.value;
-    localStorage.setItem('isDarkMode', isDarkMode.value);
+    setDarkMode(!isDarkMode.value);
     document.documentElement.classList.toggle('dark');
 }
+
+onBeforeMount(() => {
+    const isDarkModeLS = JSON.parse(localStorage.getItem('isDarkMode'));
+    if( isDarkModeLS === null ) {
+        setDarkMode(false);
+    } else {
+        setDarkMode(isDarkModeLS);
+    }
+    document.documentElement.classList.toggle('dark', isDarkMode.value);
+})
 </script>
 
 <template>
