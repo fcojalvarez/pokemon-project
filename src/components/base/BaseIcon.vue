@@ -1,6 +1,6 @@
 <template>
     <svg :viewBox="viewBox" :class="`group ${iconClass}`" :width="width" :height="height" :fill="fill" :stroke-width="strokeWidth" :color="color">
-        <path class="group-hover:drop-shadow-svg" :stroke="color" :d="d"/>
+        <path :class="`group-hover:drop-shadow-svg ${classPath}`" fill-rule="evenodd" :stroke="color" :fill="fillPath" :d="d"/>
     </svg>
 </template>
   
@@ -30,9 +30,17 @@ defineProps({
         type: String,
         default: '0 0 24 24'
     },
-    iconClass: String,
-    strokeWidth: Number,
-    withHover: Boolean
+    strokeWidth: {
+        type: Number,
+        default: 1.5
+    },
+    iconClass: {
+        type: String,
+        default: ''
+    },
+    classPath: String,
+    withHover: Boolean,
+    fillPath: String
 });
 
 </script>

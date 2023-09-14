@@ -1,7 +1,7 @@
 <script setup>
     import { ref, watch } from 'vue';
     import { useRoute } from 'vue-router';
-    import { SearchBar, ToogleDarkMode } from './index';
+    import { SearchBar, ToogleDarkMode, BaseIcon } from './index';
     import { useMainStore } from '../stores/main';
     import { storeToRefs } from 'pinia';
 
@@ -30,9 +30,11 @@
             @click="$router.push('/')"
         >
             <div class="flex md:hidden justify-center items-center">
-                <svg width="20" height="20" fill="none" stroke-width="1.5" color="#000">
-                    <path :stroke="isDarkMode?'#fff':'#ccc'" stroke-linecap="round" stroke-linejoin="round" d="M21 12H3m0 0 8.5-8.5M3 12l8.5 8.5"/>
-                </svg>
+                <base-icon
+                    width="20" height="20"
+                    stroke-width="1.5" :color="isDarkMode?'#fff':'#ccc'"
+                    d="M21 12H3m0 0 8.5-8.5M3 12l8.5 8.5"
+                />
             </div>
 
             <span class="hidden md:block text-gray-800 dark:text-white">

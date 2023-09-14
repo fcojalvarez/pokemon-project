@@ -4,19 +4,21 @@ module.exports = {
     theme: {
         extend: {
             dropShadow: {
-                'svg': '0 3px 3px rgba(0, 0, 0, 0.2)',
+                'svg': '2px 2px 4px rgba(0, 0, 0, 0.4)',
+                'pokemon_dark': '3px -7px 5px #333333',
+                'pokemon_light': '3px -7px 5px #33333370'
             },
             lineHeight: {
                 'none': '0px',
             },
             colors: {
-                'Grass': '#035c26',
+                'Grass': '#5fb955',
                 'Poison': '#51069c',
                 'Water': '#06099c',
                 'Fire': '#ff0000',
                 'Flying': '#c8c9fa',
-                'Bug': '#26ff8f',
-                'Normal': '#ffffff',
+                'Bug': '#93c22e',
+                'Normal': '#8f98a0',
                 'Ground': '#6e2c13',
                 'Electric': '#d9ff00',
                 'Fairy': '#dca1ff',
@@ -26,12 +28,12 @@ module.exports = {
                 'Ice': '#80b7ff',
                 'Ghost': '#705e8c',
                 'Steel': '#ff0000',
-                'Dark': '#cccccc',
+                'Dark': '#5d596b',
             },
             transitionProperty: {
                 'position': 'left, right, top, bottom',
                 'clip': 'clip-path'
-            }
+            },
         },
     },
     variants: {
