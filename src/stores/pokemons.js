@@ -3,50 +3,62 @@ import { defineStore } from 'pinia';
 import { supabase } from '../lib/supabaseClient';
 
 //
-/* import shinies from '../utils/shiny.json';
-import shiniesReleasedes from '../utils/shiny_released.json';
-import releasedes from '../utils/released.json';
-import pokemonDB from '../utils/latest.json';
-import pokemonMoves from '../utils/pokemon_moves.json';
-import pokemonTypesJSON from '../utils/types.json';
-import rarities from '../utils/rarity.json';
-import generations from '../utils/generations.json';
-import shadowPokemons from '../utils/shadow_pokemons.json';
-import genders from '../utils/genders.json'; */
+// import shinies from '../utils/shiny.json';
+// import shiniesReleasedes from '../utils/shiny_released.json';
+// import releasedes from '../utils/released.json';
+// import pokemonDB from '../utils/latest.json';
+// import pokemonMoves from '../utils/pokemon_moves.json';
+// import rarities from '../utils/rarity.json';
+// import generations from '../utils/generations.json';
+// import shadowPokemons from '../utils/shadow_pokemons.json';
+// import genders from '../utils/genders.json';
 //
 
 export const usePokemonsStore = defineStore('pokemon', () => {
     // STATE
-    const pokemonsState = ref([]);
+    const pokemonList = ref([]);
     const isLoadingPokemons = ref(false);
     const pokemonTypes = ref([]);
+    const pokemonsFiltered = ref([]);
 
     // GETTERS
-    const types = computed(() => pokemonTypes.value)
-    const pokemons = computed(() => pokemonsState.value)
-    const isLoading = computed(() => isLoadingPokemons.value)
+    const types = computed(() => pokemonTypes.value);
+    const pokemons = computed(() => pokemonsFiltered.value);
+    const isLoading = computed(() => isLoadingPokemons.value);
+    const allPokemons = computed(() => pokemonList.value)
 
     //ACTIONS
-    const filterPokemons = (inputValue) => {
+    const filterPokemons = async(inputValue) => {
         const value = inputValue.toLowerCase().trim();
 
-       /*  if(!value) {
-            pokemons.value = pokemons.value.slice(0, 150);
+        if(!value) {
+            pokemonsFiltered.value = pokemonList.value.slice(0, 100);
             return;
         }
         if(value.length > 2) {
-            pokemonsFiltered.value = pokemons.value.filter( ({ name }) => name.toLowerCase().includes( value ));
+            const { data: pokemons } = await supabase.from('pokemons').select('*').filter('name', 'ilike', `%${value}%`);
+            pokemonsFiltered.value = pokemons;
             return;
-        } */
+        }
     }
 
-    const getPokemons = async() => {
+    const getPokemons = async(range = { start: 0, end: 150}) => {
         isLoadingPokemons.value = true;
-        const { data: pokemons, error } = await supabase.from('pokemons').select('*').range(0, 2);
+        const { data: pokemons, error } = await supabase.from('pokemons').select('*').order('pokemon_id', { ascending: true }).range(range.start, range.end);
         
         if(error) console.log(error);
         
         setPokemons([...pokemons]);
+        isLoadingPokemons.value = false;
+    }
+
+    const addPokemons = async(range = { start: 0, end: 150}) => {
+        isLoadingPokemons.value = true;
+        const { data: pokemons, error } = await supabase.from('pokemons').select('*').order('pokemon_id', { ascending: true }).range(range.start, range.end);
+        
+        if(error) console.log(error);
+        
+        setAddPokemons([...pokemons]);
         isLoadingPokemons.value = false;
     }
 
@@ -57,7 +69,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     }
 
     const getTypes = async() => {
-        const { data: types, error } = await supabase
+        const { data: types } = await supabase
             .from('types')
             .select('*')
 
@@ -79,6 +91,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         const gen6 = generations['Generation 6'].map(x => x.id);
         const gen7 = generations['Generation 7'].map(x => x.id);
         const gen8 = generations['Generation 8'].map(x => x.id);
+        const idsError = [];
         
         for (let index = 1; index <= max_pokemons_actual; index++) {
             const pokemon = {};
@@ -87,17 +100,10 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             const pokemonFromDB = await pokemonDB.find( x => x.templateId.startsWith(search_key) && x.data.pokemonSettings)?.data?.pokemonSettings;
            
             if(!pokemonFromDB) {console.log('Falta el pokemon con id: ',  index); continue}
-
-            const base_image_url = 'https://vtqaqsmlponqciuwqqcn.supabase.co/storage/v1/object/public/pokemon_sprites/';
             
             pokemon.pokemon_id = index;
-            pokemon.name = pokemonFromDB.pokemonId.toLowerCase();
-            pokemon.sprites = {
-                male: `${base_image_url}${index}/normal/male.png`,
-                male_shiny: `${base_image_url}${index}/normal/male_shiny.png`,
-                female: `${base_image_url}${index}/normal/female.png`,
-                female_shiny: `${base_image_url}${index}/normal/female_shiny.png`
-            }
+            const pokemonName = pokemonFromDB.pokemonId.toLowerCase().replace('_', ' ');
+            pokemon.name = pokemonName.charAt(0).toUpperCase() + pokemonName.slice(1);
             pokemon.is_shiny_relased = Boolean(shiniesReleasedes[String(index)])
             pokemon.is_relased = Boolean(releasedes[String(index)]);
             if(shinies[index]) {
@@ -118,7 +124,6 @@ export const usePokemonsStore = defineStore('pokemon', () => {
                 base_stamina: pokemonFromDB.stats.baseStamina
             }
             const movesPoke = pokemonMoves.find( ({pokemon_id}) => pokemon_id === index)
-
             pokemon.moves = {
                 charged: movesPoke?.charged_moves.map( x => x.toLocaleLowerCase()) || [],
                 fast: movesPoke?.fast_moves.map( x => x.toLocaleLowerCase()) || [],
@@ -149,17 +154,23 @@ export const usePokemonsStore = defineStore('pokemon', () => {
                 ob_shadow_form_dodge_probability: pokemonFromDB.encounter.obShadowFormDodgeProbability || null,
                 ob_shadow_form_attack_probability: pokemonFromDB.encounter.obShadowFormAttackProbability || null
             }
-            pokemon.types = pokemonTypesJSON.find( ({pokemon_id, form}) => pokemon_id === index && form === 'Normal')?.type;
             pokemon.rarity = pokemonsLegendary.includes(index) ? 'legendary' : pokemonsMythic.includes(index) ? 'mythic': 'standard';
             pokemon.generation = gen1.includes(index)? 1: gen2.includes(index)? 2 : gen3.includes(index)? 3 : gen4.includes(index)? 4 : gen5.includes(index)? 5 : gen6.includes(index)? 6 : gen7.includes(index)? 7 : gen8.includes(index)? 8 : 9;
-
+            pokemon.sprites = {
+                male: pokemon.generation === 9
+                    ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${index}.png`
+                    : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${index}.png`,
+                male_shiny: pokemon.generation === 9
+                    ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${index}.png`
+                    : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${index}.png`,
+            }
             pokemon.is_shadow_released = Object.keys(shadowPokemons).map( id => Number(id)).includes(index)
             if(pokemon.is_shadow_released) {
                 pokemon.shadow_info = {
                     candy_required_purification: pokemonFromDB.shadow.purificationCandyNeeded,
                     stardust_required_purification: pokemonFromDB.shadow.purificationStardustNeeded,
-                    shadow_charge_move: pokemonFromDB.shadow.shadowChargeMove.toLocaleLowerCase(),
-                    purified_charge_move: pokemonFromDB.shadow.purifiedChargeMove.toLocaleLowerCase()
+                    shadow_charge_move: pokemonFromDB.shadow.shadowChargeMove.toLowerCase(),
+                    purified_charge_move: pokemonFromDB.shadow.purifiedChargeMove.toLowerCase()
                 }
             }
             pokemon.is_pvp_exclusive = idPvpExclusive.includes(index)
@@ -171,8 +182,16 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             pokemon.is_tradeable = pokemonFromDB.isTradable
             pokemon.is_transferable = pokemonFromDB.isTransferable
             pokemon.is_deployable = pokemonFromDB.isDeployable
+            pokemon.types = (function() { 
+                const types = [];
+
+                types.push(pokemonFromDB.type.substr(13).toLowerCase())
+                if(pokemonFromDB.type2) {
+                    types.push(pokemonFromDB.type2.substr(13).toLowerCase())
+                }
+                return types;
+            })()
           
-            /* const idsError = [];
             const { data, error } = await supabase.from('pokemons').insert({
                 pokemon_id: index,
                 name: pokemon.name,
@@ -196,28 +215,40 @@ export const usePokemonsStore = defineStore('pokemon', () => {
                 evolution_info: pokemon.evolution_info,
                 third_move: pokemon.third_move,
                 is_tradeable: pokemon.is_tradeable,
-                is_transferable: pokemon.is_transferable,
-                is_deployable: pokemon.is_deployable,
+                is_transferable: pokemon.is_transferable
             })
 
             if(error) {
                 idsError.push(index)
             }; 
-            console.log(idsError)
-            */
-
+            
+            
             pokemonsArr.push(pokemon);
         }
+        console.log(idsError)
     }
+    // createPokemonData();
 
-    // createPokemonData()
 
     // MUTATIONS
     const setTypes = (typesArr) => types.value = typesArr;
 
-    const setPokemons = (pokemonsArr) => pokemonsState.value = [...pokemonsArr];
+    const setPokemons = (pokemonsArr) => {
+        pokemonList.value = [...pokemonsArr];
+        pokemonsFiltered.value = [...pokemonsArr];
+    }
+
+    const setAddPokemons = (pokemonsArr) => {
+        pokemonsArr.forEach(poke => {
+            pokemonList.value.push(poke);
+            pokemonsFiltered.value.push(poke);
+            
+        });
+    }
   
     return {
+        addPokemons,
+        allPokemons,
         filterPokemons,
         getPokemon,
         getPokemons,

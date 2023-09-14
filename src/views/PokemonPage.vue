@@ -1,15 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
-import { storeToRefs } from 'pinia';
-import { usePokemonsStore } from '../stores/pokemons';
+import { ref } from 'vue';
 import { PokemonEdit, PokemonView } from '../components/index';
 
-const route = useRoute();
-const pokemonStore = usePokemonsStore();
-const { pokemons } = storeToRefs(pokemonStore);
-
-const pokemon = ref(null);
 const isEdit = ref(false);
 
 const editPokemonHandler = () => {
@@ -19,11 +11,6 @@ const editPokemonHandler = () => {
 const backToView = () => {
     isEdit.value = false;
 }
-
-onMounted(async() => {
-    const pokemonId = Number(route.params.id);
-    pokemon.value = pokemons.value.find( pokemon => pokemon.pokemon_id === pokemonId );
-})
 </script>
 
 <template>
@@ -43,7 +30,7 @@ onMounted(async() => {
             class="pokemon-edit transition-clip duration-300"
             :class="{'pokemon-edit-show': isEdit}"
         >
-           <PokemonEdit :pokemon="pokemon"/>
+           <PokemonEdit/>
         </section>
     </section>
 </template>
