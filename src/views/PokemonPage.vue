@@ -27,11 +27,11 @@ onMounted(async() => {
 </script>
 
 <template>
-    <section class="flex">
+    <!-- <section class="flex">
         <button @click="isEdit? backToView() : editPokemonHandler()" class="bg-blue-300 py-4 px-20 rounded mx-auto block mb-10">
             {{ isEdit? 'CANCELAR' : 'EDITAR' }}
         </button>
-    </section>
+    </section> -->
     <section class="min-h-screen w-max-[900px] px-16 overflow-hidden">
         <section 
             class="pokemon-view transition-clip duration-300"

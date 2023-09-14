@@ -32,12 +32,12 @@ onBeforeMount(() => {
 </script>
 
 <template>
-    <section class="transition-colors h-100 max-w-[50px] md:max-w-[150px] flex justify-center items-center cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900" @click="toggleDarkMode">
+    <section class="transition-colors h-100 max-w-[50px] md:max-w-[150px] flex justify-center items-center cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 w-40 md:w-auto" @click="toggleDarkMode">
         <base-icon
             :stroke-width="1.5"
             width="20"
             height="20"
-            icon-class="p-0 m-0 md:mb-auto md:mt-2 md:mx-2"
+            icon-class="md:mb-auto md:mt-2 md:mx-2 absolute md:relative"
             class-path="stroke-gray-600 dark:stroke-gray-100"
             :d="icon"
         />

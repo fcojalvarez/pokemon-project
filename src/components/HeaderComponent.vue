@@ -23,13 +23,13 @@
 </script>
 
 <template>
-    <div class="relative h-16 flex gap-3">
+    <div class="relative h-20 md:h-16 flex gap-3">
         <button
             ref="backButtonRef"
             class="h-100 w-2/12 md:max-w-[150px] border border-gray-400 py-2 px-4 md:px-12 rounded-xl shadow-md absolute left-[-100%] transition-position duration-300 bg-white dark:bg-gray-900"
             @click="$router.push('/')"
         >
-            <div class="flex md:hidden justify-center items-center">
+            <div class="flex md:hidden justify-center items-center h-9">
                 <base-icon
                     width="20" height="20"
                     stroke-width="1.5" :color="isDarkMode?'#fff':'#666'"
@@ -51,7 +51,7 @@
 <style scoped>
 .search-bar-moved {
     left: 6rem;
-    width: 60%;
+    width: 50%;
 }
 .show-back-btn {
     left: 0px;
