@@ -32,7 +32,7 @@
             :class="[props.is_relased? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark': 'grayscale opacity-40', 'z-10 w-24 h-24 mx-auto ']"
             loading="lazy"
         >
-        <div v-if="props.is_shiny_relased" class="text-center text-sm absolute top-0 right-0 text-gray-700 dark:text-gray-400">
+        <div v-if="props.is_shiny_relased" class="text-center text-sm absolute top-2 right-9 z-20 text-gray-500 dark:text-gray-200">
             <span>✦</span>
             <span class="block leading-none">✦✦</span>
         </div>

@@ -22,7 +22,7 @@ const backToView = () => {
 
 onMounted(async() => {
     const pokemonId = Number(route.params.id);
-    pokemon.value = pokemons.value.find( pokemon => pokemon.id === pokemonId );
+    pokemon.value = pokemons.value.find( pokemon => pokemon.pokemon_id === pokemonId );
 })
 </script>
 

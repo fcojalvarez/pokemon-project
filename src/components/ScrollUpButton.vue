@@ -1,5 +1,5 @@
 <template>
-    <div class="top-button sticky bg-gray-600 dark:bg-white shadow rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer" :class="{'show-top-button': isShowButton}" @click="scrollToUp">
+    <div class="top-button fixed bg-gray-600 dark:bg-white shadow rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer right-10" :class="{'show-top-button': isShowButton}" @click="scrollToUp">
         <base-icon
             width="24px" height="24px"
             :stroke-width="3"

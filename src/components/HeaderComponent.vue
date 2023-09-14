@@ -32,7 +32,7 @@
             <div class="flex md:hidden justify-center items-center">
                 <base-icon
                     width="20" height="20"
-                    stroke-width="1.5" :color="isDarkMode?'#fff':'#ccc'"
+                    stroke-width="1.5" :color="isDarkMode?'#fff':'#666'"
                     d="M21 12H3m0 0 8.5-8.5M3 12l8.5 8.5"
                 />
             </div>

@@ -37,7 +37,7 @@ onBeforeMount(() => {
             :stroke-width="1.5"
             width="20"
             height="20"
-            icon-class="mb-auto mt-2 mx-2"
+            icon-class="p-0 m-0 md:mb-auto md:mt-2 md:mx-2"
             class-path="stroke-gray-600 dark:stroke-gray-100"
             :d="icon"
         />
