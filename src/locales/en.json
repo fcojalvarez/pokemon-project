@@ -1,6 +1,21 @@
 {
+    "madeWith": "Made with",
+    "from": "from", 
+    "and": "and",
     "back": "Back",
     "image": "Image",
-    "light": "Light",
-    "searchPokemon": "Search pokemon..."
+    "darkMode": "Dark mode",
+    "lightMode": "Light mode",
+    "thanksTo": "Thanks to",
+    "searchPokemon": "Search pokemon...",
+    "attack": "Attack",
+    "defense": "Defense",
+    "stamina": "Stamina",
+    "maxCP": "Max. CP",
+    "megaenergy": "Megaenergy",
+    "candy": "Candy | Candies",
+    "each": "each",
+    "encounterData": "Encounter data",
+    "stats": "Stats",
+    "viewShiny": "View shiny"
 }

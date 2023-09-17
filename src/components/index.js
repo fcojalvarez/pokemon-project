@@ -1,11 +1,11 @@
-import HeaderComponent from './HeaderComponent.vue';
+import FooterComponent from './shared/FooterComponent.vue';
+import HeaderComponent from './shared/HeaderComponent.vue';
 import ItemPokemonList from './ItemPokemonList.vue';
-import PokemonEdit from './PokemonEdit.vue';
 import PokemonView from './PokemonView.vue';
 import ScrollUpButton from './ScrollUpButton.vue';
 import SearchBar from './SearchBar.vue';
 import SpinnerComponent from './SpinnerComponent.vue';
-import ToogleDarkMode from './ToogleDarkMode.vue';
+import ToggleDarkMode from './ToggleDarkMode.vue';
 import BaseInput from './base/BaseInput.vue';
 import BaseCheckbox from './base/BaseCheckbox.vue';
 import BaseButton from './base/BaseButton.vue';
@@ -16,6 +16,7 @@ import BaseIcon from './base/BaseIcon.vue';
 
 
 export {
+    FooterComponent,
     HeaderComponent,
     BaseIcon,
     BaseSpinner,
@@ -25,10 +26,9 @@ export {
     BaseCheckbox,
     BaseInputImage,
     ItemPokemonList,
-    PokemonEdit,
     PokemonView,
     ScrollUpButton,
     SearchBar,
     SpinnerComponent,
-    ToogleDarkMode
+    ToggleDarkMode
 }

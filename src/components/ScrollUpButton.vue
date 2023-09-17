@@ -1,10 +1,14 @@
 <template>
-    <div class="top-button fixed bg-gray-600 dark:bg-white shadow rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer right-10" :class="{'show-top-button': isShowButton}" @click="scrollToUp">
+    <div
+        class="top-button animate-bounce fixed bg-white dark:bg-gray-900 shadow-xl rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer right-10 border border-gray-400 dark:border-gray-150 hover:bg-gray-150 hover:dark:bg-gray-800"
+        :class="{'show-top-button': isShowButton}"
+        @click="scrollToUp"
+    >
         <base-icon
             width="24px" height="24px"
             :stroke-width="3"
             d="M12 21V3m0 0l8.5 8.5M12 3l-8.5 8.5"
-            class-path="stroke-white dark:stroke-gray-800"
+            class-path="stroke-gray-800 dark:stroke-gray-200"
         />
     </div>
 </template>
@@ -15,7 +19,17 @@ import { BaseIcon } from ".";
 
 const isShowButton = ref(false);
 
-const scrollHandler = ({target: { scrollingElement : { scrollTop } }}) => isShowButton.value = scrollTop > 0;
+const scrollHandler = ({target: { scrollingElement : { scrollTop } }}) => {
+    if(!isShowButton.value && scrollTop > 0) {
+        document.getElementsByClassName('top-button')[0].classList.add('animate-bounce');
+           
+        setTimeout(() => {
+            document.getElementsByClassName('top-button')[0].classList.remove('animate-bounce');
+        }, 2500);
+    }
+
+    isShowButton.value = scrollTop > 0;
+}
 
 const scrollToUp = () => window.scrollTo({ top: 0, behavior: "smooth" });
 

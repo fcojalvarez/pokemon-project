@@ -1,6 +1,6 @@
 <template>
     <svg :viewBox="viewBox" :class="`group ${iconClass}`" :width="width" :height="height" :fill="fill" :stroke-width="strokeWidth" :color="color">
-        <path :class="`group-hover:drop-shadow-svg ${classPath}`" fill-rule="evenodd" :stroke="color" :fill="fillPath" :d="d"/>
+        <path :class="`${withHover? 'group-hover:drop-shadow-svg': ''} ${classPath}`" fill-rule="evenodd" :stroke="color" :fill="fillPath" :d="d"/>
     </svg>
 </template>
   

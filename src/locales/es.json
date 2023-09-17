@@ -1,6 +1,21 @@
 {
+    "madeWith": "Hecho con",
+    "from": "desde", 
+    "and": "y",
     "back": "Volver",
     "image": "Imágen",
-    "light": "Luz",
-    "searchPokemon": "Buscar pokemon..."
+    "darkMode": "Modo oscuro",
+    "lightMode": "Modo claro",
+    "thanksTo": "Agradecimientos a",
+    "searchPokemon": "Buscar pokemon...",
+    "attack": "Ataque",
+    "defense": "Defensa",
+    "stamina": "Vida",
+    "maxCP": "Máx. CP",
+    "megaenergy": "Megaenergía",
+    "stats": "Estadísticas",
+    "encounterData": "Información de encuentro",
+    "candy": "Caramelo | Caramelos",
+    "each": "cada",
+    "viewShiny": "Ver shiny"
 }

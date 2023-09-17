@@ -3,6 +3,14 @@ module.exports = {
     darkMode: 'class', // or 'media' or 'class'
     theme: {
         extend: {
+            outlineWidth: {
+                1: '1px',
+                2: '2px',
+                3: '3px',
+            },
+            screens: {
+                xs: '450px',
+            },
             dropShadow: {
                 'svg': '2px 2px 4px rgba(0, 0, 0, 0.4)',
                 'pokemon_dark': '3px -7px 5px #333333',
@@ -12,6 +20,7 @@ module.exports = {
                 'none': '0px',
             },
             colors: {
+                'gray-150': 'rgb(235 238 240)',
                 'Grass': '#5fb955',
                 'Poison': '#51069c',
                 'Water': '#06099c',
@@ -34,6 +43,12 @@ module.exports = {
                 'position': 'left, right, top, bottom',
                 'clip': 'clip-path'
             },
+            fontFamily: {
+                'code-sans': ['Source Code Pro','Open Sans', 'monospace']
+            },
+            animation: {
+                'spin-4-s': 'bounce 3s ease inifinity',
+            }
         },
     },
     variants: {

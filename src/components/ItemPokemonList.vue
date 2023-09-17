@@ -3,6 +3,9 @@
     import { useRouter } from 'vue-router';
     import { BaseIcon } from '.';
     import { typesSVG } from '../utils/Settings';
+    import { usePokemonsStore } from '../stores/pokemons';
+
+    const { setIsSearching } = usePokemonsStore();
 
     const props = defineProps({
         id: Number,
@@ -17,6 +20,7 @@
     const pokemonId = computed(() => props.id?.toString().padStart(3, '0'));
 
     const goToPokemonPage = (pokemonId) => {
+        pokemonId && setIsSearching(false);
         pokemonId && router.push(`/pokemon/${pokemonId}`);
     }
 </script>
@@ -24,6 +28,11 @@
 <template>
     <section
         :class="[props.is_relased? 'cursor-pointer' : '', 'p-2']"
+        class="
+            rounded-2xl hover:outline
+            hover:bg-gray-150 hover:outline-white
+            hover:dark:bg-gray-800 hover:dark:outline-gray-600
+        "
         @click="props.is_relased && goToPokemonPage(props.id)"
     >   
         <img
@@ -32,7 +41,7 @@
             :class="[props.is_relased? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark': 'grayscale opacity-40', 'z-10 w-24 h-24 mx-auto ']"
             loading="lazy"
         >
-        <div v-if="props.is_shiny_relased" class="text-center text-sm absolute top-2 right-9 z-20 text-gray-500 dark:text-gray-200">
+        <div v-if="props.is_shiny_relased" class="text-center text-sm absolute top-1 right-5 z-10 text-gray-500 dark:text-gray-200">
             <span>✦</span>
             <span class="block leading-none">✦✦</span>
         </div>
@@ -40,7 +49,7 @@
             <span v-if="pokemonId" class="flex justify-center mx-8 pt-1 font-semibold rounded text-xs">
                 #{{ pokemonId }}
             </span>
-            <span :class="[props.is_relased? '' : 'line-through', 'font-semibold text-center block']">
+            <span :class="[props.is_relased? '' : 'line-through', 'font-semibold text-sm text-center block']">
                 {{ props.name }}
             </span>
             <div v-if="props.is_relased" class="flex justify-center mt-1">

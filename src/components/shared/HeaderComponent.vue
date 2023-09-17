@@ -1,15 +1,16 @@
 <script setup>
     import { ref, watch } from 'vue';
     import { useRoute } from 'vue-router';
-    import { SearchBar, ToogleDarkMode, BaseIcon } from './index';
-    import { useMainStore } from '../stores/main';
+    import { SearchBar, ToggleDarkMode, BaseIcon } from '../index';
+    import { useMainStore } from '../../stores/main';
     import { storeToRefs } from 'pinia';
 
-    const { isDarkMode } = storeToRefs(useMainStore);
+    const mainStore = useMainStore();
+    const { isDarkMode } = storeToRefs(mainStore);
     const route = useRoute();
-
+    
     const pokemonListRoute = 'PokemonList';
-    const backButtonRef = ref(null);
+    const backButtonRef = ref();
 
     watch(route, async (newRoute) => {
         if(newRoute.name !== pokemonListRoute) {
@@ -26,7 +27,7 @@
     <div class="relative h-20 md:h-16 flex gap-3">
         <button
             ref="backButtonRef"
-            class="h-100 w-2/12 md:max-w-[150px] border border-gray-400 py-2 px-4 md:px-12 rounded-xl shadow-md absolute left-[-100%] transition-position duration-300 bg-white dark:bg-gray-900"
+            class="h-100 w-2/12 max-w-[60px] md:max-w-[150px] border border-gray-400 py-[9px] px-4 sm:px3 md:px-2 md:py-2 rounded-xl shadow-md absolute left-[-100%] transition-position duration-300 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
             @click="$router.push('/')"
         >
             <div class="flex md:hidden justify-center items-center h-9">
@@ -41,25 +42,34 @@
                 {{ $t('back') }}
             </span>
         </button>
+           
+        <search-bar
+            id="search-bar"
+            class="w-5/12 md:w-7/12 xl:w-8/12 md:max-w-lg h-100 search-bar md:absolute left-0 transition-position duration-300"
+        />
 
-        <SearchBar id="search-bar" class="w-6/12 md:w-7/12 xl:w-8/12 md:max-w-lg h-100 search-bar md:absolute left-0 transition-position duration-300" />
-
-        <ToogleDarkMode class="w-100 h-100 px-4 ml-auto cursor-pointer" />
+        <toggle-dark-mode class="w-100 h-100 px-4 ml-auto cursor-pointer" />
     </div>
 </template>
 
 <style scoped>
 .search-bar-moved {
-    left: 6rem;
+    left: 4.5rem;
     width: 50%;
 }
 .show-back-btn {
     left: 0px;
 }
-@media(min-width: 648px) {
-    .search-bar-moved { left: 9rem; }
+@media(min-width: 345px) {
+    .search-bar-moved { left: 5.5rem; }
 }
-@media(min-width: 1024px) {
+@media(min-width: 420px) {
+    .search-bar-moved { left: 6rem; }
+}
+@media(min-width: 648px) {
+    .search-bar-moved { left: 10rem; }
+}
+@media(min-width: 1000px) {
     .search-bar-moved { left: 12rem; }
 }
 </style>

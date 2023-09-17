@@ -300253,6 +300253,43 @@
         }
     },
     {
+        "templateId": "V0899_POKEMON_WIRDEER",
+        "data": {
+            "templateId": "V0899_POKEMON_WIRDEER",
+            "pokemonSettings": {
+                "pokemonId": "WIRDEER",
+                "type": "POKEMON_TYPE_NORMAL",
+                "type2": "POKEMON_TYPE_PSYCHIC",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
         "templateId": "V0900_POKEMON_KLEAVOR",
         "data": {
             "templateId": "V0900_POKEMON_KLEAVOR",
@@ -300571,6 +300608,43 @@
         }
     },
     {
+        "templateId": "V0902_POKEMON_BASCULEGION",
+        "data": {
+            "templateId": "V0902_POKEMON_BASCULEGION",
+            "pokemonSettings": {
+                "pokemonId": "BASCULEGION",
+                "type": "POKEMON_TYPE_WATER",
+                "type2": "POKEMON_TYPE_GHOST",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
         "templateId": "V0904_POKEMON_OVERQWIL",
         "data": {
             "templateId": "V0904_POKEMON_OVERQWIL",
@@ -300668,6 +300742,43 @@
                 "isTradable": true,
                 "buddyGroupNumber": 3,
                 "raidBossDistanceOffset": 1.0
+            }
+        }
+    },
+    {
+        "templateId": "V0905_POKEMON_ENAMORUS",
+        "data": {
+            "templateId": "V0905_POKEMON_ENAMORUS",
+            "pokemonSettings": {
+                "pokemonId": "ENAMORUS",
+                "type": "POKEMON_TYPE_FAIRY",
+                "type2": "POKEMON_TYPE_FLYING",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
             }
         }
     },
@@ -307265,6 +307376,80 @@
                 },
                 "isTransferable": true,
                 "isTradable": true
+            }
+        }
+    },
+    {
+        "templateId": "V1009_POKEMON_ONDULAGUA",
+        "data": {
+            "templateId": "V1009_POKEMON_ONDULAGUA",
+            "pokemonSettings": {
+                "pokemonId": "ONDULAGUA",
+                "type": "POKEMON_TYPE_WATER",
+                "type2": "POKEMON_TYPE_DRAGON",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
+        "templateId": "V1010_POKEMON_FERROVERDOR",
+        "data": {
+            "templateId": "V1010_POKEMON_FERROVERDOR",
+            "pokemonSettings": {
+                "pokemonId": "FERROVERDOR",
+                "type": "POKEMON_TYPE_GRASS",
+                "type2": "POKEMON_TYPE_PSYCHIC",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
             }
         }
     },
