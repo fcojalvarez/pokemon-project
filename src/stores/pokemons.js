@@ -18,18 +18,25 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     const isSearching = computed(() => searchingPokemon.value)
 
     //ACTIONS
-    const filterPokemons = async(inputValue) => {
+    const filterPokemons = async(inputValue, toSearchModal = false) => {
         const value = inputValue.toLowerCase().trim();
+        const isWritingName = isNaN(value); 
 
         if(!value) {
             pokemonsFiltered.value = pokemonList.value.slice(0, 100);
             return;
         }
-        if(value.length > 2) {
-            const { data: pokemons } = await supabase.from('pokemons').select('*').filter('name', 'ilike', `%${value}%`);
-            pokemonsFiltered.value = pokemons;
-            return;
-        }
+
+        const { data: pokemons } = await supabase.from('pokemons').select('*').filter(
+            isWritingName? 'name' : 'pokemon_id',
+            isWritingName? 'ilike' : 'eq',
+            isWritingName? `%${value}%`: parseInt(value)
+        );
+      
+        if(toSearchModal) return pokemons || [];
+
+        pokemonsFiltered.value = pokemons;
+        return;
     }
 
     const getPokemons = async(range = { start: 0, end: 150}) => {

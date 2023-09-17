@@ -236,7 +236,6 @@ export const createPokemonData = async() => {
         
         
         pokemonsArr.push(pokemon); */
-        console.log(pokemon);
     }
     // console.log(idsError)
 }

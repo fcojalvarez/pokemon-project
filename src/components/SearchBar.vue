@@ -16,7 +16,7 @@
 
     const inputValue = ref(null);
     const isShowModalSearch = ref(false);
-    const isLoadingPokemonNames = ref(false);
+    const isLoadingPokemonNames = ref(true);
     const pokemonsNamesArr = ref([]);
     const pokemonsNamesArrFiltered = ref([]);
     const isPokemonView = ref(false);
@@ -36,10 +36,10 @@
         isShowModalSearch.value = true;
         isLoadingPokemonNames.value = true;
         
-        if(pokemonsNamesArr.value.length === 0) await getPokemonsNames();
+        setIsSearching(inputValue.value);
+        const pokemonsResponse = await filterPokemons(inputValue.value, true);
+        pokemonsNamesArrFiltered.value = pokemonsResponse;
         isLoadingPokemonNames.value = false;
-        
-        pokemonsNamesArrFiltered.value = pokemonsNamesArr.value.filter(({name}) => name.toLowerCase().includes(inputValue.value.trim().toLowerCase()));
     }
 
     const goToPokemonPage = (pokemonId) => {
