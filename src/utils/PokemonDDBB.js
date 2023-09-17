@@ -15,7 +15,7 @@ import { evolutionsFamily } from './Settings';
 
 export const createPokemonData = async() => {
     const pokemonsArr = [];
-    const max_pokemons_actual = 1010;
+    const max_pokemons_actual = 1017;
     const idPossibleDitto = [23, 92, 177, 283, 456, 506, 557, 684];
     const idPvpExclusive = [619, 620];
     const pokemonsLegendary = rarities.Legendary.map( x => x.pokemon_id);
@@ -112,15 +112,17 @@ export const createPokemonData = async() => {
         }
         pokemon.is_pvp_exclusive = idPvpExclusive.includes(index)
         pokemon.evolution_info = (() => {
-            const evolutionsArr = {};
+            const pokeEvolutions = {};
             const evolutionsFamilyIDArr = evolutionsFamily[pokemon.pokemon_id];
+            const evolveFamilyKeys = Object.keys(evolutionsFamily[pokemon.pokemon_id]).filter(key => key !== 'mega' && key !== 'isForm' && key !== 'primal');
 
+            evolveFamilyKeys.forEach(evolveKey => {
+                if(evolutionsFamilyIDArr[evolveKey] === null) return pokeEvolutions;
 
-            if(evolutionsFamilyIDArr?.primary !== null) {
-                evolutionsArr.primary = [];
+                pokeEvolutions[evolveKey] = [];
 
-                evolutionsFamilyIDArr.primary.forEach( (evolutionId, indexEvolId) => {
-                    if(indexEvolId === evolutionsFamilyIDArr.primary.length -1) return;
+                evolutionsFamilyIDArr[evolveKey].forEach( (evolutionId, indexEvolId) => {
+                    if(indexEvolId === evolutionsFamilyIDArr[evolveKey].length -1) return;
 
                     const pokemonFinded  = pokemonEvolutions.filter(({pokemon_id}) => pokemon_id === evolutionId )
                         .find( ({pokemon_id,form} ) => {
@@ -139,11 +141,11 @@ export const createPokemonData = async() => {
                             return form === (pokemonsForm[pokemon_id] || 'Normal')
                         })
 
-                    if(Array.isArray(pokemonFinded) && pokemonFinded.length === 0 ) console.error('Hay un problema con el pokemon con id: ', evolutionId);
+                    if(Array.isArray(pokemonFinded) && pokemonFinded.length === 0 || !pokemonFinded ) console.error('Hay un problema con el pokemon con id: ', evolutionId);
 
                     const {pokemon_id: pokemonId, pokemon_name, evolutions } = pokemonFinded;
 
-                    const evolutionsFiltered = evolutions.find( ({pokemon_id, form}) => {
+                    const evolutionsFiltered = evolutions.find( ({pokemon_id, form}) => {          
                         const pokemonsForm = {
                             412: 'Plant',
                             413: 'Plant',
@@ -170,20 +172,20 @@ export const createPokemonData = async() => {
                             892: 'Single_strike',
                             default: 'Normal'
                         }
-
-                        return form === (pokemonsForm[String(pokemon_id)] || 'Normal') && evolutionsFamilyIDArr.primary.includes(pokemon_id);
+                        return form === (pokemonsForm[String(pokemon_id)] || 'Normal') && evolutionsFamilyIDArr[evolveKey].includes(pokemon_id);
                     })
+
                     if(evolutionsFiltered.length === 0) console.log('Hay un problema al filtrar las evoluciones del pokemon: ', pokemon.pokemon_id);
 
                     const {pokemon_name: evolveName, pokemon_id:evolveId, form, ...evolutionData} = evolutionsFiltered;
 
-                    evolutionsArr.primary.push({ pokemon_id: pokemonId, pokemon_name, ...evolutionData});
-                    if(indexEvolId === evolutionsFamilyIDArr.primary.length -2) {
-                        evolutionsArr.primary.push({ pokemon_id: evolveId, pokemon_name: evolveName});
+                    pokeEvolutions[evolveKey].push({ pokemon_id: pokemonId, pokemon_name, ...evolutionData});
+                    if(indexEvolId === evolutionsFamilyIDArr[evolveKey].length -2) {
+                        pokeEvolutions[evolveKey].push({ pokemon_id: evolveId, pokemon_name: evolveName});
                     };
                 })
-            }
-            return evolutionsArr;
+            })
+            return pokeEvolutions;
         })()
         pokemon.third_move = {
             startdust_required: pokemonFromDB.thirdMove.stardustToUnlock,

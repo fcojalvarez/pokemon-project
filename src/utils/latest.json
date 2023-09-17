@@ -307454,6 +307454,264 @@
         }
     },
     {
+        "templateId": "V1011_POKEMON_DIPPLIN",
+        "data": {
+            "templateId": "V1011_POKEMON_DIPPLIN",
+            "pokemonSettings": {
+                "pokemonId": "DIPPLIN",
+                "type": "POKEMON_TYPE_GRASS",
+                "type2": "POKEMON_TYPE_DRAGON",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
+        "templateId": "V1012_POKEMON_POLTCHAGEIST",
+        "data": {
+            "templateId": "V1012_POKEMON_POLTCHAGEIST",
+            "pokemonSettings": {
+                "pokemonId": "POLTCHAGEIST",
+                "type": "POKEMON_TYPE_GRASS",
+                "type2": "POKEMON_TYPE_GHOST",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
+        "templateId": "V1013_POKEMON_SINISTCHA",
+        "data": {
+            "templateId": "V1013_POKEMON_SINISTCHA",
+            "pokemonSettings": {
+                "pokemonId": "SINISTCHA",
+                "type": "POKEMON_TYPE_GRASS",
+                "type2": "POKEMON_TYPE_GHOST",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
+        "templateId": "V1014_POKEMON_OKIDOGI",
+        "data": {
+            "templateId": "V1014_POKEMON_OKIDOGI",
+            "pokemonSettings": {
+                "pokemonId": "OKIDOGI",
+                "type": "POKEMON_TYPE_POISON",
+                "type2": "POKEMON_TYPE_FIGHTING",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
+        "templateId": "V1015_POKEMON_MUNKIDORI",
+        "data": {
+            "templateId": "V1015_POKEMON_MUNKIDORI",
+            "pokemonSettings": {
+                "pokemonId": "MUNKIDORI",
+                "type": "POKEMON_TYPE_POISON",
+                "type2": "POKEMON_TYPE_PSYCHIC",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
+        "templateId": "V1016_POKEMON_FEZANDIPITI",
+        "data": {
+            "templateId": "V1016_POKEMON_FEZANDIPITI",
+            "pokemonSettings": {
+                "pokemonId": "FEZANDIPITI",
+                "type": "POKEMON_TYPE_POISON",
+                "type2": "POKEMON_TYPE_FAIRY",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
+        "templateId": "V1017_POKEMON_OGERPON",
+        "data": {
+            "templateId": "V1017_POKEMON_OGERPON",
+            "pokemonSettings": {
+                "pokemonId": "OGERPON",
+                "type": "POKEMON_TYPE_GRASS",
+                "camera": {},
+                "encounter": {
+                    "movementType": "",
+                    "attackProbability": 0,
+                    "dodgeProbability": 0,
+                    "dodgeDurationS": 0,
+                    "dodgeDistance": 0,
+                    "cameraDistance": 0,
+                    "minPokemonActionFrequencyS": 0,
+                    "maxPokemonActionFrequencyS": 0,
+                    "bonusXlCandyCaptureReward": 0
+                },
+                "stats": {
+                    "baseStamina": 0,
+                    "baseAttack": 0,
+                    "baseDefense": 0
+                },
+                "quickMoves": [],
+                "cinematicMoves": [],
+                "kmBuddyDistance": 0,
+                "thirdMove": {
+                    "stardustToUnlock": 0,
+                    "candyToUnlock": 0
+                },
+                "isTransferable": false,
+                "isTradable": false
+            }
+        }
+    },
+    {
         "templateId": "VERBOSE_LOG_COMBAT_SETTINGS",
         "data": {
             "templateId": "VERBOSE_LOG_COMBAT_SETTINGS",

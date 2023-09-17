@@ -1431,7 +1431,7 @@ export const evolutionsFamily = {
     977: { primary: null },
     978: { primary: null },
     979: { primary: [56,57,979] },
-    980: { primary: null, irForm: true },
+    980: { primary: null, isForm: true },
     981: { primary: [203,981] },
     982: { primary: [206,982] },
     983: { primary: [624,625,983] },
@@ -1463,6 +1463,12 @@ export const evolutionsFamily = {
     1009: { primary: null },
     1010: { primary: null },
     1011: { primary: [840,1011] },
+    1012: { primary: [1012,1013] },
+    1013: { primary: [1012,1013] },
+    1014: { primary: null },
+    1015: { primary: null },
+    1016: { primary: null },
+    1017: { primary: null },
 }
 
 export const formsPokemons = {
@@ -2477,4 +2483,10 @@ export const formsPokemons = {
     1009: ["Normal"],
     1010: ["Normal"],
     1011: ["Normal"],
+    1012: ["Normal"],
+    1013: ["Normal"],
+    1014: ["Normal"],
+    1015: ["Normal"],
+    1016: ["Normal"],
+    1017: ["Normal"],
 }

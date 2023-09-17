@@ -11,14 +11,18 @@ const { getPokemons, addPokemons } = pokemonStore;
 
 const currentPokemonsLength = computed(() => pokemons.value.length );
 const NEXT_LOAD_LENGTH_ITEMS = 150;
-const MAX_LENGH_POKEMONS = 1015;
+const MAX_LENGH_POKEMONS = 1017;
 const isAllPokemonsLoaded = ref(false);
 
 const scrollHandler = async({target: {scrollingElement: {scrollTop, scrollHeight}}}) => {
+    const distanceToBottomPage = 2000;
 
-    if(scrollTop > (scrollHeight - 2000) && !isAllPokemonsLoaded.value ) {
+    if(scrollTop > (scrollHeight - distanceToBottomPage) && !isAllPokemonsLoaded.value ) {
         if(!isLoading.value && !isSearching.value){
-            const end = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGH_POKEMONS? MAX_LENGH_POKEMONS : currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS;
+            const end = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGH_POKEMONS
+                ? MAX_LENGH_POKEMONS 
+                : currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS;
+
             isAllPokemonsLoaded.value = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGH_POKEMONS;
 
             await addPokemons({

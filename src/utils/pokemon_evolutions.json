@@ -6423,6 +6423,12 @@
                 "form": "Normal",
                 "pokemon_id": 842,
                 "pokemon_name": "Appletun"
+            },
+            {
+                "candy_required": null,
+                "form": "Normal",
+                "pokemon_id": 1011,
+                "pokemon_name": "Dipplin"
             }
         ],
         "form": "Normal",
@@ -7150,5 +7156,18 @@
         "form": "Normal",
         "pokemon_id": 999,
         "pokemon_name": "Gimmighoul"
+    },
+    {
+        "evolutions": [
+            {
+                "candy_required": null,
+                "form": "Normal",
+                "pokemon_id": 1013,
+                "pokemon_name": "Sinistcha"
+            }
+        ],
+        "form": "Normal",
+        "pokemon_id": 1012,
+        "pokemon_name": "Poltchageist"
     }
 ]
