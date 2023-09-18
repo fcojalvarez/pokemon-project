@@ -4,7 +4,6 @@
     import { useRoute, useRouter } from 'vue-router';
     import useDetectOutsideClick from '../composables/useDetectOutsideClick';
     import { usePokemonsStore } from '@/stores/pokemons';
-    import { supabase } from '../lib/supabaseClient';
     import { useMainStore } from '../stores/main';
     import { storeToRefs } from 'pinia';
 
@@ -17,7 +16,6 @@
     const inputValue = ref(null);
     const isShowModalSearch = ref(false);
     const isLoadingPokemonNames = ref(true);
-    const pokemonsNamesArr = ref([]);
     const pokemonsNamesArrFiltered = ref([]);
     const isPokemonView = ref(false);
     const searchBarRef = ref();
@@ -27,7 +25,7 @@
     const scrollbarThumbBackground = computed(() => isDarkMode.value? '#cccccc80' : '#cccccc80');
 
     const inputSearch = () => {
-        setIsSearching(inputValue.value);
+        setIsSearching(true);
         filterPokemons(inputValue.value);
     }
 
@@ -36,9 +34,9 @@
         isShowModalSearch.value = true;
         isLoadingPokemonNames.value = true;
         
-        setIsSearching(inputValue.value);
         const pokemonsResponse = await filterPokemons(inputValue.value, true);
         pokemonsNamesArrFiltered.value = pokemonsResponse;
+        setIsSearching(false);
         isLoadingPokemonNames.value = false;
     }
 
@@ -46,12 +44,6 @@
         pokemonId && router.push(`/pokemon/${pokemonId}`);
         inputValue.value = null;
         isShowModalSearch.value = false;
-    }
-
-    const getPokemonsNames = async() => {
-        const {data: pokemonsNames } = await supabase.from('pokemons').select('pokemon_id, name').order('pokemon_id', { ascending: true })
-
-        pokemonsNamesArr.value = pokemonsNames;
     }
 
     useDetectOutsideClick(searchBarRef, (e) => {
@@ -79,18 +71,21 @@
             class-path="stroke-gray-600 dark:stroke-gray-100"
             d="m17 17 4 4M3 11a8 8 0 1 0 16 0 8 8 0 0 0-16 0z"
         />
-        <section ref="searchBarRef" v-if="isShowModalSearch" class="search-modal absolute left-0 z-40 overflow-y-scroll mt-5 w-full min-h-[120px] max-h-96 m-0 py-2 border border-gray-400 bg-white dark:bg-gray-900 dark:text-white rounded-xl shadow-md">
-            <SpinnerComponent v-if="isLoadingPokemonNames"/>
 
-            <template v-else>
-                <span
-                    @click="goToPokemonPage(pokemon_id)"
-                    v-for="({name, pokemon_id}) in pokemonsNamesArrFiltered"
-                    :key="pokemon_id" class="px-4 block py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                    {{ name }}
-                </span>
-            </template>
+        <section ref="searchBarRef" v-if="isShowModalSearch" class="absolute left-0 z-40 mt-5 w-full  m-0 py-2 border border-gray-400 bg-white dark:bg-gray-900 dark:text-white rounded-xl shadow-md">
+           <section class="overflow-y-scroll search-modal min-h-[120px] max-h-96">
+                <SpinnerComponent v-if="isLoadingPokemonNames"/>
+
+                <template v-else>
+                    <span
+                        @click="goToPokemonPage(pokemon_id)"
+                        v-for="({name, pokemon_id}) in pokemonsNamesArrFiltered"
+                        :key="pokemon_id" class="px-4 block py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                        {{ name }}
+                    </span>
+                </template>
+           </section>
         </section>
     </section>
 </template>

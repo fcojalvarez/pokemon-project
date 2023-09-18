@@ -10,12 +10,11 @@ import generations from './generations.json';
 import shadowPokemons from './shadow_pokemons.json';
 import pokemonEvolutions from './pokemon_evolutions.json';
 import genders from './genders.json';
-import { evolutionsFamily } from './Settings';
+import { evolutionsFamily, MAX_LENGH_POKEMONS } from './Settings';
 
 
 export const createPokemonData = async() => {
     const pokemonsArr = [];
-    const max_pokemons_actual = 1017;
     const idPossibleDitto = [23, 92, 177, 283, 456, 506, 557, 684];
     const idPvpExclusive = [619, 620];
     const pokemonsLegendary = rarities.Legendary.map( x => x.pokemon_id);
@@ -30,7 +29,7 @@ export const createPokemonData = async() => {
     const gen8 = generations['Generation 8'].map(x => x.id);
     const idsError = [];
     
-    for (let index = 1; index <= max_pokemons_actual; index++) {
+    for (let index = 1; index <= MAX_LENGH_POKEMONS; index++) {
         const pokemon = {};
         const search_key = `V${String(index).padStart(4, 0)}_POKEMON_`;
         

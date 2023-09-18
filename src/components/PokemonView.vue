@@ -20,7 +20,6 @@ onMounted(async() => {
     
     if(pokemonId) await getPokemon(pokemonId);
     window.scrollTo({ top: 0, behavior: "smooth" });
-    console.log(pokemon.value);
 })
 
 watch(route, async(newRoute) => {

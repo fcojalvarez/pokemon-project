@@ -1,6 +1,7 @@
 import { ref, computed } from 'vue';
 import { defineStore } from 'pinia';
 import { supabase } from '../lib/supabaseClient';
+import { NEXT_LOAD_LENGTH_ITEMS } from '../utils/Settings';
 
 export const usePokemonsStore = defineStore('pokemon', () => {
     // STATE
@@ -23,7 +24,14 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         const isWritingName = isNaN(value); 
 
         if(!value) {
-            pokemonsFiltered.value = pokemonList.value.slice(0, 100);
+            if(toSearchModal) {
+                if(allPokemons.value.length === 0) {
+                    const { data: pokemons } = await supabase.from('pokemons').select('pokemon_id,name');
+                    return pokemons;
+                }
+                return pokemonList.value;
+            }
+            pokemonsFiltered.value = pokemonList.value.slice(0, NEXT_LOAD_LENGTH_ITEMS);
             return;
         }
 
@@ -39,7 +47,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         return;
     }
 
-    const getPokemons = async(range = { start: 0, end: 150}) => {
+    const getPokemons = async(range = { start: 0, end: NEXT_LOAD_LENGTH_ITEMS }) => {
         isLoadingPokemons.value = true;
         const { data: pokemons, error } = await supabase.from('pokemons').select('*').order('pokemon_id', { ascending: true }).range(range.start, range.end);
         
@@ -49,7 +57,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         isLoadingPokemons.value = false;
     }
 
-    const addPokemons = async(range = { start: 0, end: 150}) => {
+    const addPokemons = async(range = { start: 0, end: NEXT_LOAD_LENGTH_ITEMS}) => {
         isLoadingPokemons.value = true;
         const { data: pokemons, error } = await supabase.from('pokemons').select('*').order('pokemon_id', { ascending: true }).range(range.start, range.end);
         

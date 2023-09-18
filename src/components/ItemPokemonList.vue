@@ -27,12 +27,7 @@
 
 <template>
     <section
-        :class="[props.is_relased? 'cursor-pointer' : '', 'p-2']"
-        class="
-            rounded-2xl hover:outline
-            hover:bg-gray-150 hover:outline-white
-            hover:dark:bg-gray-800 hover:dark:outline-gray-600
-        "
+        :class="[props.is_relased? 'cursor-pointer hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600' : '', 'p-2 rounded-2xl']"
         @click="props.is_relased && goToPokemonPage(props.id)"
     >   
         <img

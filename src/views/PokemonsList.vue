@@ -3,21 +3,18 @@ import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { ItemPokemonList, ScrollUpButton, SpinnerComponent } from '../components/index';
 import { storeToRefs } from 'pinia';
 import { usePokemonsStore } from '@/stores/pokemons';
-import { createPokemonData } from '@/utils/PokemonDDBB';
+import { MAX_LENGH_POKEMONS,NEXT_LOAD_LENGTH_ITEMS, DISTANCE_TO_BOTTOM_PAGE } from '../utils/Settings';
+// import { createPokemonData } from '@/utils/PokemonDDBB';
 
 const pokemonStore = usePokemonsStore();
 const { pokemons, isLoading, isSearching } = storeToRefs(pokemonStore);
 const { getPokemons, addPokemons } = pokemonStore;
 
 const currentPokemonsLength = computed(() => pokemons.value.length );
-const NEXT_LOAD_LENGTH_ITEMS = 150;
-const MAX_LENGH_POKEMONS = 1017;
 const isAllPokemonsLoaded = ref(false);
 
 const scrollHandler = async({target: {scrollingElement: {scrollTop, scrollHeight}}}) => {
-    const distanceToBottomPage = 2000;
-
-    if(scrollTop > (scrollHeight - distanceToBottomPage) && !isAllPokemonsLoaded.value ) {
+    if(scrollTop > (scrollHeight - DISTANCE_TO_BOTTOM_PAGE) && !isAllPokemonsLoaded.value ) {
         if(!isLoading.value && !isSearching.value){
             const end = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGH_POKEMONS
                 ? MAX_LENGH_POKEMONS 
@@ -34,9 +31,9 @@ const scrollHandler = async({target: {scrollingElement: {scrollTop, scrollHeight
 }
 
 onMounted(async() => {
-    await getPokemons();
+    if(pokemons.value.length === 0) await getPokemons();
     document.addEventListener('scroll', scrollHandler);
-    createPokemonData();
+    // createPokemonData();
 })
 onUnmounted(() => {
     document.removeEventListener('scroll', scrollHandler);
@@ -56,7 +53,7 @@ onUnmounted(() => {
             </div>
         </template>
 
-        <section v-if="isLoading" class="w-screen">
+        <section v-if="isLoading" class="flex items-center w-screen min-h-full">
             <SpinnerComponent />
         </section>
         

@@ -1,5 +1,9 @@
 export const status200 = 200;
 
+export const MAX_LENGH_POKEMONS = 1017;
+export const NEXT_LOAD_LENGTH_ITEMS = 100;
+export const DISTANCE_TO_BOTTOM_PAGE = 1500;
+
 export const weatherBoots = {
     "clear": ["grass", "ground", "fire"],
     "fog": ["dark","ghost"],
