@@ -85,7 +85,7 @@ watch(route, async(newRoute) => {
             />
         </section>
 
-       <!--  <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
+        <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
             <h3 class="my-2 w-full font-bold text-lg">{{ $t('stats') }}</h3>
             <section class="my-1">
                 <span class="block my-2 font-bold">{{ $t('attack') }}:
@@ -118,9 +118,9 @@ watch(route, async(newRoute) => {
                     </span>
                 </span>
             </section>
-        </section> -->
+        </section>
 
-        <!-- <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
+        <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
             <h3 class="my-2 w-full font-bold text-lg">{{ $t('encounterData') }}</h3>
             <section class="my-1">
                 <span class="block my-2 font-bold">{{ $t('attackProbability') }}:
@@ -154,6 +154,6 @@ watch(route, async(newRoute) => {
                     </span>
                 </span>
             </section>
-        </section> -->
+        </section>
     </section>
 </template>
