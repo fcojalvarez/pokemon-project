@@ -44,12 +44,12 @@ onUnmounted(() => {
     <section class="flex flex-wrap">
         <template v-if="pokemons.length > 0">
             <div
-                v-for="{ id, name, pokemon_id, is_relased, types, sprites, is_shiny_relased } in pokemons"
+                v-for="{ id, name, pokemon_id, is_released, types, sprites, is_shiny_released } in pokemons"
                 class="w-4/8 md:w-3/8 p-4 mx-auto"
                 :key="id"
                 :scroll="scrollHandlerEvent"
             >
-                <ItemPokemonList :id="pokemon_id" :image="sprites.male" :name="name" :is_relased="is_relased" :types="types" :is_shiny_relased="is_shiny_relased" class="w-32 md:w-48"/>
+                <ItemPokemonList :id="pokemon_id" :image="sprites.male" :name="name" :is_released="is_released" :types="types" :is_shiny_released="is_shiny_released" class="w-32 md:w-48"/>
             </div>
         </template>
 

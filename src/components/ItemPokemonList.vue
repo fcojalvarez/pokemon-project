@@ -10,10 +10,10 @@
     const props = defineProps({
         id: Number,
         image: String,
-        is_relased: Boolean,
+        is_released: Boolean,
         name: String,
         types: Array,
-        is_shiny_relased: Boolean
+        is_shiny_released: Boolean
     })
     const router = useRouter();
 
@@ -27,16 +27,16 @@
 
 <template>
     <section
-        :class="[props.is_relased? 'cursor-pointer hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600' : '', 'p-2 rounded-2xl']"
-        @click="props.is_relased && goToPokemonPage(props.id)"
+        :class="[props.is_released? 'cursor-pointer hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600' : '', 'p-2 rounded-2xl']"
+        @click="props.is_released && goToPokemonPage(props.id)"
     >   
         <img
             :src="image"
             :alt="`${props.name} ${$t('image')}`"
-            :class="[props.is_relased? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark': 'grayscale opacity-40', 'z-10 w-24 h-24 mx-auto ']"
+            :class="[props.is_released? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark': 'grayscale opacity-40', 'z-10 w-24 h-24 mx-auto ']"
             loading="lazy"
         >
-        <div v-if="props.is_shiny_relased" class="text-center text-sm absolute top-1 right-5 z-10 text-gray-500 dark:text-gray-200">
+        <div v-if="props.is_shiny_released" class="text-center text-sm absolute top-1 right-5 z-10 text-gray-500 dark:text-gray-200">
             <span>✦</span>
             <span class="block leading-none">✦✦</span>
         </div>
@@ -44,10 +44,10 @@
             <span v-if="pokemonId" class="flex justify-center mx-8 pt-1 font-semibold rounded text-xs">
                 #{{ pokemonId }}
             </span>
-            <span :class="[props.is_relased? '' : 'line-through', 'font-semibold text-sm text-center block']">
+            <span :class="[props.is_released? '' : 'line-through', 'font-semibold text-sm text-center block']">
                 {{ props.name }}
             </span>
-            <div v-if="props.is_relased" class="flex justify-center mt-1">
+            <div v-if="props.is_released" class="flex justify-center mt-1">
                 <base-icon
                     v-if="types"
                     view-box="0 0 512 512"

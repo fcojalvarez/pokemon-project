@@ -1,3 +1,4 @@
+import EvolPokemonItem from './pokemon/EvolPokemonItem.vue';
 import FooterComponent from './shared/FooterComponent.vue';
 import HeaderComponent from './shared/HeaderComponent.vue';
 import ItemPokemonList from './ItemPokemonList.vue';
@@ -16,6 +17,7 @@ import BaseIcon from './base/BaseIcon.vue';
 
 
 export {
+    EvolPokemonItem,
     FooterComponent,
     HeaderComponent,
     BaseIcon,

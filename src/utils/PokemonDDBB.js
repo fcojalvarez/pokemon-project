@@ -40,8 +40,8 @@ export const createPokemonData = async() => {
         pokemon.pokemon_id = index;
         const pokemonName = pokemonFromDB.pokemonId.toLowerCase().replace('_', ' ');
         pokemon.name = pokemonName.charAt(0).toUpperCase() + pokemonName.slice(1);
-        pokemon.is_shiny_relased = Boolean(shiniesReleasedes[String(index)])
-        pokemon.is_relased = Boolean(releasedes[String(index)]);
+        pokemon.is_shiny_released = Boolean(shiniesReleasedes[String(index)])
+        pokemon.is_released = Boolean(releasedes[String(index)]);
         if(shinies[index]) {
             pokemon.shiny_found = {
                 egg: shinies[index].found_egg,
@@ -178,9 +178,64 @@ export const createPokemonData = async() => {
 
                     const {pokemon_name: evolveName, pokemon_id:evolveId, form, ...evolutionData} = evolutionsFiltered;
 
-                    pokeEvolutions[evolveKey].push({ pokemon_id: pokemonId, pokemon_name, ...evolutionData});
+                    const sprites = {
+                        male: pokemon.generation === 9
+                            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${evolutionId}.png`
+                            : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${evolutionId}.png`,
+                        male_shiny: pokemon.generation === 9
+                            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${evolutionId}.png`
+                            : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${evolutionId}.png`,
+                    }
+                    const types = (function() { 
+                        const types = [];
+                        const evol_search_key = `V${String(evolutionId).padStart(4, 0)}_POKEMON_`;
+
+                        const evolPokemon = pokemonDB.find( x => x.templateId.startsWith(evol_search_key) && x.data.pokemonSettings)?.data?.pokemonSettings;
+
+                        types.push(evolPokemon.type.substr(13).toLowerCase())
+                        if(evolPokemon.type2) {
+                            types.push(evolPokemon.type2.substr(13).toLowerCase())
+                        }
+                        return types;
+                    })()
+                    const is_evolve_released = Boolean(releasedes[String(evolutionId)]);
+                    const is_evolve_shiny_released = Boolean(shiniesReleasedes[String(evolutionId)])
+
+                    pokeEvolutions[evolveKey].push({ pokemon_id: pokemonId, name: pokemon_name, ...evolutionData, sprites, types, is_released: is_evolve_released, is_shiny_released: is_evolve_shiny_released });
+                   
                     if(indexEvolId === evolutionsFamilyIDArr[evolveKey].length -2) {
-                        pokeEvolutions[evolveKey].push({ pokemon_id: evolveId, pokemon_name: evolveName});
+                        const evolTypes = (function() { 
+                            const types = [];
+                            const evol_search_key = `V${String(evolveId).padStart(4, 0)}_POKEMON_`;
+    
+                            const evolPokemon = pokemonDB.find( x => x.templateId.startsWith(evol_search_key) && x.data.pokemonSettings)?.data?.pokemonSettings;
+    
+                            types.push(evolPokemon.type.substr(13).toLowerCase())
+                            if(evolPokemon.type2) {
+                                types.push(evolPokemon.type2.substr(13).toLowerCase())
+                            }
+                            return types;
+                        })()
+                        const evolveSprites = {
+                            male: pokemon.generation === 9
+                                ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${evolveId}.png`
+                                : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${evolveId}.png`,
+                            male_shiny: pokemon.generation === 9
+                                ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${evolveId}.png`
+                                : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${evolveId}.png`,
+                        }
+                        const is_evolution_released = Boolean(releasedes[String(evolveId)]);
+                        const is_evolution_shiny_released = Boolean(shiniesReleasedes[String(evolveId)])
+
+
+                        pokeEvolutions[evolveKey].push({
+                            pokemon_id: evolveId,
+                            name: evolveName,
+                            sprites: evolveSprites,
+                            types: evolTypes,
+                            is_shiny_released: is_evolution_shiny_released,
+                            is_released: is_evolution_released
+                        });
                     };
                 })
             })
@@ -203,12 +258,12 @@ export const createPokemonData = async() => {
             return types;
         })()
       
-        /* const { data, error } = await supabase.from('pokemons').insert({
+        const { data, error } = await supabase.from('pokemons').insert({
             pokemon_id: index,
             name: pokemon.name,
             sprites: pokemon.sprites,
-            is_shiny_relased: pokemon.is_shiny_relased,
-            is_relased: pokemon.is_relased,
+            is_shiny_released: pokemon.is_shiny_released,
+            is_released: pokemon.is_released,
             shiny_found: pokemon.shiny_found,
             is_raid_exclusive: pokemon.is_raid_exclusive,
             is_possible_ditto: pokemon.is_possible_ditto,
@@ -233,8 +288,7 @@ export const createPokemonData = async() => {
             idsError.push(index)
         }; 
         
-        
-        pokemonsArr.push(pokemon); */
+        pokemonsArr.push(pokemon);
     }
-    // console.log(idsError)
+    console.log(idsError)
 }

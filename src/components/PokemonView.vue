@@ -3,7 +3,7 @@ import { onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 import { typesSVG } from '../utils/Settings';
-import { BaseIcon, BaseCheckbox } from '../components/index';
+import { BaseIcon, BaseCheckbox, EvolPokemonItem } from '../components/index';
 
 const pokemon = ref(null);
 const route = useRoute();
@@ -12,7 +12,7 @@ const isShowShiny = ref(false);
 const getPokemon = async(pokemonId) => {
     const { data: [ pokemonFinded ] } = await supabase.from('pokemons').select('*').eq('pokemon_id', pokemonId);
 
-    pokemon.value = {...pokemonFinded};
+    if(pokemonFinded) pokemon.value = {...pokemonFinded};
 }
 
 onMounted(async() => {
@@ -31,7 +31,7 @@ watch(route, async(newRoute) => {
 </script>
 
 <template>
-    <section v-if="pokemon" class="py-12 px-2 sm:px12 md:px-24 w-100 bg-white dark:bg-gray-900 rounded-xl border border-gray-300 shadow-md m-2">
+    <section v-if="pokemon" class="py-12 px-6 sm:px12 md:px-24 w-100 bg-white dark:bg-gray-900 rounded-xl border border-gray-300 shadow-md">
         <section class="flex text-gray-800 dark:text-gray-200">
             <h1 class="font-bold">
                 <span>{{ `#${ pokemon.pokemon_id?.toString().padStart(3, '0') }`}}</span>
@@ -75,9 +75,17 @@ watch(route, async(newRoute) => {
             >
         </section>
 
-        <section><!-- evolutions --></section>
+        <section class="flex flex-col items-center mt-12 mb-12">
+            <evol-pokemon-item
+                :pokemon="evolPokemon"
+                v-for="(evolPokemon, index) in pokemon?.evolution_info.primary"
+                :key="evolPokemon.id"
+                :position-info="{index: index + 1, length: pokemon?.evolution_info.primary.length }"
+                :is-show-shiny="isShowShiny"
+            />
+        </section>
 
-        <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
+       <!--  <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
             <h3 class="my-2 w-full font-bold text-lg">{{ $t('stats') }}</h3>
             <section class="my-1">
                 <span class="block my-2 font-bold">{{ $t('attack') }}:
@@ -110,9 +118,9 @@ watch(route, async(newRoute) => {
                     </span>
                 </span>
             </section>
-        </section>
+        </section> -->
 
-        <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
+        <!-- <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
             <h3 class="my-2 w-full font-bold text-lg">{{ $t('encounterData') }}</h3>
             <section class="my-1">
                 <span class="block my-2 font-bold">{{ $t('attackProbability') }}:
@@ -146,6 +154,6 @@ watch(route, async(newRoute) => {
                     </span>
                 </span>
             </section>
-        </section>
+        </section> -->
     </section>
 </template>
