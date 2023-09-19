@@ -40,7 +40,7 @@
             </div>
         </section>
     
-        <section class="flex justify-center items-center">
+        <section v-if="pokemon.candy_required" class="flex justify-center items-center">
             <span class="my-auto text-gray-800 dark:text-white text-xs">
                 x{{ pokemon.candy_required }}
             </span>
