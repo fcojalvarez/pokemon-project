@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch,toRaw } from 'vue';
 import { useRoute } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 import { typesSVG } from '../utils/Settings';
@@ -60,12 +60,16 @@ watch(route, async(newRoute) => {
         </section>
 
         <section>
-            <base-checkbox
-                v-model="isShowShiny"
-                name="show_shiny" :input-label="$t('viewShiny')"
-                class="mt-4 flex justify-end"
-                is-label-left=""
-            />
+            <section
+                @click="isShowShiny = !isShowShiny"
+                :class="[
+                    isShowShiny? 'bg-gray-500 dark:bg-gray-600 text-gray-100 dark:text-gray-300' : '',
+                    'text-gray-800 dark:text-gray-200 mt-4 border border-gray-800 dark:border-gray-200 w-28 rounded-xl py-1 px-2 text-center ml-auto cursor-pointer '
+                ]"
+                
+            >
+                <span>{{ $t('viewShiny') }}</span>
+            </section>
 
             <img
                 :src="isShowShiny? pokemon.sprites.male_shiny : pokemon.sprites.male"
@@ -75,16 +79,24 @@ watch(route, async(newRoute) => {
             >
         </section>
 
-        <section class="flex flex-col items-center mt-12 mb-12">
-            <evol-pokemon-item
-                :pokemon="evolPokemon"
-                v-for="(evolPokemon, index) in pokemon?.evolution_info.primary"
-                :key="evolPokemon.id"
-                :position-info="{index: index + 1, length: pokemon?.evolution_info.primary.length }"
-                :is-show-shiny="isShowShiny"
-            />
+        <h3
+            v-if="Object.keys(pokemon?.evolution_info).length > 0"
+            class="text-gray-800 dark:text-gray-200 text-sm mt-12"
+        >
+            {{ $t('evolution', 0) }}
+        </h3>
+        <section v-if="pokemon.evolution_info" class="my-3 flex justify-center flex-wrap">
+            <section v-for="evolFamilyKey in Object.keys(pokemon.evolution_info)" class="flex flex-col sm:flex-row w-1/2 items-center" :key="evolFamilyKey">
+                <evol-pokemon-item
+                    :pokemon="evolPokemon"
+                    v-for="(evolPokemon, index) in pokemon?.evolution_info[evolFamilyKey]"
+                    :key="evolPokemon.id"
+                    :position-info="{index: index + 1, length: pokemon?.evolution_info[evolFamilyKey].length }"
+                    :is-show-shiny="isShowShiny"
+                />
+            </section>
         </section>
-
+<!-- 
         <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
             <h3 class="my-2 w-full font-bold text-lg">{{ $t('stats') }}</h3>
             <section class="my-1">
@@ -154,6 +166,6 @@ watch(route, async(newRoute) => {
                     </span>
                 </span>
             </section>
-        </section>
+        </section> -->
     </section>
 </template>
