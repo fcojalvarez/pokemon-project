@@ -51,7 +51,7 @@
             </svg>
             <span class="flex items-center text-gray-800 dark:text-white text-xs my-1">
                 <span class="text-xs font-light">x</span>{{ pokemon.candy_required }}
-                <!-- <img src="../../assets/icons/candy_icon.png" class="h-3 w-3 ml-1 drop-shadow"> -->
+                <img src="../../assets/icons/candy_icon.png" class="h-3 w-3 ml-1 drop-shadow">
             </span>
             <span v-if="pokemon.lure_required" class="flex w-full my-1">
                 <img src="../../assets/icons/lure_icon.png" class="w-6 h-3 ml-1 drop-shadow">
@@ -73,7 +73,7 @@
                 </span>
             </span>
             <span v-if="pokemon.buddy_distance_required" class="flex w-full my-1">
-                <!-- <img src="../../assets/icons/walkWithYourBuddy.png" class="w-4 h-3 ml-1 drop-shadow"> -->
+                <img src="../../assets/icons/walkWithYourBuddy.png" class="w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t('evolutions.walkWithBuddy', [pokemon.buddy_distance_required]) }}
@@ -81,14 +81,14 @@
             </span>
             
             <span v-if="pokemon.only_evolves_in_nighttime" class="flex w-full my-1">
-                <!-- <img src="../../assets/icons/ic_moon.png" class="w-4 h-3 ml-1 drop-shadow"> -->
+                <img src="../../assets/icons/ic_moon.png" class="w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t('evolutions.onlyEvolvesNight') }}
                 </span>
             </span>
             <span v-if="pokemon.only_evolves_in_daytime" class="flex w-full my-1">
-                <!-- <img src="../../assets/icons/ic_sun.png" class="w-4 h-3 ml-1 drop-shadow"> -->
+                <img src="../../assets/icons/ic_sun.png" class="w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t('evolutions.onlyEvolvesDay') }}
