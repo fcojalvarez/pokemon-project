@@ -19,7 +19,24 @@ export default defineConfig({
   },
   build: {
     rollupOptions: {
-      external: 'NonExistingPath'
+      external: [
+        '../../assets/icons/candy_icon.png',
+'../../assets/icons/lure_icon.png',
+'../../assets/icons/SunStone.png',
+'../../assets/icons/SinnohStone.png',
+'../../assets/icons/KingsRock.png',
+'../../assets/icons/UnovaStone.png',
+'../../assets/icons/DragonScale.png',
+'../../assets/icons/Upgrade.png',
+'../../assets/icons/MetalCoat.png',
+'../../assets/icons/walkWithYourBuddy.png',
+'../../assets/icons/ic_moon.png',
+'../../assets/icons/ic_sun.png',
+'../../assets/icons/ic_female.png',
+'../../assets/icons/ic_male.png',
+'../../assets/icons/ic_trade_ball.png',
+        '/img/aaaSMPTE-color-bars.png',
+      ],
     }
   },
 })
