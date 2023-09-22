@@ -51,29 +51,29 @@
             </svg>
             <span class="flex items-center text-gray-800 dark:text-white text-xs my-1">
                 <span class="text-xs font-light">x</span>{{ pokemon.candy_required }}
-                <img src="\~/assets/icons/candy_icon.png" class="h-3 w-3 ml-1 drop-shadow">
+                <img src="/src/assets/icons/candy_icon.png" class="h-3 w-3 ml-1 drop-shadow">
             </span>
             <span v-if="pokemon.lure_required" class="flex w-full my-1">
-                <img src="\~/assets/icons/lure_icon.png" class="w-6 h-3 ml-1 drop-shadow">
+                <img src="/src/assets/icons/lure_icon.png" class="w-6 h-3 ml-1 drop-shadow">
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t(`evolutions.lure.${pokemon.lure_required}`) }}
                 </span>
             </span>
             <span v-if="pokemon.item_required" class="flex w-full my-1">
-                <img v-if="itemRequired === 'SunStore'" src="\~/assets/icons/SunStone.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'SinnohStone'" src="\~/assets/icons/SinnohStone.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'KingsRock'" src="\~/assets/icons/KingsRock.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'UnovaStone'" src="\~/assets/icons/UnovaStone.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'DragonScale'" src="\~/assets/icons/DragonScale.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'Upgrade'" src="\~/assets/icons/Upgrade.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'MetalCoat'" src="\~/assets/icons/MetalCoat.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'SunStore'" src="/src/assets/icons/SunStone.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'SinnohStone'" src="/src/assets/icons/SinnohStone.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'KingsRock'" src="/src/assets/icons/KingsRock.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'UnovaStone'" src="/src/assets/icons/UnovaStone.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'DragonScale'" src="/src/assets/icons/DragonScale.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'Upgrade'" src="/src/assets/icons/Upgrade.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'MetalCoat'" src="/src/assets/icons/MetalCoat.png" class="w-3 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t(`evolutions.items.${itemRequired}`) }}
                 </span>
             </span>
             <span v-if="pokemon.buddy_distance_required" class="flex w-full my-1">
-                <img src="\~/assets/icons/walkWithYourBuddy.png" class="w-4 h-3 ml-1 drop-shadow">
+                <img src="/src/assets/icons/walkWithYourBuddy.png" class="w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t('evolutions.walkWithBuddy', [pokemon.buddy_distance_required]) }}
@@ -81,14 +81,14 @@
             </span>
             
             <span v-if="pokemon.only_evolves_in_nighttime" class="flex w-full my-1">
-                <img src="\~/assets/icons/ic_moon.png" class="w-4 h-3 ml-1 drop-shadow">
+                <img src="/src/assets/icons/ic_moon.png" class="w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t('evolutions.onlyEvolvesNight') }}
                 </span>
             </span>
             <span v-if="pokemon.only_evolves_in_daytime" class="flex w-full my-1">
-                <img src="\~/assets/icons/ic_sun.png" class="w-4 h-3 ml-1 drop-shadow">
+                <img src="/src/assets/icons/ic_sun.png" class="w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t('evolutions.onlyEvolvesDay') }}
@@ -96,8 +96,8 @@
             </span>
             
             <span v-if="pokemon.gender_required" class="flex w-full my-1">
-                <img v-if="pokemon.gender_required === 'Female'" src="\~/assets/icons/ic_female.png" class="w-4 h-3 ml-1 drop-shadow">
-                <img v-if="pokemon.gender_required === 'Male'" src="\~/assets/icons/ic_male.png" class="w-4 h-3 ml-1 drop-shadow">
+                <img v-if="pokemon.gender_required === 'Female'" src="/src/assets/icons/ic_female.png" class="w-4 h-3 ml-1 drop-shadow">
+                <img v-if="pokemon.gender_required === 'Male'" src="/src/assets/icons/ic_male.png" class="w-4 h-3 ml-1 drop-shadow">
 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t(`evolutions.${pokemon.gender_required}`) }}
@@ -107,7 +107,7 @@
             <span v-if="pokemon.no_candy_cost_if_traded" class="w-full my-1">
                 <span class="text-gray-800 dark:text-white text-mini font-light text-center mx-4 my-2">o</span>
                 <div class="flex items-center mt-2">
-                    <img src="\~/assets/icons/ic_trade_ball.png" class="w-4 h-4 drop-shadow">
+                    <img src="/src/assets/icons/ic_trade_ball.png" class="w-4 h-4 drop-shadow">
                     <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                         {{ $t('evolutions.freeWhenWxchanging') }}
                     </span>
