@@ -77,7 +77,7 @@
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     
-                    {{ $t('evolutions.walkWithBuddy', pokemon.buddy_distance_required) }}
+                    {{ $tc('evolutions.walkWithBuddy', pokemon.buddy_distance_required) }}
                 </span>
             </span>
             
