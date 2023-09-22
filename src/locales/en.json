@@ -20,7 +20,7 @@
     "viewShiny": "View shiny",
     "evolution": "Evolution | Evolutions",
     "evolutions": {
-        "walkWithBuddy": "Walk {0}km with your buddy",
+        "walkWithBuddy": "Walk {n}km with your buddy",
         "onlyEvolvesDay": "Only evolves during the day",
         "onlyEvolvesNight": "Only evolves at night",
         "Female": "Only evolves if female",
