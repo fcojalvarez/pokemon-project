@@ -19,7 +19,6 @@ onMounted(async() => {
     const pokemonId = Number(route.params.id);
     
     if(pokemonId) await getPokemon(pokemonId);
-    console.log(pokemon.value.evolution_info);
     window.scrollTo({ top: 0, behavior: "smooth" });
 })
 

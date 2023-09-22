@@ -62,7 +62,7 @@
             <span v-if="pokemon.item_required" class="flex w-full my-1">
                 <img v-if="itemRequired === 'SunStore'" src="../../assets/icons/SunStone.png" class="w-3 h-3 ml-1 drop-shadow">
                 <img v-if="itemRequired === 'SinnohStone'" src="../../assets/icons/SinnohStone.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'KingsRock'" src="../../assets/icons/KingsRock.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'KingsRock'" src="../../assets/icons/test.png" class="w-3 h-3 ml-1 drop-shadow">
                 <img v-if="itemRequired === 'UnovaStone'" src="../../assets/icons/UnovaStone.png" class="w-3 h-3 ml-1 drop-shadow">
                 <img v-if="itemRequired === 'DragonScale'" src="../../assets/icons/DragonScale.png" class="w-3 h-3 ml-1 drop-shadow">
                 <img v-if="itemRequired === 'Upgrade'" src="../../assets/icons/Upgrade.png" class="w-3 h-3 ml-1 drop-shadow">
