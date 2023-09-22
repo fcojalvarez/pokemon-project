@@ -46,6 +46,9 @@ module.exports = {
             fontFamily: {
                 'code-sans': ['Source Code Pro','Open Sans', 'monospace']
             },
+            fontSize: {
+                'mini': '0.6rem',
+            },
             animation: {
                 'spin-4-s': 'bounce 3s ease inifinity',
             }

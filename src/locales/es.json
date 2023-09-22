@@ -18,5 +18,29 @@
     "candy": "Caramelo | Caramelos",
     "each": "cada",
     "viewShiny": "Ver shiny",
-    "evolution": "Evolución | Evoluciones"
+    "evolution": "Evolución | Evoluciones",
+    "evolutions": {
+        "onlyEvolvesDay": "Sólo evoluciona por el día",
+        "onlyEvolvesNight": "Sólo evoluciona por la noche",
+        "walkWithBuddy": "Camina {0}km con tu compañero",
+        "Female": "Sólo evoluciona si es hembra",
+        "Male": "Sólo evoluciona si es macho",
+        "freeWhenWxchanging": "Gratis al intercambiar",
+        "lure": {
+            "magneticLureModule": "Cebo magnético",
+            "mossyLureModule": "Cebo musgoso",
+            "glacialLureModule": "Cebo glaciar",
+            "rainyLureModule": "Cebo lluvioso"
+        },
+        "items": {
+            "KingsRock": "Roca del rey",
+            "SunStone": "Piedra solar",
+            "SinnohStone": "Piedra sinnoh",
+            "UnovaStone": "Piedra teselia",
+            "DragonScale": "Escama dragón",
+            "Upgrade": "Mejora",
+            "MetalCoat": "Revestimiento metálico"
+        }
+
+    }
 }

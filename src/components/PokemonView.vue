@@ -3,7 +3,7 @@ import { onMounted, ref, watch,toRaw } from 'vue';
 import { useRoute } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 import { typesSVG } from '../utils/Settings';
-import { BaseIcon, BaseCheckbox, EvolPokemonItem } from '../components/index';
+import { BaseIcon, EvolPokemonItem } from '../components/index';
 
 const pokemon = ref(null);
 const route = useRoute();
@@ -19,6 +19,7 @@ onMounted(async() => {
     const pokemonId = Number(route.params.id);
     
     if(pokemonId) await getPokemon(pokemonId);
+    console.log(pokemon.value.evolution_info);
     window.scrollTo({ top: 0, behavior: "smooth" });
 })
 
@@ -86,7 +87,7 @@ watch(route, async(newRoute) => {
             {{ $t('evolution', 0) }}
         </h3>
         <section v-if="pokemon.evolution_info" class="my-3 flex justify-center flex-wrap">
-            <section v-for="evolFamilyKey in Object.keys(pokemon.evolution_info)" class="flex flex-col sm:flex-row w-1/2 items-center" :key="evolFamilyKey">
+            <section v-for="evolFamilyKey in Object.keys(pokemon.evolution_info)" class="flex flex-col flex-wrap sm:flex-row w-full sm:w-1/2 items-center" :key="evolFamilyKey">
                 <evol-pokemon-item
                     :pokemon="evolPokemon"
                     v-for="(evolPokemon, index) in pokemon?.evolution_info[evolFamilyKey]"

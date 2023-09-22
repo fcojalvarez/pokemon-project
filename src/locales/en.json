@@ -18,5 +18,28 @@
     "encounterData": "Encounter data",
     "stats": "Stats",
     "viewShiny": "View shiny",
-    "evolution": "Evolution | Evolutions"
+    "evolution": "Evolution | Evolutions",
+    "evolutions": {
+        "walkWithBuddy": "Walk {0}km with your buddy",
+        "onlyEvolvesDay": "Only evolves during the day",
+        "onlyEvolvesNight": "Only evolves at night",
+        "Female": "Only evolves if female",
+        "Male": "Only evolves if it is a male",
+        "freeWhenWxchanging": "Free when exchanging",
+        "lure": {
+            "magneticLureModule": "Magnetic lure",
+            "mossyLureModule": "Mossy lure",
+            "glacialLureModule": "Glacial lure",
+            "rainyLureModule": "Rainy lure"
+        },
+        "items": {
+            "KingsRock": "King's rock",
+            "SunStone": "Sun stone",
+            "SinnohStone": "Sinnoh stone",
+            "UnovaStone": "Teselia stone",
+            "DragonScale": "Dragon scale",
+            "Upgrade": "Upgrade",
+            "MetalCoat": "Metal coat"
+        }
+    }
 }

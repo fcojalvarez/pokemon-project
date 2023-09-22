@@ -12,6 +12,10 @@ const router = createRouter({
             path: '/pokemon/:id',
             name: 'PokemonPage',
             component: () => import('@/views/PokemonPage.vue')   
+        },
+        {
+            path: "/:catchAll(.*)",
+            redirect: `/`
         }
     ]
 })

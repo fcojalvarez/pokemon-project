@@ -5497,6 +5497,36 @@
         "id": 573,
         "name": "Cinccino"
     },
+    "577": {
+        "found_egg": false,
+        "found_evolution": true,
+        "found_photobomb": false,
+        "found_raid": false,
+        "found_research": true,
+        "found_wild": true,
+        "id": 577,
+        "name": "Solosis"
+    },
+    "578": {
+        "found_egg": false,
+        "found_evolution": true,
+        "found_photobomb": false,
+        "found_raid": false,
+        "found_research": true,
+        "found_wild": true,
+        "id": 578,
+        "name": "Duosion"
+    },
+    "579": {
+        "found_egg": false,
+        "found_evolution": true,
+        "found_photobomb": false,
+        "found_raid": false,
+        "found_research": true,
+        "found_wild": true,
+        "id": 579,
+        "name": "Reuniclus"
+    },
     "588": {
         "found_egg": false,
         "found_evolution": false,
