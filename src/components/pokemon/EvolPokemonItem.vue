@@ -65,7 +65,7 @@
                 <img v-if="itemRequired === 'KingsRock'" src="../../assets/icons/KingsRock.png" class="w-3 h-3 ml-1 drop-shadow">
                 <img v-if="itemRequired === 'UnovaStone'" src="../../assets/icons/UnovaStone.png" class="w-3 h-3 ml-1 drop-shadow">
                 <img v-if="itemRequired === 'DragonScale'" src="../../assets/icons/DragonScale.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'Upgrade'" src="../../assets/icons/test2.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'Upgrade'" src="../../assets/icons/Upgrade.png" class="w-3 h-3 ml-1 drop-shadow">
                 <img v-if="itemRequired === 'MetalCoat'" src="../../assets/icons/MetalCoat.png" class="w-3 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
