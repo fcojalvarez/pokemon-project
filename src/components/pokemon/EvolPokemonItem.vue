@@ -96,8 +96,8 @@
             </span>
             
             <span v-if="pokemon.gender_required" class="flex w-full my-1">
-                <!-- <img v-if="pokemon.gender_required === 'Female'" src="../../assets/icons/ic_female.png" class="w-4 h-3 ml-1 drop-shadow">
-                <img v-if="pokemon.gender_required === 'Male'" src="../../assets/icons/ic_male.png" class="w-4 h-3 ml-1 drop-shadow"> -->
+                <img v-if="pokemon.gender_required === 'Female'" src="../../assets/icons/ic_female.png" class="w-4 h-3 ml-1 drop-shadow">
+                <img v-if="pokemon.gender_required === 'Male'" src="../../assets/icons/ic_male.png" class="w-4 h-3 ml-1 drop-shadow">
 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t(`evolutions.${pokemon.gender_required}`) }}
@@ -107,7 +107,7 @@
             <span v-if="pokemon.no_candy_cost_if_traded" class="w-full my-1">
                 <span class="text-gray-800 dark:text-white text-mini font-light text-center mx-4 my-2">o</span>
                 <div class="flex items-center mt-2">
-                    <!-- <img src="../../assets/icons/ic_trade_ball.png" class="w-4 h-4 drop-shadow"> -->
+                    <img src="../../assets/icons/ic_trade_ball.png" class="w-4 h-4 drop-shadow">
                     <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                         {{ $t('evolutions.freeWhenWxchanging') }}
                     </span>
