@@ -19,10 +19,12 @@
     "each": "cada",
     "viewShiny": "Ver shiny",
     "evolution": "Evolución | Evoluciones",
+    "unitDistance": "km",
     "evolutions": {
         "onlyEvolvesDay": "Sólo evoluciona por el día",
         "onlyEvolvesNight": "Sólo evoluciona por la noche",
-        "walkWithBuddy": "Camina {n}km con tu compañero",
+        "walk": "Camina",
+        "withBuddy": "con tu compañero",
         "Female": "Sólo evoluciona si es hembra",
         "Male": "Sólo evoluciona si es macho",
         "freeWhenWxchanging": "Gratis al intercambiar",

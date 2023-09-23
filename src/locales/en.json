@@ -18,13 +18,15 @@
     "encounterData": "Encounter data",
     "stats": "Stats",
     "viewShiny": "View shiny",
+    "unitDistance": "km",
     "evolution": "Evolution | Evolutions",
     "evolutions": {
-        "walkWithBuddy": "Walk {n}km with your buddy",
         "onlyEvolvesDay": "Only evolves during the day",
         "onlyEvolvesNight": "Only evolves at night",
         "Female": "Only evolves if female",
         "Male": "Only evolves if it is a male",
+        "walk": "Walk",
+        "withBuddy": "with your buddy",
         "freeWhenWxchanging": "Free when exchanging",
         "lure": {
             "magneticLureModule": "Magnetic lure",

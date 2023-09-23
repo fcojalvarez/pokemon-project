@@ -1,12 +1,12 @@
 <template>
     <section class="my-4 w-full cursor-pointer flex justify-center" @click="goToPokemonPage(pokemon.pokemon_id)" >
-        <section class="w-1/2 mr-auto">
+        <section class="w-2/3 mr-auto">
             <img
                 :src="isShowShiny? pokemon.sprites.male_shiny : pokemon.sprites.male"
                 :alt="pokemon.name"
-                class="h-24 w-24"
+                class="h-24 w-24 mx-auto"
             >
-            <div v-if="pokemon.is_shiny_released" class="text-center text-mini absolute top-6 right-6 z-10 text-gray-600 dark:text-gray-100 shiny">
+            <div v-if="pokemon.is_shiny_released" class="text-center text-mini absolute top-2 right-12 z-10 text-gray-600 dark:text-gray-100 shiny">
                 <span class="block leading-none">✦✦</span>
                 <span>✦</span>
             </div>
@@ -40,7 +40,7 @@
             </div>
         </section>
 
-        <section v-if="pokemon.candy_required" class="relative -bottom-[6rem] w-1/2 flex flex-col justify-center">
+        <section v-if="pokemon.candy_required" class="relative -bottom-[6rem] w-1/3 flex flex-col justify-center">
             <svg
                 class="absolute -left-[1.5rem] -rotate-[251deg]"
                 width="24" height="24px" fill="none"
@@ -76,8 +76,9 @@
                 <img src="../../assets/icons/walkWithYourBuddy.png" class="w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
-                    
-                    {{ $tc('evolutions.walkWithBuddy', pokemon.buddy_distance_required) }}
+                    {{ 
+                        `${$t('evolutions.walk')} ${pokemon.buddy_distance_required}${$t('unitDistance')} ${$t('evolutions.withBuddy')}`
+                    }}
                 </span>
             </span>
             

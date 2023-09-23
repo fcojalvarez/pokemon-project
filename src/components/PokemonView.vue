@@ -77,6 +77,10 @@ watch(route, async(newRoute) => {
                 class="h-64 w-64 mx-auto drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
                 loading="lazy"
             >
+            <div v-if="pokemon.is_shiny_released" class="text-center text-mini absolute top-16 right-12 z-10 text-gray-600 dark:text-gray-100 shiny">
+                <span class="block leading-none">✦✦</span>
+                <span>✦</span>
+            </div>
         </section>
 
         <h3
