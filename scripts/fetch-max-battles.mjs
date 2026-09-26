@@ -173,7 +173,26 @@ async function main() {
   }
 }
 
+/**
+ * Un fallo de conexión en Node 24 llega como AggregateError, y ésos tienen el
+ * `message` vacío: el detalle está en `errors`, uno por dirección intentada.
+ * Sin desenvolverlo, el log de Actions se quedaba en una línea en blanco y un
+ * «exit code 1», que no dice nada.
+ */
+function explicar(err) {
+  const partes = [err?.message || err?.code || `error sin mensaje (${err?.name ?? 'Error'})`]
+  for (const causa of err?.errors ?? []) {
+    partes.push(`  - ${[causa.code, causa.address, causa.message].filter(Boolean).join(' ')}`)
+  }
+  if (err?.cause) partes.push(`  - causa: ${err.cause.message ?? err.cause}`)
+  return partes.join('\n')
+}
+
 main().catch((err) => {
-  console.error(`\n${err.message}`)
+  const detalle = explicar(err)
+  console.error(`\n${detalle}`)
+  // Como anotación de Actions: los logs piden sesión, pero las anotaciones se
+  // pueden leer desde la API sin token.
+  console.log(`::error title=pnpm max::${detalle.replace(/\n/g, '%0A')}`)
   process.exitCode = 1
 })
