@@ -11,7 +11,11 @@ const { setDarkMode } = mainStore;
 
 // En el menú lateral, en móvil, el botón va con su texto al lado del de
 // Sugerencias y con su mismo aspecto. En la cabecera, el texto solo cabe en
-// escritorio.
+// escritorio. Los dos llevan nombre fijo y el estado en aria-pressed.
+//
+// Sin comentarios HTML en la plantilla: junto a v-if/v-else, en desarrollo
+// Vue los cuenta como raíces y deja de aplicar las clases que llegan de
+// fuera (el `hidden md:flex` de la cabecera), y el botón salía dos veces.
 defineProps({
     conTexto: { type: Boolean, default: false }
 });
@@ -41,7 +45,6 @@ onBeforeMount(() => {
 </script>
 
 <template>
-    <!-- Nombre fijo y el estado en aria-pressed. -->
     <button
         v-if="conTexto"
         type="button"
@@ -60,7 +63,6 @@ onBeforeMount(() => {
         <span aria-hidden="true" class="text-xs whitespace-nowrap">{{ isDarkMode? $t('lightMode') : $t('darkMode') }}</span>
     </button>
 
-    <!-- En la cabecera: en móvil solo se ve el icono. -->
     <button
         v-else
         type="button"
