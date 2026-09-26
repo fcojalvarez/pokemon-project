@@ -65,3 +65,39 @@ describe('equipo contra un jefe Max', () => {
     expect(maxCounters(null, roster, chart)).toEqual({ attackers: [], tanks: [] })
   })
 })
+
+/**
+ * Al evolucionar se conserva la forma Dinamax, así que un Chansey sacado de un
+ * nodo se convierte en un Blissey Dinamax. Marcar solo lo que sale
+ * directamente dejaba fuera media familia.
+ */
+describe('disponible evolucionando', () => {
+  it('marca la evolución de algo que sí está en los nodos', () => {
+    const { tanks } = maxCounters(jefe('Moltres'), roster, chart, {
+      limit: 20,
+      available: new Set([113]) // solo Chansey
+    })
+    const blissey = tanks.find((uno) => uno.dex === 242)
+    expect(blissey?.availableNow).toBe(false)
+    expect(blissey?.availableFrom?.nameEs).toBe('Chansey')
+  })
+
+  it('encadena varios saltos', () => {
+    const { attackers } = maxCounters(jefe('Moltres'), roster, chart, {
+      limit: 20,
+      available: new Set([524]) // Roggenrola -> Boldore -> Gigalith
+    })
+    const gigalith = attackers.find((uno) => uno.dex === 526)
+    expect(gigalith?.availableFrom?.nameEs).toBe('Roggenrola')
+  })
+
+  it('lo que sale directamente no lleva ruta de evolución', () => {
+    const { tanks } = maxCounters(jefe('Moltres'), roster, chart, {
+      limit: 20,
+      available: new Set([113, 242]) // Chansey y Blissey, los dos en nodos
+    })
+    const blissey = tanks.find((uno) => uno.dex === 242)
+    expect(blissey?.availableNow).toBe(true)
+    expect(blissey?.availableFrom).toBeNull()
+  })
+})

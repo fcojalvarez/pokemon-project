@@ -41,6 +41,8 @@ function efectividad(chart, tipoAtaque, tiposDefensor) {
  *        No cambia el orden, solo marca cuáles se pueden conseguir hoy: un
  *        Pokémon solo se obtiene en forma Dinamax ganando un combate Max, así
  *        que el mejor counter no sirve de nada si no hay dónde pillarlo.
+ *        También se marca lo que se alcanza evolucionando algo disponible:
+ *        si hoy sale Chansey, Blissey está a un caramelo de distancia.
  * @returns {{attackers: object[], tanks: object[]}}
  */
 export function maxCounters(jefe, roster, chart, options = {}) {
@@ -48,6 +50,29 @@ export function maxCounters(jefe, roster, chart, options = {}) {
   const disponibles = options.available ?? null
   const tiposJefe = jefe?.types ?? []
   if (!tiposJefe.length || !Array.isArray(roster)) return { attackers: [], tanks: [] }
+
+  // Lo que se alcanza evolucionando algo que sí está en los nodos. Al
+  // evolucionar, la forma Dinamax se conserva, así que un Chansey de un nodo
+  // se convierte en un Blissey Dinamax.
+  const porId = new Map(roster.map((e) => [e.id, e]))
+  const desdeEvolucion = new Map()
+  if (disponibles) {
+    const cola = roster
+      .filter((e) => disponibles.has(e.dex))
+      .map((e) => ({ actual: e, origen: e }))
+
+    while (cola.length) {
+      const { actual, origen } = cola.shift()
+      for (const siguiente of actual.evolutions ?? []) {
+        const entry = porId.get(siguiente)
+        // Lo ya disponible directamente no necesita ruta, y sin `has` una
+        // familia con evoluciones cruzadas daría vueltas para siempre.
+        if (!entry || desdeEvolucion.has(siguiente) || disponibles.has(entry.dex)) continue
+        desdeEvolucion.set(siguiente, { id: origen.id, nameEs: origen.nameEs })
+        cola.push({ actual: entry, origen })
+      }
+    }
+  }
 
   const candidatos = []
   for (const entry of roster) {
@@ -76,6 +101,8 @@ export function maxCounters(jefe, roster, chart, options = {}) {
       effectiveness: ataque,
       incoming: recibe,
       availableNow: disponibles ? disponibles.has(entry.dex) : null,
+      // De quién habría que evolucionar, si no sale él directamente.
+      availableFrom: desdeEvolucion.get(entry.id) ?? null,
       attackScore: entry.stats.atk * ataque,
       // La resistencia entra como divisor: recibir el doble vale lo mismo que
       // tener la mitad de aguante.

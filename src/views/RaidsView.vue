@@ -72,8 +72,9 @@ const equipoMax = computed(() => {
   )
   if (!jefe) return null
 
-  // Marca cuáles están hoy en los nodos: el mejor counter no sirve de nada si
-  // no hay dónde conseguirlo en forma Dinamax.
+  // Marca cuáles están hoy en los nodos, y cuáles se alcanzan evolucionando
+  // algo que sí está: el mejor counter no sirve de nada si no hay dónde
+  // conseguirlo en forma Dinamax.
   const disponibles = new Set((gameData.maxLive?.pokemon ?? []).map((uno) => uno.dex))
 
   return maxCounters(jefe, gameData.roster, gameData.chart, {
@@ -81,6 +82,13 @@ const equipoMax = computed(() => {
     available: disponibles
   })
 })
+
+/** Cómo conseguirlo hoy: directamente, evolucionando, o de ninguna forma. */
+const comoConseguir = (quien) => {
+  if (quien.availableNow) return t('max.availableNow')
+  if (quien.availableFrom) return t('max.availableVia', { pokemon: quien.availableFrom.nameEs })
+  return null
+}
 
 const maxPorNivel = computed(() => {
   const vivos = gameData.maxLive?.pokemon ?? []
@@ -395,7 +403,7 @@ onMounted(() => {
                         :name="quien.nameEs"
                         :image="spriteUrl(quien.spriteId)"
                         :dex="quien.dex"
-                        :badge="quien.availableNow ? $t('max.availableNow') : null"
+                        :badge="comoConseguir(quien)"
                       />
                     </div>
                   </div>
@@ -413,7 +421,7 @@ onMounted(() => {
                         :name="quien.nameEs"
                         :image="spriteUrl(quien.spriteId)"
                         :dex="quien.dex"
-                        :badge="quien.availableNow ? $t('max.availableNow') : null"
+                        :badge="comoConseguir(quien)"
                       />
                     </div>
                   </div>

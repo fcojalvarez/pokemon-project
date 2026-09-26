@@ -428,6 +428,7 @@
         "attackers": "To attack",
         "noAttackers": "No Dynamax has a type advantage here.",
         "availableNow": "available now",
-        "teamNote": "Ranked by attack and type advantage, not damage: Max Moves publish no power. Since every Pokémon of a type shares the same Max Move, that part cancels out within the comparison."
+        "teamNote": "Ranked by attack and type advantage, not damage: Max Moves publish no power. Since every Pokémon of a type shares the same Max Move, that part cancels out within the comparison. Evolving keeps the Dynamax form.",
+        "availableVia": "by evolving {pokemon}"
     }
 }
