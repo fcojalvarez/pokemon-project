@@ -82,8 +82,7 @@ const to = computed(() => (entrada.value ? `/pokemon/${entrada.value.dex}` : nul
       v-if="props.canBeShiny"
       variant="dex"
       size="text-mini"
-      class="shrink-0 origin-center"
-      style="transform: translateY(-0.231em) scale(0.65)"
+      inline
       :title="$t('pokemon.shinyLegend')"
     />
   </component>

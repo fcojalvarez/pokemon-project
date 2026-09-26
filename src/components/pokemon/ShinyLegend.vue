@@ -10,29 +10,18 @@
  * una fila tenga alto de línea normal y la otra cero, así que cualquier
  * "arreglo" del line-height la separa y deja de ser la misma marca.
  */
-import { computed } from 'vue'
 import ShinyMark from './ShinyMark.vue'
 
-const props = defineProps({
+defineProps({
   variant: { type: String, default: 'dex' }
 })
 
-/** Se reduce con scale y no con font-size, para no descuadrar la marca. */
-const SCALE = 0.65
-
 /**
- * Las estrellas se salen de su caja: la fila con alto de línea cero no ocupa
- * espacio, así que el centro de lo que se ve no es el centro de la caja y
- * `items-center` alinearía lo que no toca. El desvío es simétrico entre las
- * dos variantes porque tienen el orden de las filas invertido; los valores
- * están medidos sobre el render, en em para que aguanten un cambio de tamaño.
+ * Se reduce con scale y no con font-size, para no descuadrar la marca. El
+ * ajuste vertical lo hace <shiny-mark> con `inline`: estaba aquí, y cada vez
+ * que la marca aparecía en un sitio nuevo había que volver a copiar el número.
  */
-const NUDGE = { dex: '-0.231em', evolution: '0.202em' }
-
-const markStyle = computed(() => ({
-  // translate primero y scale después: así el ajuste no se reescala.
-  transform: `translateY(${NUDGE[props.variant] ?? '0'}) scale(${SCALE})`
-}))
+const SCALE = 0.65
 </script>
 
 <template>
@@ -40,8 +29,8 @@ const markStyle = computed(() => ({
     <shiny-mark
       :variant="variant"
       size="text-mini"
-      class="shrink-0 origin-center"
-      :style="markStyle"
+      inline
+      :scale="SCALE"
       aria-hidden="true"
     />
     {{ $t('pokemon.shinyLegend') }}

@@ -70,7 +70,7 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
           v-if="canBeShiny"
           variant="dex"
           size="text-mini"
-          class="shrink-0 scale-90 origin-center"
+          inline
           :title="$t('pokemon.shinyLegend')"
         />
       </span>
