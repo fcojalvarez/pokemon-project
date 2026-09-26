@@ -11,7 +11,9 @@ import {
   translatePokemonName
 } from '../../utils/eventName'
 import { spriteUrl } from '../../utils/sprites'
+import { summarizeEvent } from '../../utils/eventSummary'
 import MaxMark from '../pokemon/MaxMark.vue'
+import ShinyMark from '../pokemon/ShinyMark.vue'
 
 const props = defineProps({
   event: { type: Object, required: true }
@@ -91,6 +93,26 @@ const maxBattle = computed(() => {
     image: entry ? spriteUrl(entry.spriteId) : null
   }
 })
+
+/**
+ * Nombre de un Pokémon en español. LeekDuck los publica en inglés y con la
+ * forma entre paréntesis; se reutiliza el mismo traductor que los títulos para
+ * que «Shadow Thundurus (Incarnate Forme)» salga igual en los dos sitios.
+ */
+const nombreEs = (nombre) =>
+  translatePokemonName(nombre, gameData.namesEs, (form, base) =>
+    t(`events.forms.${form}`, { pokemon: base })
+  )
+
+/**
+ * Resumen del evento a partir de `extraData`.
+ *
+ * LeekDuck no publica descripciones, así que esto no traduce ninguna: arma en
+ * español lo que de verdad se quiere saber con los datos sueltos que sí trae.
+ * Aquí se pintan solo las partes que no cubren ya los bloques de hora
+ * destacada, Día de la Comunidad e incursiones.
+ */
+const resumen = computed(() => summarizeEvent(props.event))
 
 const spotlight = computed(() => props.event.extraData?.spotlight ?? null)
 const communityDay = computed(() => props.event.extraData?.communityday ?? null)
@@ -188,8 +210,14 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
     >
       <img v-if="spotlight.image" :src="spotlight.image" :alt="spotlight.name" class="w-8 h-8" />
       <div class="min-w-0">
-        <strong class="text-sm">{{ spotlight.name }}</strong>
-        <span v-if="spotlight.canBeShiny" class="ml-1 text-amber-600 dark:text-amber-400">✦</span>
+        <strong class="text-sm">{{ nombreEs(spotlight.name) }}</strong>
+        <shiny-mark
+          v-if="spotlight.canBeShiny"
+          variant="dex"
+          size="text-mini"
+          class="inline-block align-middle ml-1 scale-90"
+          :title="$t('pokemon.shinyLegend')"
+        />
         <div class="text-mini text-gray-500 dark:text-gray-400">{{ gameData.translateText(spotlight.bonus) }}</div>
       </div>
     </div>
@@ -198,7 +226,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       <div class="flex flex-wrap items-center gap-2">
         <span v-for="spawn in communityDay.spawns" :key="spawn.name" class="flex items-center gap-1">
           <img :src="spawn.image" :alt="spawn.name" class="w-7 h-7" />
-          <span class="text-mini">{{ spawn.name }}</span>
+          <span class="text-mini">{{ nombreEs(spawn.name) }}</span>
         </span>
       </div>
       <div class="flex flex-wrap gap-1 mt-2">
@@ -219,9 +247,56 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
         class="flex items-center gap-1 px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600"
       >
         <img v-if="boss.image" :src="boss.image" alt="" class="w-5 h-5" />
-        {{ boss.name }}
+        {{ nombreEs(boss.name) }}
       </span>
     </div>
+
+    <!--
+      Lo que trae el evento y no sale arriba. Para la mayoría de eventos
+      («generic») esto es lo único que hay: LeekDuck no publica descripción,
+      solo si hay apariciones en libertad y si hay tareas de campo.
+    -->
+    <div
+      v-if="resumen && (resumen.hasSpawns || resumen.hasResearch || resumen.shinies.length)"
+      class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+    >
+      <div v-if="resumen.hasSpawns || resumen.hasResearch" class="flex flex-wrap gap-1.5">
+        <span
+          v-if="resumen.hasSpawns"
+          class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400"
+        >
+          {{ $t('events.hasSpawns') }}
+        </span>
+        <span
+          v-if="resumen.hasResearch"
+          class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400"
+        >
+          {{ $t('events.hasResearch') }}
+        </span>
+      </div>
+
+      <div v-if="resumen.shinies.length" class="mt-2">
+        <p class="text-mini text-gray-500 dark:text-gray-400">{{ $t('events.shinies') }}</p>
+        <div class="flex flex-wrap items-center gap-2 mt-1">
+          <span
+            v-for="uno in resumen.shinies"
+            :key="uno.name"
+            class="flex items-center gap-1 text-mini"
+          >
+            <img v-if="uno.image" :src="uno.image" alt="" class="w-6 h-6" loading="lazy" />
+            {{ nombreEs(uno.name) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <p
+      v-for="nota in resumen?.notes ?? []"
+      :key="nota"
+      class="mt-2 text-mini text-gray-500 dark:text-gray-400"
+    >
+      {{ gameData.translateText(nota) }}
+    </p>
 
     <a
       v-if="event.link"

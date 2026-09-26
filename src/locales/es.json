@@ -180,7 +180,10 @@
             "dynamax": "{pokemon} Dinamax",
             "shadow": "{pokemon} Oscuro",
             "primal": "{pokemon} Primigenio"
-        }
+        },
+        "hasSpawns": "Apariciones en libertad",
+        "hasResearch": "Tareas de campo",
+        "shinies": "Variocolor disponible"
     },
     "raids": {
         "intro": "Jefes de incursión, huevos, tareas de campo y combates Max activos ahora mismo.",

@@ -180,7 +180,10 @@
             "dynamax": "Dynamax {pokemon}",
             "shadow": "Shadow {pokemon}",
             "primal": "Primal {pokemon}"
-        }
+        },
+        "hasSpawns": "Wild spawns",
+        "hasResearch": "Field research",
+        "shinies": "Shiny available"
     },
     "raids": {
         "intro": "Raid bosses, eggs, field research and Max Battles happening right now.",
