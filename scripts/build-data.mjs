@@ -68,6 +68,87 @@ async function loadEnv() {
  * Pokedex: cuenta si alguna forma normal puede, ignorando megas y oscuros, que
  * en el juego son incompatibles con dinamaxizar.
  */
+/**
+ * Pone al día qué variocolores están liberados en la tabla `pokemons`.
+ *
+ * Esto no salía de ningún sitio: era un dato estático que había que tocar a
+ * mano cada vez que el juego estrenaba uno, así que en cuanto empezaba un
+ * evento la Pokédex se quedaba mintiendo. Ahora entra en la pasada diaria.
+ *
+ * Dos detalles que importan:
+ *
+ *   - Solo enciende, nunca apaga. Liberar un variocolor es permanente, así
+ *     que si un día la fuente devuelve menos de la cuenta, lo peor que pasa es
+ *     que no se entera de los nuevos; lo que no puede pasar es que un fallo de
+ *     red borre los 800 que ya había.
+ *   - `is_shiny_released` está también copiado dentro del jsonb
+ *     `evolution_info`, que es de donde lo lee la cadena evolutiva de la
+ *     ficha. Si se toca solo la columna, la estrella no aparece ahí.
+ */
+async function syncShinyReleases(client, shinyRaw) {
+  const entradas = Object.values(shinyRaw ?? {}).filter((s) => Number.isInteger(s?.id))
+  if (entradas.length < 500) {
+    throw new Error(`la lista de variocolores viene con ${entradas.length} entradas: no me fío`)
+  }
+
+  const ids = entradas.map((s) => s.id)
+  const sitios = entradas.map((s) =>
+    JSON.stringify({
+      wild: !!s.found_wild,
+      raid: !!s.found_raid,
+      egg: !!s.found_egg,
+      research: !!s.found_research,
+      evolution: !!s.found_evolution,
+      photobomb: !!s.found_photobomb,
+    })
+  )
+
+  const { rowCount: nuevos } = await client.query(
+    `UPDATE public.pokemons p
+        SET is_shiny_released = true,
+            shiny_found = fuente.sitios,
+            updated_at = now()
+       FROM (SELECT unnest($1::int[]) AS dex, unnest($2::jsonb[]) AS sitios) AS fuente
+      WHERE p.pokemon_id = fuente.dex
+        AND (p.is_shiny_released IS DISTINCT FROM true
+             OR p.shiny_found IS DISTINCT FROM fuente.sitios)`,
+    [ids, sitios]
+  )
+
+  // Y la copia que vive dentro de evolution_info, que es la que pinta la
+  // estrella en la cadena evolutiva.
+  const { rowCount: cadenas } = await client.query(`
+    UPDATE public.pokemons p
+       SET evolution_info = (
+             SELECT jsonb_object_agg(fam.key, (
+                      SELECT jsonb_agg(
+                               CASE
+                                 WHEN ref.is_shiny_released IS DISTINCT FROM
+                                      (uno->>'is_shiny_released')::boolean
+                                 THEN jsonb_set(uno, '{is_shiny_released}',
+                                                to_jsonb(coalesce(ref.is_shiny_released, false)))
+                                 ELSE uno
+                               END ORDER BY t.idx)
+                        FROM jsonb_array_elements(fam.value) WITH ORDINALITY AS t(uno, idx)
+                        LEFT JOIN public.pokemons ref
+                               ON ref.pokemon_id = (uno->>'pokemon_id')::int))
+               FROM jsonb_each(p.evolution_info) fam),
+           updated_at = now()
+     WHERE p.evolution_info IS NOT NULL
+       AND EXISTS (
+             SELECT 1
+               FROM jsonb_each(p.evolution_info) fam,
+                    jsonb_array_elements(fam.value) uno
+               LEFT JOIN public.pokemons ref
+                      ON ref.pokemon_id = (uno->>'pokemon_id')::int
+              WHERE coalesce(ref.is_shiny_released, false)
+                    IS DISTINCT FROM coalesce((uno->>'is_shiny_released')::boolean, false))
+  `)
+
+  console.log(`  variocolores   ${entradas.length} liberados según la fuente; ` +
+    `${nuevos} filas al día, ${cadenas} cadenas evolutivas resincronizadas`)
+}
+
 async function updatePokemonsTable(client, roster) {
   const dinamax = new Set()
   const gigamax = new Set()
@@ -89,7 +170,7 @@ async function updatePokemonsTable(client, roster) {
   console.log(`  pokemons       ${rowCount} filas tocadas (${dinamax.size} Dinamax, ${gigamax.size} Gigamax)`)
 }
 
-async function uploadToSupabase(data, roster) {
+async function uploadToSupabase(data, roster, shinyRaw) {
   const url = process.env.SUPABASE_DB_URL
   if (!url) {
     if (EXIGE_SUBIDA) {
@@ -124,6 +205,7 @@ async function uploadToSupabase(data, roster) {
       console.log(`  ${name.padEnd(14)} ${(json.length / 1024).toFixed(0)} KB`)
     }
     await updatePokemonsTable(client, roster)
+    await syncShinyReleases(client, shinyRaw)
     await client.query('COMMIT')
   } catch (err) {
     await client.query('ROLLBACK')
@@ -143,6 +225,8 @@ const SOURCES = {
   master: 'https://pvpoke.com/data/rankings/all/overall/rankings-10000.json',
   // Una sola llamada para saber el id de sprite de cada forma (megas incluidas).
   forms: 'https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0',
+  // Lista canónica de variocolores liberados, con de dónde sale cada uno.
+  shiny: 'https://pogoapi.net/api/v1/shiny_pokemon.json',
 }
 
 /** pvpoke nombra las formas distinto que PokeAPI. */
@@ -666,7 +750,7 @@ function trimRankings(list, roster, limit) {
 async function main() {
   await loadEnv()
   console.log('Descargando fuentes…')
-  const [gmRaw, esRaw, enRaw, pvpGm, great, ultra, master, formsRaw] = await Promise.all([
+  const [gmRaw, esRaw, enRaw, pvpGm, great, ultra, master, formsRaw, shinyRaw] = await Promise.all([
     load('gm', SOURCES.gm),
     load('es', SOURCES.es),
     load('en', SOURCES.en),
@@ -675,6 +759,7 @@ async function main() {
     load('rank-ultra', SOURCES.ultra),
     load('rank-master', SOURCES.master),
     load('pokeapi-forms', SOURCES.forms),
+    load('shiny', SOURCES.shiny),
   ])
 
   const es = i18nMap(esRaw)
@@ -743,7 +828,7 @@ async function main() {
     console.log(`  ${file.padEnd(14)} ${(json.length / 1024).toFixed(0)} KB`)
   }
 
-  await uploadToSupabase(data, pokemon)
+  await uploadToSupabase(data, pokemon, shinyRaw)
 
   console.log(`\n${pokemon.length} Pokémon (${data['meta.json'].counts.released} disponibles), ` +
     `${Object.keys(moves).length} movimientos.`)
