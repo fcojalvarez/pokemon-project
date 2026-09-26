@@ -16,7 +16,9 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         generation: null,
         rarity: null,
         onlyShiny: false,
-        onlyShadow: false
+        onlyShadow: false,
+        onlyDynamax: false,
+        onlyGigantamax: false
     });
     const totalCount = ref(null);
 
@@ -58,6 +60,8 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         if(active.rarity) query = query.eq('rarity', active.rarity);
         if(active.onlyShiny) query = query.eq('is_shiny_released', true);
         if(active.onlyShadow) query = query.eq('is_shadow_released', true);
+        if(active.onlyDynamax) query = query.eq('can_dynamax', true);
+        if(active.onlyGigantamax) query = query.eq('can_gigantamax', true);
         return query;
     }
 
@@ -142,7 +146,8 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     }
 
     const clearFilters = () => setFilters({
-        types: [], generation: null, rarity: null, onlyShiny: false, onlyShadow: false
+        types: [], generation: null, rarity: null, onlyShiny: false, onlyShadow: false,
+        onlyDynamax: false, onlyGigantamax: false
     });
 
     /** Cuántos filtros hay puestos, para el contador del botón. */
@@ -152,7 +157,9 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             + (active.generation ? 1 : 0)
             + (active.rarity ? 1 : 0)
             + (active.onlyShiny ? 1 : 0)
-            + (active.onlyShadow ? 1 : 0);
+            + (active.onlyShadow ? 1 : 0)
+            + (active.onlyDynamax ? 1 : 0)
+            + (active.onlyGigantamax ? 1 : 0);
     });
 
     const getPokemon = (id) => {

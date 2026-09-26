@@ -3,6 +3,7 @@
     import { useRouter } from 'vue-router';
     import { BaseIcon } from '.';
     import ShinyMark from './pokemon/ShinyMark.vue';
+    import MaxMark from './pokemon/MaxMark.vue';
     import { typesSVG } from '../utils/Settings';
     import { usePokemonsStore } from '../stores/pokemons';
 
@@ -15,6 +16,8 @@
         name: String,
         types: Array,
         is_shiny_released: Boolean,
+        can_dynamax: Boolean,
+        can_gigantamax: Boolean,
         // PC del encuentro, para reutilizar la tarjeta en huevos e incursiones.
         combat_power: { type: Object, default: null },
         // Tamaño del sprite. Por defecto el de la Pokédex; en listados largos
@@ -45,6 +48,24 @@
             >
             <!-- Escalada, no con otro font-size: así la marca no se descuadra. -->
             <shiny-mark v-if="props.is_shiny_released" variant="dex" class="absolute top-0 right-0 z-10 scale-[0.8] origin-top-right" />
+            <!--
+                Abajo, una en cada esquina, para no pelearse con la marca de
+                variocolor (que va arriba a la derecha) ni tapar al Pokémon.
+                Se pintan las dos: gigamaxizar y dinamaxizar son cosas
+                distintas y hay 31 que pueden las dos.
+            -->
+            <max-mark
+                v-if="props.can_dynamax"
+                variant="dynamax"
+                :size="18"
+                class="absolute bottom-0 left-0 z-10 text-gray-700 dark:text-gray-200"
+            />
+            <max-mark
+                v-if="props.can_gigantamax"
+                variant="gigantamax"
+                :size="18"
+                class="absolute bottom-0 right-0 z-10 text-gray-700 dark:text-gray-200"
+            />
         </div>
         <!--
             Los tipos iban en la misma línea que el nombre y se lo comían: con

@@ -254,6 +254,8 @@
         "allRarities": "Any rarity",
         "generationNumber": "Generation {number}",
         "onlyShadow": "Shadow only",
+        "onlyDynamax": "Dynamax only",
+        "onlyGigantamax": "Gigantamax only",
         "rarities": {
             "standard": "Standard",
             "legendary": "Legendary",

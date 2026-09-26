@@ -18,6 +18,7 @@ import { typesSVG } from '../../utils/Settings'
 import BaseIcon from '../base/BaseIcon.vue'
 import BasePillButton from '../base/BasePillButton.vue'
 import BaseDropdown from '../base/BaseDropdown.vue'
+import BaseChevron from '../base/BaseChevron.vue'
 
 const store = usePokemonsStore()
 const { filters, activeFilterCount, totalCount } = storeToRefs(store)
@@ -77,7 +78,7 @@ const rarityOptions = computed(() => [
           v-if="hasFilters"
           class="px-1.5 rounded-full bg-gray-600 dark:bg-gray-500 text-white text-mini"
         >{{ activeFilterCount }}</span>
-        <span aria-hidden="true">{{ isOpen ? '▴' : '▾' }}</span>
+        <base-chevron :open="isOpen" />
       </button>
       </div>
     </div>
@@ -169,6 +170,18 @@ const rarityOptions = computed(() => [
           @click="setFilters({ onlyShadow: !filters.onlyShadow })"
         >
           {{ $t('filters.onlyShadow') }}
+        </base-pill-button>
+        <base-pill-button
+          :active="filters.onlyDynamax"
+          @click="setFilters({ onlyDynamax: !filters.onlyDynamax })"
+        >
+          {{ $t('filters.onlyDynamax') }}
+        </base-pill-button>
+        <base-pill-button
+          :active="filters.onlyGigantamax"
+          @click="setFilters({ onlyGigantamax: !filters.onlyGigantamax })"
+        >
+          {{ $t('filters.onlyGigantamax') }}
         </base-pill-button>
       </div>
       </div>
