@@ -1,0 +1,40 @@
+# Roster de combates Max. Va aparte de datos.yml porque cambia cada pocas
+# horas, mientras que el GAME_MASTER cambia como mucho una vez al día y su
+# descarga son 20 MB.
+name: Combates Max
+
+on:
+  schedule:
+    # Cada tres horas. Los nodos energéticos rotan varias veces al día, y en
+    # un repo público las Actions no cuentan contra la cuota.
+    - cron: '25 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: max-battles
+  cancel-in-progress: true
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Leer Snacknap y subir a Supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: pnpm max

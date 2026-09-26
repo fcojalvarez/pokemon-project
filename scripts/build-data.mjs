@@ -24,6 +24,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CPM_BY_LEVEL } from '../src/utils/formulas.js'
 import { normalizeText } from '../src/utils/gameText.js'
+import { loadEnv } from './lib/env.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const CACHE = path.join(ROOT, '.cache')
@@ -35,39 +36,6 @@ const FRESH = process.argv.includes('--fresh')
  */
 const EXIGE_SUBIDA = process.argv.includes('--must-upload')
 
-/**
- * Lee .env a mano: este script lo arranca Node pelado, sin pasar por Vite, así
- * que nadie le ha cargado las variables. Lo que ya venga del entorno manda.
- */
-async function loadEnv() {
-  try {
-    const raw = await fs.readFile(path.join(ROOT, '.env'), 'utf8')
-    // Se parte con \r?\n: en Windows cualquier editor puede guardar el .env
-    // con CRLF, y ese \r de más impedía que casara ni una sola línea, así que
-    // el script se callaba y no subía nada.
-    for (const line of raw.split(/\r?\n/)) {
-      const match = /^\s*([A-Za-z0-9_]+)\s*=\s*(.*)$/.exec(line)
-      if (!match || process.env[match[1]]) continue
-      process.env[match[1]] = match[2].trim().replace(/^["']|["']$/g, '')
-    }
-  } catch {
-    /* sin .env: se usan las variables del entorno tal cual */
-  }
-}
-
-/**
- * Sube los ficheros generados a la tabla `game_data`, uno por fila y todo en
- * una transacción: o entran los seis o no entra ninguno, para que la app nunca
- * lea un roster nuevo con unos movimientos viejos.
- */
-/**
- * Marca en la tabla `pokemons` quien puede dinamaxizar y gigamaxizar.
- *
- * Esa tabla va por especie y la Pokedex filtra contra ella en servidor, asi que
- * el dato tiene que vivir alli en columnas propias. Se resume por numero de
- * Pokedex: cuenta si alguna forma normal puede, ignorando megas y oscuros, que
- * en el juego son incompatibles con dinamaxizar.
- */
 /**
  * Pone al día qué variocolores están liberados en la tabla `pokemons`.
  *

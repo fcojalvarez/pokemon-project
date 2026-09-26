@@ -412,6 +412,9 @@
         "noBattles": "No Max Battles announced right now.",
         "legendDynamax": "Dynamax",
         "legendGigantamax": "Gigantamax",
-        "battlesNote": "Announced Max Battles show up here. Which Pokémon each Power Spot currently hosts is not published anywhere: it rotates by area and is only visible in-game."
+        "battlesNote": "Announced Max Battles show up here. Which Pokémon each Power Spot currently hosts is not published anywhere: it rotates by area and is only visible in-game.",
+        "tier": "Tier {n}",
+        "noLive": "The active Max Battles have not loaded yet.",
+        "liveSource": "The higher CP is a 100 % IV catch. Data from Snacknap, which publishes the Power Spot roster."
     }
 }

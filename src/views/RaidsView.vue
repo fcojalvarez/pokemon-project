@@ -13,6 +13,8 @@ import {
   TypeIcons
 } from '../components/index'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
+import MaxMark from '../components/pokemon/MaxMark.vue'
+import MaxLegend from '../components/pokemon/MaxLegend.vue'
 import LiveMonCard from '../components/pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../utils/sprites'
 import { useTranslate } from '../composables/useTranslate'
@@ -25,9 +27,52 @@ const { t, te } = useTranslate()
 const tab = ref('raids')
 const openBoss = ref(null)
 
-const TABS = ['raids', 'eggs', 'research']
+const TABS = ['raids', 'eggs', 'research', 'max']
 
 const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
+
+/**
+ * Los Pokémon que hay ahora mismo en los nodos energéticos, por nivel.
+ *
+ * Esto no sale del GAME_MASTER: él dice quién PUEDE dinamaxizar, no quién
+ * ESTÁ hoy. Lo escribe un workflow cada tres horas leyendo Snacknap, que es
+ * la única fuente que publica el roster entero y no solo lo que alguien ha
+ * escaneado cerca.
+ *
+ * El nombre y el sprite se resuelven aquí contra el roster: la fuente da el
+ * número de Pokédex, que es lo que no se rompe.
+ */
+const maxPorNivel = computed(() => {
+  const vivos = gameData.maxLive?.pokemon ?? []
+  if (!vivos.length) return []
+
+  const porDex = new Map()
+  if (gameData.isReady) {
+    for (const entry of gameData.roster) {
+      if (entry.mega || entry.shadow || porDex.has(entry.dex)) continue
+      porDex.set(entry.dex, entry)
+    }
+  }
+
+  const grupos = new Map()
+  for (const uno of vivos) {
+    const entry = porDex.get(uno.dex) ?? null
+    if (!grupos.has(uno.tier)) grupos.set(uno.tier, [])
+    grupos.get(uno.tier).push({
+      ...uno,
+      nameEs: entry?.nameEs ?? uno.name,
+      image: entry ? spriteUrl(entry.spriteId) : null
+    })
+  }
+
+  // De mayor a menor: los de nivel 5 son los que se buscan.
+  return [...grupos.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([tier, list]) => ({
+      tier,
+      list: list.sort((a, b) => (b.cp?.max ?? 0) - (a.cp?.max ?? 0))
+    }))
+})
 
 const toggleBoss = (boss) => {
   openBoss.value = openBoss.value === boss.name ? null : boss.name
@@ -118,7 +163,8 @@ onMounted(() => {
       La estrella que llevan las tarjetas solo tenía `title`, que en móvil no
       existe. Aquí se dice con palabras.
     -->
-    <p class="flex items-center gap-1.5 text-mini text-gray-600 dark:text-gray-400 mb-3">
+    <max-legend v-if="tab === 'max'" class="mb-3" />
+    <p v-else class="flex items-center gap-1.5 text-mini text-gray-600 dark:text-gray-400 mb-3">
       <!-- Mismo glifo y mismo color que en <live-mon-card>. -->
       <span class="text-gray-600 dark:text-gray-100 leading-none" aria-hidden="true">✦</span>
       {{ $t('pokemon.shinyLegend') }}
@@ -252,6 +298,41 @@ onMounted(() => {
           />
         </div>
       </section>
+    </template>
+
+    <!-- ---------- Combates Max ---------- -->
+    <template v-else-if="tab === 'max'">
+      <base-empty-state v-if="maxPorNivel.length === 0" :message="$t('max.noLive')" />
+
+      <template v-else>
+        <section v-for="grupo in maxPorNivel" :key="grupo.tier" class="mb-5">
+          <h2 class="text-sm font-bold mb-2">
+            {{ $t('max.tier', { n: grupo.tier }) }}
+            <span class="font-normal text-gray-500 dark:text-gray-400">({{ grupo.list.length }})</span>
+          </h2>
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2">
+            <live-mon-card
+              v-for="uno in grupo.list"
+              :key="`${grupo.tier}-${uno.dex}`"
+              :name="uno.nameEs"
+              :image="uno.image"
+              :dex="uno.dex"
+              :combat-power="uno.cp"
+              :can-be-shiny="uno.canBeShiny"
+            >
+              <max-mark
+                :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
+                :size="15"
+                class="shrink-0 text-gray-600 dark:text-gray-300"
+              />
+            </live-mon-card>
+          </div>
+        </section>
+
+        <p class="text-mini text-gray-500 dark:text-gray-400">
+          {{ $t('max.liveSource') }}
+        </p>
+      </template>
     </template>
 
     <!-- ---------- Tareas ---------- -->

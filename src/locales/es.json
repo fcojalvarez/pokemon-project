@@ -412,6 +412,9 @@
         "noBattles": "Ahora mismo no hay ningún combate Max anunciado.",
         "legendDynamax": "Dinamax",
         "legendGigantamax": "Gigamax",
-        "battlesNote": "Los combates Max anunciados salen aquí. Qué Pokémon hay ahora en cada nodo energético no lo publica ninguna fuente: rota por zona y solo se ve en el juego."
+        "battlesNote": "Los combates Max anunciados salen aquí. Qué Pokémon hay ahora en cada nodo energético no lo publica ninguna fuente: rota por zona y solo se ve en el juego.",
+        "tier": "Nivel {n}",
+        "noLive": "Todavía no se han cargado los combates Max activos.",
+        "liveSource": "El PC máximo es el de un 100 %. Datos de Snacknap, que publica el roster de los nodos energéticos."
     }
 }

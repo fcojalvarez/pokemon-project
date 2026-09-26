@@ -64,6 +64,13 @@ export const useGameDataStore = defineStore('gameData', () => {
   const texts = shallowRef({})
   const meta = shallowRef(null)
   const maxBattles = shallowRef({ moves: {}, byType: {}, gmaxBySpecies: {}, upgradeCosts: {} })
+  /**
+   * Qué Pokémon hay ahora mismo en los combates Max. Lo escribe un workflow
+   * aparte cada tres horas, así que puede no estar (despliegue nuevo, primera
+   * ejecución, o leyendo de los ficheros de respaldo). Si falta, las vistas
+   * que lo usan sencillamente no se pintan.
+   */
+  const maxLive = shallowRef(null)
   const status = ref('idle')
   const error = ref(null)
 
@@ -156,6 +163,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     pvp.value = datos.pvp
     texts.value = datos.texts
     maxBattles.value = datos.maxbattles
+    maxLive.value = datos.maxlive ?? null
     meta.value = datos.meta
     status.value = 'ready'
   }
@@ -243,6 +251,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     texts,
     meta,
     maxBattles,
+    maxLive,
     maxInfoFor,
     status,
     error,
