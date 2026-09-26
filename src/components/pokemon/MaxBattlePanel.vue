@@ -69,7 +69,7 @@ const resumen = computed(() => {
   <!-- ---------- Combates Max ---------- -->
   <ficha-seccion v-if="maxInfo" id="max" :title="$t('max.title')" :summary="resumen">
     <template #titulo>
-      <span class="flex items-center gap-1.5 text-gray-700 dark:text-gray-200">
+      <span class="flex items-center gap-1.5 text-gray-800 dark:text-gray-200">
         <max-mark variant="dynamax" :size="18" />
         <max-mark v-if="maxInfo.gigantamax" variant="gigantamax" :size="18" />
       </span>
@@ -99,7 +99,7 @@ const resumen = computed(() => {
         v-if="maxInfo.gmaxMove"
         class="flex items-center justify-between gap-2 p-2 rounded-xl bg-fuchsia-50 dark:bg-fuchsia-950 border border-fuchsia-300 dark:border-fuchsia-800"
       >
-        <dt class="text-xs text-gray-700 dark:text-gray-300">{{ $t('max.gmaxMove') }}</dt>
+        <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.gmaxMove') }}</dt>
         <dd class="flex items-center gap-2 text-sm font-semibold">
           <type-icons :types="[maxInfo.gmaxMove.type]" size="16" />
           {{ locale() === 'en' ? maxInfo.gmaxMove.name : maxInfo.gmaxMove.nameEs }}
@@ -112,8 +112,8 @@ const resumen = computed(() => {
       el desglose por nivel porque lo que se decide antes de empezar es si
       merece la pena gastarse las partículas en este Pokémon.
     -->
-    <div v-if="upgradeRows.length" class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">
+    <div v-if="upgradeRows.length" class="mt-4 pt-3 border-t border-gray-300 dark:border-gray-700">
+      <h3 class="text-xs font-bold text-gray-600 dark:text-gray-300">
         {{ $t('max.upgradeTitle') }}
       </h3>
       <ul class="mt-2 flex flex-col gap-1.5">

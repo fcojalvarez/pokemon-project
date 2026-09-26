@@ -52,7 +52,7 @@ const hayAlgo = computed(() => {
 <template>
   <ul
     v-if="hayAlgo"
-    class="flex text-mini text-gray-700 dark:text-gray-300 leading-tight"
+    class="flex text-mini text-gray-600 dark:text-gray-300 leading-tight"
     :class="columna ? 'columna flex-col items-center gap-0.5 text-center min-w-0 max-w-full' : 'flex-wrap items-center justify-center gap-x-2 gap-y-0.5'"
   >
     <li v-if="coste && req.candy_required" class="flex items-center gap-1 whitespace-nowrap text-xs">

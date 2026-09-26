@@ -15,7 +15,7 @@ defineProps({
     :class="
       active
         ? 'bg-gray-500 dark:bg-gray-600 text-white'
-        : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
+        : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
     "
     :aria-pressed="active"
   >

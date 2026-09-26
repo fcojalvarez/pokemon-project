@@ -135,12 +135,12 @@ const monProps = (nodo, extra = {}) => ({
         v-else
         role="group"
         :aria-label="tramo.final.etiqueta"
-        class="relative mt-2.5 lg:mt-0 rounded-2xl border-[1.5px] border-dashed border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/40 px-2 lg:px-3 pt-5 pb-3"
+        class="relative mt-2.5 lg:mt-0 rounded-xl border-[1.5px] border-dashed border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/40 px-2 lg:px-3 pt-5 pb-3"
         :class="principal ? 'w-full lg:w-auto' : ''"
       >
         <!-- Encima del borde, con el fondo de la tarjeta para cortarlo -->
         <span
-          class="absolute -top-2.5 left-3 px-2 bg-white dark:bg-gray-900 text-mini font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 whitespace-nowrap"
+          class="absolute -top-2.5 left-3 px-2 bg-white dark:bg-gray-900 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 whitespace-nowrap"
           aria-hidden="true"
         >{{ tramo.final.etiqueta }}</span>
 

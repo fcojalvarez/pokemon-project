@@ -304,12 +304,12 @@ const resumen = computed(() => {
         :summary="resumen.costes"
       >
         <div v-if="flags.length" :class="costs.length ? 'mb-4' : ''">
-          <h3 v-if="costs.length" class="text-xs font-bold text-gray-700 dark:text-gray-300">{{ $t('pokemon.status') }}</h3>
+          <h3 v-if="costs.length" class="text-xs font-bold text-gray-600 dark:text-gray-300">{{ $t('pokemon.status') }}</h3>
           <div class="flex flex-wrap gap-1.5 mt-2">
             <span
               v-for="flag in flags"
               :key="flag"
-              class="px-2 py-0.5 text-mini rounded-full border border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-300"
+              class="px-2 py-0.5 text-mini rounded-full border border-gray-400 dark:border-gray-600 text-gray-600 dark:text-gray-300"
             >
               {{ $t(`pokemon.flags.${flag}`) }}
             </span>
@@ -317,7 +317,7 @@ const resumen = computed(() => {
         </div>
 
         <div v-if="costs.length">
-          <h3 v-if="flags.length" class="text-xs font-bold text-gray-700 dark:text-gray-300">{{ $t('pokemon.costs') }}</h3>
+          <h3 v-if="flags.length" class="text-xs font-bold text-gray-600 dark:text-gray-300">{{ $t('pokemon.costs') }}</h3>
           <ul class="mt-2 flex flex-col gap-1.5">
             <!--
               flex-wrap: si etiqueta y valor no caben en una línea, el valor baja
@@ -437,7 +437,7 @@ const resumen = computed(() => {
           </li>
         </ol>
 
-        <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+        <div class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700">
           <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.fastMoves') }}</span>
           <div class="flex flex-wrap gap-1 mt-1">
             <move-tag
@@ -491,7 +491,7 @@ const resumen = computed(() => {
               :legacy="move.legacy"
               :mega="move.mega"
             />
-            <span class="text-gray-700 dark:text-gray-300">{{ move.text }}</span>
+            <span class="text-gray-600 dark:text-gray-300">{{ move.text }}</span>
             <span v-if="move.chance" class="ml-auto text-mini text-gray-600 dark:text-gray-300">
               {{ move.chance }}
             </span>

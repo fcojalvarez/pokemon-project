@@ -68,7 +68,7 @@ const rarityOptions = computed(() => [
       <div class="ml-auto flex items-center gap-3">
       <button
         type="button"
-        class="zona-tactil [--zona:-8px_-3px] flex items-center gap-2 px-3 py-1.5 text-xs rounded-xl border border-gray-400 shadow-md transition-colors bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
+        class="zona-tactil [--zona:-8px_-3px] flex items-center gap-2 px-3 py-1.5 text-xs rounded-xl border border-gray-400 shadow-md transition-colors bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
         :aria-expanded="isOpen"
         :aria-controls="panelId"
         @click="isOpen = !isOpen"
@@ -123,7 +123,7 @@ const rarityOptions = computed(() => [
               'zona-tactil flex items-center gap-1 px-2 py-1 text-mini rounded-xl border transition-colors',
               filters.types.includes(type)
                 ? 'bg-gray-600 dark:bg-gray-600 border-gray-600 text-white'
-                : 'bg-white dark:bg-gray-900 border-gray-400 text-gray-700 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
+                : 'bg-white dark:bg-gray-900 border-gray-400 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
             ]"
             @click="toggleType(type)"
           >
@@ -163,7 +163,7 @@ const rarityOptions = computed(() => [
         pegados debajo parecían opciones de generación y rareza, y son otra
         cosa (interruptores, no listas).
       -->
-      <div class="grid grid-cols-2 gap-3 pt-4 mt-1 border-t border-gray-200 dark:border-gray-700">
+      <div class="grid grid-cols-2 gap-3 pt-4 mt-1 border-t border-gray-300 dark:border-gray-700">
         <base-pill-button
           class="h-11 w-full text-sm"
           :active="filters.onlyShiny"

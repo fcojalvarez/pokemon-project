@@ -76,7 +76,7 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
 
     <span class="flex-1 min-w-0">
       <!-- Hasta dos líneas antes de recortar: «Typhlosion de Hisui» salía cortado con media pantalla libre. -->
-      <span class="text-xs font-semibold line-clamp-2 break-words" :title="name">{{ name }}</span>
+      <span class="text-xs font-semibold line-clamp-2 break-words hyphens-auto" :title="name">{{ name }}</span>
       <!--
         En móvil, a dos columnas, no caben etiqueta y rango: el texto se salía
         por debajo del botón de desplegar. Se queda el rango, que junto a un

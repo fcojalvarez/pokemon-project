@@ -136,7 +136,7 @@ watch(
           :aria-current="isActive(link.to) ? 'page' : undefined"
           :class="
             isActive(link.to)
-              ? 'bg-gray-200 dark:bg-gray-700 border-gray-500 dark:border-gray-400 font-semibold'
+              ? 'bg-gray-200 dark:bg-gray-700 border-gray-400 dark:border-gray-600 font-semibold'
               : 'bg-white dark:bg-gray-900 border-gray-400 hover:bg-gray-150 hover:dark:bg-gray-700'
           "
           @click="close({ restoreFocus: false })"

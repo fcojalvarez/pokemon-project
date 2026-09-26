@@ -50,7 +50,7 @@ onBeforeMount(() => {
         type="button"
         :aria-pressed="isDarkMode"
         :aria-label="$t('a11y.darkModeToggle')"
-        class="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 shadow-md transition-colors hover:bg-gray-150 hover:dark:bg-gray-700"
+        class="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 shadow-md transition-colors hover:bg-gray-150 hover:dark:bg-gray-700"
         @click="toggleDarkMode"
     >
         <base-icon

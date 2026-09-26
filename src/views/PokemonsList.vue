@@ -95,8 +95,8 @@ onUnmounted(() => {
                         <div class="w-[76%] h-[76%] rounded-full esqueleto"></div>
                     </div>
                     <div class="mt-3 h-5 flex items-center justify-center gap-1">
-                        <span class="h-3 w-8 rounded esqueleto"></span>
-                        <span class="h-3.5 w-16 rounded esqueleto"></span>
+                        <span class="h-3 w-8 rounded-full esqueleto"></span>
+                        <span class="h-3.5 w-16 rounded-full esqueleto"></span>
                     </div>
                     <div class="mt-1 flex justify-center gap-1">
                         <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>

@@ -7,6 +7,15 @@ module.exports = {
     },
     content: ['./index.html', './src/**/*.{vue,js,jsx,html}'],
     darkMode: 'class', // or 'media' or 'class'
+    /*
+     * Tokens de la app. Antes había 31 grises distintos y 7 radios; ahora:
+     *
+     *   Texto   fuerte 900 / dark 100 · principal 800 / dark 200 · secundario 600 / dark 300
+     *   Borde   sutil (tarjetas, separadores) 300 / dark 700 · control (botones, chips) 400 / dark 600
+     *   Radio   rounded-xl (cajas y controles) · rounded-full (pastillas, puntos, barras)
+     *
+     * Excepción: en un botón relleno el borde es del color del relleno.
+     */
     theme: {
         extend: {
             outlineWidth: {

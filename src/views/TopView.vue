@@ -286,19 +286,19 @@ onMounted(() => gameData.load())
           :key="n"
           class="flex items-center gap-3 p-2 pr-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
         >
-          <span class="w-6 shrink-0 flex justify-end"><span class="esqueleto h-3 w-3 rounded"></span></span>
+          <span class="w-6 shrink-0 flex justify-end"><span class="esqueleto h-3 w-3 rounded-full"></span></span>
           <span class="w-12 h-12 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
           <span class="flex-1 min-w-0 flex flex-col gap-2">
-            <span class="esqueleto h-3.5 w-2/5 rounded"></span>
+            <span class="esqueleto h-3.5 w-2/5 rounded-full"></span>
             <span class="flex gap-1.5">
               <span class="esqueleto h-5 w-20 rounded-full"></span>
               <span class="esqueleto h-5 w-24 rounded-full"></span>
             </span>
           </span>
           <span class="w-[72px] shrink-0 flex flex-col items-end gap-1.5">
-            <span class="esqueleto h-4 w-14 rounded"></span>
+            <span class="esqueleto h-4 w-14 rounded-full"></span>
             <span class="esqueleto h-1 w-full rounded-full"></span>
-            <span class="esqueleto h-3 w-10 rounded"></span>
+            <span class="esqueleto h-3 w-10 rounded-full"></span>
           </span>
         </div>
       </div>

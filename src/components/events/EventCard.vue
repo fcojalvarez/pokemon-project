@@ -147,7 +147,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
 <template>
   <article
     class="flex flex-col p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
-    :class="event.link ? 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-500' : ''"
+    :class="event.link ? 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-600' : ''"
     @click="abrirEvento"
   >
     <div class="flex gap-3 items-start">
@@ -208,12 +208,12 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
     -->
     <div
       v-if="maxBattle"
-      class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+      class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
     >
       <max-mark
         :variant="maxBattle.gigantamax ? 'gigantamax' : 'dynamax'"
         :size="20"
-        class="shrink-0 text-gray-700 dark:text-gray-200"
+        class="shrink-0 text-gray-800 dark:text-gray-200"
       />
       <component
         :is="maxBattle.dex ? 'router-link' : 'span'"
@@ -232,7 +232,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
     <!-- Hora destacada: el Pokémon y la bonificación son lo que importa -->
     <div
       v-if="spotlight"
-      class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+      class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
     >
       <div class="min-w-0">
         <event-mon
@@ -245,7 +245,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       </div>
     </div>
 
-    <div v-if="communityDay" class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+    <div v-if="communityDay" class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700">
       <div class="flex flex-wrap items-center gap-2">
         <event-mon
           v-for="spawn in communityDay.spawns"
@@ -287,7 +287,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
     -->
     <div
       v-if="resumen && (resumen.hasSpawns || resumen.hasResearch)"
-      class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+      class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
     >
       <div v-if="resumen.hasSpawns || resumen.hasResearch" class="flex flex-wrap gap-1.5">
         <span

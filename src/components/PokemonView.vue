@@ -89,7 +89,7 @@ watch(() => route.params.id, async(newId) => {
                 Cabecera con el nombre: antes la ficha empezaba por la cadena
                 evolutiva y el Pokémon actual solo se distinguía por un fondo gris.
             -->
-            <header class="flex items-center gap-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+            <header class="flex items-center gap-4 pb-3 border-b border-gray-300 dark:border-gray-700">
                 <base-sprite
                     :src="hero.image"
                     :lazy="false"
@@ -99,7 +99,7 @@ watch(() => route.params.id, async(newId) => {
                 <div class="min-w-0">
                     <span class="block text-xs text-gray-600 dark:text-gray-300">#{{ hero.number }}</span>
                     <h1 class="text-2xl font-bold leading-tight text-gray-900 dark:text-gray-100">{{ hero.name }}</h1>
-                    <type-icons :types="hero.types" size="14" with-label class="mt-1.5 flex-wrap text-gray-700 dark:text-gray-200" />
+                    <type-icons :types="hero.types" size="14" with-label class="mt-1.5 flex-wrap text-gray-800 dark:text-gray-200" />
                 </div>
             </header>
 
@@ -118,8 +118,8 @@ watch(() => route.params.id, async(newId) => {
                     @click="isShowShiny = !isShowShiny"
                     :class="[
                         isShowShiny
-                            ? 'bg-gray-700 dark:bg-gray-600 text-white border-gray-700 dark:border-gray-200'
-                            : 'text-gray-800 dark:text-gray-200 border-gray-800 dark:border-gray-200',
+                            ? 'bg-gray-700 dark:bg-gray-600 text-white border-gray-700 dark:border-gray-600'
+                            : 'text-gray-800 dark:text-gray-200 border-gray-400 dark:border-gray-600',
                         'shrink-0 border w-28 rounded-xl py-1 px-2 text-center ml-auto cursor-pointer transition-colors'
                     ]"
                 >
@@ -142,39 +142,39 @@ watch(() => route.params.id, async(newId) => {
     <!-- Mientras llega el Pokémon: las mismas tarjetas, con su forma. -->
     <skeleton-loader v-else class="flex flex-col gap-3 lg:gap-4">
         <base-card>
-            <div class="flex items-center gap-4 pb-3 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex items-center gap-4 pb-3 border-b border-gray-300 dark:border-gray-700">
                 <span class="w-20 h-20 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
                 <span class="flex flex-col gap-2">
-                    <span class="esqueleto h-3 w-10 rounded"></span>
-                    <span class="esqueleto h-6 w-40 rounded"></span>
+                    <span class="esqueleto h-3 w-10 rounded-full"></span>
+                    <span class="esqueleto h-6 w-40 rounded-full"></span>
                     <span class="flex gap-2">
-                        <span class="esqueleto h-3.5 w-16 rounded"></span>
-                        <span class="esqueleto h-3.5 w-16 rounded"></span>
+                        <span class="esqueleto h-3.5 w-16 rounded-full"></span>
+                        <span class="esqueleto h-3.5 w-16 rounded-full"></span>
                     </span>
                 </span>
             </div>
             <div class="mt-3 flex items-center justify-between">
-                <span class="esqueleto h-3.5 w-28 rounded"></span>
+                <span class="esqueleto h-3.5 w-28 rounded-full"></span>
                 <span class="esqueleto h-8 w-28 rounded-xl"></span>
             </div>
         </base-card>
         <base-card>
             <div class="flex items-center justify-center gap-4 py-2">
                 <template v-for="n in 3" :key="n">
-                    <span v-if="n > 1" class="esqueleto h-0.5 w-8 rounded"></span>
+                    <span v-if="n > 1" class="esqueleto h-0.5 w-8 rounded-full"></span>
                     <span class="flex flex-col items-center gap-2">
                         <span class="w-16 h-16 lg:w-24 lg:h-24 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
-                        <span class="esqueleto h-3 w-16 rounded"></span>
+                        <span class="esqueleto h-3 w-16 rounded-full"></span>
                     </span>
                 </template>
             </div>
         </base-card>
         <div v-for="n in 4" :key="`s${n}`" class="border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 px-4 py-3.5 flex items-center gap-3">
             <span class="flex-1 flex flex-col gap-1.5">
-                <span class="esqueleto h-3.5 w-32 rounded"></span>
-                <span class="esqueleto h-3 w-48 rounded"></span>
+                <span class="esqueleto h-3.5 w-32 rounded-full"></span>
+                <span class="esqueleto h-3 w-48 rounded-full"></span>
             </span>
-            <span class="esqueleto w-5 h-5 rounded"></span>
+            <span class="esqueleto w-5 h-5 rounded-full"></span>
         </div>
     </skeleton-loader>
 </template>

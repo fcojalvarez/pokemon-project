@@ -246,7 +246,7 @@ onMounted(() => {
 
     <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
       <section v-for="grupo in 2" :key="grupo" class="mb-5">
-        <span class="esqueleto block h-4 w-20 mb-2 rounded"></span>
+        <span class="esqueleto block h-4 w-20 mb-2 rounded-full"></span>
         <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
           <div
             v-for="n in 4"
@@ -255,10 +255,10 @@ onMounted(() => {
           >
             <span class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
             <span class="flex-1 flex flex-col gap-1.5">
-              <span class="esqueleto h-3 w-3/4 rounded"></span>
-              <span class="esqueleto h-2.5 w-1/2 rounded"></span>
+              <span class="esqueleto h-3 w-3/4 rounded-full"></span>
+              <span class="esqueleto h-2.5 w-1/2 rounded-full"></span>
             </span>
-            <span class="esqueleto w-8 h-8 shrink-0 rounded-lg"></span>
+            <span class="esqueleto w-8 h-8 shrink-0 rounded-xl"></span>
           </div>
         </div>
       </section>
@@ -304,7 +304,7 @@ onMounted(() => {
             >
               <button
                 type="button"
-                class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+                class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
                 :aria-expanded="openBoss === boss.name"
                 :aria-label="`${$t('raids.counters')}: ${gameData.nombreEs(boss.name)}`"
                 @click.prevent.stop="toggleBoss(boss)"
@@ -413,7 +413,7 @@ onMounted(() => {
                 />
                 <button
                   type="button"
-                  class="shrink-0 px-1.5 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
+                  class="shrink-0 px-1.5 py-1 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
                   :aria-expanded="openMax === uno.dex"
                   :aria-label="`${$t('max.team')}: ${uno.nameEs}`"
                   @click.prevent.stop="openMax = openMax === uno.dex ? null : uno.dex"

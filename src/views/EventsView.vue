@@ -110,15 +110,15 @@ onMounted(() => {
             <span class="esqueleto w-20 h-14 shrink-0 rounded-xl"></span>
             <div class="flex-1 flex flex-col gap-2">
               <span class="esqueleto h-4 w-20 rounded-full"></span>
-              <span class="esqueleto h-3.5 w-full rounded"></span>
-              <span class="esqueleto h-3.5 w-3/5 rounded"></span>
+              <span class="esqueleto h-3.5 w-full rounded-full"></span>
+              <span class="esqueleto h-3.5 w-3/5 rounded-full"></span>
             </div>
           </div>
           <div class="flex gap-2 mt-3">
             <span class="esqueleto h-5 w-24 rounded-full"></span>
             <span class="esqueleto h-5 w-28 rounded-full"></span>
           </div>
-          <span class="esqueleto block h-3 w-2/3 mt-3 rounded"></span>
+          <span class="esqueleto block h-3 w-2/3 mt-3 rounded-full"></span>
         </div>
       </div>
     </skeleton-loader>

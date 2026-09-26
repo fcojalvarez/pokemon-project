@@ -37,7 +37,7 @@
         :is="props.is_released ? 'router-link' : 'div'"
         :to="props.is_released ? `/pokemon/${props.id}` : undefined"
         data-dex-tile
-        :class="[props.is_released? 'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600' : '', 'block p-2 rounded-2xl']"
+        :class="[props.is_released? 'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600' : '', 'block p-2 rounded-xl']"
         @click="props.is_released && setIsSearching(false)"
     >
         <div class="relative mx-auto" :class="image_size">
@@ -59,13 +59,13 @@
                 v-if="props.can_dynamax"
                 variant="dynamax"
                 :size="18"
-                class="absolute bottom-0 left-0 z-10 text-gray-700 dark:text-gray-200"
+                class="absolute bottom-0 left-0 z-10 text-gray-800 dark:text-gray-200"
             />
             <max-mark
                 v-if="props.can_gigantamax"
                 variant="gigantamax"
                 :size="18"
-                class="absolute bottom-0 right-0 z-10 text-gray-700 dark:text-gray-200"
+                class="absolute bottom-0 right-0 z-10 text-gray-800 dark:text-gray-200"
             />
         </div>
         <!--

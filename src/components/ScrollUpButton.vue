@@ -41,7 +41,7 @@ onUnmounted(() => document.removeEventListener('scroll', scrollHandler))
         :aria-label="$t('a11y.backToTop')"
         :tabindex="isShowButton ? 0 : -1"
         :aria-hidden="!isShowButton"
-        class="rebote-caja fixed z-30 bg-white dark:bg-gray-900 shadow-xl rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer right-10 border border-gray-400 dark:border-gray-150 hover:bg-gray-150 hover:dark:bg-gray-800 transition-[bottom] duration-300 ease-out"
+        class="rebote-caja fixed z-30 bg-white dark:bg-gray-900 shadow-xl rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer right-10 border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-800 transition-[bottom] duration-300 ease-out"
         :class="[isShowButton ? 'bottom-8' : '-bottom-20', rebota ? 'rebota' : '']"
         @animationend="rebota = false"
         @click="scrollToUp"

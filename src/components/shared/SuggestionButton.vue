@@ -119,7 +119,7 @@ watch(
     ref="trigger"
     type="button"
     v-bind="$attrs"
-    class="flex items-center gap-2 px-2.5 md:px-3 py-2 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 shadow-md transition-colors hover:bg-gray-150 hover:dark:bg-gray-700"
+    class="flex items-center gap-2 px-2.5 md:px-3 py-2 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 shadow-md transition-colors hover:bg-gray-150 hover:dark:bg-gray-700"
     @click="open"
   >
     <base-icon
@@ -143,7 +143,7 @@ watch(
         role="dialog"
         aria-modal="true"
         aria-labelledby="titulo-sugerencia"
-        class="w-full sm:max-w-lg max-h-[90vh] overflow-y-auto bg-gray-100 dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-t-2xl sm:rounded-2xl shadow-md"
+        class="w-full sm:max-w-lg max-h-[90vh] overflow-y-auto bg-gray-100 dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-t-xl sm:rounded-xl shadow-md"
         @keydown="onKeydown"
       >
         <div class="flex items-center gap-3 px-4 py-4 border-b border-gray-300 dark:border-gray-600">

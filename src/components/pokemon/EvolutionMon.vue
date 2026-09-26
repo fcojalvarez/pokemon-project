@@ -50,12 +50,12 @@ const caja = computed(() =>
     :is="to && !active ? 'router-link' : 'div'"
     :to="to && !active ? to : undefined"
     :aria-current="active ? 'page' : undefined"
-    class="flex flex-col items-center gap-1.5 shrink-0 rounded-2xl text-gray-800 dark:text-gray-200"
+    class="flex flex-col items-center gap-1.5 shrink-0 rounded-xl text-gray-800 dark:text-gray-200"
     :class="ancho"
   >
     <span
       class="relative grid place-items-center"
-      :class="[caja, active ? 'rounded-2xl bg-gray-200 dark:bg-gray-700 outline outline-1 outline-offset-2 outline-gray-400 dark:outline-gray-500 ring-4 ring-gray-200 dark:ring-gray-700' : '']"
+      :class="[caja, active ? 'rounded-xl bg-gray-200 dark:bg-gray-700 outline outline-1 outline-offset-2 outline-gray-400 dark:outline-gray-500 ring-4 ring-gray-200 dark:ring-gray-700' : '']"
     >
       <base-sprite
         :src="sprite"
@@ -72,7 +72,7 @@ const caja = computed(() =>
       />
     </span>
     <span class="flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 text-center leading-tight">
-      <span class="font-semibold text-mini lg:text-xs break-words min-w-0">{{ nombre }}</span>
+      <span class="font-semibold text-mini lg:text-xs break-words hyphens-auto min-w-0">{{ nombre }}</span>
       <type-icons v-if="mon.types?.length" :types="mon.types" size="11" class="!gap-0.5" />
     </span>
     <span
