@@ -42,6 +42,8 @@
         "staleData": "Datos de hace {age}: puede que ya no sean los de ahora"
     },
     "pokemon": {
+        "evolutionLine": "Línea evolutiva",
+        "statusAndCosts": "Avisos y costes",
         "cp100": "PC 100 %",
         "cpLevel20": "Incursión o huevo",
         "cpLevel25": "Con clima",
@@ -268,6 +270,13 @@
         }
     },
     "evolutions": {
+        "dayShort": "De día",
+        "nightShort": "De noche",
+        "buddyShort": "{km} km con compañero",
+        "FemaleShort": "Hembra",
+        "MaleShort": "Macho",
+        "megaEvolutions": "Megaevoluciones",
+        "count": "{n} evoluciones",
         "onlyEvolvesDay": "Sólo evoluciona por el día",
         "onlyEvolvesNight": "Sólo evoluciona por la noche",
         "walk": "Camina",

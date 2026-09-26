@@ -1,6 +1,18 @@
 import { expect, test } from '@playwright/test'
 
 /**
+ * En móvil y tablet las secciones de la ficha empiezan plegadas: para mirar
+ * lo que hay dentro, antes hay que abrirlas. En escritorio van siempre
+ * abiertas y no hay botón, así que no hace nada.
+ */
+async function abrirSecciones(page, ...titulos) {
+  for (const titulo of titulos) {
+    const boton = page.getByRole('button', { name: new RegExp(`^${titulo}`) })
+    if ((await boton.count()) && (await boton.getAttribute('aria-expanded')) === 'false') await boton.click()
+  }
+}
+
+/**
  * Los recorridos que de verdad hace un jugador, de punta a punta: con Supabase
  * respondiendo, los datos generados cargados y el router de por medio.
  */
@@ -14,6 +26,8 @@ test('la Pokédex carga desde Supabase y lleva a la ficha', async ({ page }) => 
 
   await primero.click()
   await expect(page).toHaveURL(/\/pokemon\/1$/)
+  await expect(page.getByRole('heading', { name: 'Mejores ataques' })).toBeVisible()
+  await abrirSecciones(page, 'Mejores ataques')
   await expect(page.getByText('Ataques cargados')).toBeVisible()
 })
 
@@ -83,6 +97,7 @@ test('las pestañas de Ahora en juego cambian de contenido', async ({ page }) =>
 test('los ataques élite se marcan y la leyenda los explica', async ({ page }) => {
   await page.goto('/pokemon/3')
   await page.waitForLoadState('networkidle')
+  await abrirSecciones(page, 'Mejores ataques')
 
   const elite = page.locator('[title="Solo se aprende con MT Élite"]').first()
   await expect(elite).toBeVisible()
@@ -102,6 +117,7 @@ test('los ataques élite se marcan y la leyenda los explica', async ({ page }) =
 test('la supermega enseña su ataque exclusivo', async ({ page }) => {
   await page.goto('/pokemon/15?form=beedrill_mega')
   await page.waitForLoadState('networkidle')
+  await abrirSecciones(page, 'Mejores ataques', 'Efectos en combate')
 
   // Sale dos veces a propósito: en el repertorio y en los efectos de combate.
   await expect(page.getByText('Aguijón Letal+').first()).toBeVisible()

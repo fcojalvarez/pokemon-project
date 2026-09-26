@@ -11,7 +11,7 @@
 import { computed } from 'vue'
 import { useGameDataStore } from '../../stores/gameData'
 import { useTranslate } from '../../composables/useTranslate'
-import BaseCard from '../base/BaseCard.vue'
+import FichaSeccion from './FichaSeccion.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MaxMark from './MaxMark.vue'
 
@@ -55,18 +55,25 @@ const upgradeRows = computed(() => {
     }
   }).filter((fila) => fila.levels > 0)
 })
+
+/** Plegada: el ataque Max (y el Gigamax, si lo tiene). */
+const resumen = computed(() => {
+  const info = maxInfo.value
+  if (!info) return ''
+  const nombre = (move) => (locale() === 'en' ? move.name : move.nameEs)
+  return [info.maxMove && nombre(info.maxMove), info.gmaxMove && nombre(info.gmaxMove)].filter(Boolean).join(' · ')
+})
 </script>
 
 <template>
   <!-- ---------- Combates Max ---------- -->
-  <base-card v-if="maxInfo">
-    <div class="flex items-center gap-2">
-      <h2 class="text-sm font-bold">{{ $t('max.title') }}</h2>
+  <ficha-seccion v-if="maxInfo" id="max" :title="$t('max.title')" :summary="resumen">
+    <template #titulo>
       <span class="flex items-center gap-1.5 text-gray-700 dark:text-gray-200">
         <max-mark variant="dynamax" :size="18" />
         <max-mark v-if="maxInfo.gigantamax" variant="gigantamax" :size="18" />
       </span>
-    </div>
+    </template>
 
     <p class="mt-2 text-xs text-gray-600 dark:text-gray-300">
       {{ $t('max.intro') }}
@@ -127,6 +134,6 @@ const upgradeRows = computed(() => {
         {{ $t('max.upgradeNote') }}
       </p>
     </div>
-  </base-card>
+  </ficha-seccion>
 
 </template>

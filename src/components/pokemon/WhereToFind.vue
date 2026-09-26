@@ -15,7 +15,8 @@
 import { computed } from 'vue'
 import { useLiveStore } from '../../stores/live'
 import { useGameDataStore } from '../../stores/gameData'
-import BaseCard from '../base/BaseCard.vue'
+import FichaSeccion from './FichaSeccion.vue'
+import { useTranslate } from '../../composables/useTranslate'
 import MaxMark from './MaxMark.vue'
 
 const props = defineProps({
@@ -23,6 +24,7 @@ const props = defineProps({
 })
 
 const live = useLiveStore()
+const { t } = useTranslate()
 const gameData = useGameDataStore()
 
 const whereToFind = computed(() => live.whereToFind(props.pokemon.name))
@@ -54,11 +56,22 @@ const irA = (pestana) => ({
 
 const plainText = (html) =>
   gameData.translateText(String(html).replace(/<[^>]*>/g, '').trim())
+
+/** Plegada, la sección dice de dónde sale ahora, sin el detalle. */
+const resumen = computed(() => {
+  if (!hasWhereToFind.value) return t('pokemon.notAvailableNow')
+  const where = whereToFind.value
+  return [
+    enCombatesMax.value.length && t('pokemon.inMaxBattles'),
+    where.raids.length && t('pokemon.inRaids'),
+    where.eggs.length && t('pokemon.inEggs'),
+    where.research.length && t('pokemon.inResearch')
+  ].filter(Boolean).join(' · ')
+})
 </script>
 
 <template>
-  <base-card v-if="live.status === 'ready'">
-    <h2 class="text-sm font-bold">{{ $t('pokemon.whereToFind') }}</h2>
+  <ficha-seccion v-if="live.status === 'ready'" id="donde" :title="$t('pokemon.whereToFind')" :summary="resumen">
 
     <p v-if="!hasWhereToFind" class="mt-2 text-xs text-gray-600 dark:text-gray-300">
       {{ $t('pokemon.notAvailableNow') }}
@@ -133,6 +146,6 @@ const plainText = (html) =>
         </ul>
       </div>
     </template>
-  </base-card>
+  </ficha-seccion>
 
 </template>

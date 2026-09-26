@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useGameDataStore } from '../../stores/gameData'
-import BaseCard from '../base/BaseCard.vue'
+import FichaSeccion from './FichaSeccion.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MoveTag from './MoveTag.vue'
 import MoveLegend from './MoveLegend.vue'
@@ -18,7 +18,7 @@ const props = defineProps({
 })
 
 const gameData = useGameDataStore()
-const { t, locale } = useTranslate()
+const { t, tc, locale } = useTranslate()
 
 const CP_LABELS = {
   20: 'pokemon.cpLevel20',
@@ -247,259 +247,288 @@ const pvpRanks = computed(() => {
   return form.value ? ranks.filter((entry) => entry.id === form.value.id) : ranks
 })
 
+
+/**
+ * La línea que enseña cada sección plegada: lo que más se viene a buscar, para
+ * que muchas veces no haga falta abrirla.
+ */
+const costeTexto = (row) => {
+  if (row.candy) return `${formatNumber(row.candy)} ${tc('candy', row.candy).toLowerCase()}${row.dust ? ` · ${formatNumber(row.dust)} ${t('pokemon.stardust')}` : ''}`
+  if (row.energy) return `${formatNumber(row.energy)} ${t('megaenergy')}`
+  return `${formatNumber(row.km)} ${t('unitDistance')}`
+}
+const resumen = computed(() => {
+  const r = {}
+  const avisos = flags.value.map((flag) => t(`pokemon.flags.${flag}`))
+  const primerCoste = costs.value[0]
+  r.costes = [...avisos, primerCoste && `${t(`pokemon.costLabels.${primerCoste.key}`)}: ${costeTexto(primerCoste)}`]
+    .filter(Boolean).join(' · ')
+  if (cpTable.value.length) {
+    const primero = cpTable.value[0]
+    const ultimo = cpTable.value[cpTable.value.length - 1]
+    r.pc = `Nv. ${primero.level}: ${primero.cp} · Nv. ${ultimo.level}: ${ultimo.cp}`
+  }
+  const pve = pveRanks.value
+  r.pve = pve.byType.length
+    ? [pve.overall && `${t('top.overall')}: #${pve.overall.rank}`, `${t(`types.${pve.byType[0].type}`)} #${pve.byType[0].rank}`].filter(Boolean).join(' · ')
+    : t('pokemon.noPveRank')
+  r.pvp = pvpRanks.value.length
+    ? pvpRanks.value.slice(0, 2).map((entry) => `${t(`top.${entry.league}`)} #${entry.rank}`).join(' · ')
+    : t('pokemon.noPvpRank')
+  const mejor = bestMovesets.value[0]
+  if (mejor) r.ataques = `${mejor.fast.nameEs} + ${mejor.charged.nameEs} · ${mejor.dps.toFixed(1)} DPS`
+  const efecto = moveEffects.value[0]
+  if (efecto) r.efectos = `${efecto.nameEs}: ${efecto.text}${moveEffects.value.length > 1 ? ` · +${moveEffects.value.length - 1}` : ''}`
+  r.debilidades = matchups.value.weak.slice(0, 3)
+    .map((entry) => `${t(`types.${entry.type}`)} ×${entry.mult.toFixed(2)}`).join(' · ')
+  return r
+})
 </script>
 
 <template>
-  <div class="mt-10 flex flex-col gap-4 text-gray-800 dark:text-gray-200">
-    <!-- Va lo primero porque es lo único de la ficha que caduca. -->
-    <where-to-find :pokemon="pokemon" />
-    <!-- ---------- Avisos y costes ---------- -->
-    <base-card v-if="flags.length || costs.length">
-      <div v-if="flags.length" :class="costs.length ? 'mb-4' : ''">
-        <h2 class="text-sm font-bold">{{ $t('pokemon.status') }}</h2>
-        <div class="flex flex-wrap gap-1.5 mt-2">
-          <span
-            v-for="flag in flags"
-            :key="flag"
-            class="px-2 py-0.5 text-mini rounded-full border border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-300"
-          >
-            {{ $t(`pokemon.flags.${flag}`) }}
-          </span>
+  <!--
+    Dos columnas desde lg. A la izquierda, cómo se consigue y qué cuesta; a la
+    derecha, cómo combate. En móvil, una detrás de otra en ese mismo orden, y
+    cada sección plegada con su resumen (ver <ficha-seccion>).
+  -->
+  <div class="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start text-gray-800 dark:text-gray-200">
+    <div class="flex flex-col gap-3 lg:gap-4 min-w-0">
+      <!-- Va lo primero porque es lo único de la ficha que caduca. -->
+      <where-to-find :pokemon="pokemon" />
+
+      <!-- ---------- Avisos y costes ---------- -->
+      <ficha-seccion
+        v-if="flags.length || costs.length"
+        id="costes"
+        :title="flags.length && costs.length ? $t('pokemon.statusAndCosts') : flags.length ? $t('pokemon.status') : $t('pokemon.costs')"
+        :summary="resumen.costes"
+      >
+        <div v-if="flags.length" :class="costs.length ? 'mb-4' : ''">
+          <h3 v-if="costs.length" class="text-xs font-bold text-gray-700 dark:text-gray-300">{{ $t('pokemon.status') }}</h3>
+          <div class="flex flex-wrap gap-1.5 mt-2">
+            <span
+              v-for="flag in flags"
+              :key="flag"
+              class="px-2 py-0.5 text-mini rounded-full border border-gray-400 dark:border-gray-500 text-gray-700 dark:text-gray-300"
+            >
+              {{ $t(`pokemon.flags.${flag}`) }}
+            </span>
+          </div>
         </div>
-      </div>
 
-      <div v-if="costs.length">
-        <h2 class="text-sm font-bold">{{ $t('pokemon.costs') }}</h2>
-        <ul class="mt-2 flex flex-col gap-1.5">
-          <!--
-            flex-wrap: si etiqueta y valor no caben en una línea, el valor baja
-            a la siguiente, a la derecha. Antes la etiqueta se encogía hasta
-            cero y «Purificar» acababa debajo de «3 caramelos».
-          -->
-          <li
-            v-for="row in costs"
-            :key="row.key"
-            class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
-          >
-            <span>{{ $t(`pokemon.costLabels.${row.key}`) }}</span>
-            <strong class="ml-auto text-right whitespace-nowrap">
-              <template v-if="row.candy">
-                {{ formatNumber(row.candy) }} {{ $tc('candy', row.candy).toLowerCase() }}<template v-if="row.dust"> · {{ formatNumber(row.dust) }} {{ $t('pokemon.stardust') }}</template>
-              </template>
-              <template v-else-if="row.energy">
-                {{ formatNumber(row.energy) }} {{ $t('megaenergy') }}
-              </template>
-              <template v-else>
-                {{ formatNumber(row.km) }} {{ $t('unitDistance') }}
-              </template>
-            </strong>
-          </li>
-        </ul>
-      </div>
-    </base-card>
-
-    <max-battle-panel :entry="asRosterEntry" />
-    <!-- ---------- PC de un 100 % ---------- -->
-    <base-card v-if="cpTable.length">
-      <h2 class="text-sm font-bold">{{ $t('pokemon.cp100') }}</h2>
-
-      <dl class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
-        <div
-          v-for="row in cpTable"
-          :key="row.level"
-          class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
-        >
-          <dt class="text-mini text-gray-600 dark:text-gray-300">
-            Nv. {{ row.level }} · {{ $t(CP_LABELS[row.level]) }}
-          </dt>
-          <dd class="text-lg font-bold">{{ row.cp }}</dd>
-        </div>
-      </dl>
-    </base-card>
-
-    <!--
-      Puestos en los rankings. En móvil van uno debajo de otro con el PvE
-      arriba, que es lo que más se consulta; desde md caben en dos columnas.
-    -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <!-- ---------- Puesto en PvE ---------- -->
-      <base-card>
-        <h2 class="text-sm font-bold">{{ $t('pokemon.pveRanks') }}</h2>
-
-        <p
-          v-if="!pveRanks.byType.length"
-          class="mt-2 text-mini text-gray-600 dark:text-gray-300"
-        >
-          {{ $t('pokemon.noPveRank') }}
-        </p>
-
-        <template v-else>
-          <p v-if="pveRanks.overall" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
-            {{ $t('top.overall') }}: <strong>#{{ pveRanks.overall.rank }}</strong>
-          </p>
-
+        <div v-if="costs.length">
+          <h3 v-if="flags.length" class="text-xs font-bold text-gray-700 dark:text-gray-300">{{ $t('pokemon.costs') }}</h3>
           <ul class="mt-2 flex flex-col gap-1.5">
+            <!--
+              flex-wrap: si etiqueta y valor no caben en una línea, el valor baja
+              a la siguiente, a la derecha. Antes la etiqueta se encogía hasta
+              cero y «Purificar» acababa debajo de «3 caramelos».
+            -->
             <li
-              v-for="entry in pveRanks.byType"
-              :key="`${entry.type}-${entry.id}`"
+              v-for="row in costs"
+              :key="row.key"
+              class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+            >
+              <span>{{ $t(`pokemon.costLabels.${row.key}`) }}</span>
+              <strong class="ml-auto text-right whitespace-nowrap">{{ costeTexto(row) }}</strong>
+            </li>
+          </ul>
+        </div>
+      </ficha-seccion>
+
+      <max-battle-panel :entry="asRosterEntry" />
+
+      <!-- ---------- PC de un 100 % ---------- -->
+      <ficha-seccion v-if="cpTable.length" id="pc" :title="$t('pokemon.cp100')" :summary="resumen.pc">
+        <dl class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+          <div
+            v-for="row in cpTable"
+            :key="row.level"
+            class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
+          >
+            <dt class="text-mini text-gray-600 dark:text-gray-300">
+              Nv. {{ row.level }} · {{ $t(CP_LABELS[row.level]) }}
+            </dt>
+            <dd class="text-lg font-bold">{{ row.cp }}</dd>
+          </div>
+        </dl>
+      </ficha-seccion>
+    </div>
+
+    <div class="flex flex-col gap-3 lg:gap-4 min-w-0">
+      <!-- Puestos en los rankings: uno debajo de otro en móvil, en dos columnas desde sm. -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4 items-start">
+        <!-- ---------- Puesto en PvE ---------- -->
+        <ficha-seccion id="pve" :title="$t('pokemon.pveRanks')" :summary="resumen.pve">
+          <p
+            v-if="!pveRanks.byType.length"
+            class="mt-2 text-mini text-gray-600 dark:text-gray-300"
+          >
+            {{ $t('pokemon.noPveRank') }}
+          </p>
+          <template v-else>
+            <p v-if="pveRanks.overall" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
+              {{ $t('top.overall') }}: <strong>#{{ pveRanks.overall.rank }}</strong>
+            </p>
+            <ul class="mt-2 flex flex-col gap-1.5">
+              <li
+                v-for="entry in pveRanks.byType"
+                :key="`${entry.type}-${entry.id}`"
+                class="flex items-center gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+              >
+                <type-icons :types="[entry.type]" size="13" />
+                <span class="font-semibold">{{ $t(`types.${entry.type}`) }}</span>
+                <span class="text-gray-600 dark:text-gray-300 truncate">{{ entry.nameEs }}</span>
+                <span class="ml-auto shrink-0">
+                  #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
+                </span>
+              </li>
+            </ul>
+          </template>
+        </ficha-seccion>
+
+        <!-- ---------- Puesto en PvP ---------- -->
+        <ficha-seccion id="pvp" :title="$t('pokemon.pvpRanks')" :summary="resumen.pvp">
+          <p v-if="!pvpRanks.length" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
+            {{ $t('pokemon.noPvpRank') }}
+          </p>
+          <ul v-else class="mt-2 flex flex-col gap-1.5">
+            <li
+              v-for="entry in pvpRanks"
+              :key="`${entry.league}-${entry.id}`"
               class="flex items-center gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
             >
-              <type-icons :types="[entry.type]" size="13" />
-              <span class="font-semibold">{{ $t(`types.${entry.type}`) }}</span>
+              <span class="font-semibold">{{ $t(`top.${entry.league}`) }}</span>
               <span class="text-gray-600 dark:text-gray-300 truncate">{{ entry.nameEs }}</span>
               <span class="ml-auto shrink-0">
-                #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
+                #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
               </span>
             </li>
           </ul>
-        </template>
-      </base-card>
+        </ficha-seccion>
+      </div>
 
-      <!-- ---------- Puesto en PvP ---------- -->
-      <base-card>
-        <h2 class="text-sm font-bold">{{ $t('pokemon.pvpRanks') }}</h2>
-
-        <p v-if="!pvpRanks.length" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
-          {{ $t('pokemon.noPvpRank') }}
-        </p>
-
-        <ul v-else class="mt-2 flex flex-col gap-1.5">
+      <!-- ---------- Mejores ataques ---------- -->
+      <ficha-seccion v-if="bestMovesets.length" id="ataques" :title="$t('pokemon.bestMoves')" :summary="resumen.ataques">
+        <ol class="mt-2 flex flex-col gap-1.5">
           <li
-            v-for="entry in pvpRanks"
-            :key="`${entry.league}-${entry.id}`"
-            class="flex items-center gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+            v-for="set in bestMovesets"
+            :key="`${set.fast.id}-${set.charged.id}`"
+            class="flex flex-wrap items-center gap-x-3 gap-y-1 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
           >
-            <span class="font-semibold">{{ $t(`top.${entry.league}`) }}</span>
-            <span class="text-gray-600 dark:text-gray-300 truncate">{{ entry.nameEs }}</span>
-            <span class="ml-auto shrink-0">
-              #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
+            <move-tag
+              chip
+              :name="set.fast.nameEs"
+              :type="set.fast.type"
+              size="11"
+              :elite="set.fast.elite"
+              :legacy="set.fast.legacy"
+            />
+            <move-tag
+              chip
+              :name="set.charged.nameEs"
+              :type="set.charged.type"
+              size="11"
+              :elite="set.charged.elite"
+              :legacy="set.charged.legacy"
+              :mega="set.charged.mega"
+            />
+            <span class="ml-auto font-bold">{{ set.dps.toFixed(1) }} DPS</span>
+          </li>
+        </ol>
+
+        <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+          <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.fastMoves') }}</span>
+          <div class="flex flex-wrap gap-1 mt-1">
+            <move-tag
+              v-for="move in movepool.fast"
+              :key="move.id"
+              chip
+              :name="move.nameEs"
+              :type="move.type"
+              :elite="move.elite"
+              :legacy="move.legacy"
+            />
+          </div>
+          <span class="block mt-2 text-mini text-gray-600 dark:text-gray-300">
+            {{ $t('pokemon.chargedMoves') }}
+          </span>
+          <div class="flex flex-wrap gap-1 mt-1">
+            <move-tag
+              v-for="move in movepool.charged"
+              :key="move.id"
+              chip
+              :name="move.nameEs"
+              :type="move.type"
+              :elite="move.elite"
+              :legacy="move.legacy"
+              :mega="move.mega"
+            />
+          </div>
+          <move-legend
+            v-if="movepool.hasElite || movepool.hasLegacy || movepool.hasMega"
+            class="mt-3"
+            :elite="movepool.hasElite"
+            :legacy="movepool.hasLegacy"
+            :mega="movepool.hasMega"
+          />
+        </div>
+      </ficha-seccion>
+
+      <!-- ---------- Efectos de los ataques en PvP ---------- -->
+      <ficha-seccion v-if="moveEffects.length" id="efectos" :title="$t('moves.effectsTitle')" :summary="resumen.efectos">
+        <ul class="mt-2 flex flex-col gap-1.5">
+          <li
+            v-for="move in moveEffects"
+            :key="move.id"
+            class="flex flex-wrap items-center gap-x-3 gap-y-1 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+          >
+            <move-tag
+              :name="move.nameEs"
+              :type="move.type"
+              size="11"
+              :elite="move.elite"
+              :legacy="move.legacy"
+              :mega="move.mega"
+            />
+            <span class="text-gray-700 dark:text-gray-300">{{ move.text }}</span>
+            <span v-if="move.chance" class="ml-auto text-mini text-gray-600 dark:text-gray-300">
+              {{ move.chance }}
             </span>
           </li>
         </ul>
-      </base-card>
-    </div>
+      </ficha-seccion>
 
-    <!-- ---------- Mejores ataques ---------- -->
-    <base-card v-if="bestMovesets.length">
-      <h2 class="text-sm font-bold">{{ $t('pokemon.bestMoves') }}</h2>
-      <ol class="mt-2 flex flex-col gap-1.5">
-        <li
-          v-for="set in bestMovesets"
-          :key="`${set.fast.id}-${set.charged.id}`"
-          class="flex flex-wrap items-center gap-x-3 gap-y-1 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
-        >
-          <move-tag
-            chip
-            :name="set.fast.nameEs"
-            :type="set.fast.type"
-            size="11"
-            :elite="set.fast.elite"
-            :legacy="set.fast.legacy"
-          />
-          <move-tag
-            chip
-            :name="set.charged.nameEs"
-            :type="set.charged.type"
-            size="11"
-            :elite="set.charged.elite"
-            :legacy="set.charged.legacy"
-            :mega="set.charged.mega"
-          />
-          <span class="ml-auto font-bold">{{ set.dps.toFixed(1) }} DPS</span>
-        </li>
-      </ol>
-
-      <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-        <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.fastMoves') }}</span>
-        <div class="flex flex-wrap gap-1 mt-1">
-          <move-tag
-            v-for="move in movepool.fast"
-            :key="move.id"
-            chip
-            :name="move.nameEs"
-            :type="move.type"
-            :elite="move.elite"
-            :legacy="move.legacy"
-          />
-        </div>
-
-        <span class="block mt-2 text-mini text-gray-600 dark:text-gray-300">
-          {{ $t('pokemon.chargedMoves') }}
-        </span>
-        <div class="flex flex-wrap gap-1 mt-1">
-          <move-tag
-            v-for="move in movepool.charged"
-            :key="move.id"
-            chip
-            :name="move.nameEs"
-            :type="move.type"
-            :elite="move.elite"
-            :legacy="move.legacy"
-            :mega="move.mega"
-          />
-        </div>
-
-        <move-legend
-          v-if="movepool.hasElite || movepool.hasLegacy || movepool.hasMega"
-          class="mt-3"
-          :elite="movepool.hasElite"
-          :legacy="movepool.hasLegacy"
-          :mega="movepool.hasMega"
-        />
-      </div>
-    </base-card>
-
-    <!-- ---------- Efectos de los ataques en PvP ---------- -->
-    <base-card v-if="moveEffects.length">
-      <h2 class="text-sm font-bold">{{ $t('moves.effectsTitle') }}</h2>
-      <ul class="mt-2 flex flex-col gap-1.5">
-        <li
-          v-for="move in moveEffects"
-          :key="move.id"
-          class="flex flex-wrap items-center gap-x-3 gap-y-1 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
-        >
-          <move-tag
-            :name="move.nameEs"
-            :type="move.type"
-            size="11"
-            :elite="move.elite"
-            :legacy="move.legacy"
-            :mega="move.mega"
-          />
-          <span class="text-gray-700 dark:text-gray-300">{{ move.text }}</span>
-          <span v-if="move.chance" class="ml-auto text-mini text-gray-600 dark:text-gray-300">
-            {{ move.chance }}
+      <!-- ---------- Debilidades y resistencias ---------- -->
+      <ficha-seccion
+        v-if="matchups.weak.length || matchups.resist.length"
+        id="debilidades"
+        :title="$t('pokemon.weaknesses')"
+        :summary="resumen.debilidades"
+      >
+        <div class="flex flex-wrap gap-2 mt-2">
+          <span
+            v-for="entry in matchups.weak"
+            :key="entry.type"
+            class="flex items-center gap-1 px-2 py-1 text-mini rounded-xl border border-gray-300 dark:border-gray-600"
+          >
+            <type-icons :types="[entry.type]" size="13" with-label />
+            <span class="text-gray-600 dark:text-gray-300">×{{ entry.mult.toFixed(2) }}</span>
           </span>
-        </li>
-      </ul>
-    </base-card>
+        </div>
 
-    <!-- ---------- Debilidades y resistencias ---------- -->
-    <base-card v-if="matchups.weak.length || matchups.resist.length">
-      <h2 class="text-sm font-bold">{{ $t('pokemon.weaknesses') }}</h2>
-      <div class="flex flex-wrap gap-2 mt-2">
-        <span
-          v-for="entry in matchups.weak"
-          :key="entry.type"
-          class="flex items-center gap-1 px-2 py-1 text-mini rounded-xl border border-gray-300 dark:border-gray-600"
-        >
-          <type-icons :types="[entry.type]" size="13" with-label />
-          <span class="text-gray-600 dark:text-gray-300">×{{ entry.mult.toFixed(2) }}</span>
-        </span>
-      </div>
-
-      <h2 class="text-sm font-bold mt-4">{{ $t('pokemon.resistances') }}</h2>
-      <div class="flex flex-wrap gap-2 mt-2">
-        <span
-          v-for="entry in matchups.resist"
-          :key="entry.type"
-          class="flex items-center gap-1 px-2 py-1 text-mini rounded-xl border border-gray-300 dark:border-gray-600"
-        >
-          <type-icons :types="[entry.type]" size="13" with-label />
-          <span class="text-gray-600 dark:text-gray-300">×{{ entry.mult.toFixed(2) }}</span>
-        </span>
-      </div>
-    </base-card>
-
+        <h3 class="text-sm font-bold mt-4">{{ $t('pokemon.resistances') }}</h3>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <span
+            v-for="entry in matchups.resist"
+            :key="entry.type"
+            class="flex items-center gap-1 px-2 py-1 text-mini rounded-xl border border-gray-300 dark:border-gray-600"
+          >
+            <type-icons :types="[entry.type]" size="13" with-label />
+            <span class="text-gray-600 dark:text-gray-300">×{{ entry.mult.toFixed(2) }}</span>
+          </span>
+        </div>
+      </ficha-seccion>
+    </div>
   </div>
 </template>

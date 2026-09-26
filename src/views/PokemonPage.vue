@@ -11,7 +11,7 @@ import { PokemonView } from '../components/index';
         Además ponía w-max-[900px], que Tailwind no genera: el ancho máximo no
         se aplicaba nunca.
     -->
-    <section class="min-h-screen max-w-[900px] mx-auto overflow-hidden">
+    <section class="min-h-screen max-w-[900px] lg:max-w-[1200px] mx-auto">
         <PokemonView />
     </section>
 </template>

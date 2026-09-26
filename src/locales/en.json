@@ -42,6 +42,8 @@
         "staleData": "Data is {age} old: it may no longer be current"
     },
     "pokemon": {
+        "evolutionLine": "Evolution line",
+        "statusAndCosts": "Notes and costs",
         "cp100": "100 % CP",
         "cpLevel20": "Raid or egg",
         "cpLevel25": "Weather boost",
@@ -268,6 +270,13 @@
         }
     },
     "evolutions": {
+        "dayShort": "By day",
+        "nightShort": "At night",
+        "buddyShort": "{km} km with buddy",
+        "FemaleShort": "Female",
+        "MaleShort": "Male",
+        "megaEvolutions": "Mega Evolutions",
+        "count": "{n} evolutions",
         "onlyEvolvesDay": "Only evolves during the day",
         "onlyEvolvesNight": "Only evolves at night",
         "Female": "Only evolves if female",

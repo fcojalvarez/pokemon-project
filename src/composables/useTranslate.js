@@ -12,6 +12,8 @@ export function useTranslate() {
 
   return {
     t: (...args) => global.t(...args),
+    /** Plurales («caramelo» / «caramelos»): en modo legacy `t` no los resuelve. */
+    tc: (...args) => global.tc(...args),
     /** ¿Existe esa clave? Útil cuando la fuente puede traer valores nuevos. */
     te: (...args) => global.te(...args),
     locale: () => global.locale
