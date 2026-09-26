@@ -15,6 +15,7 @@ import {
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
 import MaxMark from '../components/pokemon/MaxMark.vue'
 import MaxLegend from '../components/pokemon/MaxLegend.vue'
+import ShinyLegend from '../components/pokemon/ShinyLegend.vue'
 import LiveMonCard from '../components/pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../utils/sprites'
 import { useTranslate } from '../composables/useTranslate'
@@ -164,11 +165,7 @@ onMounted(() => {
       existe. Aquí se dice con palabras.
     -->
     <max-legend v-if="tab === 'max'" class="mb-3" />
-    <p v-else class="flex items-center gap-1.5 text-mini text-gray-600 dark:text-gray-400 mb-3">
-      <!-- Mismo glifo y mismo color que en <live-mon-card>. -->
-      <span class="text-gray-600 dark:text-gray-100 leading-none" aria-hidden="true">✦</span>
-      {{ $t('pokemon.shinyLegend') }}
-    </p>
+    <shiny-legend v-else variant="dex" class="mb-3" />
 
     <spinner-component v-if="live.status === 'loading'" />
 

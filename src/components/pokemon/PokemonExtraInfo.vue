@@ -7,6 +7,7 @@ import TypeIcons from '../base/TypeIcons.vue'
 import MoveTag from './MoveTag.vue'
 import MoveLegend from './MoveLegend.vue'
 import MaxMark from './MaxMark.vue'
+import ShinyMark from './ShinyMark.vue'
 import { useTranslate } from '../../composables/useTranslate'
 import { describeMoveEffect, effectChanceLabel } from '../../utils/moveEffect'
 import { calcCP } from '../../utils/formulas'
@@ -320,7 +321,13 @@ const plainText = (html) =>
             >
               <img :src="boss.image" :alt="boss.name" class="w-6 h-6" loading="lazy" />
               {{ boss.name }}
-              <span v-if="boss.canBeShiny" class="text-amber-600 dark:text-amber-400">✦</span>
+              <shiny-mark
+                v-if="boss.canBeShiny"
+                variant="dex"
+                size="text-mini"
+                class="shrink-0 scale-90"
+                :title="$t('pokemon.shinyLegend')"
+              />
             </span>
           </div>
         </div>
@@ -334,7 +341,13 @@ const plainText = (html) =>
               class="px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600"
             >
               {{ egg.eggType }} · {{ $t('raids.cpRange') }} {{ egg.combatPower.min }}
-              <span v-if="egg.canBeShiny" class="text-amber-600 dark:text-amber-400">✦</span>
+              <shiny-mark
+                v-if="egg.canBeShiny"
+                variant="dex"
+                size="text-mini"
+                class="shrink-0 scale-90"
+                :title="$t('pokemon.shinyLegend')"
+              />
             </span>
           </div>
         </div>

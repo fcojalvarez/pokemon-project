@@ -13,6 +13,7 @@
  * ese caso no es un enlace, para no prometer una navegación que no va a pasar.
  */
 import { computed } from 'vue'
+import ShinyMark from './ShinyMark.vue'
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -64,11 +65,14 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
     <span class="flex-1 min-w-0">
       <span class="flex items-center gap-1">
         <span class="text-xs font-semibold truncate" :title="name">{{ name }}</span>
-        <span
+        <!-- La misma marca que la Pokédex, no una estrella suelta. -->
+        <shiny-mark
           v-if="canBeShiny"
-          class="shrink-0 text-gray-600 dark:text-gray-100 leading-none"
+          variant="dex"
+          size="text-mini"
+          class="shrink-0 scale-90 origin-center"
           :title="$t('pokemon.shinyLegend')"
-        >✦</span>
+        />
       </span>
       <span v-if="cpLabel" class="block text-mini text-gray-600 dark:text-gray-400">
         {{ $t('raids.cpRange') }} {{ cpLabel }}
