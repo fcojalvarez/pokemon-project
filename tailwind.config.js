@@ -1,5 +1,11 @@
 module.exports = {
-    purge: ['./src/**/*.html', './src/**/*.vue', './src/**/*.jsx', ],
+    // En pantallas táctiles el navegador simula el hover al tocar y el estilo
+    // se queda pegado hasta que tocas otra cosa. Con esto, las variantes
+    // hover: solo se aplican donde hay puntero de verdad.
+    future: {
+        hoverOnlyWhenSupported: true,
+    },
+    content: ['./index.html', './src/**/*.{vue,js,jsx,html}'],
     darkMode: 'class', // or 'media' or 'class'
     theme: {
         extend: {
@@ -47,15 +53,14 @@ module.exports = {
                 'code-sans': ['Source Code Pro','Open Sans', 'monospace']
             },
             fontSize: {
-                'mini': '0.6rem',
+                // 0.6rem (9,6px) era ilegible. 0.75rem son los 12px que se
+                // consideran el suelo para texto secundario.
+                'mini': ['0.75rem', { lineHeight: '1rem' }],
             },
             animation: {
-                'spin-4-s': 'bounce 3s ease inifinity',
+                'spin-4-s': 'bounce 3s ease infinite',
             }
         },
-    },
-    variants: {
-        extend: {},
     },
     plugins: [],
 }

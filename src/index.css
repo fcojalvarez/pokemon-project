@@ -1,3 +1,10 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/*
+ * Al tocar en móvil, el navegador pinta un fondo azulado sobre el elemento
+ * pulsado. Sobre los sprites se ve como un parpadeo al navegar.
+ */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
