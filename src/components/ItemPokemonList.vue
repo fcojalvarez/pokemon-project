@@ -1,6 +1,5 @@
 <script setup>
     import { computed } from 'vue';
-    import { useRouter } from 'vue-router';
     import { BaseIcon } from '.';
     import ShinyMark from './pokemon/ShinyMark.vue';
     import MaxMark from './pokemon/MaxMark.vue';
@@ -24,30 +23,32 @@
         // como el de huevos se pasa uno más pequeño para no comer pantalla.
         image_size: { type: String, default: 'w-24 h-24' }
     })
-    const router = useRouter();
-
     const pokemonId = computed(() => props.id?.toString().padStart(3, '0'));
-
-    const goToPokemonPage = (pokemonId) => {
-        pokemonId && setIsSearching(false);
-        pokemonId && router.push(`/pokemon/${pokemonId}`);
-    }
 </script>
 
 <template>
-    <section
-        :class="[props.is_released? 'cursor-pointer hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600' : '', 'p-2 rounded-2xl']"
-        @click="props.is_released && goToPokemonPage(props.id)"
-    >   
+    <!--
+        Un enlace de verdad y no un bloque con @click: así se llega con el
+        tabulador, se abre con Enter y se puede abrir en otra pestaña. Los que
+        aún no han salido no llevan a ninguna parte y se quedan en un div.
+    -->
+    <component
+        :is="props.is_released ? 'router-link' : 'div'"
+        :to="props.is_released ? `/pokemon/${props.id}` : undefined"
+        data-dex-tile
+        :class="[props.is_released? 'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600' : '', 'block p-2 rounded-2xl']"
+        @click="props.is_released && setIsSearching(false)"
+    >
         <div class="relative mx-auto" :class="image_size">
+            <!-- alt vacío: el nombre ya va escrito debajo, dentro del mismo enlace. -->
             <img
                 :src="image"
-                :alt="`${props.name} ${$t('image')}`"
+                alt=""
                 :class="[props.is_released? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark': 'grayscale opacity-40', 'z-10 w-full h-full object-contain']"
                 loading="lazy"
             >
             <!-- Escalada, no con otro font-size: así la marca no se descuadra. -->
-            <shiny-mark v-if="props.is_shiny_released" variant="dex" class="absolute top-0 right-0 z-10 scale-[0.8] origin-top-right" />
+            <shiny-mark v-if="props.is_shiny_released" variant="dex" :label="$t('pokemon.shinyLegend')" class="absolute top-0 right-0 z-10 scale-[0.8] origin-top-right" />
             <!--
                 Abajo, una en cada esquina, para no pelearse con la marca de
                 variocolor (que va arriba a la derecha) ni tapar al Pokémon.
@@ -101,11 +102,11 @@
 
         <div
             v-if="combat_power"
-            class="mt-1 text-center text-mini text-gray-500 dark:text-gray-400"
+            class="mt-1 text-center text-mini text-gray-600 dark:text-gray-300"
         >
             {{ $t('raids.cpRange') }} {{ combat_power.min }}<template
                 v-if="combat_power.max && combat_power.max !== combat_power.min"
             >–{{ combat_power.max }}</template>
         </div>
-    </section>
+    </component>
 </template>

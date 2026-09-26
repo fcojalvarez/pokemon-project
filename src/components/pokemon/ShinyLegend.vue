@@ -25,7 +25,7 @@ const SCALE = 0.65
 </script>
 
 <template>
-  <p class="flex items-center gap-2 text-mini text-gray-600 dark:text-gray-400">
+  <p class="flex items-center gap-2 text-mini text-gray-600 dark:text-gray-300">
     <shiny-mark
       :variant="variant"
       size="text-mini"

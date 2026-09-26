@@ -55,10 +55,10 @@ test('el Top cambia entre PvE y PvP sin romperse', async ({ page }) => {
 
   // Ya no es un <select> nativo: es el desplegable propio, que se abre y se
   // elige con clics como haría cualquiera.
-  await page.getByRole('combobox').first().click()
+  await page.getByRole('combobox', { name: /modo/i }).click()
   await page.getByRole('option', { name: /pvp/i }).click()
 
-  await expect(page.getByRole('combobox').first()).toContainText(/pvp/i)
+  await expect(page.getByRole('combobox', { name: /modo/i })).toContainText(/pvp/i)
   await expect(filas.first()).toBeVisible()
   expect(await filas.count()).toBeGreaterThan(5)
 })
@@ -152,7 +152,7 @@ test('si game_data no responde, tira de los ficheros desplegados', async ({ page
 test('el Top Dinamax ordena por ataque y enseña el Ataque Max', async ({ page }) => {
   await page.goto('/top')
 
-  await page.getByRole('combobox').first().click()
+  await page.getByRole('combobox', { name: /modo/i }).click()
   await page.getByRole('option', { name: /dinamax/i }).click()
 
   const filas = page.locator('ol > li')
@@ -173,7 +173,7 @@ test('el filtro de Gigamax recorta la Pokédex', async ({ page }) => {
   await page.goto('/')
   await page.waitForLoadState('networkidle')
 
-  const tarjetas = page.locator('section:has(img[loading="lazy"])')
+  const tarjetas = page.locator('[data-dex-tile]')
   const antes = await tarjetas.count()
   expect(antes).toBeGreaterThan(20)
 

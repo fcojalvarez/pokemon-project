@@ -3,7 +3,6 @@
     "from": "from",
     "and": "and",
     "back": "Back",
-    "image": "Image",
     "darkMode": "Dark mode",
     "lightMode": "Light mode",
     "thanksTo": "Thanks to",
@@ -429,5 +428,15 @@
         "teamNote": "Ranked by attack and type advantage, not damage: Max Moves publish no power. Since every Pokémon of a type shares the same Max Move, that part cancels out within the comparison. Evolving keeps the Dynamax form.",
         "availableVia": "by evolving {pokemon}",
         "tapForTeam": "Tap ▾ on a boss to see the suggested team."
+    },
+    "a11y": {
+        "skipToContent": "Skip to content",
+        "backToTop": "Back to top",
+        "search": "Search a Pokémon by name",
+        "searchResults": "Search results",
+        "darkModeToggle": "Dark mode",
+        "pokemonCount": "No Pokémon | 1 Pokémon | {n} Pokémon",
+        "love": "love",
+        "evolutionRequirements": "Evolution requirements"
     }
 }

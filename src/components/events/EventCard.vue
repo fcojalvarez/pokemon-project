@@ -161,17 +161,15 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       />
       <div class="min-w-0 flex flex-col items-start gap-1">
         <span
-          class="px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400"
+          class="px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
         >
           {{ typeLabel }}
         </span>
-        <component
-          :is="event.link ? 'a' : 'h3'"
-          :href="event.link || undefined"
-          :target="event.link ? '_blank' : undefined"
-          :rel="event.link ? 'noopener' : undefined"
-          class="text-sm font-bold leading-snug"
-        >{{ displayName }}</component>
+        <!-- Siempre un h2 (la página lleva su h1), con el enlace dentro si lo hay. -->
+        <h2 class="text-sm font-bold leading-snug">
+          <a v-if="event.link" :href="event.link" target="_blank" rel="noopener">{{ displayName }}</a>
+          <template v-else>{{ displayName }}</template>
+        </h2>
       </div>
     </div>
 
@@ -189,14 +187,14 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
         :class="
           countdown.urgent
             ? 'border-amber-500 text-amber-700 dark:text-amber-400'
-            : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400'
+            : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300'
         "
       >
         {{ countdown.text }}
       </span>
     </div>
 
-    <p v-if="event.startDate" class="mt-2 text-mini text-gray-500 dark:text-gray-400">
+    <p v-if="event.startDate" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
       {{ formatDateTime(event.startDate, locale() === 'en' ? 'en-GB' : 'es-ES') }}
       <template v-if="event.endDate">
         → {{ formatDateTime(event.endDate, locale() === 'en' ? 'en-GB' : 'es-ES') }}
@@ -243,7 +241,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
           :can-be-shiny="esVariocolor(spotlight)"
           class="text-sm font-bold"
         />
-        <div class="text-mini text-gray-500 dark:text-gray-400">{{ gameData.translateText(spotlight.bonus) }}</div>
+        <div class="text-mini text-gray-600 dark:text-gray-300">{{ gameData.translateText(spotlight.bonus) }}</div>
       </div>
     </div>
 
@@ -294,13 +292,13 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       <div v-if="resumen.hasSpawns || resumen.hasResearch" class="flex flex-wrap gap-1.5">
         <span
           v-if="resumen.hasSpawns"
-          class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400"
+          class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
         >
           {{ $t('events.hasSpawns') }}
         </span>
         <span
           v-if="resumen.hasResearch"
-          class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400"
+          class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
         >
           {{ $t('events.hasResearch') }}
         </span>
@@ -311,7 +309,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
     <p
       v-for="nota in resumen?.notes ?? []"
       :key="nota"
-      class="mt-2 text-mini text-gray-500 dark:text-gray-400"
+      class="mt-2 text-mini text-gray-600 dark:text-gray-300"
     >
       {{ gameData.translateText(nota) }}
     </p>

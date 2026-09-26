@@ -5,10 +5,11 @@
  * El diálogo va en `Teleport` porque el botón vive dentro del cajón del menú,
  * que se cierra al abrirlo: si el formulario colgara de ahí, se iría con él.
  */
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { CATEGORIES, MAX_MESSAGE, useSuggestionsStore } from '../../stores/suggestions'
 import { useTranslate } from '../../composables/useTranslate'
+import { useInertApp } from '../../composables/useInertApp'
 import BaseIcon from '../base/BaseIcon.vue'
 import BasePillButton from '../base/BasePillButton.vue'
 
@@ -26,6 +27,8 @@ const route = useRoute()
 const suggestions = useSuggestionsStore()
 
 const isOpen = ref(false)
+const { bloquear, liberar } = useInertApp()
+onUnmounted(liberar)
 const isSent = ref(false)
 const category = ref('idea')
 const message = ref('')
@@ -47,6 +50,7 @@ const errorText = computed(() => {
 
 const open = async () => {
   isOpen.value = true
+  bloquear()
   isSent.value = false
   errorKey.value = null
   emit('open')
@@ -57,6 +61,7 @@ const open = async () => {
 
 const close = ({ restoreFocus = true } = {}) => {
   isOpen.value = false
+  liberar()
   document.body.style.overflow = ''
   if (!restoreFocus) return
 
@@ -171,7 +176,7 @@ watch(
         </div>
 
         <form v-else class="p-4" @submit.prevent="submit">
-          <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
             {{ $t('suggestions.intro') }}
           </p>
 
@@ -204,9 +209,9 @@ watch(
             rows="5"
             :maxlength="MAX_MESSAGE"
             :placeholder="$t('suggestions.messagePlaceholder')"
-            class="block w-full rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-600 shadow-md placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"
+            class="campo shadow-md"
           ></textarea>
-          <p class="text-mini text-gray-500 dark:text-gray-400 mt-1 mb-4 text-right">
+          <p class="text-mini text-gray-600 dark:text-gray-300 mt-1 mb-4 text-right">
             {{ $t('suggestions.remaining', { count: restante }) }}
           </p>
 
@@ -222,9 +227,9 @@ watch(
             type="email"
             autocomplete="email"
             :placeholder="$t('suggestions.contactPlaceholder')"
-            class="block w-full rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-600 shadow-md placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"
+            class="campo shadow-md"
           />
-          <p class="text-mini text-gray-500 dark:text-gray-400 mt-1 mb-4">
+          <p class="text-mini text-gray-600 dark:text-gray-300 mt-1 mb-4">
             {{ $t('suggestions.contactHint') }}
           </p>
 

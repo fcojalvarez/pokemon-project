@@ -71,11 +71,13 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
         size="text-mini"
         class="absolute -top-1 -right-1 z-10 scale-[0.7] origin-top-right"
         :title="$t('pokemon.shinyLegend')"
+        :label="$t('pokemon.shinyLegend')"
       />
     </span>
 
     <span class="flex-1 min-w-0">
-      <span class="block text-xs font-semibold truncate" :title="name">{{ name }}</span>
+      <!-- Hasta dos líneas antes de recortar: «Typhlosion de Hisui» salía cortado con media pantalla libre. -->
+      <span class="text-xs font-semibold line-clamp-2 break-words" :title="name">{{ name }}</span>
       <!--
         En móvil, a dos columnas, no caben etiqueta y rango: el texto se salía
         por debajo del botón de desplegar. Se queda el rango, que junto a un
@@ -84,12 +86,12 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
       -->
       <span
         v-if="cpLabel"
-        class="block text-mini text-gray-600 dark:text-gray-400 truncate"
+        class="block text-mini text-gray-600 dark:text-gray-300 truncate"
         :title="`${$t('raids.cpRange')} ${cpLabel}`"
       >
         <span class="hidden sm:inline">{{ $t('raids.cpRange') }} </span>{{ cpLabel }}
       </span>
-      <span v-if="badge" class="block text-mini text-gray-500 dark:text-gray-400">{{ badge }}</span>
+      <span v-if="badge" class="block text-mini text-gray-600 dark:text-gray-300">{{ badge }}</span>
     </span>
 
     <slot />

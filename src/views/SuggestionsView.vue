@@ -53,7 +53,7 @@ const statusStyle = {
   new: 'border-blue-400 text-blue-700 dark:text-blue-300',
   doing: 'border-amber-400 text-amber-700 dark:text-amber-400',
   done: 'border-green-500 text-green-700 dark:text-green-400',
-  discarded: 'border-gray-400 text-gray-500 dark:text-gray-400'
+  discarded: 'border-gray-400 text-gray-600 dark:text-gray-300'
 }
 
 const fecha = (value) =>
@@ -111,7 +111,7 @@ onMounted(async () => {
           type="email"
           autocomplete="username"
           required
-          class="block w-full mb-4 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-600 shadow-md focus:outline-none focus:ring-1 focus:ring-gray-500"
+          class="campo mb-4 shadow-md"
         />
 
         <label for="admin-password" class="block text-sm font-medium mb-1">
@@ -123,7 +123,7 @@ onMounted(async () => {
           type="password"
           autocomplete="current-password"
           required
-          class="block w-full mb-4 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-600 shadow-md focus:outline-none focus:ring-1 focus:ring-gray-500"
+          class="campo mb-4 shadow-md"
         />
 
         <base-error-message v-if="auth.error" class="mb-4" :message="$t('suggestions.signInError')" />
@@ -140,7 +140,7 @@ onMounted(async () => {
 
     <template v-else>
       <div class="flex flex-wrap items-center gap-3 mb-4">
-        <span class="text-mini text-gray-600 dark:text-gray-400">{{ email }}</span>
+        <span class="text-mini text-gray-600 dark:text-gray-300">{{ email }}</span>
         <base-pill-button class="ml-auto" @click="suggestions.load()">
           {{ $t('common.update') }}
         </base-pill-button>
@@ -175,7 +175,7 @@ onMounted(async () => {
               >
                 {{ $t(`suggestions.statuses.${item.status}`) }}
               </span>
-              <span class="text-mini text-gray-500 dark:text-gray-400 ml-auto">
+              <span class="text-mini text-gray-600 dark:text-gray-300 ml-auto">
                 {{ fecha(item.created_at) }}
               </span>
             </div>
@@ -184,7 +184,7 @@ onMounted(async () => {
                  son parte de lo que ha escrito. -->
             <p class="text-sm whitespace-pre-line break-words mb-3">{{ item.message }}</p>
 
-            <p class="text-mini text-gray-500 dark:text-gray-400 mb-3">
+            <p class="text-mini text-gray-600 dark:text-gray-300 mb-3">
               <a
                 v-if="item.contact"
                 :href="`mailto:${item.contact}`"
@@ -203,7 +203,7 @@ onMounted(async () => {
               :id="`notas-${item.id}`"
               :value="item.notes ?? ''"
               rows="2"
-              class="block w-full mb-3 rounded-xl px-3 py-2 text-sm bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-400 dark:border-gray-600 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-500"
+              class="campo mb-3"
               :placeholder="$t('suggestions.notesPlaceholder')"
               @blur="saveNotes(item, $event.target.value)"
             ></textarea>

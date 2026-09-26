@@ -17,6 +17,18 @@ app.use(createPinia());
 app.use(router);
 app.use(i18n);
 
+// El idioma del documento sigue al de la app: con lang="en" los lectores de
+// pantalla leían el español con pronunciación inglesa.
+document.documentElement.lang = i18n.global.locale;
+
+// Título de pestaña por página. La ficha lo pone ella misma cuando sabe qué
+// Pokémon es, así que aquí se deja en paz.
+router.afterEach((to) => {
+    if (to.name === 'PokemonPage') return;
+    const key = to.meta?.titleKey;
+    document.title = key ? `${i18n.global.t(key)} · PogoDex` : 'PogoDex';
+});
+
 app.mount('#app');
 
 // Se engancha después de montar: no bloquea el primer pintado.

@@ -24,14 +24,23 @@ const scrollHandler = ({ target: { scrollingElement: { scrollTop } } }) => {
     isShowButton.value = visible
 }
 
-const scrollToUp = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+// El botón desaparece al llegar arriba: el foco pasa al contenido para que
+// quien va con teclado no se quede en un elemento oculto.
+const scrollToUp = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    document.getElementById('contenido')?.focus({ preventScroll: true })
+}
 
 onMounted(() => document.addEventListener('scroll', scrollHandler, { passive: true }))
 onUnmounted(() => document.removeEventListener('scroll', scrollHandler))
 </script>
 
 <template>
-    <div
+    <button
+        type="button"
+        :aria-label="$t('a11y.backToTop')"
+        :tabindex="isShowButton ? 0 : -1"
+        :aria-hidden="!isShowButton"
         class="rebote-caja fixed z-30 bg-white dark:bg-gray-900 shadow-xl rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer right-10 border border-gray-400 dark:border-gray-150 hover:bg-gray-150 hover:dark:bg-gray-800 transition-[bottom] duration-300 ease-out"
         :class="[isShowButton ? 'bottom-8' : '-bottom-20', rebota ? 'rebota' : '']"
         @animationend="rebota = false"
@@ -50,7 +59,7 @@ onUnmounted(() => document.removeEventListener('scroll', scrollHandler))
             stroke-linejoin="round"
             class-path="stroke-gray-800 dark:stroke-gray-200"
         />
-    </div>
+    </button>
 </template>
 
 <style scoped>

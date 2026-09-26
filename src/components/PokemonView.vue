@@ -9,6 +9,8 @@ import ShinyLegend from './pokemon/ShinyLegend.vue';
 import TradeLegend from './pokemon/TradeLegend.vue';
 import { useGameDataStore } from '../stores/gameData';
 import { useLiveStore } from '../stores/live';
+import TypeIcons from './base/TypeIcons.vue';
+import { spriteUrl } from '../utils/sprites';
 
 const pokemon = ref(null);
 const route = useRoute();
@@ -69,6 +71,30 @@ const baseAsChainItem = computed(() => {
     };
 });
 
+/**
+ * Lo que va en la cabecera: el Pokémon que se está viendo, o la forma si la
+ * URL pide una (megas y supermegas tienen su propia pantalla).
+ */
+const hero = computed(() => {
+    const p = pokemon.value;
+    if(!p) return null;
+    const f = form.value;
+    return {
+        number: String(p.pokemon_id).padStart(3, '0'),
+        name: f?.nameEs || p.name,
+        types: f?.types || p.types || [],
+        image: f
+            ? spriteUrl(f.spriteId, { shiny: isShowShiny.value })
+            : (isShowShiny.value ? p.sprites?.male_shiny : p.sprites?.male)
+    };
+});
+
+// El título de la pestaña lo pone el router para las páginas fijas; aquí
+// depende de qué Pokémon se cargue.
+watch(() => hero.value?.name, (name) => {
+    if(name) document.title = `${name} · PogoDex`;
+}, { immediate: true });
+
 const getPokemon = async(pokemonId) => {
     const { data, error } = await supabase.from('pokemons').select('*').eq('pokemon_id', pokemonId).limit(1);
 
@@ -100,6 +126,24 @@ watch(() => route.params.id, async(newId) => {
 
 <template>
     <section v-if="pokemon" class="pt-4 pb-10 px-6 sm:px-12 md:px-24 bg-white dark:bg-gray-900 rounded-xl border border-gray-300 shadow-md">
+        <!--
+            Cabecera con el nombre: antes la ficha empezaba por la cadena
+            evolutiva y el Pokémon actual solo se distinguía por un fondo gris.
+        -->
+        <header class="flex items-center gap-4 pt-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <img
+                v-if="hero.image"
+                :src="hero.image"
+                alt=""
+                class="w-20 h-20 shrink-0 object-contain drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
+            >
+            <div class="min-w-0">
+                <span class="block text-xs text-gray-600 dark:text-gray-300">#{{ hero.number }}</span>
+                <h1 class="text-2xl font-bold leading-tight text-gray-900 dark:text-gray-100">{{ hero.name }}</h1>
+                <type-icons :types="hero.types" size="14" with-label class="mt-1.5 flex-wrap text-gray-700 dark:text-gray-200" />
+            </div>
+        </header>
+
         <!-- Las leyendas a la izquierda y el botón a la derecha, misma línea. -->
         <section class="mt-4 flex items-center justify-between gap-3">
             <span class="flex flex-wrap items-center gap-x-4 gap-y-1">

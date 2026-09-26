@@ -61,14 +61,14 @@ const upgradeRows = computed(() => {
   <!-- ---------- Combates Max ---------- -->
   <base-card v-if="maxInfo">
     <div class="flex items-center gap-2">
-      <h3 class="text-sm font-bold">{{ $t('max.title') }}</h3>
+      <h2 class="text-sm font-bold">{{ $t('max.title') }}</h2>
       <span class="flex items-center gap-1.5 text-gray-700 dark:text-gray-200">
         <max-mark variant="dynamax" :size="18" />
         <max-mark v-if="maxInfo.gigantamax" variant="gigantamax" :size="18" />
       </span>
     </div>
 
-    <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">
+    <p class="mt-2 text-xs text-gray-600 dark:text-gray-300">
       {{ $t('max.intro') }}
     </p>
 
@@ -81,7 +81,7 @@ const upgradeRows = computed(() => {
         v-if="maxInfo.maxMove"
         class="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
       >
-        <dt class="text-xs text-gray-600 dark:text-gray-400">{{ $t('max.maxMove') }}</dt>
+        <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.maxMove') }}</dt>
         <dd class="flex items-center gap-2 text-sm font-semibold">
           <type-icons :types="[maxInfo.maxMove.type]" size="16" />
           {{ locale() === 'en' ? maxInfo.maxMove.name : maxInfo.maxMove.nameEs }}
@@ -106,9 +106,9 @@ const upgradeRows = computed(() => {
       merece la pena gastarse las partículas en este Pokémon.
     -->
     <div v-if="upgradeRows.length" class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-      <h4 class="text-xs font-bold text-gray-700 dark:text-gray-300">
+      <h3 class="text-xs font-bold text-gray-700 dark:text-gray-300">
         {{ $t('max.upgradeTitle') }}
-      </h4>
+      </h3>
       <ul class="mt-2 flex flex-col gap-1.5">
         <li
           v-for="row in upgradeRows"
@@ -116,14 +116,14 @@ const upgradeRows = computed(() => {
           class="flex items-center justify-between gap-2 text-xs"
         >
           <span class="font-semibold">{{ row.label }}</span>
-          <span class="text-gray-600 dark:text-gray-400 text-right">
+          <span class="text-gray-600 dark:text-gray-300 text-right">
             {{ row.total.mp }} {{ $t('max.particles') }}
             <template v-if="row.total.candy"> · {{ row.total.candy }} {{ $t('max.candy') }}</template>
             <template v-if="row.total.xl"> · {{ row.total.xl }} {{ $t('max.candyXl') }}</template>
           </span>
         </li>
       </ul>
-      <p class="mt-2 text-mini text-gray-500 dark:text-gray-400">
+      <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">
         {{ $t('max.upgradeNote') }}
       </p>
     </div>

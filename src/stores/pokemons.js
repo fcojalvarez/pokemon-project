@@ -37,6 +37,9 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     const searchingPokemon = ref(false);
     const pokemonTypes = ref([]);
     const pokemonsFiltered = ref([]);
+    // Lo último que se buscó en la Pokédex: con él la vista sabe si lo que
+    // enseña son resultados de búsqueda (y cuántos anunciar) o la lista normal.
+    const searchTerm = ref('');
 
     const types = computed(() => pokemonTypes.value);
     const pokemons = computed(() => pokemonsFiltered.value);
@@ -80,6 +83,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     const filterPokemons = async(inputValue, toSearchModal = false) => {
         const value = (inputValue || '').toLowerCase().trim();
         const isWritingName = isNaN(value); 
+        if(!toSearchModal) searchTerm.value = value;
 
         if(!value) {
             if(toSearchModal) {
@@ -203,6 +207,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         getTypes,
         isLoading,
         isSearching,
+        searchTerm,
         setIsSearching,
         types,
         pokemons

@@ -3,10 +3,17 @@
         Rejilla de tres columnas con la del medio ajustada al contenido: así el
         Pokémon queda siempre centrado, lleve requisitos a la derecha o no.
     -->
-    <section class="my-4 w-full cursor-pointer grid grid-cols-[1fr_auto_1fr] items-start" @click="goToPokemonPage(pokemon.pokemon_id)" >
+    <div class="relative my-4 w-full grid grid-cols-[1fr_auto_1fr] items-start">
         <div></div>
 
-        <section class="min-w-0">
+        <!-- El enlace es solo el bloque del Pokémon: los requisitos de la
+             derecha son información, no llevan a ningún sitio. -->
+        <component
+            :is="target ? 'router-link' : 'div'"
+            :to="target || undefined"
+            class="min-w-0 block rounded-2xl"
+            :aria-current="isActive ? 'page' : undefined"
+        >
             <!-- El bloque entero se resalta cuando es el que se está viendo. -->
             <div
                 class="mx-auto w-fit max-w-full px-3 py-2 rounded-2xl transition-colors"
@@ -20,11 +27,11 @@
             >
                 <img
                     :src="isShowShiny? pokemon.sprites.male_shiny : pokemon.sprites.male"
-                    :alt="pokemon.name"
+                    alt=""
                     class="h-full w-full object-contain"
                 >
                 <!-- Escalada, no con otro font-size: así la marca no se descuadra. -->
-                <shiny-mark v-if="pokemon.is_shiny_released" variant="evolution" class="absolute top-0 right-0 z-10 scale-90 origin-top-right" />
+                <shiny-mark v-if="pokemon.is_shiny_released" variant="evolution" :label="$t('pokemon.shinyLegend')" class="absolute top-0 right-0 z-10 scale-90 origin-top-right" />
             </div>
             <div class="mt-3 flex items-center justify-center gap-1 text-gray-800 dark:text-gray-300">
                 <span v-if="pokemon.pokemon_id" class="text-xs font-semibold shrink-0">
@@ -61,19 +68,20 @@
                 </span>
             </div>
             </div>
-        </section>
+        </component>
 
         <!--
             Anclado al borde inferior de la fila y desplazado media altura:
             queda justo en el hueco entre este Pokémon y el siguiente, fuera de
             su tarjeta, y siempre a la misma distancia del centro.
         -->
-        <section
+        <div
             v-if="hasRequirements"
             class="absolute left-1/2 -bottom-4 ml-28 translate-y-1/2 flex flex-col justify-center"
         >
             <svg
                 v-if="!hideArrow"
+                aria-hidden="true"
                 class="absolute -left-[1.5rem] -rotate-[251deg] stroke-gray-700 dark:stroke-white"
                 width="24" height="24px" fill="none"
                 stroke-width="1" stroke-linecap="round"
@@ -90,26 +98,26 @@
                 <span class="ml-1 text-mini">{{ $t('megaenergy') }}</span>
             </span>
             <span v-if="pokemon.lure_required" class="flex w-full my-1">
-                <img src="../../assets/icons/lure_icon.png" class="invert dark:invert-0 w-6 h-3 ml-1 drop-shadow">
+                <img src="../../assets/icons/lure_icon.png" alt="" class="invert dark:invert-0 w-6 h-3 ml-1 drop-shadow">
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t(`evolutions.lure.${pokemon.lure_required}`) }}
                 </span>
             </span>
             <span v-if="pokemon.item_required" class="flex w-full my-1">
-                <img v-if="itemRequired === 'SunStone'" src="../../assets/icons/SunStone.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'SinnohStone'" src="../../assets/icons/SinnohStone.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'KingsRock'" src="../../assets/icons/KingsRock.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'UnovaStone'" src="../../assets/icons/UnovaStone.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'DragonScale'" src="../../assets/icons/DragonScale.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'Upgrade'" src="../../assets/icons/Upgrade.png" class="w-3 h-3 ml-1 drop-shadow">
-                <img v-if="itemRequired === 'MetalCoat'" src="../../assets/icons/MetalCoat.png" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'SunStone'" src="../../assets/icons/SunStone.png" alt="" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'SinnohStone'" src="../../assets/icons/SinnohStone.png" alt="" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'KingsRock'" src="../../assets/icons/KingsRock.png" alt="" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'UnovaStone'" src="../../assets/icons/UnovaStone.png" alt="" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'DragonScale'" src="../../assets/icons/DragonScale.png" alt="" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'Upgrade'" src="../../assets/icons/Upgrade.png" alt="" class="w-3 h-3 ml-1 drop-shadow">
+                <img v-if="itemRequired === 'MetalCoat'" src="../../assets/icons/MetalCoat.png" alt="" class="w-3 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t(`evolutions.items.${itemRequired}`) }}
                 </span>
             </span>
             <span v-if="pokemon.buddy_distance_required" class="flex w-full my-1">
-                <img src="../../assets/icons/walkWithYourBuddy.png" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
+                <img src="../../assets/icons/walkWithYourBuddy.png" alt="" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ 
@@ -119,14 +127,14 @@
             </span>
             
             <span v-if="pokemon.only_evolves_in_nighttime" class="flex w-full my-1">
-                <img src="../../assets/icons/ic_moon.png" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
+                <img src="../../assets/icons/ic_moon.png" alt="" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t('evolutions.onlyEvolvesNight') }}
                 </span>
             </span>
             <span v-if="pokemon.only_evolves_in_daytime" class="flex w-full my-1">
-                <img src="../../assets/icons/ic_sun.png" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
+                <img src="../../assets/icons/ic_sun.png" alt="" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
                 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t('evolutions.onlyEvolvesDay') }}
@@ -134,8 +142,8 @@
             </span>
             
             <span v-if="pokemon.gender_required" class="flex w-full my-1">
-                <img v-if="pokemon.gender_required === 'Female'" src="../../assets/icons/ic_female.png" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
-                <img v-if="pokemon.gender_required === 'Male'" src="../../assets/icons/ic_male.png" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
+                <img v-if="pokemon.gender_required === 'Female'" src="../../assets/icons/ic_female.png" alt="" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
+                <img v-if="pokemon.gender_required === 'Male'" src="../../assets/icons/ic_male.png" alt="" class="invert dark:invert-0 w-4 h-3 ml-1 drop-shadow">
 
                 <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
                     {{ $t(`evolutions.${pokemon.gender_required}`) }}
@@ -157,8 +165,8 @@
                     :title="$t('evolutions.tradeLegend')"
                 >
             </span>
-        </section>
-    </section>
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -167,9 +175,6 @@ import ShinyMark from './ShinyMark.vue';
     import { BaseIcon } from '../index';
     import BaseCandyIcon from '../base/BaseCandyIcon.vue';
     import { typesSVG } from '../../utils/Settings';
-    import { useRouter } from 'vue-router';
-
-    const router = useRouter(); 
 
     const props = defineProps({
         pokemon: { type: Object, required: true },
@@ -191,8 +196,7 @@ import ShinyMark from './ShinyMark.vue';
 
     const itemRequired = computed(() => (props.pokemon.item_required || '').replace("'","").replace(" ", ""))
 
-    const goToPokemonPage = (pokemonId) => {
-        if(props.routeTo) return router.push(props.routeTo);
-        pokemonId && router.push(`/pokemon/${pokemonId}`);
-    }
+    const target = computed(() =>
+        props.routeTo || (props.pokemon.pokemon_id ? `/pokemon/${props.pokemon.pokemon_id}` : null)
+    );
 </script>

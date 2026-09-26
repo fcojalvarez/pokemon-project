@@ -9,7 +9,7 @@ import MaxMark from './MaxMark.vue'
 </script>
 
 <template>
-  <p class="flex items-center gap-3 text-mini text-gray-600 dark:text-gray-400">
+  <p class="flex items-center gap-3 text-mini text-gray-600 dark:text-gray-300">
     <span class="flex items-center gap-1.5">
       <max-mark variant="dynamax" :size="15" class="shrink-0" aria-hidden="true" />
       {{ $t('max.legendDynamax') }}

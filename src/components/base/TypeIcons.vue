@@ -23,6 +23,8 @@ const known = computed(() => props.types.filter((type) => typesSVG[type]))
         icon-class="drop-shadow-svg"
         :fill-path="typesSVG[type].color"
         :d="typesSVG[type].icon"
+        :role="withLabel ? undefined : 'img'"
+        :aria-label="withLabel ? undefined : $t(`types.${type}`)"
       />
       <span v-if="withLabel" class="text-mini uppercase tracking-wide">{{ $t(`types.${type}`) }}</span>
     </span>

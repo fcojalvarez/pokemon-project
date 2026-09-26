@@ -3,7 +3,6 @@
     "from": "desde",
     "and": "y",
     "back": "Volver",
-    "image": "Imágen",
     "darkMode": "Modo oscuro",
     "lightMode": "Modo claro",
     "thanksTo": "Agradecimientos a",
@@ -429,5 +428,15 @@
         "teamNote": "Ordenado por ataque y ventaja de tipo, no por daño: los ataques Max no publican potencia. Como todos los de un tipo comparten Ataque Max, dentro de la comparación esa parte se cancela. Al evolucionar se conserva la forma Dinamax.",
         "availableVia": "evolucionando a {pokemon}",
         "tapForTeam": "Toca ▾ en un jefe para ver el equipo recomendado."
+    },
+    "a11y": {
+        "skipToContent": "Saltar al contenido",
+        "backToTop": "Volver arriba",
+        "search": "Buscar un Pokémon por nombre",
+        "searchResults": "Resultados de la búsqueda",
+        "darkModeToggle": "Modo oscuro",
+        "pokemonCount": "Ningún Pokémon | 1 Pokémon | {n} Pokémon",
+        "love": "amor",
+        "evolutionRequirements": "Requisitos para evolucionar"
     }
 }

@@ -6,9 +6,9 @@ export const useMainStore = defineStore('main', () => {
 
     const isDarkMode = computed(() => darkMode.value );
 
-    const setDarkMode = (isDarkMode) => {
+    const setDarkMode = (isDarkMode, { persist = true } = {}) => {
         darkMode.value = isDarkMode;
-        localStorage.setItem('isDarkMode', isDarkMode);
+        if (persist) localStorage.setItem('isDarkMode', isDarkMode);
     }
   
     return {

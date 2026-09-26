@@ -58,15 +58,15 @@ const plainText = (html) =>
 
 <template>
   <base-card v-if="live.status === 'ready'">
-    <h3 class="text-sm font-bold">{{ $t('pokemon.whereToFind') }}</h3>
+    <h2 class="text-sm font-bold">{{ $t('pokemon.whereToFind') }}</h2>
 
-    <p v-if="!hasWhereToFind" class="mt-2 text-xs text-gray-600 dark:text-gray-400">
+    <p v-if="!hasWhereToFind" class="mt-2 text-xs text-gray-600 dark:text-gray-300">
       {{ $t('pokemon.notAvailableNow') }}
     </p>
 
     <template v-else>
       <div v-if="enCombatesMax.length" class="mt-3">
-        <span class="text-mini text-gray-500 dark:text-gray-400">
+        <span class="text-mini text-gray-600 dark:text-gray-300">
           {{ $t('pokemon.inMaxBattles') }}
         </span>
         <div class="flex flex-wrap gap-2 mt-1">
@@ -90,7 +90,7 @@ const plainText = (html) =>
       </div>
 
       <div v-if="whereToFind.raids.length" class="mt-3">
-        <span class="text-mini text-gray-500 dark:text-gray-400">{{ $t('pokemon.inRaids') }}</span>
+        <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.inRaids') }}</span>
         <div class="flex flex-wrap gap-2 mt-1">
           <router-link
             v-for="boss in whereToFind.raids"
@@ -105,7 +105,7 @@ const plainText = (html) =>
       </div>
 
       <div v-if="whereToFind.eggs.length" class="mt-3">
-        <span class="text-mini text-gray-500 dark:text-gray-400">{{ $t('pokemon.inEggs') }}</span>
+        <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.inEggs') }}</span>
         <div class="flex flex-wrap gap-2 mt-1">
           <router-link
             v-for="egg in whereToFind.eggs"
@@ -119,14 +119,14 @@ const plainText = (html) =>
       </div>
 
       <div v-if="whereToFind.research.length" class="mt-3">
-        <span class="text-mini text-gray-500 dark:text-gray-400">
+        <span class="text-mini text-gray-600 dark:text-gray-300">
           {{ $t('pokemon.inResearch') }}
         </span>
         <ul class="mt-1 flex flex-col gap-1">
           <li
             v-for="(task, index) in whereToFind.research"
             :key="index"
-            class="text-xs text-gray-600 dark:text-gray-400"
+            class="text-xs text-gray-600 dark:text-gray-300"
           >
             {{ plainText(task.text) }}
           </li>

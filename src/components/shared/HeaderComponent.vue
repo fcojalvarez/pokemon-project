@@ -20,12 +20,13 @@
         y empuja a la barra de búsqueda, que se encoge. Así, entre el botón de
         volver y el de menú, nunca se pueden tapar entre ellos.
     -->
-    <div class="h-20 md:h-16 flex items-stretch gap-3">
+    <header class="h-20 md:h-16 flex items-stretch gap-3">
         <button
             class="back-btn shrink-0 border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
             :class="{ 'back-btn-visible': isPokemonView }"
             :tabindex="isPokemonView ? 0 : -1"
             :aria-hidden="!isPokemonView"
+            :aria-label="$t('back')"
             @click="$router.push('/')"
         >
             <div class="flex md:hidden justify-center items-center h-full">
@@ -48,7 +49,7 @@
         <toggle-dark-mode class="shrink-0 ml-auto px-4 cursor-pointer" />
 
         <nav-menu class="shrink-0" />
-    </div>
+    </header>
 </template>
 
 <style scoped>

@@ -13,7 +13,6 @@
  *   - PvP: `{ moves: [{ nameEs, type }], value }` ya normalizada por la vista.
  */
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
 import TypeIcons from '../base/TypeIcons.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import { spriteUrl } from '../../utils/sprites'
@@ -28,8 +27,6 @@ const props = defineProps({
   // Métrica de apoyo bajo la principal (en PvE, el DPS o el TDO contrario).
   showSecondary: { type: Boolean, default: true }
 })
-
-const router = useRouter()
 
 const UNITS = { dps: 'DPS', tdo: 'TDO', er: 'ER' }
 
@@ -51,7 +48,6 @@ const mainValue = (row) => {
 
 const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
 
-const goToPokemon = (dex) => dex && router.push(`/pokemon/${dex}`)
 </script>
 
 <template>
@@ -59,16 +55,21 @@ const goToPokemon = (dex) => dex && router.push(`/pokemon/${dex}`)
     <li
       v-for="row in rows"
       :key="rowKey(row)"
-      class="flex items-center gap-3 p-2 pr-3 cursor-pointer border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
-      @click="goToPokemon(row.dex)"
     >
-      <span class="w-6 shrink-0 text-right text-xs text-gray-500 dark:text-gray-400">
+      <!-- El enlace ocupa la fila entera: se llega con el tabulador y se puede
+           abrir en otra pestaña, cosa que un <li> con @click no permitía. -->
+      <component
+        :is="row.dex ? 'router-link' : 'div'"
+        :to="row.dex ? `/pokemon/${row.dex}` : undefined"
+        class="flex items-center gap-3 p-2 pr-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
+      >
+      <span class="w-6 shrink-0 text-right text-xs text-gray-600 dark:text-gray-300">
         {{ row.rank }}
       </span>
 
       <img
         :src="spriteUrl(row.spriteId)"
-        :alt="`${row.nameEs} ${$t('image')}`"
+        alt=""
         class="w-12 h-12 shrink-0 object-contain drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
         loading="lazy"
       />
@@ -80,7 +81,7 @@ const goToPokemon = (dex) => dex && router.push(`/pokemon/${dex}`)
           </span>
           <type-icons :types="row.types" size="12" />
         </div>
-        <div class="mt-1 flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-400">
+        <div class="mt-1 flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-300">
           <move-tag
             v-for="move in movesOf(row)"
             :key="move.id ?? move.nameEs"
@@ -97,7 +98,7 @@ const goToPokemon = (dex) => dex && router.push(`/pokemon/${dex}`)
       <div class="w-[72px] shrink-0 text-right">
         <div class="font-bold text-gray-800 dark:text-gray-100 leading-tight">
           {{ mainValue(row) }}
-          <span v-if="unitLabel" class="text-mini font-normal text-gray-500 dark:text-gray-400">
+          <span v-if="unitLabel" class="text-mini font-normal text-gray-600 dark:text-gray-300">
             {{ unitLabel }}
           </span>
         </div>
@@ -107,11 +108,12 @@ const goToPokemon = (dex) => dex && router.push(`/pokemon/${dex}`)
         >
           <span class="block h-full bg-gray-500 dark:bg-gray-300" :style="{ width: percent(row) + '%' }"></span>
         </div>
-        <div v-if="showSecondary" class="mt-0.5 text-mini text-gray-500 dark:text-gray-400">
+        <div v-if="showSecondary" class="mt-0.5 text-mini text-gray-600 dark:text-gray-300">
           <template v-if="sortBy !== 'dps'">{{ row.dps.toFixed(1) }} DPS</template>
           <template v-else>{{ Math.round(row.tdo) }} TDO</template>
         </div>
       </div>
+      </component>
     </li>
   </ol>
 </template>

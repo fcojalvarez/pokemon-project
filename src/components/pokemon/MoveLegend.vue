@@ -42,7 +42,7 @@ const shown = computed(() =>
     <li
       v-for="item in shown"
       :key="item.key"
-      class="flex items-center gap-1.5 text-mini text-gray-500 dark:text-gray-400"
+      class="flex items-center gap-1.5 text-mini text-gray-600 dark:text-gray-300"
       :title="$t(`moves.${item.key}Help`)"
     >
       <span :class="['w-3 h-3 rounded-full shrink-0', item.dot]" aria-hidden="true"></span>

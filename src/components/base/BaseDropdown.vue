@@ -113,14 +113,14 @@ useDetectOutsideClick(root, () => close())
     <span
       v-if="label"
       :id="`etiqueta-${uid}`"
-      class="block mb-1 text-mini uppercase tracking-wider text-gray-500 dark:text-gray-400"
+      class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
     >
       {{ label }}
     </span>
 
     <button
       type="button"
-      class="w-full h-11 flex items-center gap-2 pl-3 pr-3 cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-gray-500"
+      class="w-full h-11 flex items-center gap-2 pl-3 pr-3 cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-300"
       role="combobox"
       :aria-expanded="isOpen"
       :aria-controls="listId"
@@ -132,7 +132,7 @@ useDetectOutsideClick(root, () => close())
     >
       <span class="flex-1 min-w-0 truncate text-left">{{ selectedLabel }}</span>
       <!-- Como hijo del flex y no en absoluto: así siempre respeta el padding. -->
-      <base-chevron :open="isOpen" size="w-3 h-3" class="text-gray-500 dark:text-gray-400" />
+      <base-chevron :open="isOpen" size="w-3 h-3" class="text-gray-600 dark:text-gray-300" />
     </button>
 
     <!--

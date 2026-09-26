@@ -90,12 +90,12 @@ const rarityOptions = computed(() => [
     -->
     <div class="mt-2 h-5 flex items-center gap-3 justify-end">
       <template v-if="hasFilters">
-        <p v-if="totalCount !== null" class="text-mini text-gray-600 dark:text-gray-400">
+        <p v-if="totalCount !== null" role="status" class="text-mini text-gray-600 dark:text-gray-300">
           {{ $t('filters.results', { count: totalCount }) }}
         </p>
         <button
           type="button"
-          class="text-mini text-gray-600 dark:text-gray-400 underline"
+          class="text-mini text-gray-600 dark:text-gray-300 underline"
           @click="clearFilters"
         >
           {{ $t('filters.clear') }}
@@ -110,7 +110,7 @@ const rarityOptions = computed(() => [
       class="mt-2 p-3 flex flex-col gap-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
     >
       <div>
-        <span class="block text-mini text-gray-600 dark:text-gray-400 mb-1">
+        <span class="block text-mini text-gray-600 dark:text-gray-300 mb-1">
           {{ $t('filters.type') }}
         </span>
         <div class="flex flex-wrap gap-2.5">

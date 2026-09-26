@@ -22,28 +22,13 @@ module.exports = {
                 'pokemon_dark': '3px -7px 5px #333333',
                 'pokemon_light': '3px -7px 5px #33333370'
             },
+            // `leading-none` vuelve a ser el de Tailwind (1). El 0 que tenía lo
+            // necesitan solo las estrellas de variocolor, que se apilan pegadas.
             lineHeight: {
-                'none': '0px',
+                'zero': '0px',
             },
             colors: {
                 'gray-150': 'rgb(235 238 240)',
-                'Grass': '#5fb955',
-                'Poison': '#51069c',
-                'Water': '#06099c',
-                'Fire': '#ff0000',
-                'Flying': '#c8c9fa',
-                'Bug': '#93c22e',
-                'Normal': '#8f98a0',
-                'Ground': '#6e2c13',
-                'Electric': '#d9ff00',
-                'Fairy': '#dca1ff',
-                'Fighting': '#ff3b44',
-                'Rock': '#522114',
-                'Psychic': '#4b3a6e',
-                'Ice': '#80b7ff',
-                'Ghost': '#705e8c',
-                'Steel': '#ff0000',
-                'Dark': '#5d596b',
             },
             transitionProperty: {
                 'position': 'left, right, top, bottom',

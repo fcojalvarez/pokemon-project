@@ -26,7 +26,12 @@ const props = defineProps({
    * Escala cuando va en línea. 0,7 es el punto medio: en 0,9 la marca pesaba
    * más que el texto de la insignia y en 0,55 ya no se apreciaba.
    */
-  scale: { type: Number, default: 0.7 }
+  scale: { type: Number, default: 0.7 },
+  /**
+   * Texto para el lector de pantalla. Sin él, las estrellas se ocultan: en
+   * las leyendas ya va escrito al lado y se leería dos veces.
+   */
+  label: { type: String, default: null }
 })
 
 /**
@@ -57,21 +62,27 @@ const inlineStyle = computed(() =>
       size || 'text-mini'
     ]"
     :style="inlineStyle"
+    :role="label ? 'img' : undefined"
+    :aria-label="label || undefined"
+    :aria-hidden="label ? undefined : 'true'"
   >
-    <span class="block leading-none">✦✦</span>
+    <span class="block leading-zero">✦✦</span>
     <span>✦</span>
   </span>
 
   <span
     v-else
     :class="[
-      'text-center text-gray-500 dark:text-gray-200',
+      'text-center text-gray-600 dark:text-gray-200',
       inline ? 'inline-block shrink-0 origin-center' : 'block',
       size || 'text-sm'
     ]"
     :style="inlineStyle"
+    :role="label ? 'img' : undefined"
+    :aria-label="label || undefined"
+    :aria-hidden="label ? undefined : 'true'"
   >
     <span>✦</span>
-    <span class="block leading-none">✦✦</span>
+    <span class="block leading-zero">✦✦</span>
   </span>
 </template>

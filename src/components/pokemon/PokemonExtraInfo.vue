@@ -256,7 +256,7 @@ const pvpRanks = computed(() => {
     <!-- ---------- Avisos y costes ---------- -->
     <base-card v-if="flags.length || costs.length">
       <div v-if="flags.length" :class="costs.length ? 'mb-4' : ''">
-        <h3 class="text-sm font-bold">{{ $t('pokemon.status') }}</h3>
+        <h2 class="text-sm font-bold">{{ $t('pokemon.status') }}</h2>
         <div class="flex flex-wrap gap-1.5 mt-2">
           <span
             v-for="flag in flags"
@@ -269,7 +269,7 @@ const pvpRanks = computed(() => {
       </div>
 
       <div v-if="costs.length">
-        <h3 class="text-sm font-bold">{{ $t('pokemon.costs') }}</h3>
+        <h2 class="text-sm font-bold">{{ $t('pokemon.costs') }}</h2>
         <ul class="mt-2 flex flex-col gap-1.5">
           <li
             v-for="row in costs"
@@ -296,7 +296,7 @@ const pvpRanks = computed(() => {
     <max-battle-panel :entry="asRosterEntry" />
     <!-- ---------- PC de un 100 % ---------- -->
     <base-card v-if="cpTable.length">
-      <h3 class="text-sm font-bold">{{ $t('pokemon.cp100') }}</h3>
+      <h2 class="text-sm font-bold">{{ $t('pokemon.cp100') }}</h2>
 
       <dl class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
         <div
@@ -304,7 +304,7 @@ const pvpRanks = computed(() => {
           :key="row.level"
           class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
         >
-          <dt class="text-mini text-gray-500 dark:text-gray-400">
+          <dt class="text-mini text-gray-600 dark:text-gray-300">
             Nv. {{ row.level }} · {{ $t(CP_LABELS[row.level]) }}
           </dt>
           <dd class="text-lg font-bold">{{ row.cp }}</dd>
@@ -319,17 +319,17 @@ const pvpRanks = computed(() => {
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <!-- ---------- Puesto en PvE ---------- -->
       <base-card>
-        <h3 class="text-sm font-bold">{{ $t('pokemon.pveRanks') }}</h3>
+        <h2 class="text-sm font-bold">{{ $t('pokemon.pveRanks') }}</h2>
 
         <p
           v-if="!pveRanks.byType.length"
-          class="mt-2 text-mini text-gray-500 dark:text-gray-400"
+          class="mt-2 text-mini text-gray-600 dark:text-gray-300"
         >
           {{ $t('pokemon.noPveRank') }}
         </p>
 
         <template v-else>
-          <p v-if="pveRanks.overall" class="mt-2 text-mini text-gray-500 dark:text-gray-400">
+          <p v-if="pveRanks.overall" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
             {{ $t('top.overall') }}: <strong>#{{ pveRanks.overall.rank }}</strong>
           </p>
 
@@ -341,7 +341,7 @@ const pvpRanks = computed(() => {
             >
               <type-icons :types="[entry.type]" size="13" />
               <span class="font-semibold">{{ $t(`types.${entry.type}`) }}</span>
-              <span class="text-gray-500 dark:text-gray-400 truncate">{{ entry.nameEs }}</span>
+              <span class="text-gray-600 dark:text-gray-300 truncate">{{ entry.nameEs }}</span>
               <span class="ml-auto shrink-0">
                 #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
               </span>
@@ -352,9 +352,9 @@ const pvpRanks = computed(() => {
 
       <!-- ---------- Puesto en PvP ---------- -->
       <base-card>
-        <h3 class="text-sm font-bold">{{ $t('pokemon.pvpRanks') }}</h3>
+        <h2 class="text-sm font-bold">{{ $t('pokemon.pvpRanks') }}</h2>
 
-        <p v-if="!pvpRanks.length" class="mt-2 text-mini text-gray-500 dark:text-gray-400">
+        <p v-if="!pvpRanks.length" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
           {{ $t('pokemon.noPvpRank') }}
         </p>
 
@@ -365,7 +365,7 @@ const pvpRanks = computed(() => {
             class="flex items-center gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
           >
             <span class="font-semibold">{{ $t(`top.${entry.league}`) }}</span>
-            <span class="text-gray-500 dark:text-gray-400 truncate">{{ entry.nameEs }}</span>
+            <span class="text-gray-600 dark:text-gray-300 truncate">{{ entry.nameEs }}</span>
             <span class="ml-auto shrink-0">
               #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
             </span>
@@ -376,7 +376,7 @@ const pvpRanks = computed(() => {
 
     <!-- ---------- Mejores ataques ---------- -->
     <base-card v-if="bestMovesets.length">
-      <h3 class="text-sm font-bold">{{ $t('pokemon.bestMoves') }}</h3>
+      <h2 class="text-sm font-bold">{{ $t('pokemon.bestMoves') }}</h2>
       <ol class="mt-2 flex flex-col gap-1.5">
         <li
           v-for="set in bestMovesets"
@@ -405,7 +405,7 @@ const pvpRanks = computed(() => {
       </ol>
 
       <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-        <span class="text-mini text-gray-500 dark:text-gray-400">{{ $t('pokemon.fastMoves') }}</span>
+        <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.fastMoves') }}</span>
         <div class="flex flex-wrap gap-1 mt-1">
           <move-tag
             v-for="move in movepool.fast"
@@ -418,7 +418,7 @@ const pvpRanks = computed(() => {
           />
         </div>
 
-        <span class="block mt-2 text-mini text-gray-500 dark:text-gray-400">
+        <span class="block mt-2 text-mini text-gray-600 dark:text-gray-300">
           {{ $t('pokemon.chargedMoves') }}
         </span>
         <div class="flex flex-wrap gap-1 mt-1">
@@ -446,7 +446,7 @@ const pvpRanks = computed(() => {
 
     <!-- ---------- Efectos de los ataques en PvP ---------- -->
     <base-card v-if="moveEffects.length">
-      <h3 class="text-sm font-bold">{{ $t('moves.effectsTitle') }}</h3>
+      <h2 class="text-sm font-bold">{{ $t('moves.effectsTitle') }}</h2>
       <ul class="mt-2 flex flex-col gap-1.5">
         <li
           v-for="move in moveEffects"
@@ -462,7 +462,7 @@ const pvpRanks = computed(() => {
             :mega="move.mega"
           />
           <span class="text-gray-700 dark:text-gray-300">{{ move.text }}</span>
-          <span v-if="move.chance" class="ml-auto text-mini text-gray-500 dark:text-gray-400">
+          <span v-if="move.chance" class="ml-auto text-mini text-gray-600 dark:text-gray-300">
             {{ move.chance }}
           </span>
         </li>
@@ -471,7 +471,7 @@ const pvpRanks = computed(() => {
 
     <!-- ---------- Debilidades y resistencias ---------- -->
     <base-card v-if="matchups.weak.length || matchups.resist.length">
-      <h3 class="text-sm font-bold">{{ $t('pokemon.weaknesses') }}</h3>
+      <h2 class="text-sm font-bold">{{ $t('pokemon.weaknesses') }}</h2>
       <div class="flex flex-wrap gap-2 mt-2">
         <span
           v-for="entry in matchups.weak"
@@ -479,11 +479,11 @@ const pvpRanks = computed(() => {
           class="flex items-center gap-1 px-2 py-1 text-mini rounded-xl border border-gray-300 dark:border-gray-600"
         >
           <type-icons :types="[entry.type]" size="13" with-label />
-          <span class="text-gray-500">×{{ entry.mult.toFixed(2) }}</span>
+          <span class="text-gray-600 dark:text-gray-300">×{{ entry.mult.toFixed(2) }}</span>
         </span>
       </div>
 
-      <h3 class="text-sm font-bold mt-4">{{ $t('pokemon.resistances') }}</h3>
+      <h2 class="text-sm font-bold mt-4">{{ $t('pokemon.resistances') }}</h2>
       <div class="flex flex-wrap gap-2 mt-2">
         <span
           v-for="entry in matchups.resist"
@@ -491,7 +491,7 @@ const pvpRanks = computed(() => {
           class="flex items-center gap-1 px-2 py-1 text-mini rounded-xl border border-gray-300 dark:border-gray-600"
         >
           <type-icons :types="[entry.type]" size="13" with-label />
-          <span class="text-gray-500">×{{ entry.mult.toFixed(2) }}</span>
+          <span class="text-gray-600 dark:text-gray-300">×{{ entry.mult.toFixed(2) }}</span>
         </span>
       </div>
     </base-card>

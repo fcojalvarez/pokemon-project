@@ -1,16 +1,18 @@
 <script setup>
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useMainStore } from '../../stores/main'
 import { storeToRefs } from 'pinia'
 import BaseIcon from '../base/BaseIcon.vue'
 import SuggestionButton from './SuggestionButton.vue'
+import { useInertApp } from '../../composables/useInertApp'
 
 const mainStore = useMainStore()
 const { isDarkMode } = storeToRefs(mainStore)
 const route = useRoute()
 
 const isOpen = ref(false)
+const { bloquear, liberar } = useInertApp()
 const panel = ref(null)
 const trigger = ref(null)
 
@@ -30,6 +32,7 @@ const links = [
 
 const open = async () => {
   isOpen.value = true
+  bloquear()
   document.body.style.overflow = 'hidden'
   await nextTick()
   panel.value?.querySelector('a')?.focus()
@@ -37,6 +40,8 @@ const open = async () => {
 
 const close = ({ restoreFocus = true } = {}) => {
   isOpen.value = false
+  // Antes de devolver el foco: sobre una app inerte no se puede enfocar nada.
+  liberar()
   document.body.style.overflow = ''
   if (restoreFocus) trigger.value?.focus()
 }
@@ -51,6 +56,8 @@ const isActive = (to) => (to === '/' ? route.path === '/' : route.path.startsWit
 const onKeydown = (event) => {
   if (event.key === 'Escape') close()
 }
+
+onUnmounted(liberar)
 
 // Al cambiar de página el menú se cierra solo.
 watch(
@@ -67,6 +74,7 @@ watch(
     type="button"
     :aria-label="$t(isOpen ? 'nav.close' : 'nav.open')"
     :aria-expanded="isOpen"
+    aria-controls="menu-lateral"
     class="nav-trigger transition-colors max-w-[50px] md:max-w-[160px] flex justify-center items-center cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 w-40 md:w-auto px-4 hover:bg-gray-150 hover:dark:bg-gray-800"
     @click="isOpen ? close() : open()"
   >
@@ -85,8 +93,12 @@ watch(
   <Teleport to="body">
     <div v-if="isOpen" class="nav-scrim fixed inset-0 z-40 bg-gray-900/60" @click="close()"></div>
 
-    <nav
+    <div
+      id="menu-lateral"
       ref="panel"
+      role="dialog"
+      aria-modal="true"
+      :aria-label="$t('nav.menu')"
       class="nav-drawer fixed top-0 bottom-0 right-0 z-50 w-[min(300px,84vw)] bg-gray-100 dark:bg-gray-800 border-l border-gray-400 dark:border-gray-600 shadow-md flex flex-col"
       :class="{ 'nav-drawer-open': isOpen }"
       :aria-hidden="!isOpen"
@@ -101,16 +113,17 @@ watch(
           :aria-label="$t('nav.close')"
           @click="close()"
         >
-          ✕
+          <span aria-hidden="true">✕</span>
         </button>
       </div>
 
-      <div class="flex-1 overflow-y-auto p-3">
+      <nav class="flex-1 overflow-y-auto p-3" :aria-label="$t('nav.menu')">
         <RouterLink
           v-for="link in links"
           :key="link.to"
           :to="link.to"
           class="flex items-center gap-3 px-3 py-3 mb-2 rounded-xl border text-gray-800 dark:text-gray-200 transition-colors"
+          :aria-current="isActive(link.to) ? 'page' : undefined"
           :class="
             isActive(link.to)
               ? 'bg-gray-200 dark:bg-gray-700 border-gray-500 dark:border-gray-400 font-semibold'
@@ -127,12 +140,12 @@ watch(
           />
           <span class="text-sm">{{ $t(`nav.${link.key}`) }}</span>
         </RouterLink>
-      </div>
+      </nav>
 
       <div
         class="flex items-center gap-3 px-4 py-3 border-t border-gray-300 dark:border-gray-600"
       >
-        <span v-if="version" class="text-mini text-gray-500 dark:text-gray-400">
+        <span v-if="version" class="text-mini text-gray-600 dark:text-gray-300">
           v{{ version }}<template v-if="build"> · {{ build }}</template>
         </span>
 
@@ -144,7 +157,7 @@ watch(
           @close="trigger?.focus()"
         />
       </div>
-    </nav>
+    </div>
   </Teleport>
 </template>
 

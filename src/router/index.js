@@ -16,16 +16,19 @@ const router = createRouter({
         {
             path: '/top',
             name: 'TopPage',
+            meta: { titleKey: 'nav.top' },
             component: () => import('@/views/TopView.vue')
         },
         {
             path: '/eventos',
             name: 'EventsPage',
+            meta: { titleKey: 'nav.events' },
             component: () => import('@/views/EventsView.vue')
         },
         {
             path: '/ahora',
             name: 'LivePage',
+            meta: { titleKey: 'nav.raids' },
             component: () => import('@/views/RaidsView.vue')
         },
         {
@@ -33,6 +36,7 @@ const router = createRouter({
             // protege es la RLS de Supabase, no que la URL esté escondida.
             path: '/sugerencias',
             name: 'SuggestionsPage',
+            meta: { titleKey: 'suggestions.panel' },
             component: () => import('@/views/SuggestionsView.vue')
         },
         {

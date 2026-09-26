@@ -1,14 +1,8 @@
-<script setup>
-</script>
-
 <template>
-    <section class="w-full">
-        <h4 class="text-center text-sm dark:text-gray-200">
-            {{ $t('madeWith') }} ❤️ {{ $t('from') }} Málaga
-        </h4>
+    <div class="w-full">
+        <p class="text-center text-sm dark:text-gray-200">
+            {{ $t('madeWith') }} <span role="img" :aria-label="$t('a11y.love')">❤️</span> {{ $t('from') }} Málaga
+        </p>
         <p class="font-light mt-2 text-center text-xs my-3 dark:text-gray-200">{{ $t('thanksTo') }}: Pokeminers {{ $t('and') }} PogoApi.</p>
-    </section>
+    </div>
 </template>
-
-<style scoped>
-</style>

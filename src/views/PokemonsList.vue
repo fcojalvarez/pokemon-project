@@ -9,7 +9,7 @@ import { usePokemonsStore } from '@/stores/pokemons';
 import { MAX_LENGH_POKEMONS,NEXT_LOAD_LENGTH_ITEMS, DISTANCE_TO_BOTTOM_PAGE } from '../utils/Settings';
 
 const pokemonStore = usePokemonsStore();
-const { pokemons, isLoading, isSearching, filters } = storeToRefs(pokemonStore);
+const { pokemons, isLoading, isSearching, filters, searchTerm } = storeToRefs(pokemonStore);
 const { getPokemons, addPokemons } = pokemonStore;
 
 const currentPokemonsLength = computed(() => pokemons.value.length );
@@ -49,6 +49,13 @@ onUnmounted(() => {
 
 <template>
     <section class="flex flex-wrap">
+        <!-- Oculto a la vista: la Pokédex se reconoce sola, pero la página
+             necesita su h1 para quien navega por encabezados. -->
+        <h1 class="sr-only">{{ $t('nav.pokedex') }}</h1>
+        <p class="sr-only" role="status">
+            <template v-if="searchTerm && !isLoading">{{ $tc('a11y.pokemonCount', pokemons.length, { n: pokemons.length }) }}</template>
+        </p>
+
         <!-- La leyenda va dentro de los filtros: comparten la primera línea. -->
         <pokedex-filters class="px-4 pt-3">
             <!-- Las leyendas comparten el hueco de la izquierda y bajan de

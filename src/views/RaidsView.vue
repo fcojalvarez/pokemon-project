@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { dexFromImage, useLiveStore } from '../stores/live'
 import { useGameDataStore } from '../stores/gameData'
 import {
@@ -24,7 +24,6 @@ import { useTranslate } from '../composables/useTranslate'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
-const router = useRouter()
 const route = useRoute()
 const { t, te } = useTranslate()
 
@@ -186,7 +185,6 @@ const plainText = (html) => String(html).replace(/<[^>]*>/g, '').trim()
 /** Las tareas llegan en inglés: se traducen con las frases del juego. */
 const taskText = (html) => gameData.translateText(plainText(html))
 
-const goToPokemon = (dex) => dex && router.push(`/pokemon/${dex}`)
 
 // Llegada desde la ficha: ?tab=raids&dex=113
 watch(
@@ -210,8 +208,10 @@ onMounted(() => {
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ $t('nav.raids') }}</h1>
+
     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-      <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('raids.intro') }}</p>
+      <p class="text-sm text-gray-600 dark:text-gray-300">{{ $t('raids.intro') }}</p>
       <div class="flex items-center gap-2">
 
       </div>
@@ -238,7 +238,7 @@ onMounted(() => {
     <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3">
       <shiny-legend variant="dex" />
       <!-- Una vez por pestaña: repetirla en cada nivel era más ruido que ayuda. -->
-      <p v-if="tab === 'raids'" class="text-mini text-gray-500 dark:text-gray-400">
+      <p v-if="tab === 'raids'" class="text-mini text-gray-600 dark:text-gray-300">
         {{ $t('raids.tapForCounters') }}
       </p>
     </div>
@@ -270,7 +270,7 @@ onMounted(() => {
           el ancho entero en vez de estrecharse dentro de una tarjeta, y la
           rejilla no se descuadra.
         -->
-        <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(195px,1fr))] gap-2">
+        <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
           <template v-for="boss in group.list" :key="boss.name">
             <live-mon-card
               :id="`mon-${dexFromImage(boss.image)}`"
@@ -300,11 +300,11 @@ onMounted(() => {
             >
               <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
                 <span v-if="weaknesses.length" class="flex items-center gap-2">
-                  <span class="text-mini text-gray-600 dark:text-gray-400">{{ $t('raids.weakTo') }}</span>
+                  <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('raids.weakTo') }}</span>
                   <type-icons :types="weaknesses" size="14" />
                 </span>
                 <span v-if="boss.boostedWeather?.length" class="flex items-center gap-2">
-                  <span class="text-mini text-gray-600 dark:text-gray-400">{{ $t('raids.boostedBy') }}</span>
+                  <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('raids.boostedBy') }}</span>
                   <span class="text-mini">{{ boss.boostedWeather.map((w) => weatherLabel(w.name)).join(' · ') }}</span>
                 </span>
               </div>
@@ -313,18 +313,21 @@ onMounted(() => {
                 <li
                   v-for="counter in counters"
                   :key="`${counter.id}-${counter.fast.id}-${counter.charged.id}`"
-                  class="flex items-center gap-2 p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-700"
-                  @click="goToPokemon(counter.dex)"
                 >
+                  <component
+                    :is="counter.dex ? 'router-link' : 'div'"
+                    :to="counter.dex ? `/pokemon/${counter.dex}` : undefined"
+                    class="flex items-center gap-2 p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-150 hover:dark:bg-gray-700"
+                  >
                   <img
                     :src="spriteUrl(counter.spriteId)"
-                    :alt="counter.nameEs"
+                    alt=""
                     class="w-8 h-8 shrink-0"
                     loading="lazy"
                   />
                   <div class="flex-1 min-w-0">
                     <div class="text-xs font-semibold truncate">{{ counter.nameEs }}</div>
-                    <div class="flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-400">
+                    <div class="flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-300">
                       <move-tag
                         chip
                         :name="counter.fast.nameEs"
@@ -343,6 +346,7 @@ onMounted(() => {
                     </div>
                   </div>
                   <span class="text-xs font-bold shrink-0">{{ counter.dps.toFixed(1) }}</span>
+                  </component>
                 </li>
               </ol>
 
@@ -367,14 +371,14 @@ onMounted(() => {
           <h2 class="text-sm font-bold">{{ $t('max.battlesTitle') }}</h2>
           <max-legend />
         </div>
-        <p class="text-mini text-gray-500 dark:text-gray-400 mb-2">{{ $t('max.tapForTeam') }}</p>
+        <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">{{ $t('max.tapForTeam') }}</p>
 
         <section v-for="grupo in maxPorNivel" :key="grupo.tier" class="mb-5">
           <h3 class="text-sm font-bold mb-2">
             {{ $t('max.tier', { n: grupo.tier }) }}
-            <span class="font-normal text-gray-500 dark:text-gray-400">({{ grupo.list.length }})</span>
+            <span class="font-normal text-gray-600 dark:text-gray-300">({{ grupo.list.length }})</span>
           </h3>
-          <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(195px,1fr))] gap-2">
+          <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
             <template v-for="uno in grupo.list" :key="`${grupo.tier}-${uno.dex}`">
               <live-mon-card
                 :id="`mon-${uno.dex}`"
@@ -409,13 +413,13 @@ onMounted(() => {
                 v-if="openMax === uno.dex && equipoMax"
                 class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
               >
-                <p class="text-mini text-gray-600 dark:text-gray-400 mb-3">
+                <p class="text-mini text-gray-600 dark:text-gray-300 mb-3">
                   {{ $t('max.teamIntro', { pokemon: uno.nameEs }) }}
                 </p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <h3 class="text-xs font-bold mb-2">{{ $t('max.tank') }}</h3>
+                    <h4 class="text-xs font-bold mb-2">{{ $t('max.tank') }}</h4>
                     <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1.5">
                       <live-mon-card
                         v-for="quien in equipoMax.tanks"
@@ -429,7 +433,7 @@ onMounted(() => {
                   </div>
 
                   <div>
-                    <h3 class="text-xs font-bold mb-2">{{ $t('max.attackers') }}</h3>
+                    <h4 class="text-xs font-bold mb-2">{{ $t('max.attackers') }}</h4>
                     <base-empty-state
                       v-if="equipoMax.attackers.length === 0"
                       :message="$t('max.noAttackers')"
@@ -447,7 +451,7 @@ onMounted(() => {
                   </div>
                 </div>
 
-                <p class="mt-3 text-mini text-gray-500 dark:text-gray-400">
+                <p class="mt-3 text-mini text-gray-600 dark:text-gray-300">
                   {{ $t('max.teamNote') }}
                 </p>
               </div>
@@ -455,7 +459,7 @@ onMounted(() => {
           </div>
         </section>
 
-        <p class="text-mini text-gray-500 dark:text-gray-400">
+        <p class="text-mini text-gray-600 dark:text-gray-300">
           {{ $t('max.liveSource') }}
         </p>
       </template>

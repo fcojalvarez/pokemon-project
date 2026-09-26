@@ -14,7 +14,7 @@ defineProps({
 </script>
 
 <template>
-  <p v-if="show" class="flex items-center gap-1.5 text-mini text-gray-600 dark:text-gray-400">
+  <p v-if="show" class="flex items-center gap-1.5 text-mini text-gray-600 dark:text-gray-300">
     <!-- Mismo icono y mismo tratamiento que en <evol-pokemon-item>. -->
     <img
       src="../../assets/icons/ic_trade_ball.png"

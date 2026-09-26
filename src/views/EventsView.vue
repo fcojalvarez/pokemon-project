@@ -70,6 +70,8 @@ onMounted(() => {
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ $t('nav.events') }}</h1>
+
     <div class="flex flex-wrap gap-2 mb-3">
       <base-pill-button
         v-for="name in TABS"
@@ -93,7 +95,7 @@ onMounted(() => {
     <!-- Solo salta si los datos se han quedado viejos. -->
     <data-freshness :age-ms="live.cacheAge" :stale="live.isStale" class="mb-3" />
 
-    <p v-if="mostrarNotaMax" class="text-mini text-gray-500 dark:text-gray-400 mb-3">
+    <p v-if="mostrarNotaMax" class="text-mini text-gray-600 dark:text-gray-300 mb-3">
       {{ $t('max.battlesNote') }}
     </p>
 

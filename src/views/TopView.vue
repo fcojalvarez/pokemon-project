@@ -196,7 +196,9 @@ onMounted(() => gameData.load())
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
-    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ $t('nav.top') }}</h1>
+
+    <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
       {{ mode === 'max' ? $t('max.tabIntro') : mode === 'pve' ? $t('top.pveIntro') : $t('top.pvpIntro') }}
     </p>
 
@@ -225,7 +227,7 @@ onMounted(() => gameData.load())
     <div v-if="mode === 'pve'" class="mb-3">
       <span
         id="incluir-top"
-        class="block mb-1 text-mini uppercase tracking-wider text-gray-500 dark:text-gray-400"
+        class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
       >{{ $t('top.include') }}</span>
 
       <div
@@ -265,7 +267,7 @@ onMounted(() => gameData.load())
         </base-pill-button>
       </div>
 
-      <p class="mt-2 text-mini text-gray-500 dark:text-gray-400">{{ sortHelp }}</p>
+      <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">{{ sortHelp }}</p>
     </div>
 
     <move-legend
@@ -316,7 +318,7 @@ onMounted(() => gameData.load())
 
     <details
       v-if="mode === 'pve'"
-      class="mt-6 text-sm text-gray-600 dark:text-gray-400"
+      class="mt-6 text-sm text-gray-600 dark:text-gray-300"
       @toggle="abierto = $event.target.open"
     >
       <!--

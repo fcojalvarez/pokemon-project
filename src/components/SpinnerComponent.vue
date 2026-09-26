@@ -2,11 +2,14 @@
 </script>
 
 <template>
-  <div class="sk-folding-cube">
-    <div class="sk-cube1 sk-cube before:bg-gray-600 dark:before:bg-gray-200"></div>
-    <div class="sk-cube2 sk-cube before:bg-gray-600 dark:before:bg-gray-200"></div>
-    <div class="sk-cube4 sk-cube before:bg-gray-600 dark:before:bg-gray-200"></div>
-    <div class="sk-cube3 sk-cube before:bg-gray-600 dark:before:bg-gray-200"></div>
+  <!-- role="status": el lector de pantalla anuncia la carga, que antes era un
+       dibujo sin texto. Las piezas del cubo son decoración. -->
+  <div class="sk-folding-cube" role="status">
+    <span class="sr-only">{{ $t('common.loading') }}</span>
+    <div aria-hidden="true" class="sk-cube1 sk-cube before:bg-gray-600 dark:before:bg-gray-200"></div>
+    <div aria-hidden="true" class="sk-cube2 sk-cube before:bg-gray-600 dark:before:bg-gray-200"></div>
+    <div aria-hidden="true" class="sk-cube4 sk-cube before:bg-gray-600 dark:before:bg-gray-200"></div>
+    <div aria-hidden="true" class="sk-cube3 sk-cube before:bg-gray-600 dark:before:bg-gray-200"></div>
   </div>
 </template>
 

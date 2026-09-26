@@ -49,6 +49,37 @@
         isShowModalSearch.value = false;
     }
 
+    /**
+     * Navegación con teclado por los resultados (patrón combobox): el foco se
+     * queda en el campo y las flechas mueven la opción activa, que se anuncia
+     * con aria-activedescendant.
+     */
+    const activeIndex = ref(-1);
+    const hasResults = computed(() => isShowModalSearch.value && !isLoadingPokemonNames.value && pokemonsNamesArrFiltered.value.length > 0);
+    const activeId = computed(() => hasResults.value && activeIndex.value >= 0 ? `search-option-${activeIndex.value}` : undefined);
+
+    watch(pokemonsNamesArrFiltered, () => { activeIndex.value = -1; });
+
+    const onKeydown = (event) => {
+        if (isListView.value) return;
+        if (event.key === 'Escape') {
+            isShowModalSearch.value = false;
+            return;
+        }
+        if (!hasResults.value) return;
+        const last = pokemonsNamesArrFiltered.value.length - 1;
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            activeIndex.value = activeIndex.value >= last ? 0 : activeIndex.value + 1;
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            activeIndex.value = activeIndex.value <= 0 ? last : activeIndex.value - 1;
+        } else if (event.key === 'Enter' && activeIndex.value >= 0) {
+            event.preventDefault();
+            goToPokemonPage(pokemonsNamesArrFiltered.value[activeIndex.value].pokemon_id);
+        }
+    }
+
     useDetectOutsideClick(searchBarRef, (e) => {
         const isClickInSearch = e.target.id === 'input-search';
         
@@ -64,8 +95,25 @@
 </script>
 
 <template>
-    <section class="relative transition-colors w-full px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md">
-        <input id="input-search" type="text" v-model="inputValue" class="w-full bg-transparent py-2 px-3 mt-2 md:mt-0 outline-none text-black dark:text-gray-300" :placeholder="$t('searchPokemon')"  @input="isListView? inputSearch() : inputSearchModal()">
+    <!-- El anillo de foco va en la caja entera y no en el campo, que queda
+         metido dentro del borde y se veía como un segundo recuadro. -->
+    <section class="relative transition-colors w-full px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300">
+        <input
+            id="input-search"
+            type="text"
+            v-model="inputValue"
+            autocomplete="off"
+            class="w-full bg-transparent py-2 px-3 mt-2 md:mt-0 outline-none focus-visible:outline-none text-black dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+            :placeholder="$t('searchPokemon')"
+            :aria-label="$t('a11y.search')"
+            :role="isListView ? undefined : 'combobox'"
+            :aria-expanded="isListView ? undefined : isShowModalSearch"
+            :aria-controls="isListView ? undefined : 'search-results'"
+            :aria-autocomplete="isListView ? undefined : 'list'"
+            :aria-activedescendant="activeId"
+            @input="isListView? inputSearch() : inputSearchModal()"
+            @keydown="onKeydown"
+        >
         <base-icon
             :stroke-width="1.5"
             icon-class="hidden sm:block xs:absolute bottom-4 md:bottom-2 right-4 w-6"
@@ -74,19 +122,24 @@
         />
 
         <section ref="searchBarRef" v-if="isShowModalSearch" class="absolute left-0 z-40 mt-5 w-full  m-0 py-2 border border-gray-400 bg-white dark:bg-gray-900 dark:text-white rounded-xl shadow-md">
-           <section class="overflow-y-scroll search-modal min-h-[120px] max-h-96">
+           <div class="overflow-y-scroll search-modal min-h-[120px] max-h-96">
                 <SpinnerComponent v-if="isLoadingPokemonNames"/>
 
-                <template v-else>
-                    <span
+                <ul v-else id="search-results" role="listbox" :aria-label="$t('a11y.searchResults')">
+                    <li
+                        v-for="({name, pokemon_id}, index) in pokemonsNamesArrFiltered"
+                        :id="`search-option-${index}`"
+                        :key="pokemon_id"
+                        role="option"
+                        :aria-selected="index === activeIndex"
+                        class="px-4 block py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                        :class="index === activeIndex ? 'bg-gray-100 dark:bg-gray-700' : ''"
                         @click="goToPokemonPage(pokemon_id)"
-                        v-for="({name, pokemon_id}) in pokemonsNamesArrFiltered"
-                        :key="pokemon_id" class="px-4 block py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                         {{ name }}
-                    </span>
-                </template>
-           </section>
+                    </li>
+                </ul>
+           </div>
         </section>
     </section>
 </template>
