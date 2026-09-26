@@ -68,21 +68,64 @@ function parse(html) {
   return salida
 }
 
+/**
+ * Cabeceras de navegador. Desde un servidor de CI, una petición que se
+ * presenta como bot se la come cualquier protección intermedia; esto es lo
+ * que manda un Chrome normal.
+ */
+const CABECERAS = {
+  'user-agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+    '(KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+  accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+  'accept-language': 'es-ES,es;q=0.9,en;q=0.8',
+}
+
+/** Un reintento: un corte de red puntual no debería tumbar la pasada. */
+async function bajar(url, intentos = 2) {
+  let ultimo
+  for (let i = 1; i <= intentos; i++) {
+    try {
+      const res = await fetch(url, { headers: CABECERAS })
+      console.log(`  intento ${i}: HTTP ${res.status}`)
+      if (res.ok) return await res.text()
+      ultimo = new Error(`HTTP ${res.status} al pedir ${url}`)
+    } catch (err) {
+      console.log(`  intento ${i}: ${err.message}`)
+      ultimo = err
+    }
+    if (i < intentos) await new Promise((r) => setTimeout(r, 3000))
+  }
+  throw ultimo
+}
+
 async function main() {
   await loadEnv()
 
+  // Antes de nada: sin sitio donde escribir, no hay nada que hacer. Fallar
+  // aquí deja claro que el problema es el secreto y no la fuente.
+  if (!SECO && !process.env.SUPABASE_DB_URL) {
+    throw new Error(
+      'falta SUPABASE_DB_URL. En CI viene del secreto del repositorio; ' +
+        'comprueba que está puesto y que el workflow se lo pasa al paso.'
+    )
+  }
+
   console.log(`Bajando ${FUENTE}`)
-  const res = await fetch(FUENTE, {
-    headers: { 'user-agent': 'pogodex-bot (+https://github.com/fcojalvarez/pokemon-project)' },
-  })
-  if (!res.ok) throw new Error(`HTTP ${res.status} al pedir los combates Max`)
-  const html = await res.text()
+  const html = await bajar(FUENTE)
+  console.log(`  ${(html.length / 1024).toFixed(0)} KB recibidos`)
 
   const pokemon = parse(html)
   if (pokemon.length < MINIMO) {
+    // Se enseña un trozo para poder ver desde el log si han cambiado la
+    // maquetación o si lo que ha llegado es una página de bloqueo.
+    const titulo = /<title>([^<]*)<\/title>/.exec(html)?.[1] ?? '(sin título)'
     throw new Error(
-      `solo se han reconocido ${pokemon.length} Pokémon (mínimo ${MINIMO}): ` +
-        'lo más probable es que Snacknap haya cambiado la página'
+      `solo se han reconocido ${pokemon.length} Pokémon (mínimo ${MINIMO}).
+` +
+        `Título de lo que ha llegado: ${titulo}
+` +
+        'O han cambiado la página, o esto no es la página que esperábamos.'
     )
   }
 
@@ -108,10 +151,8 @@ async function main() {
     return
   }
 
-  const url = process.env.SUPABASE_DB_URL
-  if (!url) throw new Error('falta SUPABASE_DB_URL')
-
   const { default: pg } = await import('pg')
+  const url = process.env.SUPABASE_DB_URL
   const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } })
   await client.connect()
   try {
