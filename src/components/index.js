@@ -8,6 +8,7 @@ import PokemonView from './PokemonView.vue';
 import ScrollUpButton from './ScrollUpButton.vue';
 import SearchBar from './SearchBar.vue';
 import SpinnerComponent from './SpinnerComponent.vue';
+import SuggestionButton from './shared/SuggestionButton.vue';
 import ToggleDarkMode from './ToggleDarkMode.vue';
 import BaseInput from './base/BaseInput.vue';
 import BaseCheckbox from './base/BaseCheckbox.vue';
@@ -52,5 +53,6 @@ export {
     ScrollUpButton,
     SearchBar,
     SpinnerComponent,
+    SuggestionButton,
     ToggleDarkMode
 }

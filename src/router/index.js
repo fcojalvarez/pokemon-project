@@ -29,6 +29,13 @@ const router = createRouter({
             component: () => import('@/views/RaidsView.vue')
         },
         {
+            // Panel de sugerencias. No se enlaza desde el menú: quien lo
+            // protege es la RLS de Supabase, no que la URL esté escondida.
+            path: '/sugerencias',
+            name: 'SuggestionsPage',
+            component: () => import('@/views/SuggestionsView.vue')
+        },
+        {
             // La sección se llamaba "Incursiones" y ahora cubre también huevos
             // y tareas. Se mantiene la ruta vieja redirigiendo, para no romper
             // enlaces guardados ni los que ya estuvieran compartidos.

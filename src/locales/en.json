@@ -336,5 +336,55 @@
             }
         },
         "chance": "{percent}% chance"
+    },
+    "suggestions": {
+        "button": "Feedback",
+        "panel": "Feedback",
+        "title": "Send feedback",
+        "intro": "Tell me what is broken, what is missing or what you would improve. I read all of it.",
+        "category": "What is it about?",
+        "categories": {
+            "bug": "Something is broken",
+            "idea": "Idea",
+            "data": "Wrong data",
+            "other": "Other"
+        },
+        "message": "Your feedback",
+        "messagePlaceholder": "The more specific the better: what you were doing and what you expected.",
+        "remaining": "{count} characters left",
+        "contact": "Your email (optional)",
+        "contactPlaceholder": "you{'@'}email.com",
+        "contactHint": "Only so I can reply. Without it your feedback still arrives, just anonymously.",
+        "submit": "Send",
+        "sending": "Sending…",
+        "cancel": "Cancel",
+        "close": "Close",
+        "thanks": "Thanks! Feedback sent.",
+        "another": "Send another",
+        "errors": {
+            "category": "Pick what it is about.",
+            "tooShort": "Tell me a bit more: under 10 characters there is nothing to go on.",
+            "tooLong": "Too long. The limit is 2000 characters.",
+            "contact": "That email does not look valid. Leave it empty if you do not want a reply.",
+            "cooldown": "Wait {seconds} s before sending another one.",
+            "network": "Could not send it. Try again in a moment."
+        },
+        "statuses": {
+            "new": "New",
+            "doing": "In progress",
+            "done": "Done",
+            "discarded": "Discarded"
+        },
+        "notes": "Notes",
+        "notesPlaceholder": "For you: what to do about this.",
+        "delete": "Delete",
+        "confirmDelete": "Sure? Click again",
+        "none": "No feedback yet.",
+        "email": "Email",
+        "password": "Password",
+        "signIn": "Sign in",
+        "signingIn": "Signing in…",
+        "signOut": "Sign out",
+        "signInError": "Could not sign in. Check the email and password."
     }
 }

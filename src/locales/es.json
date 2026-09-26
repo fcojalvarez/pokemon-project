@@ -336,5 +336,55 @@
             }
         },
         "chance": "{percent} % de probabilidad"
+    },
+    "suggestions": {
+        "button": "Sugerencias",
+        "panel": "Sugerencias",
+        "title": "Enviar una sugerencia",
+        "intro": "Cuenta qué falla, qué falta o qué mejorarías. Lo leo yo.",
+        "category": "¿De qué se trata?",
+        "categories": {
+            "bug": "Algo falla",
+            "idea": "Idea",
+            "data": "Dato incorrecto",
+            "other": "Otro"
+        },
+        "message": "Tu sugerencia",
+        "messagePlaceholder": "Cuanto más concreto, mejor: qué hacías y qué esperabas que pasara.",
+        "remaining": "Quedan {count} caracteres",
+        "contact": "Tu email (opcional)",
+        "contactPlaceholder": "tu{'@'}email.com",
+        "contactHint": "Solo para poder responderte. Sin él la sugerencia llega igual, pero anónima.",
+        "submit": "Enviar",
+        "sending": "Enviando…",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "thanks": "¡Gracias! Sugerencia enviada.",
+        "another": "Enviar otra",
+        "errors": {
+            "category": "Elige de qué se trata.",
+            "tooShort": "Cuenta un poco más: con menos de 10 caracteres no hay por dónde cogerlo.",
+            "tooLong": "Demasiado largo. El máximo son 2000 caracteres.",
+            "contact": "Ese email no parece válido. Déjalo vacío si no quieres respuesta.",
+            "cooldown": "Espera {seconds} s antes de enviar otra.",
+            "network": "No se ha podido enviar. Inténtalo otra vez en un momento."
+        },
+        "statuses": {
+            "new": "Nuevas",
+            "doing": "En curso",
+            "done": "Hechas",
+            "discarded": "Descartadas"
+        },
+        "notes": "Notas",
+        "notesPlaceholder": "Para ti: qué hacer con esto.",
+        "delete": "Borrar",
+        "confirmDelete": "¿Seguro? Pulsa otra vez",
+        "none": "No hay sugerencias.",
+        "email": "Email",
+        "password": "Contraseña",
+        "signIn": "Entrar",
+        "signingIn": "Entrando…",
+        "signOut": "Salir",
+        "signInError": "No se ha podido entrar. Revisa el email y la contraseña."
     }
 }

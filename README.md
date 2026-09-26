@@ -45,10 +45,37 @@ Las credenciales están en el panel de Supabase: *Project Settings → API* (URL
 | `/top`           | Mejores Pokémon, con un select para PvE (por defecto) o PvP            |
 | `/eventos`       | Eventos con cuenta atrás en hora local                                 |
 | `/incursiones`   | Jefes actuales con sus counters, huevos y tareas de campo              |
+| `/sugerencias`   | Panel de las sugerencias recibidas (pide contraseña; no está enlazado) |
 
 La ficha de cada Pokémon reúne evoluciones, megaevoluciones, PC de un 100 %, dónde sale ahora
 mismo (incursión, huevo o tarea), variocolor, debilidades y resistencias, mejores ataques, y su
 puesto en los rankings de PvE y PvP.
+
+## Sugerencias
+
+En el menú lateral, abajo a la derecha, hay un botón que abre un formulario: categoría, texto y
+un email opcional. Lo que se envía va a la tabla `suggestions` de Supabase, y se gestiona desde
+`/sugerencias` (filtrar por estado, anotar, marcar como hecha o descartada, borrar).
+
+Antes de que funcione hay que crear la tabla una vez: pegar `supabase/suggestions.sql` en el SQL
+Editor de Supabase y ejecutarlo. Ese fichero crea también las políticas RLS, que son lo que de
+verdad protege el panel:
+
+- Cualquiera puede **insertar** una sugerencia, y nada más. No puede leer ni modificar ninguna,
+  ni siquiera la suya.
+- **Leer, cambiar y borrar** solo lo puede hacer el administrador, que se decide por el email del
+  token en la función `es_admin_sugerencias()`. Para cambiar de administrador, se reescribe esa
+  función.
+
+El usuario del panel se crea a mano en *Authentication → Users* del panel de Supabase, con el
+mismo email que tenga la función. En `/sugerencias` no hay registro a propósito.
+
+Que la URL no esté enlazada no protege nada: la clave `anon` va en el bundle y cualquiera puede
+preguntar por la tabla. Lo que hace que la respuesta llegue vacía es la RLS.
+
+El formulario espera un minuto entre envíos, pero es un freno de cortesía guardado en
+`localStorage`: frena los dobles clics, no a quien quiera hacer spam a propósito. Pararlo de
+verdad pediría un límite por IP en una Edge Function.
 
 ## Datos
 

@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import { useMainStore } from '../../stores/main'
 import { storeToRefs } from 'pinia'
 import BaseIcon from '../base/BaseIcon.vue'
+import SuggestionButton from './SuggestionButton.vue'
 
 const mainStore = useMainStore()
 const { isDarkMode } = storeToRefs(mainStore)
@@ -126,10 +127,17 @@ watch(
       </div>
 
       <div
-        v-if="version"
-        class="px-4 py-3 border-t border-gray-300 dark:border-gray-600 text-mini text-gray-500 dark:text-gray-400"
+        class="flex items-center gap-3 px-4 py-3 border-t border-gray-300 dark:border-gray-600"
       >
-        v{{ version }}
+        <span v-if="version" class="text-mini text-gray-500 dark:text-gray-400">v{{ version }}</span>
+
+        <!-- ml-auto: el botón queda abajo a la derecha del cajón, y sigue ahí
+             aunque no haya versión que enseñar a su izquierda. -->
+        <suggestion-button
+          class="ml-auto"
+          @open="close({ restoreFocus: false })"
+          @close="trigger?.focus()"
+        />
       </div>
     </nav>
   </Teleport>
