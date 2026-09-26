@@ -182,7 +182,9 @@ test('el filtro de Gigamax recorta la Pokédex', async ({ page }) => {
   await page.waitForResponse((res) => res.url().includes('can_gigantamax'))
 
   await expect(page.getByText('Venusaur')).toBeVisible()
-  expect(await tarjetas.count()).toBeLessThan(antes)
+  // Con `count()` a secas se leía el DOM antes de que Vue repintara y el test
+  // fallaba de vez en cuando; `poll` reintenta hasta que la lista se recorta.
+  await expect.poll(() => tarjetas.count()).toBeLessThan(antes)
   // Los 31 que pueden gigamaxizar caben de sobra en la primera página.
   await expect(page.getByText('Ivysaur')).toHaveCount(0)
 })

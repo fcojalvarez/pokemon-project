@@ -80,6 +80,24 @@ const displayName = computed(() => {
  * City Safari apuntan a un `safarizone-default.jpg` que da 404. Sin esto, el
  * navegador deja su icono de imagen rota en mitad de la tarjeta.
  */
+/**
+ * La tarjeta entera lleva al evento en LeekDuck.
+ *
+ * El enlace de «Ver en LeekDuck» se comía una línea en cada tarjeta para decir
+ * algo que ya se entiende pinchando. El enlace de verdad sigue estando en el
+ * título —hace falta uno real para llegar con el teclado y que un lector de
+ * pantalla lo anuncie—, y esto solo añade que valga pinchar en cualquier
+ * parte.
+ *
+ * Se ignora el clic que cae sobre otro enlace (los Pokémon llevan a su ficha)
+ * para no robarle su destino.
+ */
+const abrirEvento = (evento) => {
+  if (!props.event.link) return
+  if (evento.target.closest('a, button')) return
+  window.open(props.event.link, '_blank', 'noopener')
+}
+
 const imagenRota = ref(false)
 watch(() => props.event.image, () => { imagenRota.value = false })
 
@@ -134,6 +152,8 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
 <template>
   <article
     class="flex flex-col p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+    :class="event.link ? 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-500' : ''"
+    @click="abrirEvento"
   >
     <div class="flex gap-3 items-start">
       <img
@@ -150,7 +170,13 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
         >
           {{ typeLabel }}
         </span>
-        <h3 class="text-sm font-bold leading-snug">{{ displayName }}</h3>
+        <component
+          :is="event.link ? 'a' : 'h3'"
+          :href="event.link || undefined"
+          :target="event.link ? '_blank' : undefined"
+          :rel="event.link ? 'noopener' : undefined"
+          class="text-sm font-bold leading-snug"
+        >{{ displayName }}</component>
       </div>
     </div>
 
@@ -301,14 +327,5 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       {{ gameData.translateText(nota) }}
     </p>
 
-    <a
-      v-if="event.link"
-      :href="event.link"
-      target="_blank"
-      rel="noopener"
-      class="mt-3 text-mini text-gray-500 dark:text-gray-400 underline self-start"
-    >
-      {{ $t('events.seeOnLeekDuck') }} ↗
-    </a>
   </article>
 </template>

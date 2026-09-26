@@ -158,9 +158,12 @@ const rarityOptions = computed(() => [
         />
       </div>
 
-      <!-- Mismo ancho y mismo alto que los selectores de arriba: son filtros
-           del mismo rango y quedaban como un añadido suelto. -->
-      <div class="grid grid-cols-2 gap-3">
+      <!--
+        Mismo ancho y alto que los selectores, pero separados por una línea:
+        pegados debajo parecían opciones de generación y rareza, y son otra
+        cosa (interruptores, no listas).
+      -->
+      <div class="grid grid-cols-2 gap-3 pt-4 mt-1 border-t border-gray-200 dark:border-gray-700">
         <base-pill-button
           class="h-11 w-full text-sm"
           :active="filters.onlyShiny"

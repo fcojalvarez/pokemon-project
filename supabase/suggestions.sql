@@ -51,7 +51,7 @@ returns boolean
 language sql
 stable
 as $$
-  select coalesce(auth.jwt() ->> 'email', '') = 'falvarez@airzonecontrol.com';
+  select coalesce(auth.jwt() ->> 'email', '') = 'fcojalvarezrodriguez@gmail.com';
 $$;
 
 -- El `with check` es lo que impide que alguien se cuele por la puerta de

@@ -208,7 +208,21 @@ onMounted(() => gameData.load())
       />
     </div>
 
-    <div v-if="mode === 'pve'" class="flex flex-wrap items-center gap-2 mb-3">
+    <div
+      v-if="mode === 'pve'"
+      role="group"
+      aria-labelledby="incluir-top"
+      class="flex flex-wrap items-center gap-2 mb-3"
+    >
+      <!--
+        Sin la etiqueta, «Megas» y «Oscuros» no decían si se estaban filtrando
+        o incluyendo. Es un grupo de interruptores, así que va etiquetado como
+        tal y no como dos botones sueltos.
+      -->
+      <span
+        id="incluir-top"
+        class="text-mini uppercase tracking-wider text-gray-500 dark:text-gray-400"
+      >{{ $t('top.include') }}</span>
       <base-pill-button :active="includeMega" @click="includeMega = !includeMega">
         {{ $t('top.megas') }}
       </base-pill-button>
