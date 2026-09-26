@@ -155,10 +155,12 @@ onMounted(() => {
     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
       <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('raids.intro') }}</p>
       <div class="flex items-center gap-2">
-        <data-freshness :age-ms="live.cacheAge" :stale="live.isStale" />
 
       </div>
     </div>
+
+    <!-- Solo salta si los datos se han quedado viejos. -->
+    <data-freshness :age-ms="live.cacheAge" :stale="live.isStale" class="mb-3" />
 
     <div class="flex flex-wrap gap-2 mb-4">
       <base-pill-button

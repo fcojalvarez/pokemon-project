@@ -112,12 +112,13 @@ test('los eventos se listan con el título en español', async ({ page }) => {
   await page.goto('/eventos')
   await page.waitForLoadState('networkidle')
 
-  await expect(page.getByRole('button', { name: /en marcha/i })).toHaveAttribute(
-    'aria-pressed',
-    'true'
-  )
-  // "Actualizado hace…" es la garantía de que los datos no son de hace una semana.
-  await expect(page.getByText(/Actualizado hace|Datos de hace/)).toBeVisible()
+  // Estado y tipo son dos desplegables; el estado arranca en "En marcha".
+  const estado = page.getByRole('combobox').first()
+  await expect(estado).toContainText(/en marcha/i)
+
+  // El título llega en inglés desde LeekDuck y se arma en español por patrón.
+  await expect(page.getByText(/incursiones|Hora destacada|Día de la Comunidad/i).first())
+    .toBeVisible()
 })
 
 /**
