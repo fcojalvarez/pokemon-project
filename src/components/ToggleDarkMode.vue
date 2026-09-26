@@ -32,7 +32,7 @@ onBeforeMount(() => {
 </script>
 
 <template>
-    <section class="relative transition-colors h-100 max-w-[50px] md:max-w-[160px] flex justify-center items-center cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 w-40 md:w-auto hover:bg-gray-150 hover:dark:bg-gray-800" @click="toggleDarkMode">
+    <section class="relative transition-colors max-w-[50px] md:max-w-[160px] flex justify-center items-center cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 w-40 md:w-auto hover:bg-gray-150 hover:dark:bg-gray-800" @click="toggleDarkMode">
         <base-icon
             :stroke-width="1.5"
             height="24"

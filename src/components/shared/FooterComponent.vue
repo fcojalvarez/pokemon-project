@@ -2,7 +2,7 @@
 </script>
 
 <template>
-    <section class="w-100">
+    <section class="w-full">
         <h4 class="text-center text-sm dark:text-gray-200">
             {{ $t('madeWith') }} ❤️ {{ $t('from') }} Málaga
         </h4>

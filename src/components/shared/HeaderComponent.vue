@@ -1,36 +1,34 @@
 <script setup>
-    import { ref, watch } from 'vue';
+    import { computed } from 'vue';
     import { useRoute } from 'vue-router';
-    import { SearchBar, ToggleDarkMode, BaseIcon } from '../index';
+    import { SearchBar, ToggleDarkMode, BaseIcon, NavMenu } from '../index';
     import { useMainStore } from '../../stores/main';
     import { storeToRefs } from 'pinia';
 
     const mainStore = useMainStore();
     const { isDarkMode } = storeToRefs(mainStore);
     const route = useRoute();
-    
-    const pokemonListRoute = 'PokemonList';
-    const backButtonRef = ref();
 
-    watch(route, async (newRoute) => {
-        if(newRoute.name !== pokemonListRoute) {
-            backButtonRef.value.classList.add('show-back-btn');
-            document.getElementById('search-bar').classList.add('search-bar-moved');
-        } else {
-            backButtonRef.value.classList.remove('show-back-btn');
-            document.getElementById('search-bar').classList.remove('search-bar-moved');
-        }
-    })
+    // Solo en la ficha de un Pokémon: entre páginas principales se navega
+    // con el menú, así que ahí el botón de volver no pinta nada.
+    const isPokemonView = computed(() => route.name === 'PokemonPage');
 </script>
 
 <template>
-    <div class="relative h-20 md:h-16 flex gap-3">
+    <!--
+        Todo son elementos de una fila flex: el botón de volver crece desde cero
+        y empuja a la barra de búsqueda, que se encoge. Así, entre el botón de
+        volver y el de menú, nunca se pueden tapar entre ellos.
+    -->
+    <div class="h-20 md:h-16 flex items-stretch gap-3">
         <button
-            ref="backButtonRef"
-            class="h-100 w-2/12 max-w-[60px] md:max-w-[150px] border border-gray-400 py-[9px] px-4 sm:px3 md:px-2 md:py-2 rounded-xl shadow-md absolute left-[-100%] transition-position duration-300 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
+            class="back-btn shrink-0 border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
+            :class="{ 'back-btn-visible': isPokemonView }"
+            :tabindex="isPokemonView ? 0 : -1"
+            :aria-hidden="!isPokemonView"
             @click="$router.push('/')"
         >
-            <div class="flex md:hidden justify-center items-center h-9">
+            <div class="flex md:hidden justify-center items-center h-full">
                 <base-icon
                     width="20" height="20"
                     stroke-width="1.5" :color="isDarkMode?'#fff':'#666'"
@@ -38,38 +36,43 @@
                 />
             </div>
 
-            <span class="hidden md:block text-gray-800 dark:text-white">
+            <span class="hidden md:block text-gray-800 dark:text-white whitespace-nowrap">
                 {{ $t('back') }}
             </span>
         </button>
-           
-        <search-bar
-            id="search-bar"
-            class="w-5/12 md:w-7/12 xl:w-8/12 md:max-w-lg h-100 search-bar md:absolute left-0 transition-position duration-300"
-        />
 
-        <toggle-dark-mode class="w-100 h-100 px-4 ml-auto cursor-pointer" />
+        <search-bar id="search-bar" class="flex-1 min-w-0 md:max-w-lg" />
+
+        <!-- ml-auto: en escritorio el buscador topa en max-w-lg y el hueco
+             que sobra empuja estos dos botones a la derecha. -->
+        <toggle-dark-mode class="shrink-0 ml-auto px-4 cursor-pointer" />
+
+        <nav-menu class="shrink-0" />
     </div>
 </template>
 
 <style scoped>
-.search-bar-moved {
-    left: 4.5rem;
-    width: 50%;
+.back-btn {
+    max-width: 0;
+    opacity: 0;
+    padding: 0;
+    border-width: 0;
+    overflow: hidden;
+    transition: max-width 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
 }
-.show-back-btn {
-    left: 0px;
+.back-btn-visible {
+    max-width: 60px;
+    opacity: 1;
+    padding: 9px 16px;
+    border-width: 1px;
 }
-@media(min-width: 345px) {
-    .search-bar-moved { left: 5.5rem; }
+@media (min-width: 768px) {
+    .back-btn-visible {
+        max-width: 150px;
+        padding: 8px 16px;
+    }
 }
-@media(min-width: 420px) {
-    .search-bar-moved { left: 6rem; }
-}
-@media(min-width: 648px) {
-    .search-bar-moved { left: 10rem; }
-}
-@media(min-width: 1000px) {
-    .search-bar-moved { left: 12rem; }
+@media (prefers-reduced-motion: reduce) {
+    .back-btn { transition: none; }
 }
 </style>

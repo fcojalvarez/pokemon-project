@@ -1,5 +1,7 @@
 <template>
-    <svg :viewBox="viewBox" :class="`group ${iconClass}`" :width="width" :height="height" :fill="fill" :stroke-width="strokeWidth" :color="color">
+    <!-- shrink-0: dentro de un contenedor flex el SVG se aplastaba y salía
+         deformado (llegaba a renderizarse con 0 de ancho). -->
+    <svg :viewBox="viewBox" :class="`group shrink-0 ${iconClass}`" :width="width" :height="height" :fill="fill" :stroke-width="strokeWidth" :color="color">
         <path :class="`${withHover? 'group-hover:drop-shadow-svg': ''} ${classPath}`" fill-rule="evenodd" :stroke="color" :fill="fillPath" :d="d"/>
     </svg>
 </template>

@@ -17,7 +17,10 @@
     const isShowModalSearch = ref(false);
     const isLoadingPokemonNames = ref(true);
     const pokemonsNamesArrFiltered = ref([]);
-    const isPokemonView = ref(false);
+    // Solo en la Pokédex el buscador filtra la rejilla que hay debajo. En el
+    // resto de páginas no hay lista que filtrar, así que abre el desplegable
+    // de resultados y desde ahí se salta a la ficha.
+    const isListView = computed(() => route.name === 'PokemonList');
     const searchBarRef = ref();
 
     const scrollbarBackground = computed(() => isDarkMode.value? '#111827' : '#fff');
@@ -54,17 +57,15 @@
         isShowModalSearch.value = false;
     })
 
-    watch(route, (newRoute) => {
-        const isViewPokemon = newRoute.name === 'PokemonPage' 
-        isPokemonView.value = isViewPokemon;
-        if(!isViewPokemon) isShowModalSearch.value = false;
+    watch(() => route.fullPath, () => {
+        if(isListView.value) isShowModalSearch.value = false;
         inputValue.value = null;
     })
 </script>
 
 <template>
-    <section class="relative transition-colors w-full mr-1 md:w-6/12 lg:w-64 h-100 px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md">
-        <input id="input-search" type="text" v-model="inputValue" class="w-full bg-transparent py-2 px-3 mt-2 md:mt-0 outline-none text-black dark:text-gray-300" :placeholder="$t('searchPokemon')"  @input="isPokemonView? inputSearchModal() : inputSearch()">
+    <section class="relative transition-colors w-full px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md">
+        <input id="input-search" type="text" v-model="inputValue" class="w-full bg-transparent py-2 px-3 mt-2 md:mt-0 outline-none text-black dark:text-gray-300" :placeholder="$t('searchPokemon')"  @input="isListView? inputSearch() : inputSearchModal()">
         <base-icon
             :stroke-width="1.5"
             icon-class="hidden sm:block xs:absolute bottom-4 md:bottom-2 right-4 w-6"

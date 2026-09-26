@@ -1,7 +1,7 @@
 <template>
     <div
-        class="top-button animate-bounce fixed bg-white dark:bg-gray-900 shadow-xl rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer right-10 border border-gray-400 dark:border-gray-150 hover:bg-gray-150 hover:dark:bg-gray-800"
-        :class="{'show-top-button': isShowButton}"
+        class="top-button animate-bounce fixed z-30 bg-white dark:bg-gray-900 shadow-xl rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer right-10 border border-gray-400 dark:border-gray-150 hover:bg-gray-150 hover:dark:bg-gray-800 transition-[bottom] duration-300 ease-out"
+        :class="isShowButton ? 'bottom-8' : '-bottom-20'"
         @click="scrollToUp"
     >
         <base-icon
@@ -34,20 +34,9 @@ const scrollHandler = ({target: { scrollingElement : { scrollTop } }}) => {
 const scrollToUp = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
 onMounted(() => {
-    document.addEventListener('scroll', scrollHandler);
+    document.addEventListener('scroll', scrollHandler, { passive: true });
 })
 onUnmounted(() => {
     document.removeEventListener('scroll', scrollHandler);
 })
 </script>
-
-<style scoped>
-.top-button {
-  transition: bottom .3s ease;
-  bottom: -5rem;
-}
-
-.show-top-button {
-  bottom: 2rem;
-}
-</style>

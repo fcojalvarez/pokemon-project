@@ -1,105 +1,162 @@
 <script setup>
-import { onMounted, ref, watch,toRaw } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
-import { typesSVG } from '../utils/Settings';
-import { BaseIcon, EvolPokemonItem } from '../components/index';
+import { EvolPokemonItem } from '../components/index';
+import PokemonMegas from './pokemon/PokemonMegas.vue';
+import PokemonExtraInfo from './pokemon/PokemonExtraInfo.vue';
+import ShinyLegend from './pokemon/ShinyLegend.vue';
+import { useGameDataStore } from '../stores/gameData';
+import { useLiveStore } from '../stores/live';
 
 const pokemon = ref(null);
 const route = useRoute();
 const isShowShiny = ref(false);
+const gameData = useGameDataStore();
+const live = useLiveStore();
+
+const evolutionFamilies = computed(() => Object.keys(pokemon.value?.evolution_info || {}));
+
+// ?form=charizard_mega_y muestra esa forma concreta en vez del Pokémon base,
+// sin necesidad de una ruta aparte.
+const formId = computed(() => route.query.form || null);
+const form = computed(() => formId.value ? gameData.byId.get(formId.value) || null : null);
+
+/**
+ * Las megas son de la última evolución de la rama, no del Pokémon que estés
+ * viendo: desde Pichu hay que enseñar las de Raichu.
+ */
+const lastOfFamily = (familyKey) => {
+    const chain = pokemon.value?.evolution_info?.[familyKey] || [];
+    return chain[chain.length - 1] || null;
+};
+
+
+/**
+ * El Pokémon base con la forma que espera EvolPokemonItem. Hace falta cuando
+ * no tiene cadena evolutiva pero sí mega (Rayquaza, Absol…): así se ve
+ * base → megaenergía → mega en vez de la mega suelta.
+ */
+/**
+ * Con una sola rama la cadena ocupa toda la tarjeta; solo se parte en columnas
+ * cuando hay varias (Eevee, Wurmple…). Si no, se desperdicia media pantalla y
+ * los nombres se recortan.
+ */
+const familyColumnClass = computed(() =>
+    evolutionFamilies.value.length > 1 ? 'w-full sm:w-1/2' : 'w-full'
+);
+
+const baseAsChainItem = computed(() => {
+    const p = pokemon.value;
+    if(!p) return null;
+    return {
+        pokemon_id: p.pokemon_id,
+        name: p.name,
+        types: p.types,
+        is_shiny_released: p.is_shiny_released,
+        sprites: p.sprites
+    };
+});
 
 const getPokemon = async(pokemonId) => {
-    const { data: [ pokemonFinded ] } = await supabase.from('pokemons').select('*').eq('pokemon_id', pokemonId);
+    const { data, error } = await supabase.from('pokemons').select('*').eq('pokemon_id', pokemonId).limit(1);
 
+    if(error) console.error(error);
+
+    const [ pokemonFinded ] = data || [];
     if(pokemonFinded) pokemon.value = {...pokemonFinded};
 }
 
 onMounted(async() => {
     const pokemonId = Number(route.params.id);
-    
+
+    // Los rankings, la tabla de tipos y los datos en vivo se cargan una sola
+    // vez por sesión: las stores ignoran las llamadas repetidas.
+    gameData.load();
+    live.load();
+
     if(pokemonId) await getPokemon(pokemonId);
     window.scrollTo({ top: 0, behavior: "smooth" });
 })
 
-watch(route, async(newRoute) => {
-    const pokemonIdFromRoute = Number(newRoute.params.id);
-    if(pokemon.value.pokemon_id !== pokemonIdFromRoute) {
+watch(() => route.params.id, async(newId) => {
+    const pokemonIdFromRoute = Number(newId);
+    if(pokemonIdFromRoute && pokemon.value?.pokemon_id !== pokemonIdFromRoute) {
         await getPokemon(pokemonIdFromRoute);
     }
 })
 </script>
 
 <template>
-    <section v-if="pokemon" class="py-12 px-6 sm:px12 md:px-24 w-100 bg-white dark:bg-gray-900 rounded-xl border border-gray-300 shadow-md">
-        <section class="flex text-gray-800 dark:text-gray-200">
-            <h1 class="font-bold">
-                <span>{{ `#${ pokemon.pokemon_id?.toString().padStart(3, '0') }`}}</span>
-                {{ pokemon.name }}
-            </h1>
-            
-            <section class="my-auto ml-2 flex">
-                <base-icon
-                    v-if="pokemon.types"
-                    view-box="0 0 512 512"
-                    width="14" height="14"
-                    :fill-path="typesSVG[pokemon.types[0]].color"
-                    :d="typesSVG[pokemon.types[0]].icon"
-                />
-                <base-icon
-                    v-if="pokemon.types && pokemon.types[1]"
-                    view-box="0 0 512 512"
-                    width="14" height="14"
-                    icon-class="ml-2"
-                    :fill-path="typesSVG[pokemon.types[1]].color"
-                    :d="typesSVG[pokemon.types[1]].icon"
-                />
-            </section>
-            
-            <section><!-- TODO: badges --></section>
-        </section>
+    <section v-if="pokemon" class="pt-4 pb-10 px-6 sm:px-12 md:px-24 bg-white dark:bg-gray-900 rounded-xl border border-gray-300 shadow-md">
+        <!-- La leyenda a la izquierda y el botón a la derecha, misma línea. -->
+        <section class="mt-4 flex items-center justify-between gap-3">
+            <shiny-legend v-if="pokemon.is_shiny_released" variant="evolution" />
 
-        <section>
             <section
                 @click="isShowShiny = !isShowShiny"
                 :class="[
                     isShowShiny? 'bg-gray-500 dark:bg-gray-600 text-gray-100 dark:text-gray-300' : '',
-                    'text-gray-800 dark:text-gray-200 mt-4 border border-gray-800 dark:border-gray-200 w-28 rounded-xl py-1 px-2 text-center ml-auto cursor-pointer '
+                    'text-gray-800 dark:text-gray-200 shrink-0 border border-gray-800 dark:border-gray-200 w-28 rounded-xl py-1 px-2 text-center ml-auto cursor-pointer '
                 ]"
                 
             >
                 <span>{{ $t('viewShiny') }}</span>
             </section>
 
-            <img
-                :src="isShowShiny? pokemon.sprites.male_shiny : pokemon.sprites.male"
-                :alt="`${pokemon.name} ${$t('image')}`"
-                class="h-64 w-64 mx-auto drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
-                loading="lazy"
-            >
-            <div v-if="pokemon.is_shiny_released" class="text-center text-mini absolute top-16 right-12 z-10 text-gray-600 dark:text-gray-100 shiny">
-                <span class="block leading-none">✦✦</span>
-                <span>✦</span>
-            </div>
         </section>
 
-        <h3
-            v-if="Object.keys(pokemon?.evolution_info).length > 0"
-            class="text-gray-800 dark:text-gray-200 text-sm mt-12"
-        >
-            {{ $t('evolution', 0) }}
-        </h3>
-        <section v-if="pokemon.evolution_info" class="my-3 flex justify-center flex-wrap">
-            <section v-for="evolFamilyKey in Object.keys(pokemon.evolution_info)" class="flex flex-col flex-wrap sm:flex-row w-full sm:w-1/2 items-center" :key="evolFamilyKey">
+        <section class="my-3 flex justify-center flex-wrap">
+            <section
+                v-for="evolFamilyKey in evolutionFamilies"
+                :key="evolFamilyKey"
+                class="flex flex-col flex-wrap sm:flex-row items-center"
+                :class="familyColumnClass"
+            >
                 <evol-pokemon-item
                     :pokemon="evolPokemon"
-                    v-for="(evolPokemon, index) in pokemon?.evolution_info[evolFamilyKey]"
-                    :key="evolPokemon.id"
-                    :position-info="{index: index + 1, length: pokemon?.evolution_info[evolFamilyKey].length }"
+                    v-for="(evolPokemon, index) in pokemon.evolution_info[evolFamilyKey]"
+                    :key="`${evolFamilyKey}-${evolPokemon.pokemon_id}-${index}`"
+                    :position-info="{index: index + 1, length: pokemon.evolution_info[evolFamilyKey].length }"
                     :is-show-shiny="isShowShiny"
+                    :is-active="!form && evolPokemon.pokemon_id === pokemon.pokemon_id"
+                />
+
+                <!-- Las megas cierran la cadena, no van en una sección aparte. -->
+                <pokemon-megas
+                    v-if="lastOfFamily(evolFamilyKey)"
+                    :dex="lastOfFamily(evolFamilyKey).pokemon_id"
+                    :is-show-shiny="isShowShiny"
+                    :is-shiny-released="lastOfFamily(evolFamilyKey).is_shiny_released"
+                    :active-form-id="formId"
+                />
+            </section>
+
+            <!--
+                Especies sin evoluciones pero con mega (Rayquaza, Absol…):
+                la cadena es el propio Pokémon y su mega.
+            -->
+            <section
+                v-if="evolutionFamilies.length === 0"
+                class="flex flex-col flex-wrap sm:flex-row w-full items-center"
+            >
+                <evol-pokemon-item
+                    v-if="baseAsChainItem"
+                    :pokemon="baseAsChainItem"
+                    :is-show-shiny="isShowShiny"
+                    :is-active="!form"
+                />
+
+                <pokemon-megas
+                    :dex="pokemon.pokemon_id"
+                    :is-show-shiny="isShowShiny"
+                    :is-shiny-released="pokemon.is_shiny_released"
+                    :active-form-id="formId"
                 />
             </section>
         </section>
+
+        <pokemon-extra-info :pokemon="pokemon" :form-id="formId" />
 <!-- 
         <section class="text-gray-800 dark:text-gray-200 flex flex-wrap justify-between my-4 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-300 shadow-md">
             <h3 class="my-2 w-full font-bold text-lg">{{ $t('stats') }}</h3>
