@@ -21,13 +21,14 @@ jobs:
   actualizar:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
+      # Sin `version`: la lee de `packageManager` en package.json, para que
+      # CI y local no puedan irse cada uno por su lado. El lockfile es de
+      # pnpm 8 y una de las dos workflows pedía la 9.
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
