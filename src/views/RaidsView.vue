@@ -21,7 +21,6 @@ import LiveMonCard from '../components/pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../utils/sprites'
 import { maxCounters } from '../utils/maxBattle'
 import { useTranslate } from '../composables/useTranslate'
-import { translatePokemonName } from '../utils/eventName'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
@@ -67,28 +66,6 @@ const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
  * para que «Shadow Machop» o «Hisuian Samurott» salgan igual en toda la app.
  */
 /**
- * Si ese Pokémon puede salir variocolor.
- *
- * No se usa el `canBeShiny` del feed: LeekDuck lo trae a false en TODAS las
- * recompensas de investigación, así que Phantump salía sin marca el mismo día
- * que estrenaba variocolor. Manda nuestro dato, que se sincroniza a diario, y
- * el del feed solo se usa si no conocemos la especie.
- *
- * Da igual el sitio donde salga: si el variocolor está liberado, puede
- * aparecer en cualquier encuentro de esa especie.
- */
-const puedeSerShiny = (dex, delFeed) => {
-  if (!dex || !gameData.isReady) return !!delFeed
-  const entry = gameData.roster.find((p) => p.dex === dex && !p.mega && !p.shadow)
-  return entry ? entry.shinyReleased : !!delFeed
-}
-
-const nombreEs = (nombre) =>
-  translatePokemonName(nombre, gameData.namesEs, (form, base) =>
-    t(`events.forms.${form}`, { pokemon: base })
-  )
-
-/**
  * Los Pokémon que hay ahora mismo en los nodos energéticos, por nivel.
  *
  * Esto no sale del GAME_MASTER: él dice quién PUEDE dinamaxizar, no quién
@@ -108,9 +85,7 @@ const nombreEs = (nombre) =>
  */
 const equipoMax = computed(() => {
   if (!openMax.value || !gameData.isReady) return null
-  const jefe = gameData.roster.find(
-    (p) => p.dex === openMax.value && !p.mega && !p.shadow
-  )
+  const jefe = gameData.baseByDex(openMax.value)
   if (!jefe) return null
 
   // Marca cuáles están hoy en los nodos, y cuáles se alcanzan evolucionando
@@ -135,17 +110,9 @@ const maxPorNivel = computed(() => {
   const vivos = gameData.maxLive?.pokemon ?? []
   if (!vivos.length) return []
 
-  const porDex = new Map()
-  if (gameData.isReady) {
-    for (const entry of gameData.roster) {
-      if (entry.mega || entry.shadow || porDex.has(entry.dex)) continue
-      porDex.set(entry.dex, entry)
-    }
-  }
-
   const grupos = new Map()
   for (const uno of vivos) {
-    const entry = porDex.get(uno.dex) ?? null
+    const entry = gameData.baseByDex(uno.dex)
     if (!grupos.has(uno.tier)) grupos.set(uno.tier, [])
     grupos.get(uno.tier).push({
       ...uno,
@@ -308,11 +275,11 @@ onMounted(() => {
             <live-mon-card
               :id="`mon-${dexFromImage(boss.image)}`"
               :highlight="destacado === dexFromImage(boss.image)"
-              :name="nombreEs(boss.name)"
+              :name="gameData.nombreEs(boss.name)"
               :image="boss.image"
               :dex="dexFromImage(boss.image)"
               :combat-power="boss.combatPower?.normal"
-              :can-be-shiny="puedeSerShiny(dexFromImage(boss.image), boss.canBeShiny)"
+              :can-be-shiny="gameData.shinyReleased(dexFromImage(boss.image), boss.canBeShiny)"
               :shadow="group.shadow"
               :badge="group.shadow ? tierLabel(boss.tier) : null"
             >
@@ -320,7 +287,7 @@ onMounted(() => {
                 type="button"
                 class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
                 :aria-expanded="openBoss === boss.name"
-                :aria-label="`${$t('raids.counters')}: ${nombreEs(boss.name)}`"
+                :aria-label="`${$t('raids.counters')}: ${gameData.nombreEs(boss.name)}`"
                 @click.prevent.stop="toggleBoss(boss)"
               >
                 <span aria-hidden="true">{{ openBoss === boss.name ? '▴' : '▾' }}</span>
@@ -506,11 +473,11 @@ onMounted(() => {
             :key="`${group.name}-${egg.name}`"
             :id="`mon-${dexFromImage(egg.image)}`"
             :highlight="destacado === dexFromImage(egg.image)"
-            :name="nombreEs(egg.name)"
+            :name="gameData.nombreEs(egg.name)"
             :image="egg.image"
             :dex="dexFromImage(egg.image)"
             :combat-power="egg.combatPower"
-            :can-be-shiny="puedeSerShiny(dexFromImage(egg.image), egg.canBeShiny)"
+            :can-be-shiny="gameData.shinyReleased(dexFromImage(egg.image), egg.canBeShiny)"
           />
         </div>
       </section>
@@ -536,11 +503,11 @@ onMounted(() => {
                 :key="reward.name"
                 :id="`mon-${dexFromImage(reward.image)}`"
                 :highlight="destacado === dexFromImage(reward.image)"
-                :name="nombreEs(reward.name)"
+                :name="gameData.nombreEs(reward.name)"
                 :image="reward.image"
                 :dex="dexFromImage(reward.image)"
                 :combat-power="reward.combatPower"
-                :can-be-shiny="puedeSerShiny(dexFromImage(reward.image), reward.canBeShiny)"
+                :can-be-shiny="gameData.shinyReleased(dexFromImage(reward.image), reward.canBeShiny)"
               />
             </div>
           </article>

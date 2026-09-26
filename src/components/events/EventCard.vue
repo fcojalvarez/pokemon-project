@@ -105,12 +105,7 @@ const maxBattle = computed(() => {
   const parsed = parseMaxBattle(props.event.name)
   if (!parsed) return null
 
-  const clave = parsed.pokemon?.toLowerCase().replace(/[^a-z0-9]/g, '')
-  const entry = clave && gameData.isReady
-    ? gameData.roster.find(
-        (p) => !p.mega && !p.shadow && p.name.toLowerCase().replace(/[^a-z0-9]/g, '') === clave
-      ) ?? null
-    : null
+  const entry = parsed.pokemon ? gameData.baseByName(parsed.pokemon) : null
 
   return {
     gigantamax: parsed.gigantamax,

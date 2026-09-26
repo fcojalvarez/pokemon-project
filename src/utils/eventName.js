@@ -46,6 +46,21 @@ const RULES = [
 ]
 
 /**
+ * Quita el prefijo de forma que LeekDuck pone delante: «Mega Malamar» y
+ * «Malamar» son el mismo Pokémon a efectos de ficha y de número de Pokédex.
+ *
+ * Sale de la misma tabla que usa la traducción, para que no haya dos listas
+ * de prefijos que se puedan desincronizar.
+ */
+export function stripFormPrefix(name) {
+  const limpio = String(name ?? '').trim()
+  for (const [re] of FORM_PREFIXES) {
+    if (re.test(limpio)) return limpio.replace(re, '')
+  }
+  return limpio
+}
+
+/**
  * Descompone un título de evento.
  *
  * @returns {{key: string, pokemon: string, tier: string|null}|null}

@@ -3,7 +3,9 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { supabase } from '../lib/supabaseClient'
 import { computeCounters, computeTypeRankings, typeMatchups, evaluatePokemon } from '../utils/pve'
 import { calcCP } from '../utils/formulas'
-import { translateGameText } from '../utils/gameText'
+import { normalizeName, translateGameText } from '../utils/gameText'
+import { stripFormPrefix, translatePokemonName } from '../utils/eventName'
+import { useTranslate } from '../composables/useTranslate'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -56,7 +58,8 @@ async function desdeFicheros() {
  * filtros, así que cambiar de pestaña no repite el trabajo.
  */
 export const useGameDataStore = defineStore('gameData', () => {
-  // STATE
+  const { t } = useTranslate()
+
   const roster = shallowRef([])
   const moves = shallowRef({})
   const typeChart = shallowRef({ order: [], es: {}, chart: {} })
@@ -74,7 +77,6 @@ export const useGameDataStore = defineStore('gameData', () => {
   const status = ref('idle')
   const error = ref(null)
 
-  // GETTERS
   const isReady = computed(() => status.value === 'ready')
   const types = computed(() => typeChart.value.order)
   const chart = computed(() => typeChart.value.chart)
@@ -114,6 +116,63 @@ export const useGameDataStore = defineStore('gameData', () => {
     }
   }
 
+  /**
+   * La forma base de cada Pokémon, indexada por número de Pokédex y por
+   * nombre.
+   *
+   * Son mapas y no búsquedas sueltas porque esto se consulta desde dentro de
+   * listas —cada jefe, cada huevo, cada recompensa—, y un `roster.find()` por
+   * tarjeta recorre 1.700 entradas cada vez que se repinta.
+   *
+   * Base = ni mega ni oscuro: son el mismo Pokémon a efectos de ficha, y es
+   * lo que se quiere cuando se busca por nombre o por número.
+   */
+  const bases = computed(() => {
+    const porDex = new Map()
+    const porNombre = new Map()
+    for (const entry of roster.value) {
+      if (entry.mega || entry.shadow) continue
+      if (!porDex.has(entry.dex)) porDex.set(entry.dex, entry)
+      const clave = normalizeName(entry.name)
+      if (!porNombre.has(clave)) porNombre.set(clave, entry)
+    }
+    return { porDex, porNombre }
+  })
+
+  /** La forma base con ese número de Pokédex, o null. */
+  const baseByDex = (dex) => bases.value.porDex.get(dex) ?? null
+
+  /**
+   * La forma base a partir de un nombre como lo publica LeekDuck, en inglés y
+   * con el prefijo de forma delante («Mega Malamar», «Hisuian Samurott»).
+   */
+  const baseByName = (name) => {
+    const clave = normalizeName(stripFormPrefix(name))
+    return clave ? bases.value.porNombre.get(clave) ?? null : null
+  }
+
+  /**
+   * Si ese Pokémon puede salir variocolor.
+   *
+   * No vale el `canBeShiny` del feed: LeekDuck lo trae a false en TODAS las
+   * recompensas de investigación. Manda nuestro dato, que se sincroniza a
+   * diario, y el del feed solo se usa si no conocemos la especie.
+   *
+   * Da igual el sitio: si el variocolor está liberado, puede aparecer en
+   * cualquier encuentro de esa especie.
+   */
+  const shinyReleased = (dex, delFeed = false) =>
+    baseByDex(dex)?.shinyReleased ?? !!delFeed
+
+  /**
+   * Nombre en español de un Pokémon publicado en inglés, con su forma.
+   * Estaba repetido en las tres vistas que pintan Pokémon del feed.
+   */
+  const nombreEs = (name) =>
+    translatePokemonName(name, namesEs.value, (form, base) =>
+      t(`events.forms.${form}`, { pokemon: base })
+    )
+
   /** Formas alternativas agrupadas por número de Pokédex. */
   const formsByDex = computed(() => {
     const map = new Map()
@@ -130,7 +189,6 @@ export const useGameDataStore = defineStore('gameData', () => {
     return cache.get(key)
   }
 
-  // ACTIONS
   /** De dónde salieron los datos que hay cargados: 'supabase' o 'ficheros'. */
   const origen = ref(null)
 
@@ -261,6 +319,10 @@ export const useGameDataStore = defineStore('gameData', () => {
     chart,
     byId,
     namesEs,
+    baseByDex,
+    baseByName,
+    shinyReleased,
+    nombreEs,
     formsByDex,
     load,
     pveRankings,

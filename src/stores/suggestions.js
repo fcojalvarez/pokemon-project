@@ -75,13 +75,11 @@ function guardarUltimoEnvio(at) {
  * abierta porque la RLS de Supabase bloquea el `select` a todo lo demás.
  */
 export const useSuggestionsStore = defineStore('suggestions', () => {
-  // STATE
   const items = ref([])
   const isLoading = ref(false)
   const isSending = ref(false)
   const error = ref(null)
 
-  // GETTERS
   /** Cuántas hay sin tocar, para el contador del panel. */
   const pendingCount = computed(
     () => items.value.filter((item) => item.status === 'new').length
@@ -95,8 +93,6 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
       ])
     )
   )
-
-  // ACTIONS
 
   /**
    * Envía una sugerencia.

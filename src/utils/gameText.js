@@ -8,6 +8,17 @@
  */
 
 /**
+ * Clave para comparar nombres de Pokémon: minúsculas y solo letras y números.
+ * Con eso, «Farfetch'd» y «Farfetchd» son el mismo, y da igual de dónde venga
+ * el nombre (LeekDuck, pvpoke o el juego).
+ */
+export function normalizeName(name) {
+  return String(name ?? '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+}
+
+/**
  * Clave de búsqueda: minúsculas, números unificados como `{n}` y fuera todo lo
  * demás (incluidas las tildes, que se quitan en ambos lados por igual, así que
  * siguen casando).

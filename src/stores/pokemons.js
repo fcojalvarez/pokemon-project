@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabaseClient';
 import { NEXT_LOAD_LENGTH_ITEMS } from '../utils/Settings';
 
 export const usePokemonsStore = defineStore('pokemon', () => {
-    // STATE
     const pokemonList = ref([]);
     /**
      * Filtros de la Pokédex. Se aplican en la consulta a Supabase, no en el
@@ -39,7 +38,6 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     const pokemonTypes = ref([]);
     const pokemonsFiltered = ref([]);
 
-    // GETTERS
     const types = computed(() => pokemonTypes.value);
     const pokemons = computed(() => pokemonsFiltered.value);
     const isLoading = computed(() => isLoadingPokemons.value);
@@ -79,7 +77,6 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         return data || [];
     }
 
-    //ACTIONS
     const filterPokemons = async(inputValue, toSearchModal = false) => {
         const value = (inputValue || '').toLowerCase().trim();
         const isWritingName = isNaN(value); 
@@ -178,7 +175,6 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         setTypes(types || []);
     }
 
-    // MUTATIONS
     const setTypes = (typesArr) => pokemonTypes.value = typesArr;
 
     const setPokemons = (pokemonsArr) => {

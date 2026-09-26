@@ -14,7 +14,6 @@ import { supabase } from '../lib/supabaseClient'
  * si hay sesión, para saber qué pintar.
  */
 export const useAuthStore = defineStore('auth', () => {
-  // STATE
   const session = ref(null)
   /** Hasta que no se resuelve `init()` no se sabe si hay sesión guardada. */
   const isReady = ref(false)
@@ -23,11 +22,9 @@ export const useAuthStore = defineStore('auth', () => {
 
   let desuscribir = null
 
-  // GETTERS
   const email = computed(() => session.value?.user?.email ?? null)
   const isSignedIn = computed(() => Boolean(session.value))
 
-  // ACTIONS
   const init = async () => {
     if (isReady.value) return
 

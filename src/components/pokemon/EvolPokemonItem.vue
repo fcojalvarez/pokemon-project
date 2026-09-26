@@ -191,7 +191,6 @@ import ShinyMark from './ShinyMark.vue';
 
     const itemRequired = computed(() => (props.pokemon.item_required || '').replace("'","").replace(" ", ""))
 
-    // Methods
     const goToPokemonPage = (pokemonId) => {
         if(props.routeTo) return router.push(props.routeTo);
         pokemonId && router.push(`/pokemon/${pokemonId}`);

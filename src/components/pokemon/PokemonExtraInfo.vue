@@ -1,12 +1,12 @@
 <script setup>
 import { computed } from 'vue'
 import { useGameDataStore } from '../../stores/gameData'
-import { useLiveStore } from '../../stores/live'
 import BaseCard from '../base/BaseCard.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MoveTag from './MoveTag.vue'
 import MoveLegend from './MoveLegend.vue'
-import MaxMark from './MaxMark.vue'
+import WhereToFind from './WhereToFind.vue'
+import MaxBattlePanel from './MaxBattlePanel.vue'
 import { useTranslate } from '../../composables/useTranslate'
 import { describeMoveEffect, effectChanceLabel } from '../../utils/moveEffect'
 import { calcCP } from '../../utils/formulas'
@@ -18,7 +18,6 @@ const props = defineProps({
 })
 
 const gameData = useGameDataStore()
-const live = useLiveStore()
 const { t, locale } = useTranslate()
 
 const CP_LABELS = {
@@ -101,41 +100,6 @@ const asRosterEntry = computed(() => {
  * dinamaxizar. Las megas y los oscuros entran siempre por aquí con null, que
  * es lo correcto: en el juego son formas incompatibles con dinamaxizar.
  */
-const maxInfo = computed(() =>
-  gameData.isReady && asRosterEntry.value ? gameData.maxInfoFor(asRosterEntry.value) : null
-)
-
-/**
- * Coste de subir un movimiento Max de nivel, aplanado para la tabla.
- *
- * El primer nivel viene con un coste simbólico (1 partícula, 1 caramelo)
- * porque es el desbloqueo, así que se enseña tal cual: forma parte del total
- * que hay que pagar.
- */
-const SLOTS = [
-  { key: 'attack', label: 'max.slotAttack' },
-  { key: 'guard', label: 'max.slotGuard' },
-  { key: 'spirit', label: 'max.slotSpirit' }
-]
-
-const upgradeRows = computed(() => {
-  const costs = maxInfo.value?.costs
-  if (!costs) return []
-  return SLOTS.map(({ key, label }) => {
-    const niveles = costs[key] ?? []
-    return {
-      key,
-      label: t(label),
-      total: {
-        mp: niveles.reduce((suma, n) => suma + (n.mpCost ?? 0), 0),
-        candy: niveles.reduce((suma, n) => suma + (n.candyCost ?? 0), 0),
-        xl: niveles.reduce((suma, n) => suma + (n.xlCandyCost ?? 0), 0)
-      },
-      levels: niveles.length
-    }
-  }).filter((fila) => fila.levels > 0)
-})
-
 const bestMovesets = computed(() =>
   gameData.isReady && asRosterEntry.value ? gameData.bestMovesets(asRosterEntry.value, 5) : []
 )
@@ -283,133 +247,12 @@ const pvpRanks = computed(() => {
   return form.value ? ranks.filter((entry) => entry.id === form.value.id) : ranks
 })
 
-const whereToFind = computed(() => live.whereToFind(props.pokemon.name))
-
-/**
- * Combates Max en los que sale ahora mismo.
- *
- * Esto no viene de LeekDuck como el resto de «dónde conseguirlo»: los nodos
- * energéticos no los publica, y sin esto la ficha de Articuno decía que no se
- * conseguía en ningún sitio estando de jefe Max.
- *
- * Puede aparecer en más de un nivel, así que se listan todos.
- */
-/**
- * A dónde lleva cada insignia de «Dónde conseguirlo».
- *
- * Antes decía «sale en incursiones» y tocaba venir a /ahora y buscarlo a ojo
- * entre cincuenta tarjetas. Ahora abre la pestaña que toca con el Pokémon ya
- * señalado.
- */
-const irA = (pestana) => ({
-  path: '/ahora',
-  query: { tab: pestana, dex: props.pokemon.pokemon_id }
-})
-
-const enCombatesMax = computed(() =>
-  (gameData.maxLive?.pokemon ?? []).filter((uno) => uno.dex === props.pokemon.pokemon_id)
-)
-
-const hasWhereToFind = computed(() => {
-  const where = whereToFind.value
-  return (
-    where.raids.length ||
-    where.eggs.length ||
-    where.research.length ||
-    enCombatesMax.value.length
-  )
-})
-
-const plainText = (html) =>
-  gameData.translateText(String(html).replace(/<[^>]*>/g, '').trim())
 </script>
 
 <template>
   <div class="mt-10 flex flex-col gap-4 text-gray-800 dark:text-gray-200">
-    <!--
-      Dónde conseguirlo: va lo primero porque caduca. Cuando no sale en ningún
-      sitio también se dice, que es justo lo que el jugador necesita saber
-      antes de ponerse a buscarlo. Espera a que carguen los datos en vivo para
-      no afirmar que no se consigue mientras todavía no se sabe.
-    -->
-    <base-card v-if="live.status === 'ready'">
-      <h3 class="text-sm font-bold">{{ $t('pokemon.whereToFind') }}</h3>
-
-      <p v-if="!hasWhereToFind" class="mt-2 text-xs text-gray-600 dark:text-gray-400">
-        {{ $t('pokemon.notAvailableNow') }}
-      </p>
-
-      <template v-else>
-        <div v-if="enCombatesMax.length" class="mt-3">
-          <span class="text-mini text-gray-500 dark:text-gray-400">
-            {{ $t('pokemon.inMaxBattles') }}
-          </span>
-          <div class="flex flex-wrap gap-2 mt-1">
-            <router-link
-              v-for="uno in enCombatesMax"
-              :key="`max-${uno.tier}`"
-              :to="irA('max')"
-              class="flex items-center gap-1.5 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
-            >
-              <max-mark
-                :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
-                :size="14"
-                class="shrink-0"
-              />
-              {{ $t('max.tier', { n: uno.tier }) }}
-              <template v-if="uno.cp">
-                · {{ $t('raids.cpRange') }} {{ uno.cp.min }}–{{ uno.cp.max }}
-              </template>
-            </router-link>
-          </div>
-        </div>
-
-        <div v-if="whereToFind.raids.length" class="mt-3">
-          <span class="text-mini text-gray-500 dark:text-gray-400">{{ $t('pokemon.inRaids') }}</span>
-          <div class="flex flex-wrap gap-2 mt-1">
-            <router-link
-              v-for="boss in whereToFind.raids"
-              :key="boss.name"
-              :to="irA('raids')"
-              class="flex items-center gap-1 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
-            >
-              <img :src="boss.image" :alt="boss.name" class="w-6 h-6" loading="lazy" />
-              {{ boss.name }}
-            </router-link>
-          </div>
-        </div>
-
-        <div v-if="whereToFind.eggs.length" class="mt-3">
-          <span class="text-mini text-gray-500 dark:text-gray-400">{{ $t('pokemon.inEggs') }}</span>
-          <div class="flex flex-wrap gap-2 mt-1">
-            <router-link
-              v-for="egg in whereToFind.eggs"
-              :key="`${egg.eggType}-${egg.name}`"
-              :to="irA('eggs')"
-              class="px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
-            >
-              {{ egg.eggType }} · {{ $t('raids.cpRange') }} {{ egg.combatPower.min }}
-            </router-link>
-          </div>
-        </div>
-
-        <div v-if="whereToFind.research.length" class="mt-3">
-          <span class="text-mini text-gray-500 dark:text-gray-400">
-            {{ $t('pokemon.inResearch') }}
-          </span>
-          <ul class="mt-1 flex flex-col gap-1">
-            <li
-              v-for="(task, index) in whereToFind.research"
-              :key="index"
-              class="text-xs text-gray-600 dark:text-gray-400"
-            >
-              {{ plainText(task.text) }}
-            </li>
-          </ul>
-        </div>
-      </template>
-    </base-card>
-
+    <!-- Va lo primero porque es lo único de la ficha que caduca. -->
+    <where-to-find :pokemon="pokemon" />
     <!-- ---------- Avisos y costes ---------- -->
     <base-card v-if="flags.length || costs.length">
       <div v-if="flags.length" :class="costs.length ? 'mb-4' : ''">
@@ -450,77 +293,7 @@ const plainText = (html) =>
       </div>
     </base-card>
 
-    <!-- ---------- Combates Max ---------- -->
-    <base-card v-if="maxInfo">
-      <div class="flex items-center gap-2">
-        <h3 class="text-sm font-bold">{{ $t('max.title') }}</h3>
-        <span class="flex items-center gap-1.5 text-gray-700 dark:text-gray-200">
-          <max-mark variant="dynamax" :size="18" />
-          <max-mark v-if="maxInfo.gigantamax" variant="gigantamax" :size="18" />
-        </span>
-      </div>
-
-      <p class="mt-2 text-xs text-gray-600 dark:text-gray-400">
-        {{ $t('max.intro') }}
-      </p>
-
-      <!--
-        El ataque Max no se elige: lo marca el tipo principal. Por eso se
-        enseña como un dato, no como una lista de opciones.
-      -->
-      <dl class="mt-3 flex flex-col gap-2">
-        <div
-          v-if="maxInfo.maxMove"
-          class="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
-        >
-          <dt class="text-xs text-gray-600 dark:text-gray-400">{{ $t('max.maxMove') }}</dt>
-          <dd class="flex items-center gap-2 text-sm font-semibold">
-            <type-icons :types="[maxInfo.maxMove.type]" size="16" />
-            {{ locale() === 'en' ? maxInfo.maxMove.name : maxInfo.maxMove.nameEs }}
-          </dd>
-        </div>
-
-        <div
-          v-if="maxInfo.gmaxMove"
-          class="flex items-center justify-between gap-2 p-2 rounded-xl bg-fuchsia-50 dark:bg-fuchsia-950 border border-fuchsia-300 dark:border-fuchsia-800"
-        >
-          <dt class="text-xs text-gray-700 dark:text-gray-300">{{ $t('max.gmaxMove') }}</dt>
-          <dd class="flex items-center gap-2 text-sm font-semibold">
-            <type-icons :types="[maxInfo.gmaxMove.type]" size="16" />
-            {{ locale() === 'en' ? maxInfo.gmaxMove.name : maxInfo.gmaxMove.nameEs }}
-          </dd>
-        </div>
-      </dl>
-
-      <!--
-        Coste total de dejar cada movimiento Max al máximo. Se da el total y no
-        el desglose por nivel porque lo que se decide antes de empezar es si
-        merece la pena gastarse las partículas en este Pokémon.
-      -->
-      <div v-if="upgradeRows.length" class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-        <h4 class="text-xs font-bold text-gray-700 dark:text-gray-300">
-          {{ $t('max.upgradeTitle') }}
-        </h4>
-        <ul class="mt-2 flex flex-col gap-1.5">
-          <li
-            v-for="row in upgradeRows"
-            :key="row.key"
-            class="flex items-center justify-between gap-2 text-xs"
-          >
-            <span class="font-semibold">{{ row.label }}</span>
-            <span class="text-gray-600 dark:text-gray-400 text-right">
-              {{ row.total.mp }} {{ $t('max.particles') }}
-              <template v-if="row.total.candy"> · {{ row.total.candy }} {{ $t('max.candy') }}</template>
-              <template v-if="row.total.xl"> · {{ row.total.xl }} {{ $t('max.candyXl') }}</template>
-            </span>
-          </li>
-        </ul>
-        <p class="mt-2 text-mini text-gray-500 dark:text-gray-400">
-          {{ $t('max.upgradeNote') }}
-        </p>
-      </div>
-    </base-card>
-
+    <max-battle-panel :entry="asRosterEntry" />
     <!-- ---------- PC de un 100 % ---------- -->
     <base-card v-if="cpTable.length">
       <h3 class="text-sm font-bold">{{ $t('pokemon.cp100') }}</h3>

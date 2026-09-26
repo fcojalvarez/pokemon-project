@@ -1,5 +1,9 @@
 import { computed, ref } from 'vue'
 import { acceptHMRUpdate, defineStore } from 'pinia'
+import { normalizeName } from '../utils/gameText'
+
+// Se reexporta porque es aquí donde la buscan quienes ya la usaban.
+export { normalizeName }
 
 const FEEDS = {
   events: 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/events.json',
@@ -66,12 +70,6 @@ export function dexFromImage(url) {
 }
 
 /** Normaliza un nombre de LeekDuck para poder cruzarlo con la Pokédex. */
-export function normalizeName(name) {
-  return String(name)
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-}
-
 function readCache() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -95,7 +93,6 @@ function writeCache(payload) {
  * algo útil aunque no haya cobertura.
  */
 export const useLiveStore = defineStore('live', () => {
-  // STATE
   const events = ref([])
   const raids = ref([])
   const eggs = ref([])
@@ -148,7 +145,6 @@ export const useLiveStore = defineStore('live', () => {
     })
   }
 
-  // GETTERS
   const withStatus = computed(() =>
     events.value.map((event) => ({
       ...event,
@@ -263,7 +259,6 @@ const TIER_ORDER = [
     }
   }
 
-  // ACTIONS
   const hydrateFromCache = ({ allowExpired = false } = {}) => {
     const cached = readCache()
     if (!cached) return false

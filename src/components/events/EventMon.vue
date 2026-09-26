@@ -14,8 +14,6 @@
  */
 import { computed } from 'vue'
 import { useGameDataStore } from '../../stores/gameData'
-import { useTranslate } from '../../composables/useTranslate'
-import { translatePokemonName } from '../../utils/eventName'
 import ShinyMark from '../pokemon/ShinyMark.vue'
 
 const props = defineProps({
@@ -28,32 +26,9 @@ const props = defineProps({
 })
 
 const gameData = useGameDataStore()
-const { t } = useTranslate()
 
-const clave = (nombre) => String(nombre ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
-
-/**
- * Prefijos que LeekDuck pone delante y que no cambian de quién es el Pokémon:
- * Mega Malamar y Malamar comparten número de Pokédex, y la ficha es la misma.
- */
-const SIN_PREFIJO = /^(mega|gigantamax|dynamax|shadow|primal|alolan|galarian|hisuian|paldean)\s+/i
-
-const entrada = computed(() => {
-  if (!gameData.isReady) return null
-  const buscado = clave(String(props.name).replace(SIN_PREFIJO, ''))
-  if (!buscado) return null
-  return (
-    gameData.roster.find(
-      (p) => !p.mega && !p.shadow && clave(p.name) === buscado
-    ) ?? null
-  )
-})
-
-const nombreEs = computed(() =>
-  translatePokemonName(props.name, gameData.namesEs, (form, base) =>
-    t(`events.forms.${form}`, { pokemon: base })
-  )
-)
+const entrada = computed(() => gameData.baseByName(props.name))
+const nombreEs = computed(() => gameData.nombreEs(props.name))
 
 const to = computed(() => (entrada.value ? `/pokemon/${entrada.value.dex}` : null))
 
