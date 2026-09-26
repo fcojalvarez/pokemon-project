@@ -17,6 +17,9 @@ const trigger = ref(null)
 // La versión sale de package.json (vite.config.js la inyecta), así que al
 // subir versión solo hay que tocarla ahí.
 const version = import.meta.env.VITE_APP_VERSION
+// El build cambia en cada despliegue; la versión solo cuando se sube a mano.
+// Con los dos se sabe exactamente qué hay instalado.
+const build = import.meta.env.VITE_APP_BUILD
 
 const links = [
   { to: '/', key: 'pokedex', icon: 'M4 6h16M4 12h16M4 18h16' },
@@ -129,7 +132,9 @@ watch(
       <div
         class="flex items-center gap-3 px-4 py-3 border-t border-gray-300 dark:border-gray-600"
       >
-        <span v-if="version" class="text-mini text-gray-500 dark:text-gray-400">v{{ version }}</span>
+        <span v-if="version" class="text-mini text-gray-500 dark:text-gray-400">
+          v{{ version }}<template v-if="build"> · {{ build }}</template>
+        </span>
 
         <!-- ml-auto: el botón queda abajo a la derecha del cajón, y sigue ahí
              aunque no haya versión que enseñar a su izquierda. -->

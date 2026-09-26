@@ -1,5 +1,6 @@
 import { fileURLToPath, URL } from 'node:url';
 import { readFileSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
@@ -8,9 +9,31 @@ import { VitePWA } from 'vite-plugin-pwa';
 // La versión vive solo en package.json; el footer la lee de aquí.
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8'));
 
+/**
+ * Identificador del build.
+ *
+ * La versión de package.json solo cambia cuando alguien se acuerda de subirla,
+ * así que no sirve para saber qué hay desplegado. Esto cambia en cada build:
+ * en Vercel, el commit; en local, el commit de git; y si no hay git, la fecha.
+ */
+function buildId() {
+  const deVercel = process.env.VERCEL_GIT_COMMIT_SHA;
+  if (deVercel) return deVercel.slice(0, 7);
+  try {
+    return execSync('git rev-parse --short HEAD', { stdio: ['ignore', 'pipe', 'ignore'] })
+      .toString()
+      .trim();
+  } catch {
+    return new Date().toISOString().slice(0, 16).replace(/[-:T]/g, '');
+  }
+}
+
+const build = buildId();
+
 export default defineConfig({
   define: {
-    'import.meta.env.VITE_APP_VERSION': JSON.stringify(version)
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(version),
+    'import.meta.env.VITE_APP_BUILD': JSON.stringify(build)
   },
   plugins: [
     vue(),
@@ -40,6 +63,12 @@ export default defineConfig({
         ]
       },
       workbox: {
+        // Con un `workbox` propio hay que pedir estos dos a mano: sin ellos el
+        // service worker nuevo se queda esperando a que se cierren todas las
+        // pestañas, y en una app instalada eso no pasa nunca. Era el motivo de
+        // tener que desinstalarla para ver los cambios.
+        clientsClaim: true,
+        skipWaiting: true,
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json}'],
         // roster.json y pvp.json pasan de 800 KB: sin esto quedan fuera del precache.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
