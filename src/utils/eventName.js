@@ -20,7 +20,13 @@ const FORM_PREFIXES = [
   [/^Gigantamax\s+/i, 'gigantamax'],
   [/^Dynamax\s+/i, 'dynamax'],
   [/^Shadow\s+/i, 'shadow'],
-  [/^Primal\s+/i, 'primal']
+  [/^Primal\s+/i, 'primal'],
+  // Las regionales las escribe LeekDuck como prefijo («Hisuian Samurott») y
+  // en español van detrás y con «de» («Samurott de Hisui»).
+  [/^Alolan\s+/i, 'alola'],
+  [/^Galarian\s+/i, 'galar'],
+  [/^Hisuian\s+/i, 'hisui'],
+  [/^Paldean\s+/i, 'paldea']
 ]
 
 const RULES = [

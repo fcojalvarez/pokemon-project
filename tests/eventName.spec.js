@@ -149,3 +149,18 @@ describe('parseMaxBattle', () => {
     })
   })
 })
+
+describe('formas regionales en los nombres', () => {
+  const nombres = new Map([['Samurott', 'Samurott'], ['Machop', 'Machop']])
+  const forma = (form, pokemon) =>
+    ({ hisui: `${pokemon} de Hisui`, shadow: `${pokemon} Oscuro` })[form] ?? pokemon
+
+  it('pasa el prefijo regional inglés a la forma española', () => {
+    // LeekDuck escribe "Hisuian Samurott"; en español va detrás y con "de".
+    expect(translatePokemonName('Hisuian Samurott', nombres, forma)).toBe('Samurott de Hisui')
+  })
+
+  it('sigue tratando los oscuros como antes', () => {
+    expect(translatePokemonName('Shadow Machop', nombres, forma)).toBe('Machop Oscuro')
+  })
+})

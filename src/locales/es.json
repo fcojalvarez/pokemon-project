@@ -179,7 +179,11 @@
             "gigantamax": "{pokemon} Gigamax",
             "dynamax": "{pokemon} Dinamax",
             "shadow": "{pokemon} Oscuro",
-            "primal": "{pokemon} Primigenio"
+            "primal": "{pokemon} Primigenio",
+            "alola": "{pokemon} de Alola",
+            "galar": "{pokemon} de Galar",
+            "hisui": "{pokemon} de Hisui",
+            "paldea": "{pokemon} de Paldea"
         },
         "hasSpawns": "Apariciones en libertad",
         "hasResearch": "Tareas de campo",

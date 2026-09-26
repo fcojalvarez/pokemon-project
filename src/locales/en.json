@@ -179,7 +179,11 @@
             "gigantamax": "Gigantamax {pokemon}",
             "dynamax": "Dynamax {pokemon}",
             "shadow": "Shadow {pokemon}",
-            "primal": "Primal {pokemon}"
+            "primal": "Primal {pokemon}",
+            "alola": "Alolan {pokemon}",
+            "galar": "Galarian {pokemon}",
+            "hisui": "Hisuian {pokemon}",
+            "paldea": "Paldean {pokemon}"
         },
         "hasSpawns": "Wild spawns",
         "hasResearch": "Field research",

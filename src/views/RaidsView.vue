@@ -19,6 +19,7 @@ import ShinyLegend from '../components/pokemon/ShinyLegend.vue'
 import LiveMonCard from '../components/pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../utils/sprites'
 import { useTranslate } from '../composables/useTranslate'
+import { translatePokemonName } from '../utils/eventName'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
@@ -31,6 +32,16 @@ const openBoss = ref(null)
 const TABS = ['raids', 'eggs', 'research', 'max']
 
 const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
+
+/**
+ * Nombre de un Pokémon en español. LeekDuck los publica en inglés y con la
+ * forma entre paréntesis; se usa el mismo traductor que los títulos de evento
+ * para que «Shadow Machop» o «Hisuian Samurott» salgan igual en toda la app.
+ */
+const nombreEs = (nombre) =>
+  translatePokemonName(nombre, gameData.namesEs, (form, base) =>
+    t(`events.forms.${form}`, { pokemon: base })
+  )
 
 /**
  * Los Pokémon que hay ahora mismo en los nodos energéticos, por nivel.
@@ -193,7 +204,7 @@ onMounted(() => {
         <div class="grid grid-cols-[repeat(auto-fill,minmax(195px,1fr))] gap-2">
           <template v-for="boss in group.list" :key="boss.name">
             <live-mon-card
-              :name="boss.name"
+              :name="nombreEs(boss.name)"
               :image="boss.image"
               :dex="dexFromImage(boss.image)"
               :combat-power="boss.combatPower?.normal"
@@ -205,7 +216,7 @@ onMounted(() => {
                 type="button"
                 class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
                 :aria-expanded="openBoss === boss.name"
-                :aria-label="`${$t('raids.counters')}: ${boss.name}`"
+                :aria-label="`${$t('raids.counters')}: ${nombreEs(boss.name)}`"
                 @click.prevent.stop="toggleBoss(boss)"
               >
                 <span aria-hidden="true">{{ openBoss === boss.name ? '▴' : '▾' }}</span>
@@ -287,7 +298,7 @@ onMounted(() => {
           <live-mon-card
             v-for="egg in group.list"
             :key="`${group.name}-${egg.name}`"
-            :name="egg.name"
+            :name="nombreEs(egg.name)"
             :image="egg.image"
             :dex="dexFromImage(egg.image)"
             :combat-power="egg.combatPower"
@@ -349,7 +360,7 @@ onMounted(() => {
               <live-mon-card
                 v-for="reward in task.rewards"
                 :key="reward.name"
-                :name="reward.name"
+                :name="nombreEs(reward.name)"
                 :image="reward.image"
                 :dex="dexFromImage(reward.image)"
                 :combat-power="reward.combatPower"
