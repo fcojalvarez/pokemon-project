@@ -12,6 +12,10 @@ const mainStore = useMainStore()
 const { isDarkMode } = storeToRefs(mainStore)
 const route = useRoute()
 
+// Dos raíces (el botón y el Teleport del cajón): las clases que lleguen de
+// fuera van al botón, que es lo que ocupa sitio en la cabecera.
+defineOptions({ inheritAttrs: false })
+
 const isOpen = ref(false)
 const { bloquear, liberar } = useInertApp()
 const panel = ref(null)
@@ -72,6 +76,7 @@ watch(
 <template>
   <button
     ref="trigger"
+    v-bind="$attrs"
     type="button"
     :aria-label="$t(isOpen ? 'nav.close' : 'nav.open')"
     :aria-expanded="isOpen"
