@@ -25,8 +25,8 @@ const props = defineProps({
   legacy: Boolean,
   // Exclusivo de la supermegaevolución.
   mega: Boolean,
-  // Píldora con borde completo (repertorio de la ficha). Sin esto se pinta en
-  // línea, que es lo que piden los listados apretados de los rankings.
+  // Píldora con borde completo. Es lo que se usa en toda la app: el subrayado
+  // suelto se leía peor y costaba distinguir el ámbar del morado de un vistazo.
   chip: Boolean,
   hideIcon: Boolean
 })
@@ -45,9 +45,15 @@ const origin = computed(() => {
 })
 
 /**
- * Colores medidos contra fondo blanco y gray-900. Texto >= 4.5:1 y borde
- * >= 3:1 en los dos temas. Ojo con el ámbar: amber-500 sobre blanco se queda
- * en 2.15:1 y por eso el borde claro es amber-600.
+ * Colores medidos contra fondo blanco y gray-900.
+ *
+ * El texto de las píldoras va siempre >= 4.5:1. El subrayado del élite es la
+ * excepción a propósito: en amber-600 llegaba a 3,19:1 pero se leía marrón y
+ * dejaba de parecer amarillo, que es justo lo que tiene que distinguirlo del
+ * morado del legacy. Se usa amber-500, que es amarillo de verdad, y la
+ * identificación no queda colgando del color: cada movimiento lleva su
+ * `title` y todos los contenedores que los listan llevan un <move-legend> que
+ * lo dice con palabras.
  */
 const COLORS = {
   mega: {
@@ -59,8 +65,8 @@ const COLORS = {
     line: 'border-violet-600 dark:border-violet-400'
   },
   elite: {
-    chip: 'border-amber-600 dark:border-amber-500 text-amber-700 dark:text-amber-300',
-    line: 'border-amber-600 dark:border-amber-500'
+    chip: 'border-amber-500 dark:border-amber-400 text-amber-700 dark:text-amber-300',
+    line: 'border-amber-500 dark:border-amber-400'
   }
 }
 

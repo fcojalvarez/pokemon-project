@@ -14,6 +14,7 @@
  * activa. Funciona con flechas, Inicio/Fin, Enter, Espacio y Escape.
  */
 import { computed, nextTick, ref } from 'vue'
+import BaseChevron from './BaseChevron.vue'
 import useDetectOutsideClick from '../../composables/useDetectOutsideClick'
 
 const props = defineProps({
@@ -131,15 +132,7 @@ useDetectOutsideClick(root, () => close())
     >
       <span class="flex-1 min-w-0 truncate text-left">{{ selectedLabel }}</span>
       <!-- Como hijo del flex y no en absoluto: así siempre respeta el padding. -->
-      <svg
-        class="shrink-0 w-3 h-3 text-gray-500 dark:text-gray-400 transition-transform"
-        :class="isOpen ? 'rotate-180' : ''"
-        viewBox="0 0 12 12"
-        fill="none"
-        aria-hidden="true"
-      >
-        <path d="M2.5 4.5 6 8l3.5-3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
+      <base-chevron :open="isOpen" size="w-3 h-3" class="text-gray-500 dark:text-gray-400" />
     </button>
 
     <!--
