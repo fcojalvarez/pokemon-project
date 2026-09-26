@@ -97,13 +97,15 @@
 <template>
     <!-- El anillo de foco va en la caja entera y no en el campo, que queda
          metido dentro del borde y se veía como un segundo recuadro. -->
-    <section class="relative transition-colors w-full px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300">
+    <!-- Menos relleno en móvil: con 28 px por lado, en la ficha a 320 px solo
+         cabía la «B» de «Buscar». -->
+    <section class="relative transition-colors w-full px-2 md:px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300">
         <input
             id="input-search"
             type="text"
             v-model="inputValue"
             autocomplete="off"
-            class="w-full bg-transparent py-2 px-3 mt-2 md:mt-0 outline-none focus-visible:outline-none text-black dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+            class="w-full bg-transparent py-2 px-1.5 md:px-3 mt-2 md:mt-0 outline-none focus-visible:outline-none text-black dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400"
             :placeholder="$t('searchPokemon')"
             :aria-label="$t('a11y.search')"
             :role="isListView ? undefined : 'combobox'"

@@ -46,7 +46,9 @@
 
         <!-- ml-auto: en escritorio el buscador topa en max-w-lg y el hueco
              que sobra empuja estos dos botones a la derecha. -->
-        <toggle-dark-mode class="shrink-0 ml-auto px-4 cursor-pointer" />
+        <!-- En móvil el modo oscuro va dentro del menú: aquí le quitaba al
+             buscador el sitio que necesita. -->
+        <toggle-dark-mode class="hidden md:flex shrink-0 ml-auto px-4 cursor-pointer" />
 
         <nav-menu class="shrink-0" />
     </header>

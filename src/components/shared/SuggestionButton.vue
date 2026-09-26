@@ -151,7 +151,7 @@ watch(
           </h2>
           <button
             type="button"
-            class="ml-auto w-9 h-9 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-700 text-gray-600 dark:text-gray-200"
+            class="zona-tactil ml-auto w-9 h-9 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-700 text-gray-600 dark:text-gray-200"
             :aria-label="$t('suggestions.close')"
             @click="close()"
           >
@@ -248,7 +248,7 @@ watch(
             <button
               type="submit"
               :disabled="suggestions.isSending"
-              class="px-4 py-1.5 text-xs rounded-xl border border-gray-500 shadow-md bg-gray-500 dark:bg-gray-600 text-white transition-colors hover:bg-gray-600 hover:dark:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              class="zona-tactil px-4 py-1.5 text-xs rounded-xl border border-gray-500 shadow-md bg-gray-500 dark:bg-gray-600 text-white transition-colors hover:bg-gray-600 hover:dark:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {{ $t(suggestions.isSending ? 'suggestions.sending' : 'suggestions.submit') }}
             </button>

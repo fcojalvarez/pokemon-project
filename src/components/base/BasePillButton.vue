@@ -11,7 +11,7 @@ defineProps({
 <template>
   <button
     type="button"
-    class="px-3 py-1.5 text-xs rounded-xl border border-gray-400 shadow-md transition-colors"
+    class="zona-tactil px-3 py-1.5 text-xs rounded-xl border border-gray-400 shadow-md transition-colors"
     :class="
       active
         ? 'bg-gray-500 dark:bg-gray-600 text-white'

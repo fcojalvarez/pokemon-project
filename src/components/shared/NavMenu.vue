@@ -5,6 +5,7 @@ import { useMainStore } from '../../stores/main'
 import { storeToRefs } from 'pinia'
 import BaseIcon from '../base/BaseIcon.vue'
 import SuggestionButton from './SuggestionButton.vue'
+import ToggleDarkMode from '../ToggleDarkMode.vue'
 import { useInertApp } from '../../composables/useInertApp'
 
 const mainStore = useMainStore()
@@ -109,7 +110,7 @@ watch(
         <span class="font-bold text-gray-800 dark:text-gray-200">PogoDex</span>
         <button
           type="button"
-          class="ml-auto w-9 h-9 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-700 text-gray-600 dark:text-gray-200"
+          class="zona-tactil ml-auto w-9 h-9 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-700 text-gray-600 dark:text-gray-200"
           :aria-label="$t('nav.close')"
           @click="close()"
         >
@@ -142,20 +143,22 @@ watch(
         </RouterLink>
       </nav>
 
-      <div
-        class="flex items-center gap-3 px-4 py-3 border-t border-gray-300 dark:border-gray-600"
-      >
+      <div class="flex flex-col items-end gap-2 px-4 py-3 border-t border-gray-300 dark:border-gray-600">
+        <!--
+          Abajo a la derecha del cajón. En móvil el botón de modo oscuro vive
+          aquí, al lado de Sugerencias: en la cabecera le quitaba al buscador
+          el sitio que necesita. Es el mismo botón que en escritorio.
+        -->
+        <div class="flex items-stretch gap-2">
+          <toggle-dark-mode class="md:hidden px-4" />
+          <suggestion-button
+            @open="close({ restoreFocus: false })"
+            @close="trigger?.focus()"
+          />
+        </div>
         <span v-if="version" class="text-mini text-gray-600 dark:text-gray-300">
           v{{ version }}<template v-if="build"> · {{ build }}</template>
         </span>
-
-        <!-- ml-auto: el botón queda abajo a la derecha del cajón, y sigue ahí
-             aunque no haya versión que enseñar a su izquierda. -->
-        <suggestion-button
-          class="ml-auto"
-          @open="close({ restoreFocus: false })"
-          @close="trigger?.focus()"
-        />
       </div>
     </div>
   </Teleport>
