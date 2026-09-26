@@ -149,11 +149,15 @@ watch(
           aquí, al lado de Sugerencias: en la cabecera le quitaba al buscador
           el sitio que necesita. Es el mismo botón que en escritorio.
         -->
-        <!-- flex-wrap: en pantallas muy estrechas (320 px) los dos botones no
-             caben en una fila y el de Sugerencias baja, en vez de cortarse. -->
-        <div class="flex flex-wrap items-stretch justify-end gap-2">
-          <toggle-dark-mode con-texto class="md:hidden" />
+        <!--
+          Dos columnas iguales: los dos botones miden lo mismo. En pantallas
+          muy estrechas (320 px) no caben en una fila y pasan a una columna,
+          los dos a todo el ancho, en vez de cortarse.
+        -->
+        <div class="w-full grid grid-cols-[repeat(auto-fit,minmax(128px,1fr))] gap-2 md:flex md:justify-end">
+          <toggle-dark-mode con-texto class="md:hidden justify-center" />
           <suggestion-button
+            class="justify-center"
             @open="close({ restoreFocus: false })"
             @close="trigger?.focus()"
           />
