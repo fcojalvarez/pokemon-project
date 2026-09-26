@@ -119,7 +119,7 @@ watch(
     ref="trigger"
     type="button"
     v-bind="$attrs"
-    class="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 shadow-md transition-colors hover:bg-gray-150 hover:dark:bg-gray-700"
+    class="flex items-center gap-2 px-2.5 md:px-3 py-2 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 shadow-md transition-colors hover:bg-gray-150 hover:dark:bg-gray-700"
     @click="open"
   >
     <base-icon
@@ -129,7 +129,8 @@ watch(
       class-path="stroke-gray-600 dark:stroke-gray-100"
       d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
     />
-    <span class="text-sm">{{ $t('suggestions.button') }}</span>
+    <!-- text-xs en móvil: comparte fila con el botón de modo oscuro. -->
+    <span class="text-xs md:text-sm whitespace-nowrap">{{ $t('suggestions.button') }}</span>
   </button>
 
   <Teleport to="body">

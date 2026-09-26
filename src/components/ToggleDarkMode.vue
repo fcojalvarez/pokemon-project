@@ -9,6 +9,13 @@ const mainStore = useMainStore();
 const { isDarkMode } = storeToRefs(mainStore);
 const { setDarkMode } = mainStore;
 
+// En el menú lateral, en móvil, el botón va con su texto al lado del de
+// Sugerencias y con su mismo aspecto. En la cabecera, el texto solo cabe en
+// escritorio.
+defineProps({
+    conTexto: { type: Boolean, default: false }
+});
+
 const icon = computed({
     get() {
         return isDarkMode.value? lightIcon : darkIcon;
@@ -34,8 +41,28 @@ onBeforeMount(() => {
 </script>
 
 <template>
-    <!-- Nombre fijo y el estado en aria-pressed: en móvil solo se ve el icono. -->
+    <!-- Nombre fijo y el estado en aria-pressed. -->
     <button
+        v-if="conTexto"
+        type="button"
+        :aria-pressed="isDarkMode"
+        :aria-label="$t('a11y.darkModeToggle')"
+        class="flex items-center gap-2 px-2.5 py-2 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-200 shadow-md transition-colors hover:bg-gray-150 hover:dark:bg-gray-700"
+        @click="toggleDarkMode"
+    >
+        <base-icon
+            :stroke-width="1.5"
+            height="18"
+            width="18"
+            class-path="stroke-gray-600 dark:stroke-gray-100"
+            :d="icon"
+        />
+        <span aria-hidden="true" class="text-xs whitespace-nowrap">{{ isDarkMode? $t('lightMode') : $t('darkMode') }}</span>
+    </button>
+
+    <!-- En la cabecera: en móvil solo se ve el icono. -->
+    <button
+        v-else
         type="button"
         :aria-pressed="isDarkMode"
         :aria-label="$t('a11y.darkModeToggle')"
