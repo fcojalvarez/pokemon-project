@@ -140,9 +140,9 @@ const rarityOptions = computed(() => [
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-3">
+      <div class="grid grid-cols-2 gap-3">
         <base-dropdown
-          class="flex-1 min-w-[140px]"
+          class="min-w-0"
           :label="$t('filters.generation')"
           :model-value="filters.generation ?? ''"
           :options="generationOptions"
@@ -150,7 +150,7 @@ const rarityOptions = computed(() => [
         />
 
         <base-dropdown
-          class="flex-1 min-w-[140px]"
+          class="min-w-0"
           :label="$t('filters.rarity')"
           :model-value="filters.rarity ?? ''"
           :options="rarityOptions"
@@ -158,26 +158,32 @@ const rarityOptions = computed(() => [
         />
       </div>
 
-      <div class="flex flex-wrap gap-2">
+      <!-- Mismo ancho y mismo alto que los selectores de arriba: son filtros
+           del mismo rango y quedaban como un añadido suelto. -->
+      <div class="grid grid-cols-2 gap-3">
         <base-pill-button
+          class="h-11 w-full text-sm"
           :active="filters.onlyShiny"
           @click="setFilters({ onlyShiny: !filters.onlyShiny })"
         >
           {{ $t('filters.onlyShiny') }}
         </base-pill-button>
         <base-pill-button
+          class="h-11 w-full text-sm"
           :active="filters.onlyShadow"
           @click="setFilters({ onlyShadow: !filters.onlyShadow })"
         >
           {{ $t('filters.onlyShadow') }}
         </base-pill-button>
         <base-pill-button
+          class="h-11 w-full text-sm"
           :active="filters.onlyDynamax"
           @click="setFilters({ onlyDynamax: !filters.onlyDynamax })"
         >
           {{ $t('filters.onlyDynamax') }}
         </base-pill-button>
         <base-pill-button
+          class="h-11 w-full text-sm"
           :active="filters.onlyGigantamax"
           @click="setFilters({ onlyGigantamax: !filters.onlyGigantamax })"
         >
