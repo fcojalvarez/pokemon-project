@@ -184,8 +184,7 @@
             "paldea": "Paldean {pokemon}"
         },
         "hasSpawns": "Wild spawns",
-        "hasResearch": "Field research",
-        "filterState": "Status"
+        "hasResearch": "Field research"
     },
     "raids": {
         "intro": "Raid bosses, eggs, field research and Max Battles happening right now.",

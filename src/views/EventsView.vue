@@ -6,6 +6,7 @@ import {
   BaseEmptyState,
   BaseErrorMessage,
   BaseFilterSelect,
+  BasePillButton,
   DataFreshness,
   SpinnerComponent
 } from '../components/index'
@@ -21,14 +22,6 @@ const typeFilter = ref('all')
 
 // Sin 'past': un evento que ya terminó no sirve para nada.
 const TABS = ['active', 'upcoming', 'undated']
-
-/** Estado del evento. Va en desplegable, como el tipo, y comparten fila. */
-const stateOptions = computed(() =>
-  TABS.map((name) => ({
-    value: name,
-    label: `${t(`events.${name}`)} (${(live[name] ?? []).length})`
-  }))
-)
 
 const source = computed(() => live[tab.value] ?? [])
 
@@ -76,17 +69,23 @@ onMounted(() => {
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
-    <!-- Estado y tipo, a partes iguales: son los dos filtros de la vista. -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-      <base-filter-select
-        v-model="tab"
-        :label="$t('events.filterState')"
-        :options="stateOptions"
-      />
+    <div class="flex flex-wrap gap-2 mb-3">
+      <base-pill-button
+        v-for="name in TABS"
+        :key="name"
+        :active="tab === name"
+        @click="tab = name"
+      >
+        {{ $t(`events.${name}`) }}
+      </base-pill-button>
+    </div>
+
+    <div class="flex flex-wrap items-end gap-3 mb-4">
       <base-filter-select
         v-model="typeFilter"
         :label="$t('events.filterType')"
         :options="typeOptions"
+        class="flex-1 min-w-[180px] max-w-xs"
       />
     </div>
 

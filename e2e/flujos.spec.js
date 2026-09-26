@@ -112,9 +112,11 @@ test('los eventos se listan con el título en español', async ({ page }) => {
   await page.goto('/eventos')
   await page.waitForLoadState('networkidle')
 
-  // Estado y tipo son dos desplegables; el estado arranca en "En marcha".
-  const estado = page.getByRole('combobox').first()
-  await expect(estado).toContainText(/en marcha/i)
+  // El estado son pastillas y arranca en "En marcha".
+  await expect(page.getByRole('button', { name: /en marcha/i })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
 
   // El título llega en inglés desde LeekDuck y se arma en español por patrón.
   await expect(page.getByText(/incursiones|Hora destacada|Día de la Comunidad/i).first())

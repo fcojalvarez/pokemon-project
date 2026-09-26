@@ -184,8 +184,7 @@
             "paldea": "{pokemon} de Paldea"
         },
         "hasSpawns": "Apariciones en libertad",
-        "hasResearch": "Tareas de campo",
-        "filterState": "Estado"
+        "hasResearch": "Tareas de campo"
     },
     "raids": {
         "intro": "Jefes de incursión, huevos, tareas de campo y combates Max activos ahora mismo.",
