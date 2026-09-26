@@ -93,12 +93,8 @@ export const createPokemonData = async() => {
         pokemon.rarity = pokemonsLegendary.includes(index) ? 'legendary' : pokemonsMythic.includes(index) ? 'mythic': 'standard';
         pokemon.generation = gen1.includes(index)? 1: gen2.includes(index)? 2 : gen3.includes(index)? 3 : gen4.includes(index)? 4 : gen5.includes(index)? 5 : gen6.includes(index)? 6 : gen7.includes(index)? 7 : gen8.includes(index)? 8 : 9;
         pokemon.sprites = {
-            male: pokemon.generation === 9
-                ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${index}.png`
-                : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${index}.png`,
-            male_shiny: pokemon.generation === 9
-                ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${index}.png`
-                : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${index}.png`,
+            male: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${index}.png`,
+            male_shiny: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${index}.png`,
         }
         pokemon.is_shadow_released = Object.keys(shadowPokemons).map( id => Number(id)).includes(index)
         if(pokemon.is_shadow_released) {
@@ -176,15 +172,12 @@ export const createPokemonData = async() => {
 
                     if(evolutionsFiltered.length === 0) console.log('Hay un problema al filtrar las evoluciones del pokemon: ', pokemon.pokemon_id);
 
+                    // eslint-disable-next-line no-unused-vars
                     const {pokemon_name: evolveName, pokemon_id:evolveId, form, ...evolutionData} = evolutionsFiltered;
 
                     const sprites = {
-                        male: pokemon.generation === 9
-                            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${evolutionId}.png`
-                            : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${evolutionId}.png`,
-                        male_shiny: pokemon.generation === 9
-                            ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${evolutionId}.png`
-                            : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${evolutionId}.png`,
+                        male: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${evolutionId}.png`,
+                        male_shiny: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${evolutionId}.png`,
                     }
                     const types = (function() { 
                         const types = [];
@@ -217,12 +210,8 @@ export const createPokemonData = async() => {
                             return types;
                         })()
                         const evolveSprites = {
-                            male: pokemon.generation === 9
-                                ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${evolveId}.png`
-                                : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${evolveId}.png`,
-                            male_shiny: pokemon.generation === 9
-                                ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${evolveId}.png`
-                                : `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${evolveId}.png`,
+                            male: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${evolveId}.png`,
+                            male_shiny: `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/${evolveId}.png`,
                         }
                         const is_evolution_released = Boolean(releasedes[String(evolveId)]);
                         const is_evolution_shiny_released = Boolean(shiniesReleasedes[String(evolveId)])
@@ -258,7 +247,7 @@ export const createPokemonData = async() => {
             return types;
         })()
       
-        const { data, error } = await supabase.from('pokemons').insert({
+        const { error } = await supabase.from('pokemons').insert({
             pokemon_id: index,
             name: pokemon.name,
             sprites: pokemon.sprites,
