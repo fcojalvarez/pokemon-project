@@ -355,3 +355,44 @@ describe('combates Max', () => {
     }
   })
 })
+
+/**
+ * Traducción de bonificaciones. El multiplicador es la parte delicada: el
+ * español del juego lo escribe con palabras («Doble», «Triple», «Cuádruple»)
+ * y no con un marcador, así que si 2×, 3× y 4× comparten clave se pisan y un
+ * 3× sale traducido como «Doble». Eso es peor que no traducir, porque da un
+ * número falso con toda la confianza del mundo.
+ */
+describe('bonificaciones de evento', () => {
+  const textos = read('texts.json')
+
+  it('respeta el multiplicador de cada bonificación', () => {
+    expect(translateGameText('2× Catch XP', textos)).toBe('Doble de PX por captura')
+    expect(translateGameText('3× Catch XP', textos)).toBe('Triple de PX por captura')
+    expect(translateGameText('4× Catch XP', textos)).toBe('Cuádruple de PX por captura')
+  })
+
+  it('casa la "x" de LeekDuck con el "×" del juego', () => {
+    // LeekDuck escribe "3x" y el juego "3×". Sin unificarlo no casaba ninguna.
+    expect(translateGameText('3x Catch XP', textos)).toBe(
+      translateGameText('3× Catch XP', textos)
+    )
+  })
+
+  it('no inventa un número cuando no tiene la frase exacta', () => {
+    // Si solo existiera la entrada de otro multiplicador, antes se devolvía esa
+    // con su cifra. Ahora, sin frase exacta, se deja el original.
+    const raro = translateGameText('7× Catch XP', textos)
+    expect(raro === '7× Catch XP' || raro.includes('7')).toBe(true)
+    expect(raro).not.toContain('Doble')
+  })
+
+  it('sigue traduciendo las tareas, que sí llevan marcador', () => {
+    expect(translateGameText('Make 7 Great Throws', textos)).toBe(
+      'Haz 7 grandes lanzamientos'
+    )
+    expect(translateGameText('Make 3 Great Throws in a row', textos)).toBe(
+      'Haz 3 grandes lanzamientos seguidos'
+    )
+  })
+})

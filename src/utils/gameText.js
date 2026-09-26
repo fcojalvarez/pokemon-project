@@ -8,15 +8,28 @@
  */
 
 /**
- * Clave de búsqueda: minúsculas, números y marcadores unificados como `{n}`,
- * y fuera todo lo demás (incluidas las tildes, que se quitan en ambos lados
- * por igual, así que siguen casando).
+ * Clave de búsqueda: minúsculas, números unificados como `{n}` y fuera todo lo
+ * demás (incluidas las tildes, que se quitan en ambos lados por igual, así que
+ * siguen casando).
+ *
+ * Con `keepNumbers` los números se quedan tal cual. Hace falta para las
+ * bonificaciones: el español del juego escribe el multiplicador con palabras
+ * («Doble de PX por captura», «Triple de PX por captura») y no con un
+ * marcador, así que si 2×, 3× y 4× comparten clave se pisan entre ellas.
  */
-export function normalizeText(text) {
-  return String(text)
+export function normalizeText(text, { keepNumbers = false } = {}) {
+  let out = String(text)
     .toLowerCase()
-    .replace(/\{\d+\}/g, '{n}')
-    .replace(/\b\d+\b/g, '{n}')
+    // El juego escribe «3× Catch XP» y LeekDuck «3x Catch XP». Sin unificarlo,
+    // la x pegada al número impide que éste cuente como palabra y las dos
+    // frases normalizan distinto: así no casaba ni una bonificación.
+    .replace(/(\d)\s*[x×](?=\s|$)/g, '$1 ')
+
+  if (!keepNumbers) {
+    out = out.replace(/\{\d+\}/g, '{n}').replace(/\b\d+\b/g, '{n}')
+  }
+
+  return out
     .replace(/[^a-z0-9{} ]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -24,8 +37,14 @@ export function normalizeText(text) {
 
 /**
  * Traduce un texto si existe la frase equivalente en el juego.
- * Los números del original se colocan en los marcadores de la plantilla:
- * "Make 7 Great Throws" -> "Haz {0} grandes lanzamientos" -> "Haz 7 grandes…".
+ *
+ * Se busca primero la frase con su número tal cual y solo después la forma
+ * genérica, porque son dos casos distintos:
+ *
+ *   - Bonificaciones: «3× Catch XP» → «Triple de PX por captura». El número va
+ *     en el propio texto español, así que la clave tiene que llevarlo.
+ *   - Tareas: «Make 7 Great Throws» → «Haz {0} grandes lanzamientos» → «Haz 7
+ *     grandes lanzamientos». Ahí el español sí trae marcador.
  *
  * @returns {string} la frase en español, o el original si no hay equivalencia
  */
@@ -33,13 +52,20 @@ export function translateGameText(text, dictionary) {
   if (!text || !dictionary) return text
 
   const plain = String(text)
+  const numbers = plain.match(/\d+/g) ?? []
+
+  const exact = dictionary[normalizeText(plain, { keepNumbers: true })]
+  if (exact) return exact
+
   const template = dictionary[normalizeText(plain)]
   if (!template) return plain
 
-  const numbers = plain.match(/\d+/g) ?? []
   const placeholders = template.match(/\{\d+\}/g) ?? []
 
-  if (!placeholders.length) return template
+  // Plantilla sin marcadores para un texto que sí lleva números: viene de otra
+  // frase que normaliza igual, justo el caso del multiplicador. Antes de
+  // soltar una cifra equivocada, se deja el original.
+  if (!placeholders.length) return numbers.length ? plain : template
 
   // Sin números que poner quedaría un "{0}" suelto: mejor dejar el original.
   if (numbers.length < placeholders.length) return plain

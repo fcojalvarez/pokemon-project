@@ -374,6 +374,12 @@ function buildTextDictionary(enRaw, esRaw) {
     const isBonus = english.length < 60 && BONUS_WORDS.some((w) => normalized.includes(w))
     if (!isTask && !isBonus) continue
 
+    // Dos claves por frase: la exacta (con su número) y la genérica (con
+    // {n}). La exacta es la que salva los multiplicadores, que en español van
+    // en palabras; la genérica es la que hace funcionar las tareas, donde el
+    // español sí trae marcadores.
+    const exact = normalizeText(english, { keepNumbers: true })
+    if (!(exact in dictionary)) dictionary[exact] = spanish
     if (normalized in dictionary) continue
     dictionary[normalized] = spanish
   }
