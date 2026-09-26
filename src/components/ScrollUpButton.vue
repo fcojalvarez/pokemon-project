@@ -37,10 +37,17 @@ onUnmounted(() => document.removeEventListener('scroll', scrollHandler))
         @animationend="rebota = false"
         @click="scrollToUp"
     >
+        <!--
+            La punta iba en dos trazos sueltos que arrancaban los dos en el
+            vértice, así que con los remates a ras se veía abierta. Ahora la
+            cabeza es un único trazo continuo y el vértice es una unión.
+        -->
         <base-icon
             width="24px" height="24px"
             :stroke-width="3"
-            d="M12 21V3m0 0l8.5 8.5M12 3l-8.5 8.5"
+            d="M12 21V4 M3.6 12.4 12 4l8.4 8.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
             class-path="stroke-gray-800 dark:stroke-gray-200"
         />
     </div>

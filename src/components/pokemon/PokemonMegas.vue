@@ -67,7 +67,9 @@ const megas = computed(() => {
       borde superior del bloque, igual que las de caramelos: a la derecha del
       centro y sin ocupar alto propio.
     -->
-    <div class="absolute left-1/2 top-0 ml-[5.5rem] -translate-y-1/2 flex items-center gap-2">
+    <div
+      class="absolute left-1/2 top-0 ml-14 sm:ml-[5.5rem] -translate-y-1/2 flex items-center gap-2 max-w-[calc(50%-3.75rem)] sm:max-w-[calc(50%-5.75rem)]"
+    >
       <svg
         v-if="withArrow"
         class="stroke-gray-700 dark:stroke-white"
@@ -91,7 +93,7 @@ const megas = computed(() => {
     -->
     <div
       v-if="megas.length > 1"
-      class="absolute right-1/2 top-0 mr-[5.5rem] -translate-y-1/2 flex items-center gap-2"
+      class="absolute right-1/2 top-0 mr-14 sm:mr-[5.5rem] -translate-y-1/2 flex items-center gap-2 max-w-[calc(50%-3.75rem)] sm:max-w-[calc(50%-5.75rem)]"
     >
       <svg
         v-if="withArrow"
@@ -115,7 +117,7 @@ const megas = computed(() => {
     -->
     <div
       v-if="megas.length > 1 && sharedEnergy"
-      class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex items-center"
+      class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 flex items-center max-w-full px-2"
     >
       <mega-energy-cost :amount="sharedEnergy" />
     </div>
