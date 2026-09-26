@@ -1,4 +1,8 @@
 {
-    "rewrites": [
-        { "source": "/pokemon/:id", "destination": "/" }]
+  "rewrites": [
+    {
+      "source": "/((?!_next|assets|icons|data|.*\\..*).*)",
+      "destination": "/"
+    }
+  ]
 }

@@ -29,3 +29,9 @@ coverage
 
 // File enviroments
 .env
+# Caché del pipeline de datos (scripts/build-data.mjs)
+.cache
+
+# Playwright
+/test-results/
+/playwright-report/
