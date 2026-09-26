@@ -94,7 +94,8 @@
             "megaNext": "Later Megas",
             "buddyCandy": "Km per candy",
             "buddyMega": "Km per Mega Energy"
-        }
+        },
+        "inMaxBattles": "In Max Battles"
     },
     "top": {
         "mode": "Mode",
@@ -420,6 +421,13 @@
         "battlesNote": "Announced Max Battles show up here. Which Pokémon each Power Spot currently hosts is not published anywhere: it rotates by area and is only visible in-game.",
         "tier": "Tier {n}",
         "noLive": "The active Max Battles have not loaded yet.",
-        "liveSource": "The higher CP is a 100 % IV catch. Data from Snacknap, which publishes the Power Spot roster."
+        "liveSource": "The higher CP is a 100 % IV catch. Data from Snacknap, which publishes the Power Spot roster.",
+        "team": "Suggested team",
+        "teamIntro": "Against {pokemon}: one to tank with Max Guard and two hitting with their Max Move.",
+        "tank": "To tank",
+        "attackers": "To attack",
+        "noAttackers": "No Dynamax has a type advantage here.",
+        "availableNow": "available now",
+        "teamNote": "Ranked by attack and type advantage, not damage: Max Moves publish no power. Since every Pokémon of a type shares the same Max Move, that part cancels out within the comparison."
     }
 }

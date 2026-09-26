@@ -214,35 +214,47 @@ onMounted(() => gameData.load())
       />
     </div>
 
-    <div
-      v-if="mode === 'pve'"
-      role="group"
-      aria-labelledby="incluir-top"
-      class="flex flex-wrap items-center gap-2 mb-3"
-    >
-      <!--
-        Sin la etiqueta, «Megas» y «Oscuros» no decían si se estaban filtrando
-        o incluyendo. Es un grupo de interruptores, así que va etiquetado como
-        tal y no como dos botones sueltos.
-      -->
+    <!--
+      Mismo trato que los selectores de arriba: etiqueta encima y botones del
+      mismo alto repartidos en rejilla. Sueltos en una fila parecían de otro
+      orden, y son el tercer filtro de la vista.
+    -->
+    <div v-if="mode === 'pve'" class="mb-3">
       <span
         id="incluir-top"
-        class="text-mini uppercase tracking-wider text-gray-500 dark:text-gray-400"
+        class="block mb-1 text-mini uppercase tracking-wider text-gray-500 dark:text-gray-400"
       >{{ $t('top.include') }}</span>
-      <base-pill-button :active="includeMega" @click="includeMega = !includeMega">
-        {{ $t('top.megas') }}
-      </base-pill-button>
-      <base-pill-button :active="includeShadow" @click="includeShadow = !includeShadow">
-        {{ $t('top.shadows') }}
-      </base-pill-button>
-      <base-pill-button
-        :active="includeLegacy"
-        :title="$t('top.legacyHelp')"
-        @click="includeLegacy = !includeLegacy"
+
+      <div
+        role="group"
+        aria-labelledby="incluir-top"
+        class="grid grid-cols-3 gap-2"
       >
-        {{ $t('moves.legacy') }}
-      </base-pill-button>
-      <span class="text-mini text-gray-500 dark:text-gray-400">{{ sortHelp }}</span>
+        <base-pill-button
+          class="h-11 w-full text-sm"
+          :active="includeMega"
+          @click="includeMega = !includeMega"
+        >
+          {{ $t('top.megas') }}
+        </base-pill-button>
+        <base-pill-button
+          class="h-11 w-full text-sm"
+          :active="includeShadow"
+          @click="includeShadow = !includeShadow"
+        >
+          {{ $t('top.shadows') }}
+        </base-pill-button>
+        <base-pill-button
+          class="h-11 w-full text-sm"
+          :active="includeLegacy"
+          :title="$t('top.legacyHelp')"
+          @click="includeLegacy = !includeLegacy"
+        >
+          {{ $t('moves.legacy') }}
+        </base-pill-button>
+      </div>
+
+      <p class="mt-2 text-mini text-gray-500 dark:text-gray-400">{{ sortHelp }}</p>
     </div>
 
     <move-legend

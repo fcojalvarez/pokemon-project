@@ -15,9 +15,11 @@ import {
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
 import MaxMark from '../components/pokemon/MaxMark.vue'
 import MaxLegend from '../components/pokemon/MaxLegend.vue'
+import BaseChevron from '../components/base/BaseChevron.vue'
 import ShinyLegend from '../components/pokemon/ShinyLegend.vue'
 import LiveMonCard from '../components/pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../utils/sprites'
+import { maxCounters } from '../utils/maxBattle'
 import { useTranslate } from '../composables/useTranslate'
 import { translatePokemonName } from '../utils/eventName'
 
@@ -28,6 +30,8 @@ const { t, te } = useTranslate()
 
 const tab = ref('raids')
 const openBoss = ref(null)
+/** Qué jefe Max tiene el equipo recomendado abierto. */
+const openMax = ref(null)
 
 const TABS = ['raids', 'eggs', 'research', 'max']
 
@@ -54,6 +58,30 @@ const nombreEs = (nombre) =>
  * El nombre y el sprite se resuelven aquí contra el roster: la fuente da el
  * número de Pokédex, que es lo que no se rompe.
  */
+/**
+ * A quién llevar contra el jefe Max abierto.
+ *
+ * Un equipo Max son tres: uno que aguante usando Maxibarrera y dos pegando.
+ * Por eso salen dos listas. Solo entran Pokémon que puedan dinamaxizar, que
+ * en un combate Max no cabe nadie más.
+ */
+const equipoMax = computed(() => {
+  if (!openMax.value || !gameData.isReady) return null
+  const jefe = gameData.roster.find(
+    (p) => p.dex === openMax.value && !p.mega && !p.shadow
+  )
+  if (!jefe) return null
+
+  // Marca cuáles están hoy en los nodos: el mejor counter no sirve de nada si
+  // no hay dónde conseguirlo en forma Dinamax.
+  const disponibles = new Set((gameData.maxLive?.pokemon ?? []).map((uno) => uno.dex))
+
+  return maxCounters(jefe, gameData.roster, gameData.chart, {
+    limit: 6,
+    available: disponibles
+  })
+})
+
 const maxPorNivel = computed(() => {
   const vivos = gameData.maxLive?.pokemon ?? []
   if (!vivos.length) return []
@@ -321,21 +349,81 @@ onMounted(() => {
             <span class="font-normal text-gray-500 dark:text-gray-400">({{ grupo.list.length }})</span>
           </h2>
           <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2">
-            <live-mon-card
-              v-for="uno in grupo.list"
-              :key="`${grupo.tier}-${uno.dex}`"
-              :name="uno.nameEs"
-              :image="uno.image"
-              :dex="uno.dex"
-              :combat-power="uno.cp"
-              :can-be-shiny="uno.canBeShiny"
-            >
-              <max-mark
-                :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
-                :size="15"
-                class="shrink-0 text-gray-600 dark:text-gray-300"
-              />
-            </live-mon-card>
+            <template v-for="uno in grupo.list" :key="`${grupo.tier}-${uno.dex}`">
+              <live-mon-card
+                :name="uno.nameEs"
+                :image="uno.image"
+                :dex="uno.dex"
+                :combat-power="uno.cp"
+                :can-be-shiny="uno.canBeShiny"
+              >
+                <max-mark
+                  :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
+                  :size="15"
+                  class="shrink-0 text-gray-600 dark:text-gray-300"
+                />
+                <button
+                  type="button"
+                  class="shrink-0 px-1.5 py-1 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
+                  :aria-expanded="openMax === uno.dex"
+                  :aria-label="`${$t('max.team')}: ${uno.nameEs}`"
+                  @click.prevent.stop="openMax = openMax === uno.dex ? null : uno.dex"
+                >
+                  <base-chevron :open="openMax === uno.dex" size="w-3 h-3" />
+                </button>
+              </live-mon-card>
+
+              <!--
+                El equipo ocupa la fila entera: al lado de una tarjeta de 160px
+                no cabría, y así queda debajo del jefe al que pertenece.
+              -->
+              <div
+                v-if="openMax === uno.dex && equipoMax"
+                class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
+              >
+                <p class="text-mini text-gray-600 dark:text-gray-400 mb-3">
+                  {{ $t('max.teamIntro', { pokemon: uno.nameEs }) }}
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 class="text-xs font-bold mb-2">{{ $t('max.tank') }}</h3>
+                    <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1.5">
+                      <live-mon-card
+                        v-for="quien in equipoMax.tanks"
+                        :key="`t-${quien.id}`"
+                        :name="quien.nameEs"
+                        :image="spriteUrl(quien.spriteId)"
+                        :dex="quien.dex"
+                        :badge="quien.availableNow ? $t('max.availableNow') : null"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 class="text-xs font-bold mb-2">{{ $t('max.attackers') }}</h3>
+                    <base-empty-state
+                      v-if="equipoMax.attackers.length === 0"
+                      :message="$t('max.noAttackers')"
+                    />
+                    <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1.5">
+                      <live-mon-card
+                        v-for="quien in equipoMax.attackers"
+                        :key="`a-${quien.id}`"
+                        :name="quien.nameEs"
+                        :image="spriteUrl(quien.spriteId)"
+                        :dex="quien.dex"
+                        :badge="quien.availableNow ? $t('max.availableNow') : null"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <p class="mt-3 text-mini text-gray-500 dark:text-gray-400">
+                  {{ $t('max.teamNote') }}
+                </p>
+              </div>
+            </template>
           </div>
         </section>
 

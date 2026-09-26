@@ -286,9 +286,27 @@ const pvpRanks = computed(() => {
 
 const whereToFind = computed(() => live.whereToFind(props.pokemon.name))
 
+/**
+ * Combates Max en los que sale ahora mismo.
+ *
+ * Esto no viene de LeekDuck como el resto de «dónde conseguirlo»: los nodos
+ * energéticos no los publica, y sin esto la ficha de Articuno decía que no se
+ * conseguía en ningún sitio estando de jefe Max.
+ *
+ * Puede aparecer en más de un nivel, así que se listan todos.
+ */
+const enCombatesMax = computed(() =>
+  (gameData.maxLive?.pokemon ?? []).filter((uno) => uno.dex === props.pokemon.pokemon_id)
+)
+
 const hasWhereToFind = computed(() => {
   const where = whereToFind.value
-  return where.raids.length || where.eggs.length || where.research.length
+  return (
+    where.raids.length ||
+    where.eggs.length ||
+    where.research.length ||
+    enCombatesMax.value.length
+  )
 })
 
 const plainText = (html) =>
@@ -311,6 +329,36 @@ const plainText = (html) =>
       </p>
 
       <template v-else>
+        <div v-if="enCombatesMax.length" class="mt-3">
+          <span class="text-mini text-gray-500 dark:text-gray-400">
+            {{ $t('pokemon.inMaxBattles') }}
+          </span>
+          <div class="flex flex-wrap gap-2 mt-1">
+            <span
+              v-for="uno in enCombatesMax"
+              :key="`max-${uno.tier}`"
+              class="flex items-center gap-1.5 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600"
+            >
+              <max-mark
+                :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
+                :size="14"
+                class="shrink-0"
+              />
+              {{ $t('max.tier', { n: uno.tier }) }}
+              <template v-if="uno.cp">
+                · {{ $t('raids.cpRange') }} {{ uno.cp.min }}–{{ uno.cp.max }}
+              </template>
+              <shiny-mark
+                v-if="uno.canBeShiny"
+                variant="dex"
+                size="text-mini"
+                class="shrink-0 scale-90"
+                :title="$t('pokemon.shinyLegend')"
+              />
+            </span>
+          </div>
+        </div>
+
         <div v-if="whereToFind.raids.length" class="mt-3">
           <span class="text-mini text-gray-500 dark:text-gray-400">{{ $t('pokemon.inRaids') }}</span>
           <div class="flex flex-wrap gap-2 mt-1">
