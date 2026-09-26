@@ -204,3 +204,21 @@ test('el filtro de Gigamax recorta la Pokédex', async ({ page }) => {
   // Los 31 que pueden gigamaxizar caben de sobra en la primera página.
   await expect(page.getByText('Ivysaur')).toHaveCount(0)
 })
+
+/**
+ * El botón Élite del Top: apagado, el ranking enseña solo lo que se aprende
+ * con MT normales. Se combina con el de Legacy.
+ */
+test('el botón Élite quita los ataques élite del ranking', async ({ page }) => {
+  await page.goto('/top')
+  const filas = page.locator('ol > li')
+  await expect(filas.first()).toBeVisible()
+  const conElite = () => filas.filter({ has: page.locator('[title="Solo se aprende con MT Élite"]') })
+  expect(await conElite().count()).toBeGreaterThan(0)
+
+  const boton = page.getByRole('button', { name: 'Élite', exact: true })
+  await boton.click()
+  await expect(boton).toHaveAttribute('aria-pressed', 'false')
+  await expect(conElite()).toHaveCount(0)
+  await expect(filas.first()).toBeVisible()
+})
