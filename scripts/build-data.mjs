@@ -60,7 +60,36 @@ async function loadEnv() {
  * una transacción: o entran los seis o no entra ninguno, para que la app nunca
  * lea un roster nuevo con unos movimientos viejos.
  */
-async function uploadToSupabase(data) {
+/**
+ * Marca en la tabla `pokemons` quien puede dinamaxizar y gigamaxizar.
+ *
+ * Esa tabla va por especie y la Pokedex filtra contra ella en servidor, asi que
+ * el dato tiene que vivir alli en columnas propias. Se resume por numero de
+ * Pokedex: cuenta si alguna forma normal puede, ignorando megas y oscuros, que
+ * en el juego son incompatibles con dinamaxizar.
+ */
+async function updatePokemonsTable(client, roster) {
+  const dinamax = new Set()
+  const gigamax = new Set()
+  for (const p of roster) {
+    if (/_(mega|mega_x|mega_y|primal|shadow)$/.test(p.id)) continue
+    if (p.dynamax) dinamax.add(p.dex)
+    if (p.gigantamax) gigamax.add(p.dex)
+  }
+
+  const { rowCount } = await client.query(
+    `UPDATE public.pokemons
+        SET can_dynamax = (pokemon_id = ANY($1::int[])),
+            can_gigantamax = (pokemon_id = ANY($2::int[])),
+            updated_at = now()
+      WHERE can_dynamax IS DISTINCT FROM (pokemon_id = ANY($1::int[]))
+         OR can_gigantamax IS DISTINCT FROM (pokemon_id = ANY($2::int[]))`,
+    [[...dinamax], [...gigamax]]
+  )
+  console.log(`  pokemons       ${rowCount} filas tocadas (${dinamax.size} Dinamax, ${gigamax.size} Gigamax)`)
+}
+
+async function uploadToSupabase(data, roster) {
   const url = process.env.SUPABASE_DB_URL
   if (!url) {
     if (EXIGE_SUBIDA) {
@@ -94,6 +123,7 @@ async function uploadToSupabase(data) {
       )
       console.log(`  ${name.padEnd(14)} ${(json.length / 1024).toFixed(0)} KB`)
     }
+    await updatePokemonsTable(client, roster)
     await client.query('COMMIT')
   } catch (err) {
     await client.query('ROLLBACK')
@@ -140,6 +170,24 @@ function spriteIdFor(speciesId, dex, forms) {
   if (forms.has(base)) return forms.get(base)
 
   return dex
+}
+
+/**
+ * Nombres de forma tal como los escribe el GAME_MASTER a partir del speciesId
+ * de pvpoke, que no usa los mismos sufijos. Devuelve varios candidatos porque
+ * la forma base aparece unas veces como `PIKACHU` y otras como `PIKACHU_NORMAL`.
+ */
+const SUFIJOS_GM = [
+  [/_alolan$/, '_alola'],
+  [/_galarian$/, '_galarian'],
+  [/_hisuian$/, '_hisuian'],
+]
+
+function gmFormNames(speciesId) {
+  let id = String(speciesId ?? '')
+  for (const [re, rep] of SUFIJOS_GM) id = id.replace(re, rep)
+  const alto = id.toUpperCase()
+  return id.includes('_') ? [alto] : [alto, `${alto}_NORMAL`]
 }
 
 /** Orden canónico de tipos: es el índice que usa attackScalar en el GAME_MASTER. */
@@ -439,13 +487,110 @@ function spanishName(speciesName, dex, es) {
   return `${base} ${tail}`
 }
 
-function buildPokemon(pvpGm, es, moves, forms, megaEnergy) {
+/**
+ * Todo lo de los combates Max, que en el GAME_MASTER va con nombres en clave:
+ * `bread` es Dinamax y `sourdough` (masa madre) es Gigamax.
+ *
+ * Lo que se saca:
+ *   - quien puede dinamaxizar (breadOverrides) y gigamaxizar (breadSettings)
+ *   - el ataque Max que le toca a cada tipo, y el propio de cada Gigamax
+ *   - el grupo de coste de mejora de cada Pokemon (breadTierGroup)
+ *
+ * Los ataques Max no publican `power`: en los combates Max el dano lo calcula
+ * el cliente a partir del nivel del ataque, asi que aqui solo viajan su
+ * nombre, su tipo y su duracion.
+ */
+function buildMaxData(gm, en, es) {
+  const norm = (texto) => String(texto ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
+
+  // Los ataques Max no tienen plantilla numerada, pero su `vfxName` coincide
+  // con el nombre en ingles, que sí está en los textos: por ahí se llega al
+  // nombre traducido.
+  const porNombreIngles = new Map()
+  for (const [clave, valor] of en) {
+    if (clave.startsWith('move_name_')) porNombreIngles.set(norm(valor), clave)
+  }
+
+  // Maxibarrera y Maxivigor no son movimientos numerados: se nombran aparte.
+  const SIN_NUMERAR = {
+    max_shield: 'bread_move_upgrade_bread_b',
+    max_heal: 'bread_move_upgrade_bread_c',
+  }
+
+  const movimientos = {}
+  for (const t of gm) {
+    if (!/^VN_BM_\d+$/.test(t.templateId ?? '')) continue
+    const m = t.data.moveSettings
+    const clave = SIN_NUMERAR[m.vfxName] ?? porNombreIngles.get(norm(m.vfxName))
+    movimientos[t.templateId] = {
+      id: t.templateId,
+      type: (m.pokemonType ?? '').replace('POKEMON_TYPE_', '').toLowerCase(),
+      duration: (m.durationMs ?? 0) / 1000,
+      name: (clave && en.get(clave)) || m.vfxName,
+      nameEs: (clave && es.get(clave)) || (clave && en.get(clave)) || m.vfxName,
+    }
+  }
+
+  const dato = (clave) => gm.find((t) => t.data?.[clave])?.data[clave]
+
+  const porTipo = {}
+  for (const m of dato('breadMoveMappings')?.mappings ?? []) {
+    porTipo[m.type.replace('POKEMON_TYPE_', '').toLowerCase()] = movimientos[m.move] ?? null
+  }
+
+  const gmaxPorEspecie = {}
+  for (const m of dato('sourdoughMoveMappingSettings')?.mappings ?? []) {
+    gmaxPorEspecie[m.pokemonId] ??= movimientos[m.move] ?? null
+  }
+
+  // `allowedSourdoughPokemon` es la lista que el propio juego declara
+  // permitida para gigamaxizar; es la unica afirmacion explicita que hay.
+  const gigamax = new Set(
+    // Las especies de una sola forma vienen con FORM_UNSET, que no es un
+    // nombre de forma: para esas manda el propio id.
+    (dato('breadSettings')?.allowedSourdoughPokemon ?? []).flatMap((p) =>
+      (p.form ?? []).filter((f) => f && f !== 'FORM_UNSET').length
+        ? p.form.filter((f) => f !== 'FORM_UNSET')
+        : [p.pokemonId]
+    )
+  )
+
+  // Esto va por FORMA, no por numero de Pokedex: Charizard puede dinamaxizar
+  // pero Mega Charizard X no, y los oscuros tampoco. El GAME_MASTER ya lo
+  // distingue —cada forma tiene su plantilla— asi que basta con no perder el
+  // sufijo por el camino.
+  const dinamax = new Set()
+  const grupoCoste = {}
+  for (const t of gm) {
+    const ext = t.data?.pokemonExtendedSettings
+    if (ext?.breadOverrides?.some((o) => String(o.breadMode ?? '').startsWith('BREAD_MODE'))) {
+      const m = /^EXTENDED_V\d+_(?:POKEMON_)?(.+)$/.exec(t.templateId ?? '')
+      if (m) dinamax.add(m[1])
+    }
+    const ps = t.data?.pokemonSettings
+    if (ps?.breadTierGroup) {
+      const m = /^V(\d+)_POKEMON_/.exec(t.templateId ?? '')
+      if (m) grupoCoste[Number(m[1])] ??= ps.breadTierGroup
+    }
+  }
+
+  const costes = {}
+  for (const t of gm) {
+    const bm = t.data?.breadMoveLevelSettings
+    if (bm?.group) costes[bm.group] = { attack: bm.aSettings, guard: bm.bSettings, spirit: bm.cSettings }
+  }
+
+  return { movimientos, porTipo, gmaxPorEspecie, gigamax, dinamax, grupoCoste, costes }
+}
+
+function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max) {
   const out = []
   for (const p of pvpGm.pokemon) {
     const tags = p.tags ?? []
     const fast = (p.fastMoves ?? []).filter((m) => moves[m])
     const charged = (p.chargedMoves ?? []).filter((m) => moves[m])
     if (!fast.length || !charged.length) continue
+    const gmForms = gmFormNames(p.speciesId)
     out.push({
       id: p.speciesId,
       dex: p.dex,
@@ -469,6 +614,11 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy) {
       // consiguen con MT Élite; los legacy vinieron de eventos y ni eso.
       eliteMoves: (p.eliteMoves ?? []).filter((m) => moves[m]),
       legacyMoves: (p.legacyMoves ?? []).filter((m) => moves[m]),
+      // Combates Max. `maxMove` sale del tipo principal: todos los Dinamax de
+      // un mismo tipo comparten el mismo ataque Max.
+      dynamax: gmForms.some((f) => max.dinamax.has(f)),
+      gigantamax: gmForms.some((f) => max.gigamax.has(f)),
+      maxCostGroup: max.grupoCoste[p.dex] ?? null,
       megaEnergy: megaEnergy.get(p.speciesId) ?? null,
       legendary: tags.includes('legendary') || tags.includes('wildlegendary'),
       mythical: tags.includes('mythical'),
@@ -544,7 +694,9 @@ async function main() {
     formsRaw.results.map((r) => [r.name, Number(r.url.split('/').filter(Boolean).pop())])
   )
   const megaEnergy = buildMegaEnergy(gmRaw)
-  const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy)
+  const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
+  const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData)
+  console.log(`  ${maxData.dinamax.size} pueden Dinamax, ${maxData.gigamax.size} Gigamax`)
   console.log(`  ${megaEnergy.size} megas con coste de energía`)
 
   const withOwnSprite = pokemon.filter((p) => p.spriteId !== p.dex).length
@@ -557,6 +709,12 @@ async function main() {
       chart,
     },
     'moves.json': moves,
+    'maxbattles.json': {
+      moves: maxData.movimientos,
+      byType: maxData.porTipo,
+      gmaxBySpecies: maxData.gmaxPorEspecie,
+      upgradeCosts: maxData.costes,
+    },
     'roster.json': pokemon,
     'pvp.json': {
       great: trimRankings(great, pokemon, 400),
@@ -585,7 +743,7 @@ async function main() {
     console.log(`  ${file.padEnd(14)} ${(json.length / 1024).toFixed(0)} KB`)
   }
 
-  await uploadToSupabase(data)
+  await uploadToSupabase(data, pokemon)
 
   console.log(`\n${pokemon.length} Pokémon (${data['meta.json'].counts.released} disponibles), ` +
     `${Object.keys(moves).length} movimientos.`)

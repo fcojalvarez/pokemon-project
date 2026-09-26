@@ -7,7 +7,7 @@ import { translateGameText } from '../utils/gameText'
 
 const BASE = import.meta.env.BASE_URL
 
-const FICHEROS = ['roster', 'moves', 'typechart', 'pvp', 'texts', 'meta']
+const FICHEROS = ['roster', 'moves', 'typechart', 'pvp', 'texts', 'meta', 'maxbattles']
 
 /**
  * Los datos de juego, desde la tabla `game_data` de Supabase.
@@ -63,6 +63,7 @@ export const useGameDataStore = defineStore('gameData', () => {
   const pvp = shallowRef({ great: [], ultra: [], master: [] })
   const texts = shallowRef({})
   const meta = shallowRef(null)
+  const maxBattles = shallowRef({ moves: {}, byType: {}, gmaxBySpecies: {}, upgradeCosts: {} })
   const status = ref('idle')
   const error = ref(null)
 
@@ -84,6 +85,27 @@ export const useGameDataStore = defineStore('gameData', () => {
     }
     return map
   })
+
+  /**
+   * Lo que hace falta para pintar los combates Max de un Pokémon del roster.
+   *
+   * El ataque Max sale del tipo principal: todos los Dinamax de un tipo
+   * comparten el mismo, así que no hay nada que elegir. El Gigamax sí es suyo
+   * y va indexado por especie.
+   *
+   * Devuelve null si ese Pokémon no puede dinamaxizar, que es lo normal: las
+   * megas y los oscuros no pueden, y de los demás solo unos 156.
+   */
+  const maxInfoFor = (entry) => {
+    if (!entry?.dynamax && !entry?.gigantamax) return null
+    const especie = String(entry.id ?? '').split('_')[0].toUpperCase()
+    return {
+      gigantamax: !!entry.gigantamax,
+      maxMove: maxBattles.value.byType?.[entry.types?.[0]] ?? null,
+      gmaxMove: entry.gigantamax ? maxBattles.value.gmaxBySpecies?.[especie] ?? null : null,
+      costs: maxBattles.value.upgradeCosts?.[entry.maxCostGroup] ?? null
+    }
+  }
 
   /** Formas alternativas agrupadas por número de Pokédex. */
   const formsByDex = computed(() => {
@@ -133,6 +155,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     typeChart.value = datos.typechart
     pvp.value = datos.pvp
     texts.value = datos.texts
+    maxBattles.value = datos.maxbattles
     meta.value = datos.meta
     status.value = 'ready'
   }
@@ -219,6 +242,8 @@ export const useGameDataStore = defineStore('gameData', () => {
     pvp,
     texts,
     meta,
+    maxBattles,
+    maxInfoFor,
     status,
     error,
     origen,

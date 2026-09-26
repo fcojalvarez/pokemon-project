@@ -386,5 +386,29 @@
         "signingIn": "Entrando…",
         "signOut": "Salir",
         "signInError": "No se ha podido entrar. Revisa el email y la contraseña."
+    },
+    "max": {
+        "title": "Combates Max",
+        "intro": "Se usan en los nodos energéticos contra Pokémon Dinamax y Gigamax.",
+        "canDynamax": "Puede dinamaxizar",
+        "canGigantamax": "Puede gigamaxizar",
+        "maxMove": "Ataque Max",
+        "gmaxMove": "Ataque Gigamax",
+        "slotAttack": "Ataque",
+        "slotGuard": "Maxibarrera",
+        "slotSpirit": "Maxivigor",
+        "upgradeTitle": "Coste de dejarlos al máximo",
+        "particles": "Partículas Max",
+        "candy": "Caramelos",
+        "candyXl": "Caramelos XL",
+        "upgradeNote": "Total de los tres niveles, desbloqueo incluido.",
+        "tabTitle": "PvE · Dinamax",
+        "tabIntro": "Por ataque base: dentro de un tipo, todos usan el mismo Ataque Max.",
+        "noneOfType": "Todavía no hay ningún Dinamax de este tipo.",
+        "battlesTitle": "Combates Max",
+        "noBattles": "Ahora mismo no hay ningún combate Max anunciado.",
+        "legendDynamax": "Dinamax",
+        "legendGigantamax": "Gigamax",
+        "battlesNote": "Solo los combates anunciados (Lunes Max y Días de Combates Max). Qué Pokémon hay ahora en cada nodo energético no lo publica ninguna fuente: rota por zona y solo se ve en el juego."
     }
 }

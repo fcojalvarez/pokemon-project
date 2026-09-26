@@ -386,5 +386,29 @@
         "signingIn": "Signing in…",
         "signOut": "Sign out",
         "signInError": "Could not sign in. Check the email and password."
+    },
+    "max": {
+        "title": "Max Battles",
+        "intro": "Fought at Power Spots against Dynamax and Gigantamax Pokémon.",
+        "canDynamax": "Can Dynamax",
+        "canGigantamax": "Can Gigantamax",
+        "maxMove": "Max Move",
+        "gmaxMove": "G-Max Move",
+        "slotAttack": "Attack",
+        "slotGuard": "Max Guard",
+        "slotSpirit": "Max Spirit",
+        "upgradeTitle": "Cost to fully upgrade",
+        "particles": "Max Particles",
+        "candy": "Candy",
+        "candyXl": "XL Candy",
+        "upgradeNote": "Total across all three levels, unlock included.",
+        "tabTitle": "PvE · Dynamax",
+        "tabIntro": "By base attack: within a type they all share the same Max Move.",
+        "noneOfType": "No Dynamax of this type yet.",
+        "battlesTitle": "Max Battles",
+        "noBattles": "No Max Battles announced right now.",
+        "legendDynamax": "Dynamax",
+        "legendGigantamax": "Gigantamax",
+        "battlesNote": "Announced battles only (Max Mondays and Max Battle Days). Which Pokémon each Power Spot currently hosts is not published anywhere: it rotates by area and is only visible in-game."
     }
 }
