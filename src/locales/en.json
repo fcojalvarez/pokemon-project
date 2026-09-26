@@ -120,7 +120,7 @@
         "capGreat": "1500 CP",
         "capUltra": "2500 CP",
         "capMaster": "no cap",
-        "pveIntro": "Best raid attackers with their best moveset. Each Pokémon is listed under the type of its charged move.",
+        "pveIntro": "Best raid attackers. Each one appears under its charged move type.",
         "pvpIntro": "PvPoke ranking with the recommended moveset.",
         "beatenBy": "Beaten by",
         "beats": "Beats",
@@ -183,7 +183,7 @@
         }
     },
     "raids": {
-        "intro": "Raid bosses, eggs and field research live right now.",
+        "intro": "Raid bosses, eggs, field research and Max Battles happening right now.",
         "tabRaids": "Raids",
         "tabEggs": "Eggs",
         "tabResearch": "Research",
@@ -239,7 +239,8 @@
             "trade": "Trades",
             "gift": "Gifts",
             "ar mapping": "AR mapping"
-        }
+        },
+        "tabMax": "Max Battles"
     },
     "filters": {
         "type": "Type",
@@ -269,7 +270,6 @@
         "Male": "Only evolves if it is a male",
         "walk": "Walk",
         "withBuddy": "with your buddy",
-        "freeWhenWxchanging": "Free when exchanging",
         "lure": {
             "magneticLureModule": "Magnetic lure",
             "mossyLureModule": "Mossy lure",
@@ -284,7 +284,8 @@
             "DragonScale": "Dragon scale",
             "Upgrade": "Upgrade",
             "MetalCoat": "Metal coat"
-        }
+        },
+        "tradeLegend": "Free when traded"
     },
     "types": {
         "normal": "Normal",
@@ -411,6 +412,6 @@
         "noBattles": "No Max Battles announced right now.",
         "legendDynamax": "Dynamax",
         "legendGigantamax": "Gigantamax",
-        "battlesNote": "Announced battles only (Max Mondays and Max Battle Days). Which Pokémon each Power Spot currently hosts is not published anywhere: it rotates by area and is only visible in-game."
+        "battlesNote": "Announced Max Battles show up here. Which Pokémon each Power Spot currently hosts is not published anywhere: it rotates by area and is only visible in-game."
     }
 }

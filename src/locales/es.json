@@ -120,7 +120,7 @@
         "capGreat": "1500 PC",
         "capUltra": "2500 PC",
         "capMaster": "sin tope",
-        "pveIntro": "Mejores atacantes para incursiones, con su mejor conjunto de ataques. Cada Pokémon aparece en el tipo de su ataque cargado.",
+        "pveIntro": "Mejores atacantes para incursiones. Cada uno sale en el tipo de su ataque cargado.",
         "pvpIntro": "Ranking de PvPoke con el conjunto de ataques recomendado.",
         "beatenBy": "Le ganan",
         "beats": "Gana a",
@@ -183,7 +183,7 @@
         }
     },
     "raids": {
-        "intro": "Jefes de incursión, huevos y tareas de campo que están activos ahora mismo.",
+        "intro": "Jefes de incursión, huevos, tareas de campo y combates Max activos ahora mismo.",
         "tabRaids": "Incursiones",
         "tabEggs": "Huevos",
         "tabResearch": "Tareas",
@@ -239,7 +239,8 @@
             "trade": "Intercambios",
             "gift": "Regalos",
             "ar mapping": "Mapeo RA"
-        }
+        },
+        "tabMax": "Combates Max"
     },
     "filters": {
         "type": "Tipo",
@@ -269,7 +270,6 @@
         "withBuddy": "con tu compañero",
         "Female": "Sólo evoluciona si es hembra",
         "Male": "Sólo evoluciona si es macho",
-        "freeWhenWxchanging": "Gratis al intercambiar",
         "lure": {
             "magneticLureModule": "Cebo magnético",
             "mossyLureModule": "Cebo musgoso",
@@ -284,7 +284,8 @@
             "DragonScale": "Escama dragón",
             "Upgrade": "Mejora",
             "MetalCoat": "Revestimiento metálico"
-        }
+        },
+        "tradeLegend": "Gratis al intercambiar"
     },
     "types": {
         "normal": "Normal",
@@ -411,6 +412,6 @@
         "noBattles": "Ahora mismo no hay ningún combate Max anunciado.",
         "legendDynamax": "Dinamax",
         "legendGigantamax": "Gigamax",
-        "battlesNote": "Solo los combates anunciados (Lunes Max y Días de Combates Max). Qué Pokémon hay ahora en cada nodo energético no lo publica ninguna fuente: rota por zona y solo se ve en el juego."
+        "battlesNote": "Los combates Max anunciados salen aquí. Qué Pokémon hay ahora en cada nodo energético no lo publica ninguna fuente: rota por zona y solo se ve en el juego."
     }
 }
