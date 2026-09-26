@@ -80,10 +80,11 @@ const goToPokemon = (dex) => dex && router.push(`/pokemon/${dex}`)
           </span>
           <type-icons :types="row.types" size="12" />
         </div>
-        <div class="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-mini text-gray-600 dark:text-gray-400">
+        <div class="mt-1 flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-400">
           <move-tag
             v-for="move in movesOf(row)"
             :key="move.id ?? move.nameEs"
+            chip
             :name="move.nameEs"
             :type="move.type"
             :elite="move.elite"
