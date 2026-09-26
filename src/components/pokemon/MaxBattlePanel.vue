@@ -113,10 +113,10 @@ const upgradeRows = computed(() => {
         <li
           v-for="row in upgradeRows"
           :key="row.key"
-          class="flex items-center justify-between gap-2 text-xs"
+          class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-xs"
         >
           <span class="font-semibold">{{ row.label }}</span>
-          <span class="text-gray-600 dark:text-gray-300 text-right">
+          <span class="ml-auto text-gray-600 dark:text-gray-300 text-right">
             {{ row.total.mp }} {{ $t('max.particles') }}
             <template v-if="row.total.candy"> · {{ row.total.candy }} {{ $t('max.candy') }}</template>
             <template v-if="row.total.xl"> · {{ row.total.xl }} {{ $t('max.candyXl') }}</template>

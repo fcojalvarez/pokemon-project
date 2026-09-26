@@ -271,13 +271,18 @@ const pvpRanks = computed(() => {
       <div v-if="costs.length">
         <h2 class="text-sm font-bold">{{ $t('pokemon.costs') }}</h2>
         <ul class="mt-2 flex flex-col gap-1.5">
+          <!--
+            flex-wrap: si etiqueta y valor no caben en una línea, el valor baja
+            a la siguiente, a la derecha. Antes la etiqueta se encogía hasta
+            cero y «Purificar» acababa debajo de «3 caramelos».
+          -->
           <li
             v-for="row in costs"
             :key="row.key"
-            class="flex items-center gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+            class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
           >
-            <span class="flex-1 min-w-0">{{ $t(`pokemon.costLabels.${row.key}`) }}</span>
-            <strong class="shrink-0 whitespace-nowrap">
+            <span>{{ $t(`pokemon.costLabels.${row.key}`) }}</span>
+            <strong class="ml-auto text-right whitespace-nowrap">
               <template v-if="row.candy">
                 {{ formatNumber(row.candy) }} {{ $tc('candy', row.candy).toLowerCase() }}<template v-if="row.dust"> · {{ formatNumber(row.dust) }} {{ $t('pokemon.stardust') }}</template>
               </template>
