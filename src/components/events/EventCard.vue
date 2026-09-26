@@ -199,12 +199,6 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       >
         {{ countdown.text }}
       </span>
-      <span
-        v-else-if="event.status === 'undated'"
-        class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-500"
-      >
-        {{ $t('events.noDate') }}
-      </span>
     </div>
 
     <p v-if="event.startDate" class="mt-2 text-mini text-gray-500 dark:text-gray-400">

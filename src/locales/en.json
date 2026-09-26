@@ -134,14 +134,12 @@
     "events": {
         "active": "Active",
         "upcoming": "Upcoming",
-        "undated": "Undated",
         "past": "Past",
         "inProgress": "Active",
         "endsIn": "ends in",
         "startsIn": "starts in",
         "ended": "Ended",
         "started": "Active",
-        "noDate": "No confirmed date",
         "filterType": "Event type",
         "types": {
             "pokemon-spotlight-hour": "Spotlight Hour",

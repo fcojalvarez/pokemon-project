@@ -20,8 +20,9 @@ const { t, te } = useTranslate()
 const tab = ref('active')
 const typeFilter = ref('all')
 
-// Sin 'past': un evento que ya terminó no sirve para nada.
-const TABS = ['active', 'upcoming', 'undated']
+// Ni pasados ni sin fecha: uno que ya terminó no sirve para nada, y los que
+// LeekDuck publica sin fechas no se pueden ni situar en el tiempo.
+const TABS = ['active', 'upcoming']
 
 const source = computed(() => live[tab.value] ?? [])
 

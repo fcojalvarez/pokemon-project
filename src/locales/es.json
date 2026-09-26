@@ -134,14 +134,12 @@
     "events": {
         "active": "En marcha",
         "upcoming": "Próximos",
-        "undated": "Sin fecha",
         "past": "Pasados",
         "inProgress": "En marcha",
         "endsIn": "quedan",
         "startsIn": "empieza en",
         "ended": "Terminado",
         "started": "En marcha",
-        "noDate": "Sin fecha confirmada",
         "filterType": "Tipo de evento",
         "types": {
             "pokemon-spotlight-hour": "Hora del Pokémon Destacado",
