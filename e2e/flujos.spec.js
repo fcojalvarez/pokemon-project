@@ -70,9 +70,9 @@ test('las pestañas de Ahora en juego cambian de contenido', async ({ page }) =>
   await huevos.click()
   await expect(huevos).toHaveAttribute('aria-pressed', 'true')
 
-  const tareas = page.getByRole('button', { name: /tareas/i })
-  await tareas.click()
-  await expect(tareas).toHaveAttribute('aria-pressed', 'true')
+  const misiones = page.getByRole('button', { name: /misiones/i })
+  await misiones.click()
+  await expect(misiones).toHaveAttribute('aria-pressed', 'true')
   await expect(huevos).toHaveAttribute('aria-pressed', 'false')
 })
 

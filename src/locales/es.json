@@ -184,13 +184,13 @@
             "paldea": "{pokemon} de Paldea"
         },
         "hasSpawns": "Apariciones salvajes",
-        "hasResearch": "Tareas de campo"
+        "hasResearch": "Misiones de campo"
     },
     "raids": {
-        "intro": "Jefes de incursión, huevos, tareas de campo y combates Max activos ahora mismo.",
+        "intro": "Jefes de incursión, huevos, misiones de campo y combates Max activos ahora mismo.",
         "tabRaids": "Incursiones",
         "tabEggs": "Huevos",
-        "tabResearch": "Tareas",
+        "tabResearch": "Misiones",
         "counters": "Mejores counters",
         "countersHelp": "Nivel 40, IVs 15/15/15, con la efectividad real contra este jefe.",
         "weakTo": "Débil a",
@@ -199,7 +199,7 @@
         "cpBoosted": "con clima",
         "noRaids": "No hay jefes de incursión publicados.",
         "noEggs": "No hay datos de huevos publicados.",
-        "noResearch": "No hay tareas publicadas.",
+        "noResearch": "No hay misiones publicadas.",
         "hatchCp": "PC al eclosionar",
         "rewards": "Recompensas",
         "regional": "Regional",

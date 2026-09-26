@@ -641,7 +641,15 @@ function buildMaxData(gm, en, es) {
   return { movimientos, porTipo, gmaxPorEspecie, gigamax, dinamax, grupoCoste, costes }
 }
 
-function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max) {
+function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, shinyRaw) {
+  // Qué especies tienen el variocolor liberado. LeekDuck publica un
+  // `canBeShiny` por encuentro, pero viene a false en TODAS las recompensas de
+  // investigación, así que no se puede usar. Y da igual el sitio: si el
+  // variocolor está liberado, puede salir en cualquier encuentro de esa
+  // especie.
+  const conShiny = new Set(
+    Object.values(shinyRaw ?? {}).map((uno) => uno?.id).filter(Number.isInteger)
+  )
   const out = []
   for (const p of pvpGm.pokemon) {
     const tags = p.tags ?? []
@@ -674,6 +682,7 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max) {
       legacyMoves: (p.legacyMoves ?? []).filter((m) => moves[m]),
       // Combates Max. `maxMove` sale del tipo principal: todos los Dinamax de
       // un mismo tipo comparten el mismo ataque Max.
+      shinyReleased: conShiny.has(p.dex),
       dynamax: gmForms.some((f) => max.dinamax.has(f)),
       gigantamax: gmForms.some((f) => max.gigamax.has(f)),
       maxCostGroup: max.grupoCoste[p.dex] ?? null,
@@ -754,7 +763,7 @@ async function main() {
   )
   const megaEnergy = buildMegaEnergy(gmRaw)
   const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
-  const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData)
+  const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, shinyRaw)
   console.log(`  ${maxData.dinamax.size} pueden Dinamax, ${maxData.gigamax.size} Gigamax`)
   console.log(`  ${megaEnergy.size} megas con coste de energía`)
 

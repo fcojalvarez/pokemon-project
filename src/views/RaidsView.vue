@@ -66,6 +66,23 @@ const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
  * forma entre paréntesis; se usa el mismo traductor que los títulos de evento
  * para que «Shadow Machop» o «Hisuian Samurott» salgan igual en toda la app.
  */
+/**
+ * Si ese Pokémon puede salir variocolor.
+ *
+ * No se usa el `canBeShiny` del feed: LeekDuck lo trae a false en TODAS las
+ * recompensas de investigación, así que Phantump salía sin marca el mismo día
+ * que estrenaba variocolor. Manda nuestro dato, que se sincroniza a diario, y
+ * el del feed solo se usa si no conocemos la especie.
+ *
+ * Da igual el sitio donde salga: si el variocolor está liberado, puede
+ * aparecer en cualquier encuentro de esa especie.
+ */
+const puedeSerShiny = (dex, delFeed) => {
+  if (!dex || !gameData.isReady) return !!delFeed
+  const entry = gameData.roster.find((p) => p.dex === dex && !p.mega && !p.shadow)
+  return entry ? entry.shinyReleased : !!delFeed
+}
+
 const nombreEs = (nombre) =>
   translatePokemonName(nombre, gameData.namesEs, (form, base) =>
     t(`events.forms.${form}`, { pokemon: base })
@@ -295,7 +312,7 @@ onMounted(() => {
               :image="boss.image"
               :dex="dexFromImage(boss.image)"
               :combat-power="boss.combatPower?.normal"
-              :can-be-shiny="boss.canBeShiny"
+              :can-be-shiny="puedeSerShiny(dexFromImage(boss.image), boss.canBeShiny)"
               :shadow="group.shadow"
               :badge="group.shadow ? tierLabel(boss.tier) : null"
             >
@@ -493,7 +510,7 @@ onMounted(() => {
             :image="egg.image"
             :dex="dexFromImage(egg.image)"
             :combat-power="egg.combatPower"
-            :can-be-shiny="egg.canBeShiny"
+            :can-be-shiny="puedeSerShiny(dexFromImage(egg.image), egg.canBeShiny)"
           />
         </div>
       </section>
@@ -523,7 +540,7 @@ onMounted(() => {
                 :image="reward.image"
                 :dex="dexFromImage(reward.image)"
                 :combat-power="reward.combatPower"
-                :can-be-shiny="reward.canBeShiny"
+                :can-be-shiny="puedeSerShiny(dexFromImage(reward.image), reward.canBeShiny)"
               />
             </div>
           </article>

@@ -56,6 +56,20 @@ const nombreEs = computed(() =>
 )
 
 const to = computed(() => (entrada.value ? `/pokemon/${entrada.value.dex}` : null))
+
+/**
+ * La marca de variocolor, a escala del sprite que acompaña.
+ *
+ * Iba a tamaño fijo mientras el sprite va de 32 px en la hora destacada a 20
+ * en los jefes de incursión, así que en los pequeños la marca pesaba más que
+ * el propio Pokémon. Se saca del `w-N` de las clases y se ata a él.
+ */
+const markScale = computed(() => {
+  const ancho = Number(/\bw-(\d+)\b/.exec(props.spriteClass)?.[1] ?? 8)
+  // 0,7 a w-8, que es el tamaño de referencia; nunca por debajo de 0,4, que
+  // ahí ya no se distinguiría de una mota.
+  return Math.max(0.4, Math.round((ancho / 8) * 0.7 * 100) / 100)
+})
 </script>
 
 <template>
@@ -83,6 +97,7 @@ const to = computed(() => (entrada.value ? `/pokemon/${entrada.value.dex}` : nul
       variant="dex"
       size="text-mini"
       inline
+      :scale="markScale"
       :title="$t('pokemon.shinyLegend')"
     />
   </component>
