@@ -40,7 +40,6 @@
         "level": "Level",
         "yes": "Yes",
         "no": "No",
-        "updatedAgo": "Updated {age} ago",
         "staleData": "Data is {age} old: it may no longer be current"
     },
     "pokemon": {
@@ -130,7 +129,6 @@
         "method3": "Frustration and Return are excluded: they are not real options for an optimized attacker."
     },
     "events": {
-        "intro": "Everything LeekDuck publishes, counted down in your local time.",
         "active": "Active",
         "upcoming": "Upcoming",
         "undated": "Undated",
@@ -187,7 +185,7 @@
         },
         "hasSpawns": "Wild spawns",
         "hasResearch": "Field research",
-        "shinies": "Shiny available"
+        "filterState": "Status"
     },
     "raids": {
         "intro": "Raid bosses, eggs, field research and Max Battles happening right now.",

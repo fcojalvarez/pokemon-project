@@ -40,7 +40,6 @@
         "level": "Nivel",
         "yes": "Sí",
         "no": "No",
-        "updatedAgo": "Actualizado hace {age}",
         "staleData": "Datos de hace {age}: puede que ya no sean los de ahora"
     },
     "pokemon": {
@@ -130,7 +129,6 @@
         "method3": "Frustración y Retroceso quedan fuera: no son opciones reales para un atacante optimizado."
     },
     "events": {
-        "intro": "Todo lo que publica LeekDuck, con la cuenta atrás en tu hora local.",
         "active": "En marcha",
         "upcoming": "Próximos",
         "undated": "Sin fecha",
@@ -187,7 +185,7 @@
         },
         "hasSpawns": "Apariciones en libertad",
         "hasResearch": "Tareas de campo",
-        "shinies": "Variocolor disponible"
+        "filterState": "Estado"
     },
     "raids": {
         "intro": "Jefes de incursión, huevos, tareas de campo y combates Max activos ahora mismo.",

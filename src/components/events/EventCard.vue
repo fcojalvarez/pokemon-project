@@ -13,7 +13,7 @@ import {
 import { spriteUrl } from '../../utils/sprites'
 import { summarizeEvent } from '../../utils/eventSummary'
 import MaxMark from '../pokemon/MaxMark.vue'
-import ShinyMark from '../pokemon/ShinyMark.vue'
+import EventMon from './EventMon.vue'
 
 const props = defineProps({
   event: { type: Object, required: true }
@@ -103,16 +103,6 @@ const maxBattle = computed(() => {
 })
 
 /**
- * Nombre de un Pokémon en español. LeekDuck los publica en inglés y con la
- * forma entre paréntesis; se reutiliza el mismo traductor que los títulos para
- * que «Shadow Thundurus (Incarnate Forme)» salga igual en los dos sitios.
- */
-const nombreEs = (nombre) =>
-  translatePokemonName(nombre, gameData.namesEs, (form, base) =>
-    t(`events.forms.${form}`, { pokemon: base })
-  )
-
-/**
  * Resumen del evento a partir de `extraData`.
  *
  * LeekDuck no publica descripciones, así que esto no traduce ninguna: arma en
@@ -121,6 +111,20 @@ const nombreEs = (nombre) =>
  * destacada, Día de la Comunidad e incursiones.
  */
 const resumen = computed(() => summarizeEvent(props.event))
+
+/**
+ * Nombres que pueden salir variocolor.
+ *
+ * LeekDuck lo publica de dos formas: como `canBeShiny` en cada Pokémon y como
+ * una lista `shinies` aparte. Se juntan aquí para poder marcar la estrella
+ * sobre el Pokémon en vez de sacar una sección de «variocolor disponible»,
+ * que es del Pokémon y no del evento.
+ */
+const conVariocolor = computed(
+  () => new Set((resumen.value?.shinies ?? []).map((uno) => uno.name))
+)
+
+const esVariocolor = (uno) => !!uno?.canBeShiny || conVariocolor.value.has(uno?.name)
 
 const spotlight = computed(() => props.event.extraData?.spotlight ?? null)
 const communityDay = computed(() => props.event.extraData?.communityday ?? null)
@@ -217,15 +221,12 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       v-if="spotlight"
       class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
     >
-      <img v-if="spotlight.image" :src="spotlight.image" :alt="spotlight.name" class="w-8 h-8" />
       <div class="min-w-0">
-        <strong class="text-sm">{{ nombreEs(spotlight.name) }}</strong>
-        <shiny-mark
-          v-if="spotlight.canBeShiny"
-          variant="dex"
-          size="text-mini"
-          class="inline-block align-middle ml-1 scale-90"
-          :title="$t('pokemon.shinyLegend')"
+        <event-mon
+          :name="spotlight.name"
+          :image="spotlight.image"
+          :can-be-shiny="esVariocolor(spotlight)"
+          class="text-sm font-bold"
         />
         <div class="text-mini text-gray-500 dark:text-gray-400">{{ gameData.translateText(spotlight.bonus) }}</div>
       </div>
@@ -233,10 +234,15 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
 
     <div v-if="communityDay" class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
       <div class="flex flex-wrap items-center gap-2">
-        <span v-for="spawn in communityDay.spawns" :key="spawn.name" class="flex items-center gap-1">
-          <img :src="spawn.image" :alt="spawn.name" class="w-7 h-7" />
-          <span class="text-mini">{{ nombreEs(spawn.name) }}</span>
-        </span>
+        <event-mon
+          v-for="spawn in communityDay.spawns"
+          :key="spawn.name"
+          :name="spawn.name"
+          :image="spawn.image"
+          :can-be-shiny="esVariocolor(spawn)"
+          sprite-class="w-7 h-7"
+          class="text-mini"
+        />
       </div>
       <div class="flex flex-wrap gap-1 mt-2">
         <span
@@ -250,14 +256,15 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
     </div>
 
     <div v-if="raidBosses.length" class="flex flex-wrap gap-2 mt-3">
-      <span
+      <event-mon
         v-for="boss in raidBosses"
         :key="boss.name"
-        class="flex items-center gap-1 px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600"
-      >
-        <img v-if="boss.image" :src="boss.image" alt="" class="w-5 h-5" />
-        {{ nombreEs(boss.name) }}
-      </span>
+        :name="boss.name"
+        :image="boss.image"
+        :can-be-shiny="esVariocolor(boss)"
+        sprite-class="w-5 h-5"
+        class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600"
+      />
     </div>
 
     <!--
@@ -266,7 +273,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       solo si hay apariciones en libertad y si hay tareas de campo.
     -->
     <div
-      v-if="resumen && (resumen.hasSpawns || resumen.hasResearch || resumen.shinies.length)"
+      v-if="resumen && (resumen.hasSpawns || resumen.hasResearch)"
       class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
     >
       <div v-if="resumen.hasSpawns || resumen.hasResearch" class="flex flex-wrap gap-1.5">
@@ -284,19 +291,6 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
         </span>
       </div>
 
-      <div v-if="resumen.shinies.length" class="mt-2">
-        <p class="text-mini text-gray-500 dark:text-gray-400">{{ $t('events.shinies') }}</p>
-        <div class="flex flex-wrap items-center gap-2 mt-1">
-          <span
-            v-for="uno in resumen.shinies"
-            :key="uno.name"
-            class="flex items-center gap-1 text-mini"
-          >
-            <img v-if="uno.image" :src="uno.image" alt="" class="w-6 h-6" loading="lazy" />
-            {{ nombreEs(uno.name) }}
-          </span>
-        </div>
-      </div>
     </div>
 
     <p

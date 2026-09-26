@@ -1,0 +1,90 @@
+<script setup>
+/**
+ * Un Pokémon dentro de una tarjeta de evento: sprite, nombre en español,
+ * marca de variocolor si lo tiene, y enlace a su ficha.
+ *
+ * Lo usan la hora destacada, el Día de la Comunidad y los jefes de incursión,
+ * que antes lo pintaban cada uno a su manera. La marca va sobre el Pokémon y
+ * no en una lista aparte de «variocolor disponible»: es del Pokémon, no del
+ * evento.
+ *
+ * LeekDuck no publica el número de Pokédex, así que se busca por nombre en el
+ * roster. Si no se encuentra (formas raras), no se enlaza: mejor eso que
+ * prometer una navegación que no va a pasar.
+ */
+import { computed } from 'vue'
+import { useGameDataStore } from '../../stores/gameData'
+import { useTranslate } from '../../composables/useTranslate'
+import { translatePokemonName } from '../../utils/eventName'
+import ShinyMark from '../pokemon/ShinyMark.vue'
+
+const props = defineProps({
+  /** Nombre tal cual lo publica LeekDuck, en inglés. */
+  name: { type: String, required: true },
+  image: { type: String, default: null },
+  canBeShiny: Boolean,
+  /** Lado del sprite en clases de Tailwind. */
+  spriteClass: { type: String, default: 'w-8 h-8' }
+})
+
+const gameData = useGameDataStore()
+const { t } = useTranslate()
+
+const clave = (nombre) => String(nombre ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
+
+/**
+ * Prefijos que LeekDuck pone delante y que no cambian de quién es el Pokémon:
+ * Mega Malamar y Malamar comparten número de Pokédex, y la ficha es la misma.
+ */
+const SIN_PREFIJO = /^(mega|gigantamax|dynamax|shadow|primal|alolan|galarian|hisuian|paldean)\s+/i
+
+const entrada = computed(() => {
+  if (!gameData.isReady) return null
+  const buscado = clave(String(props.name).replace(SIN_PREFIJO, ''))
+  if (!buscado) return null
+  return (
+    gameData.roster.find(
+      (p) => !p.mega && !p.shadow && clave(p.name) === buscado
+    ) ?? null
+  )
+})
+
+const nombreEs = computed(() =>
+  translatePokemonName(props.name, gameData.namesEs, (form, base) =>
+    t(`events.forms.${form}`, { pokemon: base })
+  )
+)
+
+const to = computed(() => (entrada.value ? `/pokemon/${entrada.value.dex}` : null))
+</script>
+
+<template>
+  <component
+    :is="to ? 'router-link' : 'span'"
+    :to="to ?? undefined"
+    class="flex items-center gap-1.5 min-w-0"
+    :class="to ? 'hover:underline' : ''"
+  >
+    <img
+      v-if="props.image"
+      :src="props.image"
+      alt=""
+      :class="['shrink-0 object-contain', props.spriteClass]"
+      loading="lazy"
+    />
+    <span class="truncate">{{ nombreEs }}</span>
+    <!--
+      Misma escala y mismo ajuste vertical que <shiny-legend>: la marca se sale
+      de su caja porque una de sus dos filas tiene alto de línea cero, así que
+      su centro visual no es el de la caja y `items-center` la deja alta.
+    -->
+    <shiny-mark
+      v-if="props.canBeShiny"
+      variant="dex"
+      size="text-mini"
+      class="shrink-0 origin-center"
+      style="transform: translateY(-0.231em) scale(0.65)"
+      :title="$t('pokemon.shinyLegend')"
+    />
+  </component>
+</template>
