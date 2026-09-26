@@ -244,7 +244,7 @@
             "gift": "Regalos",
             "ar mapping": "Mapeo RA"
         },
-        "tabMax": "Combates Max"
+        "tapForCounters": "Toca ▾ en un jefe para ver con quién ganarle."
     },
     "filters": {
         "type": "Tipo",
@@ -418,7 +418,6 @@
         "legendGigantamax": "Gigamax",
         "battlesNote": "Los combates Max anunciados salen aquí. Qué Pokémon hay ahora en cada nodo energético no lo publica ninguna fuente: rota por zona y solo se ve en el juego.",
         "tier": "Nivel {n}",
-        "noLive": "Todavía no se han cargado los combates Max activos.",
         "liveSource": "El PC máximo es el de un 100 %. Datos de Snacknap, que publica el roster de los nodos energéticos.",
         "team": "Equipo recomendado",
         "teamIntro": "Contra {pokemon}: uno que aguante usando Maxibarrera y dos pegando con su Ataque Max.",
@@ -427,6 +426,7 @@
         "noAttackers": "Ningún Dinamax le saca ventaja de tipo.",
         "availableNow": "disponible ahora",
         "teamNote": "Ordenado por ataque y ventaja de tipo, no por daño: los ataques Max no publican potencia. Como todos los de un tipo comparten Ataque Max, dentro de la comparación esa parte se cancela. Al evolucionar se conserva la forma Dinamax.",
-        "availableVia": "evolucionando a {pokemon}"
+        "availableVia": "evolucionando a {pokemon}",
+        "tapForTeam": "Toca ▾ en un jefe para ver el equipo recomendado."
     }
 }

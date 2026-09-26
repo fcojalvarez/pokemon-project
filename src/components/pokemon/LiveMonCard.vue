@@ -50,7 +50,7 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
       highlight ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950' : ''
     ]"
   >
-    <span class="relative shrink-0 w-10 h-10 flex items-center justify-center">
+    <span class="relative shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center">
       <!-- El aura del oscuro la ponemos nosotros: no hay sprite con ella. -->
       <span
         v-if="shadow"
@@ -62,25 +62,32 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
         v-if="image"
         :src="image"
         alt=""
-        class="relative w-10 h-10 object-contain"
+        class="relative w-9 h-9 sm:w-10 sm:h-10 object-contain"
         loading="lazy"
+      />
+      <shiny-mark
+        v-if="canBeShiny"
+        variant="dex"
+        size="text-mini"
+        class="absolute -top-1 -right-1 z-10 scale-[0.7] origin-top-right"
+        :title="$t('pokemon.shinyLegend')"
       />
     </span>
 
     <span class="flex-1 min-w-0">
-      <span class="flex items-center gap-1">
-        <span class="text-xs font-semibold truncate" :title="name">{{ name }}</span>
-        <!-- La misma marca que la Pokédex, no una estrella suelta. -->
-        <shiny-mark
-          v-if="canBeShiny"
-          variant="dex"
-          size="text-mini"
-          inline
-          :title="$t('pokemon.shinyLegend')"
-        />
-      </span>
-      <span v-if="cpLabel" class="block text-mini text-gray-600 dark:text-gray-400">
-        {{ $t('raids.cpRange') }} {{ cpLabel }}
+      <span class="block text-xs font-semibold truncate" :title="name">{{ name }}</span>
+      <!--
+        En móvil, a dos columnas, no caben etiqueta y rango: el texto se salía
+        por debajo del botón de desplegar. Se queda el rango, que junto a un
+        jefe de incursión se entiende solo, y la etiqueta vuelve desde sm.
+        El `title` la lleva siempre, para quien use lector de pantalla.
+      -->
+      <span
+        v-if="cpLabel"
+        class="block text-mini text-gray-600 dark:text-gray-400 truncate"
+        :title="`${$t('raids.cpRange')} ${cpLabel}`"
+      >
+        <span class="hidden sm:inline">{{ $t('raids.cpRange') }} </span>{{ cpLabel }}
       </span>
       <span v-if="badge" class="block text-mini text-gray-500 dark:text-gray-400">{{ badge }}</span>
     </span>

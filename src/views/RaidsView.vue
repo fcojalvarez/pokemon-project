@@ -57,7 +57,7 @@ const openBoss = ref(null)
 /** Qué jefe Max tiene el equipo recomendado abierto. */
 const openMax = ref(null)
 
-const TABS = ['raids', 'eggs', 'research', 'max']
+const TABS = ['raids', 'eggs', 'research']
 
 const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
 
@@ -251,8 +251,13 @@ onMounted(() => {
       La estrella que llevan las tarjetas solo tenía `title`, que en móvil no
       existe. Aquí se dice con palabras.
     -->
-    <max-legend v-if="tab === 'max'" class="mb-3" />
-    <shiny-legend v-else variant="dex" class="mb-3" />
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3">
+      <shiny-legend variant="dex" />
+      <!-- Una vez por pestaña: repetirla en cada nivel era más ruido que ayuda. -->
+      <p v-if="tab === 'raids'" class="text-mini text-gray-500 dark:text-gray-400">
+        {{ $t('raids.tapForCounters') }}
+      </p>
+    </div>
 
     <spinner-component v-if="live.status === 'loading'" />
 
@@ -264,12 +269,16 @@ onMounted(() => {
 
     <!-- ---------- Incursiones ---------- -->
     <template v-else-if="tab === 'raids'">
-      <base-empty-state v-if="live.raidsByTier.length === 0" :message="$t('raids.noRaids')" />
+      <base-empty-state
+        v-if="live.raidsByTier.length === 0 && maxPorNivel.length === 0"
+        :message="$t('raids.noRaids')"
+      />
 
       <section v-for="group in live.raidsByTier" :key="group.name" class="mb-5">
         <h2 class="text-sm font-bold mb-2">
           {{ group.shadow ? $t('raids.tiers.shadow') : tierLabel(group.name) }}
         </h2>
+
 
         <!--
           El panel de counters se cuela como un hijo más de la rejilla ocupando
@@ -277,7 +286,7 @@ onMounted(() => {
           el ancho entero en vez de estrecharse dentro de una tarjeta, y la
           rejilla no se descuadra.
         -->
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(195px,1fr))] gap-2">
+        <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(195px,1fr))] gap-2">
           <template v-for="boss in group.list" :key="boss.name">
             <live-mon-card
               :id="`mon-${dexFromImage(boss.image)}`"
@@ -292,7 +301,7 @@ onMounted(() => {
             >
               <button
                 type="button"
-                class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+                class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
                 :aria-expanded="openBoss === boss.name"
                 :aria-label="`${$t('raids.counters')}: ${nombreEs(boss.name)}`"
                 @click.prevent.stop="toggleBoss(boss)"
@@ -364,41 +373,24 @@ onMounted(() => {
           </template>
         </div>
       </section>
-    </template>
-
-    <!-- ---------- Huevos ---------- -->
-    <template v-else-if="tab === 'eggs'">
-      <base-empty-state v-if="live.eggsByType.length === 0" :message="$t('raids.noEggs')" />
-
-      <section v-for="group in live.eggsByType" :key="group.name" class="mb-5">
-        <h2 class="text-sm font-bold mb-2">{{ group.name }}</h2>
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
-          <live-mon-card
-            v-for="egg in group.list"
-            :key="`${group.name}-${egg.name}`"
-            :id="`mon-${dexFromImage(egg.image)}`"
-            :highlight="destacado === dexFromImage(egg.image)"
-            :name="nombreEs(egg.name)"
-            :image="egg.image"
-            :dex="dexFromImage(egg.image)"
-            :combat-power="egg.combatPower"
-            :can-be-shiny="egg.canBeShiny"
-          />
+      <!--
+        Los combates Max son incursiones al fin y al cabo, así que van aquí y
+        no en una pestaña aparte. Con su propio encabezado porque se juegan
+        distinto: tres Pokémon, uno aguantando y dos pegando.
+      -->
+      <template v-if="maxPorNivel.length">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-6">
+          <h2 class="text-sm font-bold">{{ $t('max.battlesTitle') }}</h2>
+          <max-legend />
         </div>
-      </section>
-    </template>
+        <p class="text-mini text-gray-500 dark:text-gray-400 mb-2">{{ $t('max.tapForTeam') }}</p>
 
-    <!-- ---------- Combates Max ---------- -->
-    <template v-else-if="tab === 'max'">
-      <base-empty-state v-if="maxPorNivel.length === 0" :message="$t('max.noLive')" />
-
-      <template v-else>
         <section v-for="grupo in maxPorNivel" :key="grupo.tier" class="mb-5">
-          <h2 class="text-sm font-bold mb-2">
+          <h3 class="text-sm font-bold mb-2">
             {{ $t('max.tier', { n: grupo.tier }) }}
             <span class="font-normal text-gray-500 dark:text-gray-400">({{ grupo.list.length }})</span>
-          </h2>
-          <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2">
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(195px,1fr))] gap-2">
             <template v-for="uno in grupo.list" :key="`${grupo.tier}-${uno.dex}`">
               <live-mon-card
                 :id="`mon-${uno.dex}`"
@@ -484,6 +476,29 @@ onMounted(() => {
         </p>
       </template>
     </template>
+
+    <!-- ---------- Huevos ---------- -->
+    <template v-else-if="tab === 'eggs'">
+      <base-empty-state v-if="live.eggsByType.length === 0" :message="$t('raids.noEggs')" />
+
+      <section v-for="group in live.eggsByType" :key="group.name" class="mb-5">
+        <h2 class="text-sm font-bold mb-2">{{ group.name }}</h2>
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
+          <live-mon-card
+            v-for="egg in group.list"
+            :key="`${group.name}-${egg.name}`"
+            :id="`mon-${dexFromImage(egg.image)}`"
+            :highlight="destacado === dexFromImage(egg.image)"
+            :name="nombreEs(egg.name)"
+            :image="egg.image"
+            :dex="dexFromImage(egg.image)"
+            :combat-power="egg.combatPower"
+            :can-be-shiny="egg.canBeShiny"
+          />
+        </div>
+      </section>
+    </template>
+
 
     <!-- ---------- Tareas ---------- -->
     <template v-else>
