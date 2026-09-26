@@ -107,7 +107,11 @@ watch(
       @keydown="onKeydown"
     >
       <div class="flex items-center gap-3 px-4 py-4 border-b border-gray-300 dark:border-gray-600">
-        <span class="font-bold text-gray-800 dark:text-gray-200">PogoDex</span>
+        <span class="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200">
+          <!-- alt vacío: al lado ya pone «PogoDex». -->
+          <img src="/icons/favicon.svg" alt="" class="w-7 h-7" width="28" height="28">
+          PogoDex
+        </span>
         <button
           type="button"
           class="zona-tactil ml-auto w-9 h-9 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-700 text-gray-600 dark:text-gray-200"
