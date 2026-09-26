@@ -6,7 +6,7 @@ import {
   BaseErrorMessage,
   BaseFilterSelect,
   BasePillButton,
-  SpinnerComponent
+  SkeletonLoader
 } from '../components/index'
 import AttackerList from '../components/rankings/AttackerList.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
@@ -278,7 +278,31 @@ onMounted(() => gameData.load())
       :mega="origenes.mega"
     />
 
-    <spinner-component v-if="gameData.status === 'loading'" />
+    <!-- Filas con la forma de las de verdad: sprite, nombre, ataques y métrica. -->
+    <skeleton-loader v-if="gameData.status === 'loading' || gameData.status === 'idle'">
+      <div class="flex flex-col gap-2">
+        <div
+          v-for="n in 8"
+          :key="n"
+          class="flex items-center gap-3 p-2 pr-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+        >
+          <span class="w-6 shrink-0 flex justify-end"><span class="esqueleto h-3 w-3 rounded"></span></span>
+          <span class="w-12 h-12 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
+          <span class="flex-1 min-w-0 flex flex-col gap-2">
+            <span class="esqueleto h-3.5 w-2/5 rounded"></span>
+            <span class="flex gap-1.5">
+              <span class="esqueleto h-5 w-20 rounded-full"></span>
+              <span class="esqueleto h-5 w-24 rounded-full"></span>
+            </span>
+          </span>
+          <span class="w-[72px] shrink-0 flex flex-col items-end gap-1.5">
+            <span class="esqueleto h-4 w-14 rounded"></span>
+            <span class="esqueleto h-1 w-full rounded-full"></span>
+            <span class="esqueleto h-3 w-10 rounded"></span>
+          </span>
+        </div>
+      </div>
+    </skeleton-loader>
 
     <base-error-message
       v-else-if="gameData.status === 'error'"

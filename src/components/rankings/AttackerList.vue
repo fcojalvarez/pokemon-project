@@ -16,6 +16,7 @@ import { computed } from 'vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import { spriteUrl } from '../../utils/sprites'
+import BaseSprite from '../base/BaseSprite.vue'
 
 const props = defineProps({
   rows: { type: Array, required: true },
@@ -67,11 +68,10 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
         {{ row.rank }}
       </span>
 
-      <img
+      <base-sprite
         :src="spriteUrl(row.spriteId)"
-        alt=""
-        class="w-12 h-12 shrink-0 object-contain drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
-        loading="lazy"
+        class="w-12 h-12 shrink-0"
+        img-class="drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
       />
 
       <div class="flex-1 min-w-0">

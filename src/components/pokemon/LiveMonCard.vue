@@ -14,6 +14,7 @@
  */
 import { computed } from 'vue'
 import ShinyMark from './ShinyMark.vue'
+import BaseSprite from '../base/BaseSprite.vue'
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -58,12 +59,10 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
         style="background: radial-gradient(circle, rgba(147,51,234,0.55) 0%, rgba(147,51,234,0) 70%)"
         aria-hidden="true"
       ></span>
-      <img
+      <base-sprite
         v-if="image"
         :src="image"
-        alt=""
-        class="relative w-9 h-9 sm:w-10 sm:h-10 object-contain"
-        loading="lazy"
+        class="w-9 h-9 sm:w-10 sm:h-10"
       />
       <shiny-mark
         v-if="canBeShiny"

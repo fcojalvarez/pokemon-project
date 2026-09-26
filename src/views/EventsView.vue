@@ -8,7 +8,7 @@ import {
   BaseFilterSelect,
   BasePillButton,
   DataFreshness,
-  SpinnerComponent
+  SkeletonLoader
 } from '../components/index'
 import EventCard from '../components/events/EventCard.vue'
 import { useTranslate } from '../composables/useTranslate'
@@ -99,7 +99,29 @@ onMounted(() => {
       {{ $t('max.battlesNote') }}
     </p>
 
-    <spinner-component v-if="live.status === 'loading'" />
+    <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        <div
+          v-for="n in 6"
+          :key="n"
+          class="p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+        >
+          <div class="flex gap-3 items-start">
+            <span class="esqueleto w-20 h-14 shrink-0 rounded-xl"></span>
+            <div class="flex-1 flex flex-col gap-2">
+              <span class="esqueleto h-4 w-20 rounded-full"></span>
+              <span class="esqueleto h-3.5 w-full rounded"></span>
+              <span class="esqueleto h-3.5 w-3/5 rounded"></span>
+            </div>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <span class="esqueleto h-5 w-24 rounded-full"></span>
+            <span class="esqueleto h-5 w-28 rounded-full"></span>
+          </div>
+          <span class="esqueleto block h-3 w-2/3 mt-3 rounded"></span>
+        </div>
+      </div>
+    </skeleton-loader>
 
     <base-error-message
       v-else-if="live.status === 'error'"

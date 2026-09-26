@@ -25,11 +25,11 @@
                 class="relative mx-auto max-w-full transition-all"
                 :class="isActive ? 'h-28 w-28 sm:h-32 sm:w-32' : 'h-24 w-24'"
             >
-                <img
+                <base-sprite
                     :src="isShowShiny? pokemon.sprites.male_shiny : pokemon.sprites.male"
-                    alt=""
-                    class="h-full w-full object-contain"
-                >
+                    :lazy="false"
+                    class="h-full w-full"
+                />
                 <!-- Escalada, no con otro font-size: así la marca no se descuadra. -->
                 <shiny-mark v-if="pokemon.is_shiny_released" variant="evolution" :label="$t('pokemon.shinyLegend')" class="absolute top-0 right-0 z-10 scale-90 origin-top-right" />
             </div>
@@ -175,6 +175,7 @@ import ShinyMark from './ShinyMark.vue';
     import { BaseIcon } from '../index';
     import BaseCandyIcon from '../base/BaseCandyIcon.vue';
     import { typesSVG } from '../../utils/Settings';
+    import BaseSprite from '../base/BaseSprite.vue';
 
     const props = defineProps({
         pokemon: { type: Object, required: true },

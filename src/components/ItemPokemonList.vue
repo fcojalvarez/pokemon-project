@@ -3,6 +3,7 @@
     import { BaseIcon } from '.';
     import ShinyMark from './pokemon/ShinyMark.vue';
     import MaxMark from './pokemon/MaxMark.vue';
+    import BaseSprite from './base/BaseSprite.vue';
     import { typesSVG } from '../utils/Settings';
     import { usePokemonsStore } from '../stores/pokemons';
 
@@ -41,12 +42,11 @@
     >
         <div class="relative mx-auto" :class="image_size">
             <!-- alt vacío: el nombre ya va escrito debajo, dentro del mismo enlace. -->
-            <img
+            <base-sprite
                 :src="image"
-                alt=""
-                :class="[props.is_released? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark': 'grayscale opacity-40', 'z-10 w-full h-full object-contain']"
-                loading="lazy"
-            >
+                class="w-full h-full"
+                :img-class="[props.is_released? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark': 'grayscale opacity-40', 'z-10']"
+            />
             <!-- Escalada, no con otro font-size: así la marca no se descuadra. -->
             <shiny-mark v-if="props.is_shiny_released" variant="dex" :label="$t('pokemon.shinyLegend')" class="absolute top-0 right-0 z-10 scale-[0.8] origin-top-right" />
             <!--

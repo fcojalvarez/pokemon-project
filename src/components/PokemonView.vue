@@ -11,6 +11,8 @@ import { useGameDataStore } from '../stores/gameData';
 import { useLiveStore } from '../stores/live';
 import TypeIcons from './base/TypeIcons.vue';
 import { spriteUrl } from '../utils/sprites';
+import BaseSprite from './base/BaseSprite.vue';
+import SkeletonLoader from './base/SkeletonLoader.vue';
 
 const pokemon = ref(null);
 const route = useRoute();
@@ -131,12 +133,12 @@ watch(() => route.params.id, async(newId) => {
             evolutiva y el Pokémon actual solo se distinguía por un fondo gris.
         -->
         <header class="flex items-center gap-4 pt-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-            <img
-                v-if="hero.image"
+            <base-sprite
                 :src="hero.image"
-                alt=""
-                class="w-20 h-20 shrink-0 object-contain drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
-            >
+                :lazy="false"
+                class="w-20 h-20 shrink-0"
+                img-class="drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
+            />
             <div class="min-w-0">
                 <span class="block text-xs text-gray-600 dark:text-gray-300">#{{ hero.number }}</span>
                 <h1 class="text-2xl font-bold leading-tight text-gray-900 dark:text-gray-100">{{ hero.name }}</h1>
@@ -298,4 +300,29 @@ watch(() => route.params.id, async(newId) => {
             </section>
         </section> -->
     </section>
+
+    <!-- Mientras llega el Pokémon: cabecera y cadena evolutiva con su forma. -->
+    <skeleton-loader v-else class="pt-4 pb-10 px-6 sm:px-12 md:px-24 bg-white dark:bg-gray-900 rounded-xl border border-gray-300 shadow-md">
+        <div class="flex items-center gap-4 pt-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+            <span class="w-20 h-20 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
+            <span class="flex flex-col gap-2">
+                <span class="esqueleto h-3 w-10 rounded"></span>
+                <span class="esqueleto h-6 w-40 rounded"></span>
+                <span class="flex gap-2">
+                    <span class="esqueleto h-3.5 w-16 rounded"></span>
+                    <span class="esqueleto h-3.5 w-16 rounded"></span>
+                </span>
+            </span>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+            <span class="esqueleto h-3.5 w-28 rounded"></span>
+            <span class="esqueleto h-8 w-28 rounded-xl"></span>
+        </div>
+        <div class="my-6 flex flex-col items-center gap-10">
+            <div v-for="n in 3" :key="n" class="flex flex-col items-center gap-3">
+                <span class="w-24 h-24 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
+                <span class="esqueleto h-3.5 w-28 rounded"></span>
+            </div>
+        </div>
+    </skeleton-loader>
 </template>

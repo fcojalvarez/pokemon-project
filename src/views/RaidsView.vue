@@ -9,7 +9,7 @@ import {
   BasePillButton,
   DataFreshness,
   MoveTag,
-  SpinnerComponent,
+  SkeletonLoader,
   TypeIcons
 } from '../components/index'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
@@ -21,6 +21,7 @@ import LiveMonCard from '../components/pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../utils/sprites'
 import { maxCounters } from '../utils/maxBattle'
 import { useTranslate } from '../composables/useTranslate'
+import BaseSprite from '../components/base/BaseSprite.vue'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
@@ -243,7 +244,25 @@ onMounted(() => {
       </p>
     </div>
 
-    <spinner-component v-if="live.status === 'loading'" />
+    <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
+      <section v-for="grupo in 2" :key="grupo" class="mb-5">
+        <span class="esqueleto block h-4 w-20 mb-2 rounded"></span>
+        <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
+          <div
+            v-for="n in 4"
+            :key="n"
+            class="flex items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
+          >
+            <span class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
+            <span class="flex-1 flex flex-col gap-1.5">
+              <span class="esqueleto h-3 w-3/4 rounded"></span>
+              <span class="esqueleto h-2.5 w-1/2 rounded"></span>
+            </span>
+            <span class="esqueleto w-8 h-8 shrink-0 rounded-lg"></span>
+          </div>
+        </div>
+      </section>
+    </skeleton-loader>
 
     <base-error-message
       v-else-if="live.status === 'error'"
@@ -319,11 +338,9 @@ onMounted(() => {
                     :to="counter.dex ? `/pokemon/${counter.dex}` : undefined"
                     class="flex items-center gap-2 p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-150 hover:dark:bg-gray-700"
                   >
-                  <img
+                  <base-sprite
                     :src="spriteUrl(counter.spriteId)"
-                    alt=""
                     class="w-8 h-8 shrink-0"
-                    loading="lazy"
                   />
                   <div class="flex-1 min-w-0">
                     <div class="text-xs font-semibold truncate">{{ counter.nameEs }}</div>

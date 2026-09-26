@@ -13,6 +13,8 @@ import ToggleDarkMode from './ToggleDarkMode.vue';
 import BaseFilterSelect from './base/BaseFilterSelect.vue';
 import BaseDropdown from './base/BaseDropdown.vue';
 import BaseIcon from './base/BaseIcon.vue';
+import BaseSprite from './base/BaseSprite.vue';
+import SkeletonLoader from './base/SkeletonLoader.vue';
 import BaseCard from './base/BaseCard.vue';
 import BaseEmptyState from './base/BaseEmptyState.vue';
 import BaseErrorMessage from './base/BaseErrorMessage.vue';
@@ -26,6 +28,8 @@ export {
     FooterComponent,
     HeaderComponent,
     BaseIcon,
+    BaseSprite,
+    SkeletonLoader,
     BaseCard,
     DataFreshness,
     BaseEmptyState,

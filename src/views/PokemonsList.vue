@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
-import { ItemPokemonList, ScrollUpButton, SpinnerComponent } from '../components/index';
+import { ItemPokemonList, ScrollUpButton } from '../components/index';
 import ShinyLegend from '../components/pokemon/ShinyLegend.vue';
 import MaxLegend from '../components/pokemon/MaxLegend.vue';
 import PokedexFilters from '../components/pokemon/PokedexFilters.vue';
@@ -76,9 +76,35 @@ onUnmounted(() => {
             </div>
         </template>
 
-        <section v-if="isLoading" class="flex items-center w-screen min-h-full">
-            <SpinnerComponent />
-        </section>
+        <!--
+            Esqueletos con la misma caja que una tarjeta de verdad: al cargar la
+            siguiente tanda con el scroll, la rejilla ya tiene el hueco hecho y
+            no salta. Al entrar se pinta una pantalla entera; al hacer scroll,
+            una fila corta al final de lo que ya hay.
+        -->
+        <template v-if="isLoading">
+            <p class="sr-only" role="status">{{ $t('common.loading') }}</p>
+            <div
+                v-for="n in (pokemons.length ? 10 : 20)"
+                :key="`esqueleto-${n}`"
+                class="w-4/8 md:w-3/8 p-4 mx-auto"
+                aria-hidden="true"
+            >
+                <div class="w-32 md:w-48 p-2">
+                    <div class="w-24 h-24 mx-auto flex items-center justify-center">
+                        <div class="w-[76%] h-[76%] rounded-full esqueleto"></div>
+                    </div>
+                    <div class="mt-3 h-5 flex items-center justify-center gap-1">
+                        <span class="h-3 w-8 rounded esqueleto"></span>
+                        <span class="h-3.5 w-16 rounded esqueleto"></span>
+                    </div>
+                    <div class="mt-1 flex justify-center gap-1">
+                        <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
+                        <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
+                    </div>
+                </div>
+            </div>
+        </template>
         
         <scroll-up-button />
     </section>   
