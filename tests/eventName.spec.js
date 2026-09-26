@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { parseEventName, splitPokemonList, translatePokemonName } from '../src/utils/eventName'
+import {
+  parseEventName,
+  parseMaxBattle,
+  splitPokemonList,
+  translatePokemonName
+} from '../src/utils/eventName'
 
 describe('parseEventName', () => {
   it('reconoce los patrones que publica LeekDuck', () => {
@@ -107,5 +112,40 @@ describe('splitPokemonList', () => {
   it('devuelve un solo nombre tal cual', () => {
     expect(splitPokemonList('Mega Malamar')).toEqual(['Mega Malamar'])
     expect(splitPokemonList('')).toEqual([])
+  })
+})
+
+describe('parseMaxBattle', () => {
+  it('saca el Pokémon y el tipo de los dos formatos de título', () => {
+    expect(parseMaxBattle('Dynamax Sobble during Max Monday')).toEqual({
+      gigantamax: false,
+      pokemon: 'Sobble'
+    })
+    expect(parseMaxBattle('Gigantamax Cinderace Max Battle Day')).toEqual({
+      gigantamax: true,
+      pokemon: 'Cinderace'
+    })
+  })
+
+  it('no se inventa un Pokémon cuando el título no nombra a ninguno', () => {
+    // Éste es el que rompía un parseo ingenuo: sin quitar antes el sufijo,
+    // "Max Battle Day" se colaba como si fuera el nombre del Pokémon.
+    expect(parseMaxBattle('Dynamax Max Battle Day')).toEqual({
+      gigantamax: false,
+      pokemon: null
+    })
+  })
+
+  it('devuelve null si no es un combate Max', () => {
+    expect(parseMaxBattle('Rattata Spotlight Hour')).toBeNull()
+    expect(parseMaxBattle('')).toBeNull()
+    expect(parseMaxBattle(null)).toBeNull()
+  })
+
+  it('aguanta nombres con forma y mayúsculas raras', () => {
+    expect(parseMaxBattle('GIGANTAMAX Toxtricity Max Battle Day')).toMatchObject({
+      gigantamax: true,
+      pokemon: 'Toxtricity'
+    })
   })
 })

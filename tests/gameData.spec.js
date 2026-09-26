@@ -17,6 +17,7 @@ const read = (name) => JSON.parse(fs.readFileSync(path.join(DATA, name), 'utf8')
 const roster = read('roster.json')
 const moves = read('moves.json')
 const typechart = read('typechart.json')
+const maxbattles = read('maxbattles.json')
 
 const ids = (list) => list.map((row) => row.id)
 
@@ -288,5 +289,69 @@ describe('movimientos exclusivos de supermega', () => {
     }
     const sets = evaluatePokemon(beedrill, conPve)
     expect(sets.some((s) => s.charged.id === 'FELL_STINGER_PLUS')).toBe(true)
+  })
+})
+
+/**
+ * Combates Max. Lo que se vigila aquí es sobre todo que los distintivos no se
+ * derramen: la primera versión cruzaba por número de Pokédex y marcaba como
+ * dinamaxizables a Mega Charizard X y a los oscuros, que en el juego no pueden.
+ */
+describe('combates Max', () => {
+  it('asigna un Ataque Max a los dieciocho tipos', () => {
+    expect(Object.keys(maxbattles.byType)).toHaveLength(18)
+    for (const [type, move] of Object.entries(maxbattles.byType)) {
+      expect(move, `el tipo ${type} se ha quedado sin Ataque Max`).toBeTruthy()
+      expect(move.type).toBe(type)
+      expect(move.nameEs).toMatch(/^Maxi/)
+    }
+  })
+
+  it('da su propio ataque a cada Gigamax', () => {
+    const gigamax = roster.filter((p) => p.gigantamax)
+    expect(gigamax.length).toBeGreaterThan(25)
+    for (const entry of gigamax) {
+      const especie = entry.id.split('_')[0].toUpperCase()
+      const move = maxbattles.gmaxBySpecies[especie]
+      expect(move, `${entry.nameEs} no tiene ataque Gigamax`).toBeTruthy()
+      expect(move.nameEs).toMatch(/^Giga/)
+    }
+  })
+
+  it('no marca como Max a megas, primigenios ni oscuros', () => {
+    const colados = roster.filter(
+      (p) => (p.dynamax || p.gigantamax) && (p.mega || p.shadow)
+    )
+    expect(colados.map((p) => p.id)).toEqual([])
+  })
+
+  it('reconoce a Charizard y lo separa de sus megas', () => {
+    const base = roster.find((p) => p.id === 'charizard')
+    expect(base).toMatchObject({ dynamax: true, gigantamax: true })
+    // El Ataque Max lo decide el tipo principal: fuego, no volador.
+    expect(base.types[0]).toBe('fire')
+    expect(maxbattles.byType.fire.nameEs).toBe('Maxignición')
+
+    for (const id of ['charizard_mega_x', 'charizard_mega_y', 'charizard_shadow']) {
+      expect(roster.find((p) => p.id === id)).toMatchObject({
+        dynamax: false,
+        gigantamax: false
+      })
+    }
+  })
+
+  it('trae el coste de mejora de cada grupo que usa el roster', () => {
+    const grupos = new Set(
+      roster.filter((p) => p.dynamax).map((p) => p.maxCostGroup).filter(Boolean)
+    )
+    expect(grupos.size).toBeGreaterThan(0)
+    for (const grupo of grupos) {
+      const coste = maxbattles.upgradeCosts[grupo]
+      expect(coste, `falta el coste del ${grupo}`).toBeTruthy()
+      // Tres ranuras (ataque, Maxibarrera, Maxivigor) y tres niveles cada una.
+      expect(coste.attack).toHaveLength(3)
+      expect(coste.guard).toHaveLength(3)
+      expect(coste.spirit).toHaveLength(3)
+    }
   })
 })

@@ -88,7 +88,11 @@ test('los ataques élite se marcan y la leyenda los explica', async ({ page }) =
   await expect(elite).toBeVisible()
   await expect(elite).toContainText('Planta Feroz')
 
-  await expect(page.getByText(/Solo se aprende con MT Élite/).last()).toBeVisible()
+  // La leyenda dice solo «Élite» y deja la explicación en el title: la frase
+  // entera ocupaba dos líneas encima de los rankings.
+  const leyenda = page.locator('li[title*="MT Élite"]').first()
+  await expect(leyenda).toBeVisible()
+  await expect(leyenda).toHaveText('Élite')
 })
 
 /**
@@ -134,4 +138,48 @@ test('si game_data no responde, tira de los ficheros desplegados', async ({ page
     performance.getEntriesByType('resource').filter((r) => /\/data\/\w+\.json/.test(r.name)).length
   )
   expect(usados).toBeGreaterThan(0)
+})
+
+/**
+ * El Top Dinamax es el único ranking que no sale de un cálculo de DPS: ordena
+ * por ataque base porque dentro de un tipo el Ataque Max es el mismo para
+ * todos. Si algún día eso deja de traerse del GAME_MASTER, la tabla saldría
+ * vacía y nadie se enteraría.
+ */
+test('el Top Dinamax ordena por ataque y enseña el Ataque Max', async ({ page }) => {
+  await page.goto('/top')
+
+  await page.getByRole('combobox').first().click()
+  await page.getByRole('option', { name: /dinamax/i }).click()
+
+  const filas = page.locator('ol > li')
+  await expect(filas.first()).toBeVisible()
+  expect(await filas.count()).toBeGreaterThan(10)
+
+  // La métrica es el ataque, no el DPS.
+  await expect(filas.first().getByText('Ataque')).toBeVisible()
+  // Y cada fila lleva su Ataque Max, que en español siempre empieza por "Maxi".
+  await expect(filas.first().getByText(/^Maxi/)).toBeVisible()
+})
+
+/**
+ * El filtro de Gigamax va contra Supabase, no contra lo ya traído: si la
+ * columna `can_gigantamax` deja de escribirse, aquí sale la Pokédex entera.
+ */
+test('el filtro de Gigamax recorta la Pokédex', async ({ page }) => {
+  await page.goto('/')
+  await page.waitForLoadState('networkidle')
+
+  const tarjetas = page.locator('section:has(img[loading="lazy"])')
+  const antes = await tarjetas.count()
+  expect(antes).toBeGreaterThan(20)
+
+  await page.getByRole('button', { name: /filtros/i }).click()
+  await page.getByRole('button', { name: 'Solo Gigamax' }).click()
+  await page.waitForResponse((res) => res.url().includes('can_gigantamax'))
+
+  await expect(page.getByText('Venusaur')).toBeVisible()
+  expect(await tarjetas.count()).toBeLessThan(antes)
+  // Los 31 que pueden gigamaxizar caben de sobra en la primera página.
+  await expect(page.getByText('Ivysaur')).toHaveCount(0)
 })
