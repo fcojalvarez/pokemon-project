@@ -1,6 +1,6 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { dexFromImage, useLiveStore } from '../stores/live'
 import { useGameDataStore } from '../stores/gameData'
 import {
@@ -26,9 +26,33 @@ import { translatePokemonName } from '../utils/eventName'
 const live = useLiveStore()
 const gameData = useGameDataStore()
 const router = useRouter()
+const route = useRoute()
 const { t, te } = useTranslate()
 
 const tab = ref('raids')
+
+/**
+ * Pokémon al que se llega señalado desde su ficha.
+ *
+ * La ficha dice «sale en incursiones» y hasta ahora había que venir aquí y
+ * buscarlo a ojo entre cincuenta tarjetas. Ahora se abre la pestaña que toca y
+ * se le pone un aro.
+ *
+ * El aro se quita solo: es para encontrarlo al llegar, no una marca
+ * permanente que confunda al que siga navegando por la vista.
+ */
+const destacado = ref(null)
+let temporizador = null
+
+const senalar = (dex) => {
+  clearTimeout(temporizador)
+  destacado.value = dex
+  // Tras pintar, se lleva a la vista; el aro aguanta unos segundos.
+  requestAnimationFrame(() => {
+    document.getElementById(`mon-${dex}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  })
+  temporizador = setTimeout(() => { destacado.value = null }, 6000)
+}
 const openBoss = ref(null)
 /** Qué jefe Max tiene el equipo recomendado abierto. */
 const openMax = ref(null)
@@ -180,6 +204,20 @@ const taskText = (html) => gameData.translateText(plainText(html))
 
 const goToPokemon = (dex) => dex && router.push(`/pokemon/${dex}`)
 
+// Llegada desde la ficha: ?tab=raids&dex=113
+watch(
+  () => route.query,
+  (query) => {
+    const pestana = String(query.tab ?? '')
+    if (TABS.includes(pestana)) tab.value = pestana
+    const dex = Number(query.dex)
+    if (Number.isInteger(dex) && dex > 0) senalar(dex)
+  },
+  { immediate: true }
+)
+
+onUnmounted(() => clearTimeout(temporizador))
+
 onMounted(() => {
   live.load()
   gameData.load()
@@ -242,6 +280,8 @@ onMounted(() => {
         <div class="grid grid-cols-[repeat(auto-fill,minmax(195px,1fr))] gap-2">
           <template v-for="boss in group.list" :key="boss.name">
             <live-mon-card
+              :id="`mon-${dexFromImage(boss.image)}`"
+              :highlight="destacado === dexFromImage(boss.image)"
               :name="nombreEs(boss.name)"
               :image="boss.image"
               :dex="dexFromImage(boss.image)"
@@ -336,6 +376,8 @@ onMounted(() => {
           <live-mon-card
             v-for="egg in group.list"
             :key="`${group.name}-${egg.name}`"
+            :id="`mon-${dexFromImage(egg.image)}`"
+            :highlight="destacado === dexFromImage(egg.image)"
             :name="nombreEs(egg.name)"
             :image="egg.image"
             :dex="dexFromImage(egg.image)"
@@ -359,6 +401,8 @@ onMounted(() => {
           <div class="grid grid-cols-[repeat(auto-fill,minmax(160px,1fr))] gap-2">
             <template v-for="uno in grupo.list" :key="`${grupo.tier}-${uno.dex}`">
               <live-mon-card
+                :id="`mon-${uno.dex}`"
+                :highlight="destacado === uno.dex"
                 :name="uno.nameEs"
                 :image="uno.image"
                 :dex="uno.dex"
@@ -458,6 +502,8 @@ onMounted(() => {
               <live-mon-card
                 v-for="reward in task.rewards"
                 :key="reward.name"
+                :id="`mon-${dexFromImage(reward.image)}`"
+                :highlight="destacado === dexFromImage(reward.image)"
                 :name="nombreEs(reward.name)"
                 :image="reward.image"
                 :dex="dexFromImage(reward.image)"

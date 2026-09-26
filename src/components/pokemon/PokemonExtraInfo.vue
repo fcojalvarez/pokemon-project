@@ -294,6 +294,18 @@ const whereToFind = computed(() => live.whereToFind(props.pokemon.name))
  *
  * Puede aparecer en más de un nivel, así que se listan todos.
  */
+/**
+ * A dónde lleva cada insignia de «Dónde conseguirlo».
+ *
+ * Antes decía «sale en incursiones» y tocaba venir a /ahora y buscarlo a ojo
+ * entre cincuenta tarjetas. Ahora abre la pestaña que toca con el Pokémon ya
+ * señalado.
+ */
+const irA = (pestana) => ({
+  path: '/ahora',
+  query: { tab: pestana, dex: props.pokemon.pokemon_id }
+})
+
 const enCombatesMax = computed(() =>
   (gameData.maxLive?.pokemon ?? []).filter((uno) => uno.dex === props.pokemon.pokemon_id)
 )
@@ -333,10 +345,11 @@ const plainText = (html) =>
             {{ $t('pokemon.inMaxBattles') }}
           </span>
           <div class="flex flex-wrap gap-2 mt-1">
-            <span
+            <router-link
               v-for="uno in enCombatesMax"
               :key="`max-${uno.tier}`"
-              class="flex items-center gap-1.5 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600"
+              :to="irA('max')"
+              class="flex items-center gap-1.5 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
             >
               <max-mark
                 :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
@@ -347,34 +360,36 @@ const plainText = (html) =>
               <template v-if="uno.cp">
                 · {{ $t('raids.cpRange') }} {{ uno.cp.min }}–{{ uno.cp.max }}
               </template>
-            </span>
+            </router-link>
           </div>
         </div>
 
         <div v-if="whereToFind.raids.length" class="mt-3">
           <span class="text-mini text-gray-500 dark:text-gray-400">{{ $t('pokemon.inRaids') }}</span>
           <div class="flex flex-wrap gap-2 mt-1">
-            <span
+            <router-link
               v-for="boss in whereToFind.raids"
               :key="boss.name"
-              class="flex items-center gap-1 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600"
+              :to="irA('raids')"
+              class="flex items-center gap-1 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
             >
               <img :src="boss.image" :alt="boss.name" class="w-6 h-6" loading="lazy" />
               {{ boss.name }}
-            </span>
+            </router-link>
           </div>
         </div>
 
         <div v-if="whereToFind.eggs.length" class="mt-3">
           <span class="text-mini text-gray-500 dark:text-gray-400">{{ $t('pokemon.inEggs') }}</span>
           <div class="flex flex-wrap gap-2 mt-1">
-            <span
+            <router-link
               v-for="egg in whereToFind.eggs"
               :key="`${egg.eggType}-${egg.name}`"
-              class="px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600"
+              :to="irA('eggs')"
+              class="px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
             >
               {{ egg.eggType }} · {{ $t('raids.cpRange') }} {{ egg.combatPower.min }}
-            </span>
+            </router-link>
           </div>
         </div>
 

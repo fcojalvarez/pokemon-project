@@ -26,7 +26,9 @@ const props = defineProps({
   /** Pinta el aura morada: LeekDuck reutiliza el sprite normal del oscuro. */
   shadow: Boolean,
   /** Texto corto extra (el nivel de la incursión, por ejemplo). */
-  badge: { type: String, default: null }
+  badge: { type: String, default: null },
+  /** Señalado al llegar desde la ficha de ese Pokémon. */
+  highlight: Boolean
 })
 
 const cpLabel = computed(() => {
@@ -43,7 +45,10 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
     :is="to ? 'router-link' : 'div'"
     :to="to ?? undefined"
     class="flex items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
-    :class="to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : ''"
+    :class="[
+      to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : '',
+      highlight ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950' : ''
+    ]"
   >
     <span class="relative shrink-0 w-10 h-10 flex items-center justify-center">
       <!-- El aura del oscuro la ponemos nosotros: no hay sprite con ella. -->
