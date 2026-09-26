@@ -111,13 +111,32 @@ export const useLiveStore = defineStore('live', () => {
   const now = ref(new Date())
   const statusClock = ref(new Date())
 
+  /**
+   * Vuelve a bajar los datos si la caché ha caducado y la pestaña está a la
+   * vista. Antes esto lo hacía un botón «Actualizar»: los datos solo se
+   * pedían al entrar en la vista, así que dejándola abierta el «Actualizado
+   * hace» crecía sin que se refrescara nada.
+   *
+   * No hace nada si ya se está cargando ni con la pestaña oculta, así que una
+   * pestaña olvidada de fondo no se pasa el día pidiendo ficheros.
+   */
+  const refrescarSiCaduca = () => {
+    if (typeof document !== 'undefined' && document.hidden) return
+    if (status.value === 'loading') return
+    if (!isCacheExpired(fetchedAt.value)) return
+    load({ force: true })
+  }
+
   if (typeof window !== 'undefined') {
     let ticks = 0
     setInterval(() => {
       // En una pestaña oculta no hay nada que repintar.
       if (document.hidden) return
       now.value = new Date()
-      if (++ticks % 30 === 0) statusClock.value = now.value
+      if (++ticks % 30 === 0) {
+        statusClock.value = now.value
+        refrescarSiCaduca()
+      }
     }, 1000)
 
     // Al volver a la pestaña, ponerse al día sin esperar al siguiente tic.
@@ -125,6 +144,7 @@ export const useLiveStore = defineStore('live', () => {
       if (document.hidden) return
       now.value = new Date()
       statusClock.value = now.value
+      refrescarSiCaduca()
     })
   }
 

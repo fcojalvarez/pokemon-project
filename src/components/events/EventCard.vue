@@ -4,7 +4,14 @@ import { useLiveStore } from '../../stores/live'
 import { useGameDataStore } from '../../stores/gameData'
 import { formatDateTime, formatDuration } from '../../utils/time'
 import { useTranslate } from '../../composables/useTranslate'
-import { parseEventName, splitPokemonList, translatePokemonName } from '../../utils/eventName'
+import {
+  parseEventName,
+  parseMaxBattle,
+  splitPokemonList,
+  translatePokemonName
+} from '../../utils/eventName'
+import { spriteUrl } from '../../utils/sprites'
+import MaxMark from '../pokemon/MaxMark.vue'
 
 const props = defineProps({
   event: { type: Object, required: true }
@@ -56,6 +63,33 @@ const displayName = computed(() => {
       : nombres[0] ?? parts.pokemon
 
   return t(key, { pokemon, tier: parts.tier })
+})
+
+/**
+ * Combate Max: qué Pokémon sale y si es Dinamax o Gigamax.
+ *
+ * LeekDuck no lo publica en un campo propio ni pone su imagen (la del evento
+ * es un cartel), así que se lee del título y se busca en el roster para sacar
+ * el sprite y poder enlazar a su ficha. Algunos no nombran a ninguno
+ * ("Dynamax Max Battle Day"): entonces se enseña solo la marca.
+ */
+const maxBattle = computed(() => {
+  const parsed = parseMaxBattle(props.event.name)
+  if (!parsed) return null
+
+  const clave = parsed.pokemon?.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const entry = clave && gameData.isReady
+    ? gameData.roster.find(
+        (p) => !p.mega && !p.shadow && p.name.toLowerCase().replace(/[^a-z0-9]/g, '') === clave
+      ) ?? null
+    : null
+
+  return {
+    gigantamax: parsed.gigantamax,
+    nameEs: entry?.nameEs ?? parsed.pokemon,
+    dex: entry?.dex ?? null,
+    image: entry ? spriteUrl(entry.spriteId) : null
+  }
 })
 
 const spotlight = computed(() => props.event.extraData?.spotlight ?? null)
@@ -118,6 +152,34 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
         → {{ formatDateTime(event.endDate, locale() === 'en' ? 'en-GB' : 'es-ES') }}
       </template>
     </p>
+
+    <!--
+      Combate Max: la marca dice de un vistazo si es Dinamax (hueca) o Gigamax
+      (rellena), que es lo que de verdad cambia entre un lunes Max y un Día de
+      Combates Max.
+    -->
+    <div
+      v-if="maxBattle"
+      class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700"
+    >
+      <max-mark
+        :variant="maxBattle.gigantamax ? 'gigantamax' : 'dynamax'"
+        :size="20"
+        class="shrink-0 text-gray-700 dark:text-gray-200"
+      />
+      <component
+        :is="maxBattle.dex ? 'router-link' : 'span'"
+        :to="maxBattle.dex ? `/pokemon/${maxBattle.dex}` : undefined"
+        class="flex items-center gap-2 min-w-0"
+        :class="maxBattle.dex ? 'hover:underline' : ''"
+      >
+        <img v-if="maxBattle.image" :src="maxBattle.image" alt="" class="w-8 h-8" loading="lazy" />
+        <strong v-if="maxBattle.nameEs" class="text-sm truncate">{{ maxBattle.nameEs }}</strong>
+        <span v-else class="text-sm font-semibold">
+          {{ $t(maxBattle.gigantamax ? 'max.legendGigantamax' : 'max.legendDynamax') }}
+        </span>
+      </component>
+    </div>
 
     <!-- Hora destacada: el Pokémon y la bonificación son lo que importa -->
     <div

@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useLiveStore } from '../stores/live'
+import { useGameDataStore } from '../stores/gameData'
 import {
   BaseEmptyState,
   BaseErrorMessage,
@@ -13,6 +14,7 @@ import EventCard from '../components/events/EventCard.vue'
 import { useTranslate } from '../composables/useTranslate'
 
 const live = useLiveStore()
+const gameData = useGameDataStore()
 const { t, te } = useTranslate()
 
 const tab = ref('active')
@@ -45,13 +47,23 @@ watch(tab, () => {
   typeFilter.value = 'all'
 })
 
+/** Si lo que se está viendo son combates Max, se avisa de lo que no se sabe. */
+const TIPOS_MAX = ['max-mondays', 'max-battles']
+const mostrarNotaMax = computed(() => TIPOS_MAX.includes(typeFilter.value))
+
 const list = computed(() =>
   typeFilter.value === 'all'
     ? source.value
     : source.value.filter((event) => event.eventType === typeFilter.value)
 )
 
-onMounted(() => live.load())
+// También el roster: las tarjetas lo necesitan para traducir el nombre del
+// Pokémon del título y para sacar su sprite. Sin esto, entrando directo a
+// /eventos los títulos se quedaban a medio traducir.
+onMounted(() => {
+  live.load()
+  gameData.load()
+})
 </script>
 
 <template>
@@ -76,16 +88,12 @@ onMounted(() => live.load())
         :options="typeOptions"
         class="flex-1 min-w-[180px] max-w-xs"
       />
-      <button
-        type="button"
-        class="h-11 px-4 text-xs rounded-xl border border-gray-400 shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
-        @click="live.load({ force: true })"
-      >
-        {{ $t('common.update') }}
-      </button>
-
       <data-freshness :age-ms="live.cacheAge" :stale="live.isStale" />
     </div>
+
+    <p v-if="mostrarNotaMax" class="text-mini text-gray-500 dark:text-gray-400 mb-3">
+      {{ $t('max.battlesNote') }}
+    </p>
 
     <spinner-component v-if="live.status === 'loading'" />
 

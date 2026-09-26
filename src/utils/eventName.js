@@ -94,3 +94,29 @@ export function translatePokemonName(name, namesEs, translateForm = (form) => fo
 
   return namesEs?.get(clean) ?? clean
 }
+
+/**
+ * Saca de un título de combate Max qué Pokémon sale y de qué tipo es.
+ *
+ * LeekDuck no publica el Pokémon en un campo propio: va en el título, con dos
+ * formas ("Dynamax Sobble during Max Monday", "Gigantamax Cinderace Max Battle
+ * Day"). Algunos no nombran a ninguno ("Dynamax Max Battle Day"), y entonces
+ * `pokemon` viene a null en vez de inventarse uno.
+ *
+ * @returns {{gigantamax: boolean, pokemon: string|null}|null}
+ */
+export function parseMaxBattle(name) {
+  const limpio = String(name ?? '')
+    .trim()
+    .replace(/\s+during\s+max\s+monday$/i, '')
+    .replace(/\s+max\s+battle\s+day$/i, '')
+
+  const match = /^(dynamax|gigantamax)\b\s*(.*)$/i.exec(limpio)
+  if (!match) return null
+
+  const pokemon = match[2].trim()
+  return {
+    gigantamax: match[1].toLowerCase() === 'gigantamax',
+    pokemon: pokemon || null
+  }
+}

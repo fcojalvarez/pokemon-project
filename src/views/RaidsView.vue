@@ -99,18 +99,7 @@ onMounted(() => {
       <p class="text-sm text-gray-600 dark:text-gray-400">{{ $t('raids.intro') }}</p>
       <div class="flex items-center gap-2">
         <data-freshness :age-ms="live.cacheAge" :stale="live.isStale" />
-        <!--
-          Sin esto los datos solo se bajaban al entrar en la vista: si la dejas
-          abierta, "Actualizado hace" seguía creciendo sin que nada se
-          refrescara.
-        -->
-        <button
-          type="button"
-          class="px-3 py-1.5 text-xs rounded-xl border border-gray-400 shadow-md bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
-          @click="live.load({ force: true })"
-        >
-          {{ $t('common.update') }}
-        </button>
+
       </div>
     </div>
 
@@ -124,6 +113,16 @@ onMounted(() => {
         {{ $t(`raids.tab${name.charAt(0).toUpperCase()}${name.slice(1)}`) }}
       </base-pill-button>
     </div>
+
+    <!--
+      La estrella que llevan las tarjetas solo tenía `title`, que en móvil no
+      existe. Aquí se dice con palabras.
+    -->
+    <p class="flex items-center gap-1.5 text-mini text-gray-600 dark:text-gray-400 mb-3">
+      <!-- Mismo glifo y mismo color que en <live-mon-card>. -->
+      <span class="text-gray-600 dark:text-gray-100 leading-none" aria-hidden="true">✦</span>
+      {{ $t('pokemon.shinyLegend') }}
+    </p>
 
     <spinner-component v-if="live.status === 'loading'" />
 
@@ -200,14 +199,16 @@ onMounted(() => {
                   />
                   <div class="flex-1 min-w-0">
                     <div class="text-xs font-semibold truncate">{{ counter.nameEs }}</div>
-                    <div class="flex flex-wrap gap-x-2 text-mini text-gray-600 dark:text-gray-400">
+                    <div class="flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-400">
                       <move-tag
+                        chip
                         :name="counter.fast.nameEs"
                         hide-icon
                         :elite="counter.fast.elite"
                         :legacy="counter.fast.legacy"
                       />
                       <move-tag
+                        chip
                         :name="counter.charged.nameEs"
                         hide-icon
                         :elite="counter.charged.elite"
