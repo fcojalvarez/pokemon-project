@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useLiveStore } from '../../stores/live'
 import { useGameDataStore } from '../../stores/gameData'
 import { formatDateTime, formatDuration } from '../../utils/time'
@@ -75,6 +75,14 @@ const displayName = computed(() => {
  * el sprite y poder enlazar a su ficha. Algunos no nombran a ninguno
  * ("Dynamax Max Battle Day"): entonces se enseña solo la marca.
  */
+/**
+ * LeekDuck publica a veces una imagen que no existe: ahora mismo las cinco
+ * City Safari apuntan a un `safarizone-default.jpg` que da 404. Sin esto, el
+ * navegador deja su icono de imagen rota en mitad de la tarjeta.
+ */
+const imagenRota = ref(false)
+watch(() => props.event.image, () => { imagenRota.value = false })
+
 const maxBattle = computed(() => {
   const parsed = parseMaxBattle(props.event.name)
   if (!parsed) return null
@@ -125,11 +133,12 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
   >
     <div class="flex gap-3 items-start">
       <img
-        v-if="event.image"
+        v-if="event.image && !imagenRota"
         :src="event.image"
         alt=""
         class="w-20 h-14 shrink-0 object-cover rounded-xl bg-gray-100 dark:bg-gray-800"
         loading="lazy"
+        @error="imagenRota = true"
       />
       <div class="min-w-0 flex flex-col items-start gap-1">
         <span
