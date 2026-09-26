@@ -435,3 +435,39 @@ describe('ranking sin ataques legacy', () => {
     expect(sin.dps).toBeLessThan(con.dps)
   })
 })
+
+/**
+ * Lo mismo con los élite: se pueden conseguir, pero solo con MT Élite o en
+ * eventos concretos. Apagados, el ranking enseña lo que se aprende con MT
+ * normales.
+ */
+describe('ranking sin ataques élite', () => {
+  it('los deja fuera cuando se pide', () => {
+    const { overall } = computeTypeRankings(roster, moves, {
+      sortBy: 'dps',
+      limit: 50,
+      includeElite: false
+    })
+    const colados = overall.filter((row) => row.fast.elite || row.charged.elite)
+    expect(colados.map((row) => row.nameEs)).toEqual([])
+  })
+
+  it('con ellos sí aparecen, que es el comportamiento de siempre', () => {
+    const { overall } = computeTypeRankings(roster, moves, { sortBy: 'dps', limit: 50 })
+    expect(overall.some((row) => row.fast.elite || row.charged.elite)).toBe(true)
+  })
+
+  it('se combina con el filtro de legacy', () => {
+    const { overall } = computeTypeRankings(roster, moves, {
+      sortBy: 'dps',
+      limit: 50,
+      includeElite: false,
+      includeLegacy: false
+    })
+    const colados = overall.filter(
+      (row) => row.fast.elite || row.charged.elite || row.fast.legacy || row.charged.legacy
+    )
+    expect(colados).toEqual([])
+    expect(overall.length).toBeGreaterThan(0)
+  })
+})

@@ -28,6 +28,8 @@ const includeShadow = ref(true)
  * teórico de siempre; apagándolo sale el que de verdad está a tu alcance.
  */
 const includeLegacy = ref(true)
+/** Los élite solo salen con MT Élite o en eventos: mismo trato que los legacy. */
+const includeElite = ref(true)
 
 // Dinamax va justo detrás de incursiones: las dos son PvE, y el PvP es lo
 // que se sale del grupo.
@@ -69,6 +71,7 @@ const pveRows = computed(() => {
     includeMega: includeMega.value,
     includeShadow: includeShadow.value,
     includeLegacy: includeLegacy.value,
+    includeElite: includeElite.value,
     sortBy: sortBy.value,
     limit: 50
   })
@@ -228,7 +231,7 @@ onMounted(() => gameData.load())
       <div
         role="group"
         aria-labelledby="incluir-top"
-        class="grid grid-cols-3 gap-2"
+        class="grid grid-cols-2 sm:grid-cols-4 gap-2"
       >
         <base-pill-button
           class="h-11 w-full text-sm"
@@ -251,6 +254,14 @@ onMounted(() => gameData.load())
           @click="includeLegacy = !includeLegacy"
         >
           {{ $t('moves.legacy') }}
+        </base-pill-button>
+        <base-pill-button
+          class="h-11 w-full text-sm"
+          :active="includeElite"
+          :title="$t('top.eliteHelp')"
+          @click="includeElite = !includeElite"
+        >
+          {{ $t('moves.elite') }}
         </base-pill-button>
       </div>
 

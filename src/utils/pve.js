@@ -54,7 +54,12 @@ export function evaluatePokemon(entry, moves, options = {}) {
   // casi un tercio de DPS sin Embate Supremo— y el ranking enseñaba solo su
   // mejor conjunto, sin decir a qué distancia queda el alcanzable.
   const legacySet = new Set(entry.legacyMoves ?? [])
-  const alcanzable = (id) => options.includeLegacy !== false || !legacySet.has(id)
+  // Los élite sí se consiguen, pero solo gastando una MT Élite o en eventos
+  // concretos. Apagarlos deja el ranking de lo que se aprende con MT normales.
+  const eliteSet = new Set(entry.eliteMoves ?? [])
+  const alcanzable = (id) =>
+    (options.includeLegacy !== false || !legacySet.has(id)) &&
+    (options.includeElite !== false || !eliteSet.has(id))
 
   // El movimiento exclusivo de las supermegas entra en la baraja como uno más.
   // Hoy se descarta solo, porque `usable` exige stats de PvE y el GAME_MASTER
@@ -67,7 +72,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
 
   // De dónde sale cada movimiento. Viaja con el resultado para que quien lo
   // pinte (rankings, counters, ficha) pueda marcarlo sin volver al roster.
-  const elite = new Set(entry.eliteMoves ?? [])
+  const elite = eliteSet
   const legacy = legacySet
   const exclusive = new Set(entry.megaMoves ?? [])
   const describe = (id, move) => ({
