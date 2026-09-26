@@ -142,14 +142,20 @@
                 </span>
             </span>
             
-            <span v-if="pokemon.no_candy_cost_if_traded" class="w-full my-1">
-                <span class="text-gray-800 dark:text-white text-mini font-light text-center mx-4 my-2">o</span>
-                <div class="flex items-center mt-2">
-                    <img src="../../assets/icons/ic_trade_ball.png" class="invert dark:invert-0 w-4 h-4 drop-shadow">
-                    <span class="text-gray-800 dark:text-white text-mini font-light ml-1">
-                        {{ $t('evolutions.freeWhenWxchanging') }}
-                    </span>
-                </div>
+            <!--
+                Solo el icono: el texto no cabía en la columna de la cadena
+                evolutiva y se partía en mitad de la palabra. Lo que significa
+                se explica una vez en la leyenda de la sección, y el icono
+                lleva su `title` y su `alt` para quien no la lea.
+            -->
+            <span v-if="pokemon.no_candy_cost_if_traded" class="flex flex-col items-center w-full my-1">
+                <span class="text-gray-800 dark:text-white text-mini font-light">o</span>
+                <img
+                    src="../../assets/icons/ic_trade_ball.png"
+                    class="invert dark:invert-0 w-4 h-4 mt-1 drop-shadow"
+                    :alt="$t('evolutions.tradeLegend')"
+                    :title="$t('evolutions.tradeLegend')"
+                >
             </span>
         </section>
     </section>

@@ -6,6 +6,7 @@ import { EvolPokemonItem } from '../components/index';
 import PokemonMegas from './pokemon/PokemonMegas.vue';
 import PokemonExtraInfo from './pokemon/PokemonExtraInfo.vue';
 import ShinyLegend from './pokemon/ShinyLegend.vue';
+import TradeLegend from './pokemon/TradeLegend.vue';
 import { useGameDataStore } from '../stores/gameData';
 import { useLiveStore } from '../stores/live';
 
@@ -42,6 +43,16 @@ const lastOfFamily = (familyKey) => {
  * cuando hay varias (Eevee, Wurmple…). Si no, se desperdicia media pantalla y
  * los nombres se recortan.
  */
+/**
+ * ¿Hay en esta cadena alguna evolución que salga gratis al intercambiar?
+ * La leyenda del icono solo aparece si el icono aparece.
+ */
+const hayEvolucionPorIntercambio = computed(() =>
+    Object.values(pokemon.value?.evolution_info ?? {}).some((familia) =>
+        (familia ?? []).some((uno) => uno.no_candy_cost_if_traded)
+    )
+);
+
 const familyColumnClass = computed(() =>
     evolutionFamilies.value.length > 1 ? 'w-full sm:w-1/2' : 'w-full'
 );
@@ -89,20 +100,34 @@ watch(() => route.params.id, async(newId) => {
 
 <template>
     <section v-if="pokemon" class="pt-4 pb-10 px-6 sm:px-12 md:px-24 bg-white dark:bg-gray-900 rounded-xl border border-gray-300 shadow-md">
-        <!-- La leyenda a la izquierda y el botón a la derecha, misma línea. -->
+        <!-- Las leyendas a la izquierda y el botón a la derecha, misma línea. -->
         <section class="mt-4 flex items-center justify-between gap-3">
-            <shiny-legend v-if="pokemon.is_shiny_released" variant="evolution" />
+            <span class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                <shiny-legend v-if="pokemon.is_shiny_released" variant="evolution" />
+                <trade-legend :show="hayEvolucionPorIntercambio" />
+            </span>
 
-            <section
+            <!--
+                Es un interruptor, así que es un <button> con aria-pressed: como
+                <section> con @click no se podía usar con el teclado ni había
+                forma de saber si estaba activado.
+
+                Activado va en gris-700 sobre blanco (10,3:1); en gris-500 se
+                quedaba en 4,39:1 y el texto no se leía bien en modo claro.
+            -->
+            <button
+                type="button"
+                :aria-pressed="isShowShiny"
                 @click="isShowShiny = !isShowShiny"
                 :class="[
-                    isShowShiny? 'bg-gray-500 dark:bg-gray-600 text-gray-100 dark:text-gray-300' : '',
-                    'text-gray-800 dark:text-gray-200 shrink-0 border border-gray-800 dark:border-gray-200 w-28 rounded-xl py-1 px-2 text-center ml-auto cursor-pointer '
+                    isShowShiny
+                        ? 'bg-gray-700 dark:bg-gray-600 text-white border-gray-700 dark:border-gray-200'
+                        : 'text-gray-800 dark:text-gray-200 border-gray-800 dark:border-gray-200',
+                    'shrink-0 border w-28 rounded-xl py-1 px-2 text-center ml-auto cursor-pointer transition-colors'
                 ]"
-                
             >
-                <span>{{ $t('viewShiny') }}</span>
-            </section>
+                {{ $t('viewShiny') }}
+            </button>
 
         </section>
 
