@@ -250,7 +250,7 @@
         "type": "Tipo",
         "generation": "Generación",
         "allGenerations": "Todas las generaciones",
-        "onlyShiny": "Solo con shiny",
+        "onlyShiny": "Solo shiny",
         "onlyReleased": "Solo disponibles",
         "title": "Filtros",
         "clear": "Limpiar",
@@ -258,7 +258,7 @@
         "rarity": "Rareza",
         "allRarities": "Cualquier rareza",
         "generationNumber": "Generación {number}",
-        "onlyShadow": "Solo con oscuro",
+        "onlyShadow": "Solo oscuro",
         "onlyDynamax": "Solo Dinamax",
         "onlyGigantamax": "Solo Gigamax",
         "rarities": {

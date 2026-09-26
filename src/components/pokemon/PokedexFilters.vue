@@ -113,7 +113,7 @@ const rarityOptions = computed(() => [
         <span class="block text-mini text-gray-600 dark:text-gray-400 mb-1">
           {{ $t('filters.type') }}
         </span>
-        <div class="flex flex-wrap gap-1.5">
+        <div class="flex flex-wrap gap-2.5">
           <button
             v-for="type in TYPES"
             :key="type"
