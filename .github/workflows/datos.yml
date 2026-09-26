@@ -1,0 +1,52 @@
+# Mantiene al día los datos del juego.
+#
+# `pnpm data` los baja de PokeMiners y pvpoke y los sube a la tabla `game_data`
+# de Supabase, que es de donde los lee la app. Por eso NO hace falta
+# redesplegar ni commitear nada: en cuanto la tabla cambia, la app lo ve.
+#
+# Los JSON de public/data siguen viajando con el despliegue como respaldo por
+# si Supabase no responde; quedan en la foto del último despliegue, que para
+# ese uso es suficiente.
+name: Datos del juego
+
+on:
+  schedule:
+    # 05:10 UTC. A una hora rara a propósito: en las horas en punto se
+    # amontonan los workflows de todo GitHub y las ejecuciones se retrasan.
+    - cron: '10 5 * * *'
+  # Para poder lanzarlo a mano desde la pestaña Actions.
+  workflow_dispatch:
+
+# Solo lee el repo: los datos van a Supabase, no a un commit.
+permissions:
+  contents: read
+
+concurrency:
+  group: datos-del-juego
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # --must-upload hace que falle si el secreto no está: sin él, el job
+      # acabaría en verde habiendo generado los ficheros y subido nada.
+      - name: Generar y subir a Supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: pnpm data --must-upload
