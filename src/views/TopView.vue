@@ -23,6 +23,11 @@ const league = ref('great')
 const abierto = ref(false)
 const includeMega = ref(true)
 const includeShadow = ref(true)
+/**
+ * Los legacy ya no se pueden conseguir. Va encendido porque es el ranking
+ * teórico de siempre; apagándolo sale el que de verdad está a tu alcance.
+ */
+const includeLegacy = ref(true)
 
 // Dinamax va justo detrás de incursiones: las dos son PvE, y el PvP es lo
 // que se sale del grupo.
@@ -63,6 +68,7 @@ const pveRows = computed(() => {
   const rankings = gameData.pveRankings({
     includeMega: includeMega.value,
     includeShadow: includeShadow.value,
+    includeLegacy: includeLegacy.value,
     sortBy: sortBy.value,
     limit: 50
   })
@@ -228,6 +234,13 @@ onMounted(() => gameData.load())
       </base-pill-button>
       <base-pill-button :active="includeShadow" @click="includeShadow = !includeShadow">
         {{ $t('top.shadows') }}
+      </base-pill-button>
+      <base-pill-button
+        :active="includeLegacy"
+        :title="$t('top.legacyHelp')"
+        @click="includeLegacy = !includeLegacy"
+      >
+        {{ $t('moves.legacy') }}
       </base-pill-button>
       <span class="text-mini text-gray-500 dark:text-gray-400">{{ sortHelp }}</span>
     </div>

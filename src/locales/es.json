@@ -127,7 +127,8 @@
         "method1": "Nivel 40 con IVs 15/15/15 contra un objetivo genérico de 180 de defensa y sin ventaja de tipo, así que mide potencia bruta. Para un jefe concreto, mira sus counters en la página de incursiones.",
         "method2": "El DPS sale de resolver el balance de energía del ciclo rápido/cargado, contando la energía que genera el daño recibido. El TDO asume un DPS entrante de 900 dividido entre tu defensa. No modela esquivar ni relevos.",
         "method3": "Frustración y Retroceso quedan fuera: no son opciones reales para un atacante optimizado.",
-        "include": "Incluir"
+        "include": "Incluir",
+        "legacyHelp": "Apágalo para ver solo conjuntos que aún se pueden conseguir: hay Pokémon que suben mucho gracias a un ataque que ya no se aprende."
     },
     "events": {
         "active": "En marcha",

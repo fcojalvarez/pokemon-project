@@ -396,3 +396,42 @@ describe('bonificaciones de evento', () => {
     )
   })
 })
+
+/**
+ * Los ataques legacy ya no se pueden conseguir, ni con MT Élite, pero el
+ * ranking solo guarda el mejor conjunto de cada Pokémon: si el mejor usa uno,
+ * esa es la única fila suya y nadie avisa de a qué distancia queda el
+ * alcanzable. Zamazenta pierde casi un tercio de DPS sin Embate Supremo.
+ */
+describe('ranking sin ataques legacy', () => {
+  it('los deja fuera cuando se pide', () => {
+    const { overall } = computeTypeRankings(roster, moves, {
+      sortBy: 'dps',
+      limit: 50,
+      includeLegacy: false
+    })
+    const colados = overall.filter((row) => row.fast.legacy || row.charged.legacy)
+    expect(colados.map((row) => row.nameEs)).toEqual([])
+  })
+
+  it('con ellos sí aparecen, que es el comportamiento de siempre', () => {
+    const { overall } = computeTypeRankings(roster, moves, { sortBy: 'dps', limit: 50 })
+    expect(overall.some((row) => row.fast.legacy || row.charged.legacy)).toBe(true)
+  })
+
+  it('un Pokémon que dependía de un legacy baja de DPS', () => {
+    const mejor = (opciones) => {
+      const { overall } = computeTypeRankings(roster, moves, {
+        sortBy: 'dps',
+        limit: 500,
+        ...opciones
+      })
+      return overall.find((row) => row.id.startsWith('zamazenta'))
+    }
+    const con = mejor({})
+    const sin = mejor({ includeLegacy: false })
+    expect(con.charged.legacy).toBe(true)
+    expect(sin.charged.legacy).toBe(false)
+    expect(sin.dps).toBeLessThan(con.dps)
+  })
+})

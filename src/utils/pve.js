@@ -48,17 +48,27 @@ export function evaluatePokemon(entry, moves, options = {}) {
   const stats = effectiveStats(entry.stats, ivs, level, { shadow: entry.shadow })
   const results = []
 
+  // Los legacy ya no se pueden conseguir, ni con MT Élite. Se pueden dejar
+  // fuera para ver el ranking que de verdad está al alcance: hay Pokémon que
+  // suben mucho gracias a uno y sin él pegan bastante menos —Zamazenta pierde
+  // casi un tercio de DPS sin Embate Supremo— y el ranking enseñaba solo su
+  // mejor conjunto, sin decir a qué distancia queda el alcanzable.
+  const legacySet = new Set(entry.legacyMoves ?? [])
+  const alcanzable = (id) => options.includeLegacy !== false || !legacySet.has(id)
+
   // El movimiento exclusivo de las supermegas entra en la baraja como uno más.
   // Hoy se descarta solo, porque `usable` exige stats de PvE y el GAME_MASTER
   // todavía no las publica; el día que aparezcan, se rankea sin tocar nada.
-  const chargedPool = entry.megaMoves?.length
-    ? [...entry.charged, ...entry.megaMoves]
-    : entry.charged
+  const chargedPool = (
+    entry.megaMoves?.length ? [...entry.charged, ...entry.megaMoves] : entry.charged
+  ).filter(alcanzable)
+
+  const fastPool = entry.fast.filter(alcanzable)
 
   // De dónde sale cada movimiento. Viaja con el resultado para que quien lo
   // pinte (rankings, counters, ficha) pueda marcarlo sin volver al roster.
   const elite = new Set(entry.eliteMoves ?? [])
-  const legacy = new Set(entry.legacyMoves ?? [])
+  const legacy = legacySet
   const exclusive = new Set(entry.megaMoves ?? [])
   const describe = (id, move) => ({
     id,
@@ -69,7 +79,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
     mega: exclusive.has(id),
   })
 
-  for (const fastId of entry.fast) {
+  for (const fastId of fastPool) {
     const fm = moves[fastId]
     if (!usableMove(fm, fastId)) continue
     const fastEff = chart && defenderTypes
