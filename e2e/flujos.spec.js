@@ -5,6 +5,16 @@ import { expect, test } from '@playwright/test'
  * lo que hay dentro, antes hay que abrirlas. En escritorio van siempre
  * abiertas y no hay botón, así que no hace nada.
  */
+/**
+ * La etiqueta de la métrica del Top: en la lista va en cada fila; en la tabla
+ * de escritorio ancho, en la cabecera de su columna.
+ */
+async function etiquetaDeMetrica(page, filas, texto) {
+  await expect(filas.first()).toBeVisible()
+  if (await page.locator('table').count()) return page.getByRole('columnheader', { name: texto })
+  return filas.first().getByText(texto)
+}
+
 async function abrirSecciones(page, ...titulos) {
   for (const titulo of titulos) {
     const boton = page.getByRole('button', { name: new RegExp(`^${titulo}`) })
@@ -59,13 +69,13 @@ test('el buscador filtra contra la base de datos', async ({ page }) => {
 test('el Top cambia entre PvE y PvP sin romperse', async ({ page }) => {
   await page.goto('/top')
 
-  const filas = page.locator('ol > li')
+  const filas = page.locator('[data-fila-top]')
   await expect(filas.first()).toBeVisible()
   const cuantasPve = await filas.count()
   expect(cuantasPve).toBeGreaterThan(5)
-  // En PvE cada fila lleva su métrica. Se busca dentro de la fila: suelto,
-  // "DPS" engancha también las opciones del desplegable de ordenación.
-  await expect(filas.first().getByText('DPS')).toBeVisible()
+  // La métrica: en la fila (lista) o en la cabecera (tabla). Suelto, "DPS"
+  // engancharía también las opciones del desplegable de ordenación.
+  await expect(await etiquetaDeMetrica(page, filas, /^dps$/i)).toBeVisible()
 
   // Ya no es un <select> nativo: es el desplegable propio, que se abre y se
   // elige con clics como haría cualquiera.
@@ -149,7 +159,7 @@ test('si game_data no responde, tira de los ficheros desplegados', async ({ page
 
   await page.goto('/top')
 
-  const filas = page.locator('ol > li')
+  const filas = page.locator('[data-fila-top]')
   await expect(filas.first()).toBeVisible()
   expect(await filas.count()).toBeGreaterThan(5)
 
@@ -171,12 +181,12 @@ test('el Top Dinamax ordena por ataque y enseña el Ataque Max', async ({ page }
   await page.getByRole('combobox', { name: /modo/i }).click()
   await page.getByRole('option', { name: /dinamax/i }).click()
 
-  const filas = page.locator('ol > li')
+  const filas = page.locator('[data-fila-top]')
   await expect(filas.first()).toBeVisible()
   expect(await filas.count()).toBeGreaterThan(10)
 
   // La métrica es el ataque, no el DPS.
-  await expect(filas.first().getByText('Ataque')).toBeVisible()
+  await expect(await etiquetaDeMetrica(page, filas, /^ataque$/i)).toBeVisible()
   // Y cada fila lleva su Ataque Max, que en español siempre empieza por "Maxi".
   await expect(filas.first().getByText(/^Maxi/)).toBeVisible()
 })
@@ -211,7 +221,7 @@ test('el filtro de Gigamax recorta la Pokédex', async ({ page }) => {
  */
 test('el botón Élite quita los ataques élite del ranking', async ({ page }) => {
   await page.goto('/top')
-  const filas = page.locator('ol > li')
+  const filas = page.locator('[data-fila-top]')
   await expect(filas.first()).toBeVisible()
   const conElite = () => filas.filter({ has: page.locator('[title="Solo se aprende con MT Élite"]') })
   expect(await conElite().count()).toBeGreaterThan(0)
@@ -232,7 +242,7 @@ test.describe('volver desde la ficha', () => {
 
   test('del Top a la ficha y vuelta al Top, en el mismo sitio', async ({ page }) => {
     await page.goto('/top')
-    const filas = page.locator('ol > li')
+    const filas = page.locator('[data-fila-top]')
     await expect(filas.nth(20)).toBeAttached()
     // Se baja siempre lo mismo, sea cual sea el alto de la pantalla, y se
     // pulsa la primera fila que quede a la vista.
@@ -275,5 +285,34 @@ test.describe('volver desde la ficha', () => {
     await expect(volver(page)).toBeVisible()
     await volver(page).click()
     await expect(page).toHaveURL(/\/$/)
+  })
+})
+
+/**
+ * El Top en escritorio ancho: filtros en una barra lateral fija y el ranking
+ * en tabla. Se ordena igual desde la cabecera que desde el selector.
+ */
+test.describe('Top en escritorio ancho', () => {
+  test.skip(({ viewport }) => viewport.width < 1280, 'solo desde 1280 px')
+
+  test('la barra de filtros se queda a la vista al bajar', async ({ page }) => {
+    await page.goto('/top')
+    await expect(page.locator('table [data-fila-top]').first()).toBeVisible()
+    await page.evaluate(() => window.scrollTo(0, 1500))
+    await expect(page.getByRole('combobox', { name: /modo/i })).toBeInViewport()
+  })
+
+  test('cabecera y selector ordenan a la par', async ({ page }) => {
+    await page.goto('/top')
+    const orden = page.getByRole('combobox', { name: /ordenar/i })
+    await expect(page.locator('th[aria-sort="descending"]')).toContainText(/dps/i)
+
+    await page.getByRole('button', { name: /^tdo/i }).click()
+    await expect(page.locator('th[aria-sort="descending"]')).toContainText(/tdo/i)
+    await expect(orden).toContainText('TDO')
+
+    await orden.click()
+    await page.getByRole('option', { name: /\(ER\)/ }).click()
+    await expect(page.locator('th[aria-sort="descending"]')).toContainText(/er/i)
   })
 })

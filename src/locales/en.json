@@ -99,6 +99,8 @@
         "inMaxBattles": "In Max Battles"
     },
     "top": {
+        "score": "Score",
+        "moves": "Moves",
         "mode": "Mode",
         "pve": "PvE · Raids",
         "pvp": "PvP · Battles",

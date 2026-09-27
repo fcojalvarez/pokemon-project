@@ -54,6 +54,7 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
 <template>
   <ol class="flex flex-col gap-2">
     <li
+      data-fila-top
       v-for="row in rows"
       :key="rowKey(row)"
     >

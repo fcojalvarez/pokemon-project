@@ -99,6 +99,8 @@
         "inMaxBattles": "En combates Max"
     },
     "top": {
+        "score": "Puntuación",
+        "moves": "Ataques",
         "mode": "Modo",
         "pve": "PvE · Incursiones",
         "pvp": "PvP · Combates",

@@ -9,8 +9,10 @@ import {
   SkeletonLoader
 } from '../components/index'
 import AttackerList from '../components/rankings/AttackerList.vue'
+import AttackerTable from '../components/rankings/AttackerTable.vue'
+import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
-import BaseChevron from '../components/base/BaseChevron.vue'
+import { useMedia } from '../composables/useMedia'
 import { useTranslate } from '../composables/useTranslate'
 
 const gameData = useGameDataStore()
@@ -20,7 +22,10 @@ const mode = ref('pve')
 const type = ref('all')
 const sortBy = ref('dps')
 const league = ref('great')
-const abierto = ref(false)
+// Desde xl, barra lateral fija con los filtros y el ranking en tabla.
+const ancho = useMedia('(min-width: 1280px)')
+// Los botones de «Incluir»: más bajos en la barra lateral, que es estrecha.
+const boton = computed(() => (ancho.value ? 'h-9 w-full text-xs' : 'h-11 w-full text-sm'))
 const includeMega = ref(true)
 const includeShadow = ref(true)
 /**
@@ -40,7 +45,7 @@ const modeOptions = computed(() => [
 ])
 
 const typeOptions = computed(() => [
-  { value: 'all', label: mode.value === 'pve' ? t('top.overall') : t('top.allTypes') },
+  { value: 'all', label: t('common.all') },
   ...gameData.types.map((type) => ({ value: type, label: t(`types.${type}`) }))
 ])
 
@@ -202,172 +207,173 @@ onMounted(() => gameData.load())
       {{ mode === 'max' ? $t('max.tabIntro') : mode === 'pve' ? $t('top.pveIntro') : $t('top.pvpIntro') }}
     </p>
 
-    <div class="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
-      <base-filter-select v-model="mode" :label="$t('top.mode')" :options="modeOptions" />
-      <base-filter-select v-model="type" :label="$t('top.type')" :options="typeOptions" />
-      <base-filter-select
-        v-if="mode === 'pve'"
-        v-model="sortBy"
-        :label="$t('top.sortBy')"
-        :options="sortOptions"
-      />
-      <base-filter-select
-        v-else-if="mode === 'pvp'"
-        v-model="league"
-        :label="$t('top.league')"
-        :options="leagueOptions"
-      />
-    </div>
-
     <!--
-      Mismo trato que los selectores de arriba: etiqueta encima y botones del
-      mismo alto repartidos en rejilla. Sueltos en una fila parecían de otro
-      orden, y son el tercer filtro de la vista.
+      Desde xl (1280 px), los filtros van en una barra lateral que se queda
+      fija al hacer scroll y el ranking en tabla a su derecha. Por debajo, todo
+      en una columna, filtros arriba y lista de tarjetas.
     -->
-    <div v-if="mode === 'pve'" class="mb-3">
-      <span
-        id="incluir-top"
-        class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
-      >{{ $t('top.include') }}</span>
-
-      <div
-        role="group"
-        aria-labelledby="incluir-top"
-        class="grid grid-cols-2 sm:grid-cols-4 gap-2"
+    <div :class="ancho ? 'grid grid-cols-[280px_minmax(0,1fr)] gap-6 items-start' : ''">
+      <aside
+        :class="ancho
+          ? 'sticky top-[104px] max-h-[calc(100vh-120px)] overflow-y-auto flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
+          : ''"
       >
-        <base-pill-button
-          class="h-11 w-full text-sm"
-          :active="includeMega"
-          @click="includeMega = !includeMega"
-        >
-          {{ $t('top.megas') }}
-        </base-pill-button>
-        <base-pill-button
-          class="h-11 w-full text-sm"
-          :active="includeShadow"
-          @click="includeShadow = !includeShadow"
-        >
-          {{ $t('top.shadows') }}
-        </base-pill-button>
-        <base-pill-button
-          class="h-11 w-full text-sm"
-          :active="includeLegacy"
-          :title="$t('top.legacyHelp')"
-          @click="includeLegacy = !includeLegacy"
-        >
-          {{ $t('moves.legacy') }}
-        </base-pill-button>
-        <base-pill-button
-          class="h-11 w-full text-sm"
-          :active="includeElite"
-          :title="$t('top.eliteHelp')"
-          @click="includeElite = !includeElite"
-        >
-          {{ $t('moves.elite') }}
-        </base-pill-button>
-      </div>
-
-      <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">{{ sortHelp }}</p>
-    </div>
-
-    <move-legend
-      v-if="origenes.elite || origenes.legacy || origenes.mega"
-      class="mb-3"
-      :elite="origenes.elite"
-      :legacy="origenes.legacy"
-      :mega="origenes.mega"
-    />
-
-    <!-- Filas con la forma de las de verdad: sprite, nombre, ataques y métrica. -->
-    <skeleton-loader v-if="gameData.status === 'loading' || gameData.status === 'idle'">
-      <div class="flex flex-col gap-2">
-        <div
-          v-for="n in 8"
-          :key="n"
-          class="flex items-center gap-3 p-2 pr-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
-        >
-          <span class="w-6 shrink-0 flex justify-end"><span class="esqueleto h-3 w-3 rounded-full"></span></span>
-          <span class="w-12 h-12 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
-          <span class="flex-1 min-w-0 flex flex-col gap-2">
-            <span class="esqueleto h-3.5 w-2/5 rounded-full"></span>
-            <span class="flex gap-1.5">
-              <span class="esqueleto h-5 w-20 rounded-full"></span>
-              <span class="esqueleto h-5 w-24 rounded-full"></span>
-            </span>
-          </span>
-          <span class="w-[72px] shrink-0 flex flex-col items-end gap-1.5">
-            <span class="esqueleto h-4 w-14 rounded-full"></span>
-            <span class="esqueleto h-1 w-full rounded-full"></span>
-            <span class="esqueleto h-3 w-10 rounded-full"></span>
-          </span>
+        <div :class="ancho ? 'flex flex-col gap-3' : 'grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mb-3'">
+          <base-filter-select v-model="mode" :label="$t('top.mode')" :options="modeOptions" />
+          <base-filter-select v-model="type" :label="$t('top.type')" :options="typeOptions" />
+          <!--
+            En la tabla también se ordena pulsando las cabeceras; los dos van a
+            la par. Lo que significa cada orden va justo debajo del selector.
+          -->
+          <div v-if="mode === 'pve'" class="min-w-0">
+            <base-filter-select
+              v-model="sortBy"
+              :label="$t('top.sortBy')"
+              :options="sortOptions"
+            />
+            <p class="mt-1.5 text-mini text-gray-600 dark:text-gray-300">{{ sortHelp }}</p>
+          </div>
+          <base-filter-select
+            v-else-if="mode === 'pvp'"
+            v-model="league"
+            :label="$t('top.league')"
+            :options="leagueOptions"
+          />
         </div>
+
+        <!--
+          Mismo trato que los selectores: etiqueta encima y botones del mismo
+          alto repartidos en rejilla.
+        -->
+        <div v-if="mode === 'pve'" :class="ancho ? '' : 'mb-3'">
+          <span
+            id="incluir-top"
+            class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+          >{{ $t('top.include') }}</span>
+
+          <div
+            role="group"
+            aria-labelledby="incluir-top"
+            class="grid gap-2"
+            :class="ancho ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'"
+          >
+            <base-pill-button
+              :class="boton"
+              :active="includeMega"
+              @click="includeMega = !includeMega"
+            >
+              {{ $t('top.megas') }}
+            </base-pill-button>
+            <base-pill-button
+              :class="boton"
+              :active="includeShadow"
+              @click="includeShadow = !includeShadow"
+            >
+              {{ $t('top.shadows') }}
+            </base-pill-button>
+            <base-pill-button
+              :class="boton"
+              :active="includeLegacy"
+              :title="$t('top.legacyHelp')"
+              @click="includeLegacy = !includeLegacy"
+            >
+              {{ $t('moves.legacy') }}
+            </base-pill-button>
+            <base-pill-button
+              :class="boton"
+              :active="includeElite"
+              :title="$t('top.eliteHelp')"
+              @click="includeElite = !includeElite"
+            >
+              {{ $t('moves.elite') }}
+            </base-pill-button>
+          </div>
+        </div>
+
+        <move-legend
+          v-if="origenes.elite || origenes.legacy || origenes.mega"
+          :class="ancho ? '' : 'mb-3'"
+          :elite="origenes.elite"
+          :legacy="origenes.legacy"
+          :mega="origenes.mega"
+        />
+
+        <top-calculo v-if="ancho && mode === 'pve'" class="pt-3 border-t border-gray-300 dark:border-gray-700" />
+      </aside>
+
+      <div class="min-w-0">
+        <!-- Filas con la forma de las de verdad: sprite, nombre, ataques y métrica. -->
+        <skeleton-loader v-if="gameData.status === 'loading' || gameData.status === 'idle'">
+          <div class="flex flex-col gap-2">
+            <div
+              v-for="n in 8"
+              :key="n"
+              class="flex items-center gap-3 p-2 pr-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+            >
+              <span class="w-6 shrink-0 flex justify-end"><span class="esqueleto h-3 w-3 rounded-full"></span></span>
+              <span class="w-12 h-12 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
+              <span class="flex-1 min-w-0 flex flex-col gap-2">
+                <span class="esqueleto h-3.5 w-2/5 rounded-full"></span>
+                <span class="flex gap-1.5">
+                  <span class="esqueleto h-5 w-20 rounded-full"></span>
+                  <span class="esqueleto h-5 w-24 rounded-full"></span>
+                </span>
+              </span>
+              <span class="w-[72px] shrink-0 flex flex-col items-end gap-1.5">
+                <span class="esqueleto h-4 w-14 rounded-full"></span>
+                <span class="esqueleto h-1 w-full rounded-full"></span>
+                <span class="esqueleto h-3 w-10 rounded-full"></span>
+              </span>
+            </div>
+          </div>
+        </skeleton-loader>
+
+        <base-error-message
+          v-else-if="gameData.status === 'error'"
+          :message="$t('common.error')"
+          :detail="gameData.error"
+        />
+
+        <!-- Escritorio ancho: una tabla para los tres modos. -->
+        <attacker-table
+          v-else-if="ancho && rowsShown"
+          v-model:sort-by="sortBy"
+          :rows="filasVisibles"
+          :mode="mode"
+        />
+
+        <!-- PvE -->
+        <attacker-list v-else-if="mode === 'pve'" :rows="pveRows" :sort-by="sortBy" />
+
+        <!--
+          Dinamax: la métrica es el ataque base y los movimientos que se enseñan
+          son el Ataque Max (y el Gigamax, si lo tiene).
+        -->
+        <attacker-list
+          v-else-if="mode === 'max'"
+          :rows="maxRows"
+          sort-by="value"
+          :unit="$t('attack')"
+          :show-secondary="false"
+        />
+
+        <!-- PvP: la misma lista, sin barra ni métrica de apoyo (no hay DPS aquí). -->
+        <attacker-list
+          v-else
+          :rows="pvpAsRows"
+          sort-by="score"
+          unit=""
+          :show-bar="false"
+          :show-secondary="false"
+        />
+
+        <base-empty-state
+          v-if="gameData.isReady && !rowsShown"
+          :message="mode === 'max' && type !== 'all' ? $t('max.noneOfType') : $t('common.empty')"
+        />
+
+        <top-calculo v-if="!ancho && mode === 'pve'" class="mt-6" />
       </div>
-    </skeleton-loader>
-
-    <base-error-message
-      v-else-if="gameData.status === 'error'"
-      :message="$t('common.error')"
-      :detail="gameData.error"
-    />
-
-    <!-- PvE -->
-    <attacker-list v-else-if="mode === 'pve'" :rows="pveRows" :sort-by="sortBy" />
-
-    <!--
-      Dinamax: la métrica es el ataque base y los movimientos que se enseñan
-      son el Ataque Max (y el Gigamax, si lo tiene).
-    -->
-    <attacker-list
-      v-else-if="mode === 'max'"
-      :rows="maxRows"
-      sort-by="value"
-      :unit="$t('attack')"
-      :show-secondary="false"
-    />
-
-    <!-- PvP: la misma lista, sin barra ni métrica de apoyo (no hay DPS aquí). -->
-    <attacker-list
-      v-else
-      :rows="pvpAsRows"
-      sort-by="score"
-      unit=""
-      :show-bar="false"
-      :show-secondary="false"
-    />
-
-    <base-empty-state
-      v-if="gameData.isReady && !rowsShown"
-      :message="mode === 'max' && type !== 'all' ? $t('max.noneOfType') : $t('common.empty')"
-    />
-
-    <details
-      v-if="mode === 'pve'"
-      class="mt-6 text-sm text-gray-600 dark:text-gray-300"
-      @toggle="abierto = $event.target.open"
-    >
-      <!--
-        El triángulo nativo apunta a la derecha; aquí apunta hacia abajo, como
-        el resto de desplegables de la app. Mismo sitio (delante del texto) y
-        mismo tamaño que tenía: lo único que cambia es hacia dónde mira.
-      -->
-      <summary class="flex items-center gap-2 cursor-pointer py-2 marcador-propio">
-        <base-chevron :open="abierto" />
-        {{ $t('top.howCalculated') }}
-      </summary>
-      <p class="mt-2">{{ $t('top.method1') }}</p>
-      <p class="mt-2">{{ $t('top.method2') }}</p>
-      <p class="mt-2">{{ $t('top.method3') }}</p>
-    </details>
+    </div>
   </section>
 </template>
-
-<style scoped>
-.marcador-propio {
-  list-style: none;
-}
-
-/* Safari no entiende `list-style` en un <summary>. */
-.marcador-propio::-webkit-details-marker {
-  display: none;
-}
-</style>
