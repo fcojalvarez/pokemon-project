@@ -649,6 +649,10 @@ async function syncFichaDesdeJuego(client, gm, en) {
     }
     if (typeof s.isTradable === 'boolean') fila.is_tradeable = s.isTradable
     if (typeof s.isTransferable === 'boolean') fila.is_transferable = s.isTransferable
+    // La rareza del filtro de la Pokédex, de la clase del juego. La siembra
+    // dejaba como «normales» a los Ultraentes, Type: Null, los tesoros
+    // funestos o los paradoja legendarios de Paldea.
+    fila.rarity = { POKEMON_CLASS_MYTHIC: 'mythic', POKEMON_CLASS_LEGENDARY: 'legendary', POKEMON_CLASS_ULTRA_BEAST: 'ultra_beast' }[s.pokemonClass] ?? 'standard'
     filas.push(fila)
   }
   if (filas.length < 1000) throw new Error(`el GAME_MASTER trae ${filas.length} especies: no me fío`)
@@ -657,7 +661,7 @@ async function syncFichaDesdeJuego(client, gm, en) {
     `WITH juego AS (
        SELECT * FROM jsonb_to_recordset($1::jsonb) AS j(
          pokemon_id int, name text, stats jsonb, third_move jsonb, buddy jsonb,
-         shadow_info jsonb, is_tradeable boolean, is_transferable boolean)
+         shadow_info jsonb, is_tradeable boolean, is_transferable boolean, rarity text)
      ), nuevo AS (
        SELECT p.pokemon_id,
               coalesce(j.name, p.name) AS name,
@@ -666,22 +670,23 @@ async function syncFichaDesdeJuego(client, gm, en) {
               CASE WHEN j.buddy IS NULL THEN p.buddy ELSE coalesce(p.buddy, '{}') || j.buddy END AS buddy,
               CASE WHEN j.shadow_info IS NULL THEN p.shadow_info ELSE coalesce(p.shadow_info, '{}') || j.shadow_info END AS shadow_info,
               coalesce(j.is_tradeable, p.is_tradeable) AS is_tradeable,
-              coalesce(j.is_transferable, p.is_transferable) AS is_transferable
+              coalesce(j.is_transferable, p.is_transferable) AS is_transferable,
+              coalesce(j.rarity, p.rarity) AS rarity
          FROM public.pokemons p JOIN juego j USING (pokemon_id)
      )
      UPDATE public.pokemons p
         SET name = n.name, stats = n.stats, third_move = n.third_move, buddy = n.buddy,
             shadow_info = n.shadow_info, is_tradeable = n.is_tradeable,
-            is_transferable = n.is_transferable, updated_at = now()
+            is_transferable = n.is_transferable, rarity = n.rarity, updated_at = now()
        FROM nuevo n
       WHERE p.pokemon_id = n.pokemon_id
-        AND (p.name, p.stats, p.third_move, p.buddy, p.shadow_info, p.is_tradeable, p.is_transferable)
+        AND (p.name, p.stats, p.third_move, p.buddy, p.shadow_info, p.is_tradeable, p.is_transferable, p.rarity)
             IS DISTINCT FROM
-            (n.name, n.stats, n.third_move, n.buddy, n.shadow_info, n.is_tradeable, n.is_transferable)`,
+            (n.name, n.stats, n.third_move, n.buddy, n.shadow_info, n.is_tradeable, n.is_transferable, n.rarity)`,
     [JSON.stringify(filas)]
   )
   console.log(`  ficha          ${filas.length} especies en el GAME_MASTER; ${rowCount} filas al día ` +
-    '(nombre, estadísticas, segundo ataque, compañero, purificación, intercambio)')
+    '(nombre, estadísticas, segundo ataque, compañero, purificación, intercambio, rareza)')
 }
 
 // Cómo se nombra cada región delante (inglés) y detrás (español), y el sufijo
@@ -1654,8 +1659,14 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny, en = n
       mythical: tags.includes('mythical'),
       ultraBeast: tags.includes('ultrabeast'),
       shadowEligible: tags.includes('shadoweligible'),
-      regional: tags.includes('regional') || tags.includes('alolan') ||
-        tags.includes('galarian') || tags.includes('hisuian') || tags.includes('paldean'),
+      // Forma regional (Meowth de Galar). pvpoke usa además la etiqueta
+      // `regional` para las especies exclusivas de una zona del mundo
+      // (Kangaskhan, Heracross, Tauros…): mezclarlas dejaba a 37 especies sin
+      // forma base, y su ficha leía ataques y estadísticas de la tabla vieja.
+      // Los Tauros de Paldea van sin la región en el id (tauros_blaze).
+      regional: /_(alolan|galarian|hisuian|paldean)(_|$)|^tauros_(aqua|blaze|combat)$/.test(p.speciesId) ||
+        tags.includes('alolan') || tags.includes('galarian') || tags.includes('hisuian') || tags.includes('paldean'),
+      regionExclusive: tags.includes('regional') && !/_(alolan|galarian|hisuian|paldean)(_|$)|^tauros_(aqua|blaze|combat)$/.test(p.speciesId),
       family: p.family?.id ?? null,
       evolutions: p.family?.evolutions ?? [],
       buddyDistance: p.buddyDistance ?? null,

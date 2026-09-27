@@ -29,7 +29,7 @@ const isOpen = ref(false)
 
 const TYPES = Object.keys(typesSVG)
 const GENERATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
-const RARITIES = ['standard', 'legendary', 'mythic']
+const RARITIES = ['standard', 'legendary', 'mythic', 'ultra_beast']
 
 const panelId = 'filtros-pokedex'
 

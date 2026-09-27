@@ -47,7 +47,7 @@ const { habiaFiltros } = useFiltrosEnUrl({
     q: { valor: busqueda, defecto: '' },
     kinds: { valor: filtro('types'), defecto: [], ...lista(Object.keys(typesSVG)) },
     gen: { valor: filtro('generation'), defecto: null, leer: (texto) => (/^[1-9]$/.test(texto) ? Number(texto) : undefined), escribir: (valor) => (valor ? String(valor) : '') },
-    rarity: { valor: filtro('rarity'), defecto: null, leer: entre(['standard', 'legendary', 'mythic']), escribir: (valor) => valor ?? '' },
+    rarity: { valor: filtro('rarity'), defecto: null, leer: entre(['standard', 'legendary', 'mythic', 'ultra_beast']), escribir: (valor) => valor ?? '' },
     only: { valor: solo, defecto: [], ...lista(Object.keys(SOLO)) }
 });
 
