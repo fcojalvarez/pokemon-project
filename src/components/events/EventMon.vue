@@ -58,6 +58,7 @@ const markScale = computed(() => {
       v-if="props.image"
       :src="props.image"
       alt=""
+      crossorigin="anonymous"
       :class="['shrink-0 object-contain', props.spriteClass]"
       loading="lazy"
     />

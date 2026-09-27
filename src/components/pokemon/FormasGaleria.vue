@@ -79,7 +79,8 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(locale() === 'en' ? 
     class="shrink-0 border border-gray-400 dark:border-gray-600 rounded-xl py-1 px-2 text-xs text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
     @click="abierta = true"
   >
-    {{ $t('forms.button', { n: total }) }}
+    <span class="sm:hidden">{{ $t('forms.buttonShort', { n: total }) }}</span>
+    <span class="hidden sm:inline">{{ $t('forms.button', { n: total }) }}</span>
   </button>
 
   <base-modal :open="abierta" :title="$t('forms.title', { pokemon: name })" size="sm:max-w-3xl" @close="abierta = false">
@@ -96,6 +97,7 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(locale() === 'en' ? 
       <div v-if="ampliada" class="flex flex-col items-center gap-3 py-2">
         <img
           :src="iconoForma(ampliada.f, { shiny })"
+          crossorigin="anonymous"
           :alt="nombre(ampliada)"
           class="w-56 h-56 sm:w-72 sm:h-72 object-contain"
         />
@@ -138,6 +140,7 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(locale() === 'en' ? 
             <span class="relative w-16 h-16">
               <img
                 :src="iconoForma(uno.f, { shiny })"
+                crossorigin="anonymous"
                 alt=""
                 class="w-full h-full object-contain"
                 loading="lazy"

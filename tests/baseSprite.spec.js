@@ -15,7 +15,8 @@ const imagen = ({ complete, naturalWidth = 0 }) => {
 const movimiento = (reducido) => {
   window.matchMedia = vi.fn().mockReturnValue({ matches: reducido, addEventListener: vi.fn() })
 }
-const montar = () => mount(BaseSprite, { props: { src: 'https://ejemplo.test/6.png', imgClass: 'grayscale' } })
+const montar = (props = {}) =>
+  mount(BaseSprite, { props: { src: 'https://ejemplo.test/6.png', imgClass: 'grayscale', entrada: 'salida', ...props } })
 
 describe('BaseSprite', () => {
   beforeEach(() => movimiento(false))
@@ -44,13 +45,29 @@ describe('BaseSprite', () => {
     expect(w.get('img').classes()).not.toContain('sprite-brilla')
   })
 
-  it('si ya estaba en la caché, sale directamente, sin destello', async () => {
+  it('aunque ya estuviera en la caché, sale con su animación', async () => {
     imagen({ complete: true, naturalWidth: 96 })
     const w = montar()
     await flushPromises()
     expect(w.find('.esqueleto').exists()).toBe(false)
-    expect(w.get('img').classes()).not.toContain('sprite-brilla')
+    expect(w.get('img').classes()).toContain('sprite-brilla')
     expect(w.get('img').attributes('style') ?? '').not.toContain('opacity: 0')
+  })
+
+  it('en la caché y con movimiento reducido, sale directamente', async () => {
+    movimiento(true)
+    imagen({ complete: true, naturalWidth: 96 })
+    const w = montar()
+    await flushPromises()
+    expect(w.get('img').classes()).not.toContain('sprite-brilla')
+  })
+
+  it('fuera de la Pokédex, un fundido corto en vez de la salida', async () => {
+    imagen({ complete: false })
+    const w = montar({ entrada: 'suave' })
+    await w.get('img').trigger('load')
+    expect(w.get('img').classes()).toContain('sprite-suave')
+    expect(w.get('img').classes()).not.toContain('sprite-brilla')
   })
 
   it('con movimiento reducido no hay destello', async () => {

@@ -73,6 +73,9 @@ export default defineConfig({
         // roster.json y pvp.json pasan de 800 KB: sin esto quedan fuera del precache.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
+        // Al activarse una versión nueva, fuera la precaché de las anteriores:
+        // que no quede ningún fichero viejo sirviéndose.
+        cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
             // Eventos, incursiones, huevos y tareas: primero la red y, si no hay
@@ -83,26 +86,44 @@ export default defineConfig({
               cacheName: 'scrapedduck',
               networkTimeoutSeconds: 8,
               expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 7 },
-              cacheableResponse: { statuses: [0, 200] }
+              cacheableResponse: { statuses: [200] }
             }
           },
+          // Imágenes: caché primero, para no volver a bajarlas en cada visita.
+          //
+          // Solo se guarda lo que llega bien (200): las imágenes se piden con
+          // crossorigin, así que no hay respuestas opacas, que podían esconder
+          // un 404 y dejar una imagen rota en la caché aunque se arreglara en
+          // origen. Y caducan en un mes (una semana los carteles), para que una
+          // imagen corregida acabe llegando.
           {
-            // Los sprites de PokeAPI no cambian: caché primero.
+            // Sprites de PokeAPI: más de mil especies y sus variocolores.
             urlPattern: /^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'pokeapi-sprites',
-              expiration: { maxEntries: 800, maxAgeSeconds: 60 * 60 * 24 * 60 },
-              cacheableResponse: { statuses: [0, 200] }
+              expiration: { maxEntries: 2000, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] }
             }
           },
           {
+            // Iconos de formas y disfraces (pokemon-go-api).
+            urlPattern: /^https:\/\/raw\.githubusercontent\.com\/pokemon-go-api\/assets\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'formas',
+              expiration: { maxEntries: 1500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] }
+            }
+          },
+          {
+            // Carteles de evento (cambian con cada evento) e iconos de LeekDuck.
             urlPattern: /^https:\/\/cdn\.leekduck\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'leekduck-img',
-              expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              cacheableResponse: { statuses: [0, 200] }
+              expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheableResponse: { statuses: [200] }
             }
           }
         ]

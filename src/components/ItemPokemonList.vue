@@ -44,6 +44,7 @@
             <!-- alt vacío: el nombre ya va escrito debajo, dentro del mismo enlace. -->
             <base-sprite
                 :src="image"
+                entrada="salida"
                 class="w-full h-full"
                 :img-class="[props.is_released? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark': 'grayscale opacity-40', 'z-10']"
             />

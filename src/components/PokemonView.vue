@@ -145,7 +145,9 @@ watch(() => route.params.id, async(newId) => {
             <!-- La leyenda a la izquierda y los botones a la derecha, misma línea. -->
             <div class="mt-3 lg:mt-0 flex flex-wrap items-center justify-between gap-3 lg:justify-end lg:gap-4">
                 <shiny-legend v-if="pokemon.is_shiny_released" variant="evolution" />
-                <div class="ml-auto flex items-center gap-2">
+                <!-- Los botones a su ancho, a la derecha, y bajan de línea si no caben
+                     junto a la leyenda: antes «Ver shiny» se salía de la tarjeta. -->
+                <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
                 <formas-galeria :dex="pokemon.pokemon_id" :name="hero.name" />
 
                 <!--
