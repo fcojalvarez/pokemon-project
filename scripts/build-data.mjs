@@ -123,6 +123,7 @@ async function resincronizarCadenas(client, campo) {
              SELECT jsonb_object_agg(fam.key, (
                       SELECT jsonb_agg(
                                CASE
+                                 WHEN uno ? 'form' THEN uno
                                  WHEN ref.${campo} IS DISTINCT FROM
                                       (uno->>'${campo}')::boolean
                                  THEN jsonb_set(uno, '{${campo}}',
@@ -141,7 +142,8 @@ async function resincronizarCadenas(client, campo) {
                     jsonb_array_elements(fam.value) uno
                LEFT JOIN public.pokemons ref
                       ON ref.pokemon_id = (uno->>'pokemon_id')::int
-              WHERE coalesce(ref.${campo}, false)
+              WHERE NOT uno ? 'form'
+                AND coalesce(ref.${campo}, false)
                     IS DISTINCT FROM coalesce((uno->>'${campo}')::boolean, false))
   `)
   return rowCount
@@ -513,6 +515,9 @@ async function syncEvolutionChains(client, roster, gm, es, en) {
   }
   // El paso con lo que diga el juego encima. `siguiente` es a quién evoluciona.
   const alDia = (paso, siguiente) => {
+    // Los pasos de una forma regional los lleva syncCadenasRegionales: con los
+    // datos de la fila se les pondría el nombre y los tipos de la de Kanto.
+    if (paso.form) return paso
     const f = fila.get(paso.pokemon_id)
     const out = { ...paso }
     if (f) {
@@ -676,6 +681,142 @@ async function syncFichaDesdeJuego(client, gm, en) {
     '(nombre, estadísticas, segundo ataque, compañero, purificación, intercambio)')
 }
 
+// Cómo se nombra cada región delante (inglés) y detrás (español), y el sufijo
+// de los ids del roster (meowth_galarian, wooper_paldean).
+const REGIONES = {
+  ALOLA: { en: 'Alolan', es: 'de Alola', id: 'alolan' },
+  GALARIAN: { en: 'Galarian', es: 'de Galar', id: 'galarian' },
+  HISUIAN: { en: 'Hisuian', es: 'de Hisui', id: 'hisuian' },
+  PALDEA: { en: 'Paldean', es: 'de Paldea', id: 'paldean' },
+}
+
+/**
+ * Las cadenas de las especies que solo salen de una forma regional:
+ * Perrserker (de Meowth de Galar), Obstagoon (de Zigzagoon y Linoone de
+ * Galar), Clodsire (de Wooper de Paldea), Sneasler, Overqwil, Sirfetch'd,
+ * Mr. Rime, Cursola y Runerigus. Venían vacías: la tabla va por número de
+ * Pokédex y no sabe de formas, y la cadena de Meowth es la de Kanto.
+ *
+ * Se montan con el GAME_MASTER: los pasos regionales llevan `form` (el id del
+ * roster, para enlazar a esa forma), su nombre en los dos idiomas, sus tipos
+ * y su sprite, y los requisitos de la rama (caramelos, misión…). Los demás
+ * sincronizadores respetan los pasos con `form`, que si no los pisarían con
+ * los datos de la especie de Kanto.
+ *
+ * Solo escribe en filas con la cadena vacía o montada aquí antes (todas sus
+ * ramas empiezan por un paso regional); cualquier otra se deja y se avisa.
+ */
+async function syncCadenasRegionales(client, roster, gm, es, en) {
+  const misiones = misionesDeEvolucion(gm, i18nMap(es), i18nMap(en))
+  const dexDe = new Map()
+  for (const t of gm) {
+    const m = /^V(\d{4})_POKEMON_/.exec(t.templateId)
+    const s = t.data?.pokemonSettings
+    if (m && s?.pokemonId && !dexDe.has(s.pokemonId)) dexDe.set(s.pokemonId, Number(m[1]))
+  }
+
+  // Cada forma regional con sus ramas: LINOONE_GALARIAN → { dex, región… }.
+  const formas = new Map()
+  for (const t of gm) {
+    const m = /^V(\d{4})_POKEMON_(.+)_(ALOLA|GALARIAN|HISUIAN|PALDEA)$/.exec(t.templateId)
+    const s = t.data?.pokemonSettings
+    if (!m || !s) continue
+    formas.set(`${m[2]}_${m[3]}`, { dex: Number(m[1]), base: m[2], region: m[3], ramas: s.evolutionBranch ?? [] })
+  }
+  const esRegional = (form) => /_(ALOLA|GALARIAN|HISUIAN|PALDEA)(_|$)/.test(form ?? '')
+
+  // Las especies exclusivas y de qué forma salen.
+  const exclusivas = []
+  for (const [clave, forma] of formas) {
+    for (const rama of forma.ramas) {
+      if (rama.temporaryEvolution || esRegional(rama.form)) continue
+      const destino = dexDe.get(rama.evolution)
+      if (destino && destino !== forma.dex) exclusivas.push({ destino, desde: clave, rama })
+    }
+  }
+  // Hacia atrás: la forma regional que evoluciona en esta (Zigzagoon → Linoone de Galar).
+  const previa = (clave) => {
+    for (const [otra, forma] of formas) {
+      const rama = forma.ramas.find((r) => r.form === clave)
+      if (rama) return { clave: otra, rama }
+    }
+    return null
+  }
+
+  // Todas las formas, no solo la última: Obstagoon viene de Linoone y este de Zigzagoon.
+  const dexes = [...new Set([...exclusivas.map((e) => e.destino), ...[...formas.values()].map((f) => f.dex)])]
+  const { rows } = await client.query(
+    `SELECT pokemon_id, name, types, sprites, is_released, is_shiny_released, evolution_info
+       FROM public.pokemons WHERE pokemon_id = ANY($1::int[])`, [dexes])
+  const fila = new Map(rows.map((r) => [r.pokemon_id, r]))
+  const rosterPorId = new Map(roster.map((p) => [p.id, p]))
+  const requisitosDe = (rama) => {
+    const mision = misiones.get(rama.questDisplay?.[0]?.questRequirementTemplateId)
+    const b = mision ? { ...rama, _mision: mision } : rama
+    return sinVacios(Object.fromEntries(Object.entries(REQUISITOS_DEL_JUEGO).map(([campo, leer]) => [campo, leer(b)])))
+  }
+  const sprite = (id, shiny) =>
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${shiny ? 'shiny/' : ''}${id}.png`
+  const pasoRegional = (clave, rama) => {
+    const forma = formas.get(clave)
+    const region = REGIONES[forma.region]
+    const base = fila.get(forma.dex)
+    const p = rosterPorId.get(`${forma.base.toLowerCase()}_${region.id}`)
+    if (!base || !p) return null
+    return {
+      name: `${region.en} ${base.name.trim()}`,
+      nameEs: `${base.name.trim()} ${region.es}`,
+      types: p.types,
+      sprites: { male: sprite(p.spriteId, false), male_shiny: sprite(p.spriteId, true) },
+      pokemon_id: forma.dex,
+      form: p.id,
+      is_released: p.released === true,
+      // El variocolor del roster es por especie, no por forma: mejor no decir nada.
+      is_shiny_released: false,
+      ...requisitosDe(rama),
+    }
+  }
+
+  const cadenas = new Map()
+  for (const { destino, desde, rama } of exclusivas) {
+    const final = fila.get(destino)
+    if (!final) continue
+    const pasos = [{
+      name: final.name.trim(), types: final.types, sprites: final.sprites, pokemon_id: destino,
+      is_released: Boolean(final.is_released), is_shiny_released: Boolean(final.is_shiny_released),
+    }]
+    let actual = { clave: desde, rama }
+    while (actual) {
+      const paso = pasoRegional(actual.clave, actual.rama)
+      if (!paso) break
+      pasos.unshift(paso)
+      actual = previa(actual.clave)
+    }
+    if (pasos.length < 2) continue
+    if (!cadenas.has(destino)) cadenas.set(destino, [])
+    cadenas.get(destino).push(pasos)
+  }
+
+  let escritas = 0
+  const saltadas = []
+  for (const [destino, ramas] of cadenas) {
+    const actual = fila.get(destino).evolution_info ?? {}
+    const existentes = Object.values(actual).filter((r) => Array.isArray(r) && r.length)
+    if (existentes.some((r) => !r[0].form)) {
+      saltadas.push(`#${destino} ${fila.get(destino).name}`)
+      continue
+    }
+    const info = Object.fromEntries(ramas.map((r, i) => [RAMAS[i], r]))
+    if (canonico(info) === canonico(actual)) continue
+    await client.query(
+      'UPDATE public.pokemons SET evolution_info = $2::jsonb, updated_at = now() WHERE pokemon_id = $1',
+      [destino, JSON.stringify(info)])
+    escritas++
+  }
+  console.log(`  regionales     ${cadenas.size} especies que salen de una forma regional; ${escritas} cadenas al día` +
+    (saltadas.length ? `; con otra cadena, sin tocar: ${saltadas.join(', ')}` : ''))
+}
+
 async function updatePokemonsTable(client, roster) {
   const dinamax = new Set()
   const gigamax = new Set()
@@ -740,6 +881,7 @@ async function uploadToSupabase(data, roster, conVariocolor, gm, en, es) {
     await syncReleases(client, roster)
     await syncShadowReleases(client, roster)
     await syncEvolutionChains(client, roster, gm, es, en)
+    await syncCadenasRegionales(client, roster, gm, es, en)
     if (ENSAYO) {
       await client.query('ROLLBACK')
       console.log('  --dry-run: no se ha guardado nada')

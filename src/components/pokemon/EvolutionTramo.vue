@@ -88,8 +88,14 @@ const tramo = computed(() => {
 
 const monProps = (nodo, extra = {}) => ({
   mon: nodo.mon,
-  to: nodo.mega ? nodo.mega.to : `/pokemon/${nodo.mon.pokemon_id}`,
-  active: nodo.mega ? nodo.mega.id === cadena.formId.value : !cadena.formId.value && nodo.mon.pokemon_id === cadena.activeId.value,
+  // Megas y formas regionales (Meowth de Galar en la cadena de Perrserker)
+  // enlazan a la ficha de esa forma, y se resaltan cuando es la que se ve.
+  to: nodo.mega ? nodo.mega.to : nodo.mon.form ? `/pokemon/${nodo.mon.pokemon_id}?form=${nodo.mon.form}` : `/pokemon/${nodo.mon.pokemon_id}`,
+  active: nodo.mega
+    ? nodo.mega.id === cadena.formId.value
+    : nodo.mon.form
+      ? nodo.mon.form === cadena.formId.value
+      : !cadena.formId.value && nodo.mon.pokemon_id === cadena.activeId.value,
   shiny: cadena.shiny.value,
   sinNumero: Boolean(nodo.mega) || props.enGrupo || Boolean(extra.enGrupo),
   badge: nodo.mega?.superMega ? t('pokemon.superMega') : null,

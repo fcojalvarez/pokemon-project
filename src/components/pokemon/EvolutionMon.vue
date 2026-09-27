@@ -15,6 +15,7 @@ import { computed } from 'vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import ShinyMark from './ShinyMark.vue'
+import { localName } from '../../composables/useTranslate'
 
 const props = defineProps({
   mon: { type: Object, required: true },
@@ -34,7 +35,12 @@ const props = defineProps({
 
 // En una sola expresión: un espacio al final de un bloque condicional de la
 // plantilla se lo come el compilador y salía «#4Charmander».
-const nombre = computed(() => (props.sinNumero ? props.mon.name : `#${props.mon.pokemon_id} ${props.mon.name}`))
+// Los pasos de una forma regional traen el nombre en los dos idiomas
+// («Meowth de Galar» / «Galarian Meowth»); el resto, solo `name`.
+const nombre = computed(() => {
+  const texto = localName(props.mon)
+  return props.sinNumero ? texto : `#${props.mon.pokemon_id} ${texto}`
+})
 
 const sprite = computed(() => (props.shiny ? props.mon.sprites?.male_shiny : props.mon.sprites?.male) ?? null)
 
