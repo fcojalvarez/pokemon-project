@@ -311,13 +311,22 @@ describe('combates Max', () => {
 
   it('da su propio ataque a cada Gigamax', () => {
     const gigamax = roster.filter((p) => p.gigantamax)
-    expect(gigamax.length).toBeGreaterThan(25)
+    // Solo los ya liberados (16 en septiembre de 2026), no los 33 que el
+    // juego tiene preparados.
+    expect(gigamax.length).toBeGreaterThan(10)
     for (const entry of gigamax) {
       const especie = entry.id.split('_')[0].toUpperCase()
       const move = maxbattles.gmaxBySpecies[especie]
       expect(move, `${entry.nameEs} no tiene ataque Gigamax`).toBeTruthy()
       expect(move.nameEs).toMatch(/^Giga/)
     }
+  })
+
+  it('no marca Gigamax lo que el juego tiene preparado pero no ha salido', () => {
+    // Flapple y Appletun venían en el GAME_MASTER años antes de salir.
+    const preparados = roster.filter((p) => ['flapple', 'appletun', 'eevee', 'melmetal'].includes(p.id))
+    expect(preparados.filter((p) => p.gigantamax).map((p) => p.id)).toEqual([])
+    expect(roster.find((p) => p.id === 'charizard').gigantamax).toBe(true)
   })
 
   it('no marca como Max a megas, primigenios ni oscuros', () => {
