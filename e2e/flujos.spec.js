@@ -47,11 +47,12 @@ test('el buscador filtra contra la base de datos', async ({ page }) => {
   // Se espera a la consulta de la búsqueda en concreto, no a cualquiera de la
   // tabla: la carga inicial del listado también pega a /rest/v1/pokemons y
   // resolvía la espera antes de tiempo, lo que hacía el test inestable cuando
-  // los tres perfiles corren a la vez.
+  // los tres perfiles corren a la vez. La búsqueda encuentra los nombres en la
+  // lista (sin fijarse en signos) y pide sus fichas por número: Mewtwo, 150.
   const consulta = page.waitForResponse(
     (res) =>
       res.url().includes('/rest/v1/pokemons') &&
-      res.url().toLowerCase().includes('mewtwo') &&
+      decodeURIComponent(res.url()).includes('pokemon_id=in.(150)') &&
       res.status() === 200
   )
   await page.getByPlaceholder(/buscar pok/i).fill('mewtwo')
@@ -364,4 +365,16 @@ test('las rutas antiguas en español redirigen a las nuevas', async ({ page }) =
   await expect(page).toHaveURL(/\/events$/)
   await page.goto('/incursiones')
   await expect(page).toHaveURL(/\/live$/)
+})
+
+// Antes, una ruta desconocida llevaba a la Pokédex sin decir nada, y una ficha
+// que no existe se quedaba cargando para siempre.
+test('lo que no existe lo dice, y ofrece las secciones', async ({ page }) => {
+  await page.goto('/esto-no-existe')
+  await expect(page.getByRole('heading', { name: 'Esta página no existe' })).toBeVisible()
+  await expect(page).toHaveTitle(/Esta página no existe/)
+  await page.goto('/pokemon/99999')
+  await expect(page.getByRole('heading', { name: 'Esta página no existe' })).toBeVisible()
+  await page.getByRole('link', { name: 'Top' }).last().click()
+  await expect(page).toHaveURL(/\/top$/)
 })

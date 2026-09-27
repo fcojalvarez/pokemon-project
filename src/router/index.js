@@ -61,8 +61,11 @@ const router = createRouter({
         { path: '/eventos', redirect: (to) => ({ path: '/events', query: to.query }) },
         { path: '/sugerencias', redirect: (to) => ({ path: '/suggestions', query: to.query }) },
         {
-            path: "/:catchAll(.*)",
-            redirect: `/`
+            // Lo que no existe: se dice, en vez de mandar a la Pokédex sin más.
+            path: '/:catchAll(.*)',
+            name: 'NotFound',
+            meta: { titleKey: 'notFound.title' },
+            component: () => import('@/views/NotFoundView.vue')
         }
     ]
 })

@@ -19,6 +19,11 @@
     "viewShiny": "View shiny",
     "unitDistance": "km",
     "evolution": "Evolution | Evolutions",
+    "notFound": {
+        "title": "This page doesn't exist",
+        "text": "This address doesn't lead anywhere in the app. The link may be mistyped or from an older version.",
+        "sections": "App sections"
+    },
     "nav": {
         "menu": "Menu",
         "open": "Open menu",

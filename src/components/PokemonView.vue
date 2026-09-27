@@ -13,8 +13,12 @@ import { spriteUrl } from '../utils/sprites';
 import BaseSprite from './base/BaseSprite.vue';
 import SkeletonLoader from './base/SkeletonLoader.vue';
 import { localName } from '../composables/useTranslate';
+import NotFoundView from '../views/NotFoundView.vue';
 
 const pokemon = ref(null);
+// La consulta acabó y no hay ningún Pokémon con ese número (/pokemon/99999):
+// sin esto se quedaba el esqueleto cargando para siempre.
+const noExiste = ref(false);
 const route = useRoute();
 const isShowShiny = ref(false);
 const gameData = useGameDataStore();
@@ -54,10 +58,14 @@ watch(() => hero.value?.name, (name) => {
 const getPokemon = async(pokemonId) => {
     const { data, error } = await supabase.from('pokemons').select('*').eq('pokemon_id', pokemonId).limit(1);
 
-    if(error) console.error(error);
+    if(error && !['22003', '22P02'].includes(error.code)) console.error(error);
 
     const [ pokemonFinded ] = data || [];
+    // `pokemon_id` es smallint: un número fuera de rango (22003) o que no es
+    // número (22P02) tampoco existe, aunque la base lo diga como error.
+    const noHay = !error || ['22003', '22P02'].includes(error.code);
     if(pokemonFinded) pokemon.value = {...pokemonFinded};
+    else if(noHay) { pokemon.value = null; noExiste.value = true; }
 }
 
 onMounted(async() => {
@@ -72,10 +80,12 @@ onMounted(async() => {
     // scrollTo suave que, si se volvía atrás antes de que acabara, seguía
     // subiendo y pisaba el scroll recuperado de la página anterior.
     if(pokemonId) await getPokemon(pokemonId);
+    else noExiste.value = true;
 })
 
 watch(() => route.params.id, async(newId) => {
     const pokemonIdFromRoute = Number(newId);
+    noExiste.value = false;
     if(pokemonIdFromRoute && pokemon.value?.pokemon_id !== pokemonIdFromRoute) {
         await getPokemon(pokemonIdFromRoute);
     }
@@ -143,6 +153,8 @@ watch(() => route.params.id, async(newId) => {
 
         <pokemon-extra-info :pokemon="pokemon" :form-id="formId" />
     </div>
+
+    <not-found-view v-else-if="noExiste" />
 
     <!-- Mientras llega el Pokémon: las mismas tarjetas, con su forma. -->
     <skeleton-loader v-else class="flex flex-col gap-3 lg:gap-4">

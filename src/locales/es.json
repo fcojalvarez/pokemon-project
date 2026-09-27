@@ -19,6 +19,11 @@
     "viewShiny": "Ver shiny",
     "evolution": "Evolución | Evoluciones",
     "unitDistance": "km",
+    "notFound": {
+        "title": "Esta página no existe",
+        "text": "La dirección no lleva a ninguna parte de la app. Puede que el enlace esté mal copiado o que sea de una versión antigua.",
+        "sections": "Secciones de la app"
+    },
     "nav": {
         "menu": "Menú",
         "open": "Abrir menú",
