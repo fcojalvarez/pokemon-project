@@ -1,7 +1,8 @@
 <script setup>
 /**
  * Lo que pide una evolución, con sus iconos: caramelos, megaenergía, objeto,
- * cebo, caminar con el compañero, día, noche o luna llena, sexo e intercambio.
+ * cebo, caminar con el compañero, día, noche o luna llena, sexo, intercambio y
+ * misiones (Sylveon: 70 corazones con el compañero).
  *
  * `parte` decide qué se pinta, porque en la cadena el coste va encima de la
  * flecha y el resto debajo, o bajo el nombre dentro de un grupo.
@@ -44,7 +45,7 @@ const hayAlgo = computed(() => {
   const r = props.req
   const deCoste = r.candy_required || r.mega_energy_required
   const deResto = r.item_required || r.lure_required || r.buddy_distance_required ||
-    r.only_evolves_in_daytime || r.only_evolves_in_nighttime || r.only_evolves_in_full_moon || r.gender_required || r.no_candy_cost_if_traded
+    r.only_evolves_in_daytime || r.only_evolves_in_nighttime || r.only_evolves_in_full_moon || r.gender_required || r.no_candy_cost_if_traded || r.quest_required
   return (coste.value && deCoste) || (resto.value && deResto)
 })
 </script>
@@ -94,6 +95,10 @@ const hayAlgo = computed(() => {
       <li v-if="req.gender_required" class="req">
         <img :src="req.gender_required === 'Female' ? female : male" alt="" class="invert dark:invert-0 w-3 h-3 icono">
         {{ $t(`evolutions.${req.gender_required}Short`) }}
+      </li>
+      <!-- La misión viene redactada por el juego en los dos idiomas. -->
+      <li v-if="req.quest_required" class="req">
+        {{ req.quest_required[$i18n.locale] ?? req.quest_required.en }}
       </li>
       <li v-if="req.no_candy_cost_if_traded" class="req">
         <img :src="trade" alt="" class="invert dark:invert-0 w-3 h-3 icono">

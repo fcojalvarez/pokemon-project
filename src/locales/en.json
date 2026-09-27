@@ -417,7 +417,7 @@
         "canGigantamax": "Can Gigantamax",
         "maxMove": "Max Move",
         "gmaxMove": "G-Max Move",
-        "slotAttack": "Attack",
+        "slotAttack": "Max Attack",
         "slotGuard": "Max Guard",
         "slotSpirit": "Max Spirit",
         "upgradeTitle": "Cost to fully upgrade",

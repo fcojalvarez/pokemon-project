@@ -324,7 +324,11 @@ const REQUISITOS_DEL_JUEGO = {
   item_required: (b) => (b.evolutionItemRequirement ? OBJETOS_DE_EVOLUCION[b.evolutionItemRequirement] : null),
   item_cost: (b) => (b.evolutionItemRequirementCost > 1 ? b.evolutionItemRequirementCost : null),
   lure_required: (b) => (b.lureItemRequirement ? CEBOS_DE_EVOLUCION[b.lureItemRequirement] : null),
-  buddy_distance_required: (b) => b.kmBuddyDistanceRequirement ?? null,
+  // Los km salen también de las misiones de caminar (Milotic, Sudowoodo…).
+  buddy_distance_required: (b) => b.kmBuddyDistanceRequirement ?? b._mision?.km ?? null,
+  // El resto de misiones, con el texto del juego en los dos idiomas: «Consigue
+  // 70 corazones con tu compañero» para Sylveon.
+  quest_required: (b) => b._mision?.texto ?? null,
   must_be_buddy_to_evolve: (b) => b.mustBeBuddy === true || null,
   only_evolves_in_daytime: (b) => b.onlyDaytime === true || null,
   only_evolves_in_nighttime: (b) => b.onlyNighttime === true || null,
@@ -347,7 +351,33 @@ const conRepetidos = (rama) => new Set(rama.map((paso) => paso.pokemon_id)).size
  * distingue formas. Las regionales van aparte (Meowth de Galar → Perrserker)
  * porque sus cadenas no son las de la especie.
  */
-function requisitosDelJuego(gm) {
+/**
+ * Las misiones de evolución (Sylveon, Kingambit, Annihilape…), ya redactadas.
+ * El GAME_MASTER da el tipo, el objetivo y la clave del texto en el juego;
+ * aquí se sustituye el {0} por el objetivo en español y en inglés. Las de
+ * caminar con el compañero se devuelven como km, que ya tienen su icono.
+ */
+function misionesDeEvolucion(gm, es, en) {
+  const misiones = new Map()
+  for (const t of gm) {
+    const q = t.data?.evolutionQuestTemplate
+    if (!q) continue
+    const objetivo = q.goals?.[0]?.target ?? 1
+    if (q.questType === 'QUEST_BUDDY_EVOLUTION_WALK') {
+      misiones.set(t.templateId, { km: objetivo })
+      continue
+    }
+    let clave = q.display?.description ?? ''
+    // El juego usa a veces la clave en singular con un objetivo mayor
+    // (Sylveon: «Consigue un corazón» y pide 70).
+    if (objetivo > 1) clave = clave.replace(/_SINGLE$/, '_PLURAL').replace(/_singular$/, '_plural')
+    const texto = (mapa) => (mapa.get(clave) ?? mapa.get(clave.toLowerCase()))?.replace('{0}', objetivo)
+    if (texto(es) && texto(en)) misiones.set(t.templateId, { texto: { es: texto(es), en: texto(en) } })
+  }
+  return misiones
+}
+
+function requisitosDelJuego(gm, misiones = new Map()) {
   const dexDe = new Map()
   for (const t of gm) {
     const m = /^V(\d{4})_POKEMON_/.exec(t.templateId)
@@ -364,7 +394,8 @@ function requisitosDelJuego(gm) {
       if (!destino || destino === dex || b.temporaryEvolution) continue
       const clave = `${dex}>${destino}`
       if (!ramas.has(clave)) ramas.set(clave, [])
-      ramas.get(clave).push(b)
+      const mision = misiones.get(b.questDisplay?.[0]?.questRequirementTemplateId)
+      ramas.get(clave).push(mision ? { ...b, _mision: mision } : b)
     }
   }
   const requisitos = new Map()
@@ -437,11 +468,11 @@ function caminosDelRoster(roster, existe) {
  * - Nombre y tipos de cada paso, de la fila de ese Pokémon, que ya lleva el
  *   nombre oficial. Había pasos con el de otra especie (Crocalor «Fuecoco»).
  */
-async function syncEvolutionChains(client, roster, gm) {
+async function syncEvolutionChains(client, roster, gm, es, en) {
   const { rows } = await client.query(
     'SELECT pokemon_id, name, types, sprites, is_released, is_shiny_released, evolution_info FROM public.pokemons')
   const fila = new Map(rows.map((r) => [r.pokemon_id, r]))
-  const { requisitos, dudosos } = requisitosDelJuego(gm)
+  const { requisitos, dudosos } = requisitosDelJuego(gm, misionesDeEvolucion(gm, i18nMap(es), i18nMap(en)))
 
   const familia = new Map()
   for (const camino of caminosDelRoster(roster, (a, b) => requisitos.has(`${a}>${b}`)).filter((c) => c.every((d) => fila.has(d)))) {
@@ -661,7 +692,7 @@ async function updatePokemonsTable(client, roster) {
   console.log(`  pokemons       ${rowCount} filas tocadas (${dinamax.size} Dinamax, ${gigamax.size} Gigamax)`)
 }
 
-async function uploadToSupabase(data, roster, conVariocolor, gm, en) {
+async function uploadToSupabase(data, roster, conVariocolor, gm, en, es) {
   const url = process.env.SUPABASE_DB_URL
   if (!url) {
     if (EXIGE_SUBIDA) {
@@ -703,7 +734,7 @@ async function uploadToSupabase(data, roster, conVariocolor, gm, en) {
     await syncShinyReleases(client, conVariocolor)
     await syncReleases(client, roster)
     await syncShadowReleases(client, roster)
-    await syncEvolutionChains(client, roster, gm)
+    await syncEvolutionChains(client, roster, gm, es, en)
     if (ENSAYO) {
       await client.query('ROLLBACK')
       console.log('  --dry-run: no se ha guardado nada')
@@ -1379,7 +1410,7 @@ async function main() {
     console.log(`  ${file.padEnd(14)} ${(json.length / 1024).toFixed(0)} KB`)
   }
 
-  await uploadToSupabase(data, pokemon, conVariocolor, gmRaw, enRaw)
+  await uploadToSupabase(data, pokemon, conVariocolor, gmRaw, enRaw, esRaw)
 
   console.log(`\n${pokemon.length} Pokémon (${data['meta.json'].counts.released} disponibles), ` +
     `${Object.keys(moves).length} movimientos.`)

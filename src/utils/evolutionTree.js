@@ -24,7 +24,8 @@ export const CAMPOS_REQUISITO = [
   'only_evolves_in_nighttime',
   'only_evolves_in_full_moon',
   'gender_required',
-  'no_candy_cost_if_traded'
+  'no_candy_cost_if_traded',
+  'quest_required'
 ]
 
 // Las ramas vienen con claves primary, secondary… y el objeto no garantiza el
