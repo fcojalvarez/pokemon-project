@@ -76,6 +76,7 @@ describe('la petición a Gemini', () => {
     const cuerpo = peticionGemini(['GO Battle League: Twilight Trails'], glosario(en, es))
     const pregunta = cuerpo.contents[0].parts[0].text
     expect(pregunta).toContain('GO Battle League → Liga Combates GO')
+    expect(pregunta).toContain('Twilight Trails → Senderos Crepusculares')
     expect(pregunta).not.toContain('Spotlight Hour')
     expect(cuerpo.generationConfig.responseMimeType).toBe('application/json')
   })

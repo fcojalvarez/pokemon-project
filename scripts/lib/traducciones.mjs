@@ -89,6 +89,9 @@ const FIJOS = {
   'Great League': 'Liga Super Ball',
   'Ultra League': 'Liga Ultra Ball',
   'Master League': 'Liga Master Ball',
+  'Little Cup': 'Copa Chica',
+  // Temporadas: el nombre oficial, que no siempre es la traducción literal.
+  'Twilight Trails': 'Senderos Crepusculares',
   'Field Research': 'Investigación de campo',
   'Special Research': 'Investigación especial',
   'Timed Research': 'Investigación temporal',
