@@ -1404,6 +1404,139 @@ function buildMaxData(gm, en, es) {
   return { movimientos, porTipo, gmaxPorEspecie, gigamax, dinamax, grupoCoste, costes }
 }
 
+/**
+ * La cadena evolutiva de cada forma regional, para su ficha (?form=…).
+ *
+ * La tabla `pokemons` va por número de Pokédex, así que la ficha de Meowth de
+ * Galar enseñaba la cadena de Kanto (Meowth → Persian). Aquí se monta, con el
+ * GAME_MASTER, la de la forma: Meowth de Galar → Perrserker, Cyndaquil →
+ * Quilava → Typhlosion de Hisui, Pichu → Pikachu → Raichu de Alola, Slowpoke
+ * de Galar → Slowbro y Slowking de Galar… Va en la entrada del roster de cada
+ * forma (`cadena`), con el mismo formato que `evolution_info`.
+ *
+ * Se parte de la forma y se sube por sus antecesores hasta la raíz; desde
+ * ahí se baja siguiendo, en los Pokémon sin forma, solo el camino hacia la
+ * regional (de Quilava no se va al Typhlosion de Johto), y en las regionales,
+ * todas sus ramas.
+ */
+function cadenasDeFormasRegionales(gm, roster, es, en) {
+  const misiones = misionesDeEvolucion(gm, es, en)
+  const REGION = /_(ALOLA|GALARIAN|HISUIAN|PALDEA)(?=_|$)/
+  const dexDe = new Map()
+  for (const t of gm) {
+    const m = /^V(\d{4})_POKEMON_/.exec(t.templateId)
+    const s = t.data?.pokemonSettings
+    if (m && s?.pokemonId && !dexDe.has(s.pokemonId)) dexDe.set(s.pokemonId, Number(m[1]))
+  }
+  const rosterPorId = new Map(roster.map((p) => [p.id, p]))
+  const basePorDex = new Map()
+  for (const p of roster) {
+    if (!p.mega && !p.shadow && !p.regional && !basePorDex.has(p.dex)) basePorDex.set(p.dex, p)
+  }
+  // RAICHU_ALOLA → raichu_alolan; WOOPER_PALDEA → wooper_paldean.
+  const idDeForma = (form) => form.toLowerCase().replace(/_alola(?=_|$)/, '_alolan').replace(/_paldea(?=_|$)/, '_paldean')
+
+  // Nodos: «r:FORMA» para las regionales y «p:DEX» para los que no tienen forma.
+  const sale = new Map()
+  const entra = new Map()
+  const unir = (origen, destino, rama) => {
+    if (origen === destino) return
+    if (!sale.has(origen)) sale.set(origen, [])
+    if (!entra.has(destino)) entra.set(destino, [])
+    if (sale.get(origen).some((e) => e.destino === destino)) return
+    sale.get(origen).push({ destino, rama })
+    entra.get(destino).push({ origen, rama })
+  }
+  for (const t of gm) {
+    const m = /^V(\d{4})_POKEMON_(.+)$/.exec(t.templateId)
+    const s = t.data?.pokemonSettings
+    if (!m || !s?.evolutionBranch) continue
+    const resto = m[2]
+    // Solo la plantilla base de la especie o la de su forma regional; los
+    // disfraces y demás formas no cuentan.
+    const regional = new RegExp(`^${s.pokemonId}_(ALOLA|GALARIAN|HISUIAN|PALDEA)$`).test(resto)
+    if (!regional && resto !== s.pokemonId) continue
+    const origen = regional ? `r:${resto}` : `p:${Number(m[1])}`
+    for (const rama of s.evolutionBranch) {
+      if (rama.temporaryEvolution) continue
+      const dex = dexDe.get(rama.evolution)
+      if (!dex) continue
+      unir(origen, rama.form && REGION.test(rama.form) ? `r:${rama.form}` : `p:${dex}`, rama)
+    }
+  }
+
+  const requisitosDe = (rama) => {
+    const mision = misiones.get(rama.questDisplay?.[0]?.questRequirementTemplateId)
+    const b = mision ? { ...rama, _mision: mision } : rama
+    return sinVacios(Object.fromEntries(Object.entries(REQUISITOS_DEL_JUEGO).map(([campo, leer]) => [campo, leer(b)])))
+  }
+  const sprite = (id, shiny) =>
+    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${shiny ? 'shiny/' : ''}${id}.png`
+  const paso = (nodo) => {
+    if (nodo.startsWith('p:')) {
+      const p = basePorDex.get(Number(nodo.slice(2)))
+      if (!p) return null
+      return {
+        name: p.name, nameEs: p.nameEs, types: p.types,
+        sprites: { male: sprite(p.spriteId, false), male_shiny: sprite(p.spriteId, true) },
+        pokemon_id: p.dex, is_released: p.released === true, is_shiny_released: p.shinyReleased === true,
+      }
+    }
+    const forma = nodo.slice(2)
+    const p = rosterPorId.get(idDeForma(forma))
+    const base = p && basePorDex.get(p.dex)
+    const region = REGIONES[REGION.exec(forma)?.[1]]
+    if (!p || !base || !region) return null
+    return {
+      // El nombre de la especie, sin la forma de la entrada base («Darmanitan (Estándar)»).
+      name: `${region.en} ${sinForma(base.name)}`, nameEs: `${sinForma(base.nameEs)} ${region.es}`, types: p.types,
+      sprites: { male: sprite(p.spriteId, false), male_shiny: sprite(p.spriteId, true) },
+      pokemon_id: p.dex, form: p.id, is_released: p.released === true,
+      // El variocolor del roster es por especie, no por forma: mejor no decir nada.
+      is_shiny_released: false,
+    }
+  }
+
+  const sinForma = (nombre) => String(nombre).replace(/\s*\([^)]*\)\s*$/, '')
+  const cadenas = new Map()
+  const regionales = new Set([...sale.keys(), ...entra.keys()].filter((n) => n.startsWith('r:')))
+  for (const nodo of regionales) {
+    // Hacia arriba: mejor por la regional (Linoone de Galar viene de Zigzagoon de Galar).
+    const linea = [nodo]
+    for (let x = nodo; entra.get(x)?.length;) {
+      const previos = entra.get(x)
+      const previo = previos.find((e) => e.origen.startsWith('r:')) ?? previos[0]
+      if (linea.includes(previo.origen)) break
+      linea.unshift(previo.origen)
+      x = previo.origen
+    }
+    const caminos = []
+    const bajar = (actual, acumulado) => {
+      let siguientes = sale.get(actual) ?? []
+      if (actual.startsWith('p:')) siguientes = siguientes.filter((e) => e.destino.startsWith('r:') || linea.includes(e.destino))
+      siguientes = siguientes.filter((e) => !acumulado.some((a) => a.nodo === e.destino))
+      if (!siguientes.length) return caminos.push(acumulado)
+      for (const e of siguientes) {
+        const hasta = acumulado.map((a, i) => (i === acumulado.length - 1 ? { ...a, rama: e.rama } : a))
+        bajar(e.destino, [...hasta, { nodo: e.destino }])
+      }
+    }
+    bajar(linea[0], [{ nodo: linea[0] }])
+
+    // La familia entera: en Slowbro de Galar sale también Slowking de Galar.
+    const ramas = caminos
+      .map((c) => c.map((a) => {
+        const p = paso(a.nodo)
+        return p && (a.rama ? { ...p, ...requisitosDe(a.rama) } : p)
+      }))
+      .filter((c) => c.length > 1 && c.every(Boolean))
+    if (!ramas.length) continue
+    const id = rosterPorId.get(idDeForma(nodo.slice(2)))?.id
+    if (id) cadenas.set(id, Object.fromEntries(ramas.slice(0, RAMAS.length).map((r, i) => [RAMAS[i], r])))
+  }
+  return cadenas
+}
+
 function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny) {
   // Qué especies tienen el variocolor liberado. LeekDuck publica un
   // `canBeShiny` por encuentro, pero viene a false en TODAS las recompensas de
@@ -1529,6 +1662,9 @@ async function main() {
   const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
   const conVariocolor = especiesConVariocolor(leekRaw)
   const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, conVariocolor)
+  const cadenasFormas = cadenasDeFormasRegionales(gmRaw, pokemon, es, i18nMap(enRaw))
+  for (const p of pokemon) if (cadenasFormas.has(p.id)) p.cadena = cadenasFormas.get(p.id)
+  console.log(`  ${cadenasFormas.size} formas regionales con cadena propia`)
   console.log(`  ${maxData.dinamax.size} pueden Dinamax, ${maxData.gigamax.size} Gigamax`)
   console.log(`  ${megaEnergy.size} megas con coste de energía`)
 

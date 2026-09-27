@@ -43,20 +43,42 @@ const megasDe = (mon) => {
     }))
 }
 
+/**
+ * Si se está viendo una forma regional (?form=meowth_galarian), su cadena es
+ * la de la forma, que monta el pipeline en el roster (`cadena`), y no la de la
+ * especie, que es la de Kanto. Si la forma no evoluciona (Articuno de Galar),
+ * sale ella sola.
+ */
+const formaRegional = computed(() => {
+  const f = props.formId && gameData.isReady ? gameData.byId.get(props.formId) : null
+  return f?.regional ? f : null
+})
+
 const arbol = computed(() => {
   const p = props.pokemon
-  const base = {
-    pokemon_id: p.pokemon_id,
-    name: p.name,
-    types: p.types,
-    is_shiny_released: p.is_shiny_released,
-    sprites: p.sprites
-  }
-  const raiz = construirArbol(p.evolution_info, base)
+  const f = formaRegional.value
+  const base = f
+    ? {
+        pokemon_id: f.dex,
+        name: f.name,
+        nameEs: f.nameEs,
+        types: f.types,
+        form: f.id,
+        sprites: { male: spriteUrl(f.spriteId), male_shiny: spriteUrl(f.spriteId, { shiny: true }) }
+      }
+    : {
+        pokemon_id: p.pokemon_id,
+        name: p.name,
+        types: p.types,
+        is_shiny_released: p.is_shiny_released,
+        sprites: p.sprites
+      }
+  const raiz = construirArbol(f ? f.cadena ?? {} : p.evolution_info, base)
   if (!raiz) return null
-  // Se calcula entero cada vez: así no se toca el árbol de otra ficha.
+  // Se calcula entero cada vez: así no se toca el árbol de otra ficha. Las
+  // megas son de la especie, no de sus formas regionales.
   for (const nodo of nodosDe(raiz)) {
-    if (!nodo.mega) nodo.ramas = [...nodo.ramas, ...megasDe(nodo.mon)]
+    if (!nodo.mega && !nodo.mon.form && !f) nodo.ramas = [...nodo.ramas, ...megasDe(nodo.mon)]
   }
   return raiz
 })
