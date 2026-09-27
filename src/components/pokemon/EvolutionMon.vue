@@ -4,6 +4,10 @@
  * tipos. Es un enlace a su ficha (o a la de su forma, en las megas), salvo el
  * que se está viendo, que se resalta.
  *
+ * El enlace reemplaza la entrada del historial en vez de añadir otra: moverse
+ * por la cadena es seguir en la misma ficha, y «Volver» tiene que llevar a la
+ * página de antes (la Pokédex, el Top…), no deshacer la cadena paso a paso.
+ *
  * Tres tamaños: el normal de la fila principal, el de dentro de un grupo
  * (varias salidas desde el mismo Pokémon) y en ambos, más pequeño en móvil.
  */
@@ -54,6 +58,7 @@ const caja = computed(() =>
   <component
     :is="to && !active ? 'router-link' : 'div'"
     :to="to && !active ? to : undefined"
+    :replace="Boolean(to && !active)"
     :aria-current="active ? 'page' : undefined"
     class="flex flex-col items-center gap-1.5 shrink-0 p-1.5 lg:p-2 rounded-xl text-gray-800 dark:text-gray-200"
     :class="[ancho, active ? activo : to ? alPasar : '']"

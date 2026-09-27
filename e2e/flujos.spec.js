@@ -272,12 +272,18 @@ test.describe('volver desde la ficha', () => {
     await expect(page).toHaveURL(/\/live/)
   })
 
-  test('de una ficha a otra por la línea evolutiva, y vuelta a la anterior', async ({ page }) => {
-    await page.goto('/pokemon/6')
+  // Moverse por la cadena es seguir en la misma ficha: «Volver» lleva a la
+  // página de antes de entrar, no deshace la cadena paso a paso.
+  test('por la línea evolutiva y vuelta a la página de antes de la ficha', async ({ page }) => {
+    await page.goto('/')
+    await page.locator('main a[href="/pokemon/6"]').first().click()
+    await expect(page).toHaveURL(/\/pokemon\/6$/)
     await page.getByRole('link', { name: /Charmander/ }).first().click()
     await expect(page).toHaveURL(/\/pokemon\/4$/)
+    await page.getByRole('link', { name: /Charmeleon/ }).first().click()
+    await expect(page).toHaveURL(/\/pokemon\/5$/)
     await volver(page).click()
-    await expect(page).toHaveURL(/\/pokemon\/6$/)
+    await expect(page).toHaveURL(/\/$/)
   })
 
   test('si se entró directamente a la ficha, vuelve a la Pokédex', async ({ page }) => {
