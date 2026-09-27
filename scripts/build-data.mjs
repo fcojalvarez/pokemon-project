@@ -1022,7 +1022,7 @@ const FORM_ES = [
   [/\(Ultra\)/i, '(Ultra)'],
   [/\(Resolute\)/i, '(Brío)'],
   [/\(Ordinary\)/i, '(Habitual)'],
-  [/\(Zen\)/i, '(Daruma)'],
+  [/\(Zen\)/i, '(Modo Daruma)'],
   [/\(Standard\)/i, '(Estándar)'],
   [/\(Unbound\)/i, '(Desatado)'],
   [/\(Confined\)/i, '(Contenido)'],
@@ -1059,7 +1059,6 @@ const FORM_ES = [
   [/\(Pa'u\)/i, '(Estilo Plácido)'],
   [/\(Pom-Pom\)/i, '(Estilo Animado)'],
   [/\(Armored\)/i, '(Acorazado)'],
-  [/\(Galarian Zen\)/i, '(Galar, Modo Daruma)'],
   [/\(Core\)/i, '(Núcleo)'],
 ]
 
@@ -1298,22 +1297,66 @@ function buildMoves(gm, pvpGm, es, nombresPga = new Map()) {
   return moves
 }
 
+/**
+ * Lo que lleva el nombre de pvpoke entre paréntesis, separado: «Sandslash
+ * (Alolan) (Shadow)» → base Sandslash, región Alolan, oscuro, y el resto de
+ * formas. «Standard» no cuenta: es la forma de siempre («Darmanitan»).
+ */
+function partesDelNombre(speciesName) {
+  const base = String(speciesName).replace(/\s*\(.*$/, '').trim()
+  let region = null
+  let oscuro = false
+  let mega = null
+  const formas = []
+  for (const [, dentro] of String(speciesName).matchAll(/\(([^)]+)\)/g)) {
+    const f = dentro.trim()
+    const conRegion = /^(Alolan|Galarian|Hisuian|Paldean)\b\s*(.*)$/i.exec(f)
+    const esMega = /^Mega(?:\s+([XY]))?$/i.exec(f)
+    if (conRegion) {
+      region = conRegion[1][0].toUpperCase() + conRegion[1].slice(1).toLowerCase()
+      if (conRegion[2]) formas.push(conRegion[2])
+    } else if (/^Shadow$/i.test(f)) oscuro = true
+    else if (esMega) mega = esMega[1] ? esMega[1].toUpperCase() : ''
+    else if (!/^Standard$/i.test(f)) formas.push(f)
+  }
+  return { base, region, oscuro, mega, formas }
+}
+
+const REGION_ES = { Alolan: 'de Alola', Galarian: 'de Galar', Hisuian: 'de Hisui', Paldean: 'de Paldea' }
+
+/**
+ * El nombre en inglés, como lo escribe el juego: la región delante («Galarian
+ * Corsola»), «Shadow» delante (como LeekDuck: «Shadow Machop») y la mega
+ * delante («Mega Charizard X»). Antes era el de pvpoke, «Corsola (Galarian)»,
+ * y cada vista lo escribía de una manera.
+ */
+function englishName(speciesName, dex, en = new Map()) {
+  const partes = partesDelNombre(speciesName)
+  // El de la especie, del juego («Mime Jr.», «Type: Null», «Farfetch'd»).
+  const base = en.get(`pokemon_name_${String(dex).padStart(4, '0')}`) ?? partes.base
+  const { region, oscuro, mega } = partes
+  if (mega != null) return `Mega ${base}${mega ? ` ${mega}` : ''}`
+  const formas = partes.formas.filter((f) => !/^(jr|null)$/i.test(f) && !base.toLowerCase().includes(f.toLowerCase()))
+  const nombre = [oscuro && 'Shadow', region, base].filter(Boolean).join(' ')
+  return formas.length ? `${nombre} (${formas.join(', ')})` : nombre
+}
+
+/**
+ * El nombre en español, como en el resto de la app: «Corsola de Galar»,
+ * «Machop Oscuro», «Sandslash de Alola Oscuro», «Mega Charizard X»; las demás
+ * formas, entre paréntesis y con el nombre del juego («Toxtricity (Forma
+ * Grave)», «Darmanitan de Galar (Modo Daruma)»).
+ */
 function spanishName(speciesName, dex, es, speciesId = '') {
   const base = es.get(`pokemon_name_${String(dex).padStart(4, '0')}`)
   if (!base) return speciesName
-  // Todos los sufijos, no solo el último: «Sandslash (Alolan) (Shadow)» se
-  // quedaba en «Sandslash (Oscuro)», sin la región.
-  const sufijos = [...speciesName.matchAll(/\(([^)]+)\)/g)].map((m) => m[1].trim())
-  if (!sufijos.length) return base
-
-  // Las megas se nombran como en el juego, con el "Mega" delante: "Mega
-  // Blastoise", "Mega Charizard X".
-  const mega = sufijos.map((f) => /^Mega(?:\s+([XY]))?$/i.exec(f)).find(Boolean)
-  if (mega) return `Mega ${base}${mega[1] ? ` ${mega[1].toUpperCase()}` : ''}`
+  const { region, oscuro, mega, formas } = partesDelNombre(speciesName)
+  if (mega != null) return `Mega ${base}${mega ? ` ${mega}` : ''}`
 
   const especie = speciesId.split('_')[0]
   const partes = []
-  for (const forma of sufijos) {
+  let completo = null
+  for (const forma of formas) {
     // pvpoke parte algunos nombres como si fueran forma: «Mime (Jr)», «Type (Null)».
     if (/^(jr|null)$/i.test(forma) || base.toLowerCase().includes(forma.toLowerCase())) continue
     const fija = FORM_ES.find(([re]) => re.test(`(${forma})`))
@@ -1328,10 +1371,11 @@ function spanishName(speciesName, dex, es, speciesId = '') {
       .flatMap((c) => [`form_${especie}_${c}`, `form_${c}`])
       .map((c) => es.get(c))
       .find(Boolean)
-    if (delJuego?.toLowerCase().startsWith(base.toLowerCase())) return delJuego
-    partes.push(delJuego ?? forma)
+    if (delJuego?.toLowerCase().startsWith(base.toLowerCase())) completo = delJuego
+    else partes.push(delJuego ?? forma)
   }
-  return partes.length ? `${base} (${partes.join(', ')})` : base
+  const nombre = [completo ?? base, region && REGION_ES[region], oscuro && 'Oscuro'].filter(Boolean).join(' ')
+  return partes.length ? `${nombre} (${partes.join(', ')})` : nombre
 }
 
 /**
@@ -1563,7 +1607,7 @@ function cadenasDeFormasRegionales(gm, roster, es, en) {
   return cadenas
 }
 
-function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny) {
+function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny, en = new Map()) {
   // Qué especies tienen el variocolor liberado. LeekDuck publica un
   // `canBeShiny` por encuentro, pero viene a false en TODAS las recompensas de
   // investigación, así que no se puede usar. Y da igual el sitio: si el
@@ -1580,7 +1624,7 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny) {
       id: p.speciesId,
       dex: p.dex,
       spriteId: spriteIdFor(p.speciesId, p.dex, forms),
-      name: DISFRACES[p.speciesId]?.en ?? p.speciesName,
+      name: DISFRACES[p.speciesId]?.en ?? englishName(p.speciesName, p.dex, en),
       nameEs: DISFRACES[p.speciesId]?.es ?? spanishName(p.speciesName, p.dex, es, p.speciesId),
       types: p.types.filter((t) => t && t !== 'none'),
       stats: p.baseStats,
@@ -1692,7 +1736,7 @@ async function main() {
   const megaEnergy = buildMegaEnergy(gmRaw)
   const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
   const conVariocolor = especiesConVariocolor(leekRaw)
-  const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, conVariocolor)
+  const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, conVariocolor, i18nMap(enRaw))
   const cadenasFormas = cadenasDeFormasRegionales(gmRaw, pokemon, es, i18nMap(enRaw))
   for (const p of pokemon) if (cadenasFormas.has(p.id)) p.cadena = cadenasFormas.get(p.id)
   console.log(`  ${cadenasFormas.size} formas regionales con cadena propia`)

@@ -191,9 +191,11 @@ describe('nombres de las megas', () => {
     expect(sobras.map((p) => p.nameEs)).toEqual([])
   })
 
-  it('no toca el resto de formas, que sí van con sufijo', () => {
+  it('las regionales van como en el resto de la app, y las demás formas con sufijo', () => {
     const porId = new Map(roster.map((p) => [p.id, p]))
-    expect(porId.get('marowak_alolan').nameEs).toBe('Marowak (Alola)')
+    expect(porId.get('marowak_alolan').nameEs).toBe('Marowak de Alola')
+    expect(porId.get('marowak_alolan').name).toBe('Alolan Marowak')
+    expect(porId.get('sandslash_alolan_shadow').nameEs).toBe('Sandslash de Alola Oscuro')
     expect(porId.get('groudon_primal').nameEs).toBe('Groudon (Primigenio)')
   })
 })

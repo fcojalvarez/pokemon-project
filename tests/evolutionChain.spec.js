@@ -157,7 +157,7 @@ describe('línea evolutiva', () => {
   it('en la ficha de una forma regional, la cadena es la de la forma', () => {
     formas.clear()
     formas.set(52, [{
-      id: 'meowth_galarian', dex: 52, name: 'Meowth (Galarian)', nameEs: 'Meowth (Galar)', types: ['steel'],
+      id: 'meowth_galarian', dex: 52, name: 'Galarian Meowth', nameEs: 'Meowth de Galar', types: ['steel'],
       spriteId: '10161', regional: true,
       cadena: {
         primary: [
@@ -175,8 +175,8 @@ describe('línea evolutiva', () => {
 
   it('una forma regional que no evoluciona sale sola, sin las megas de la especie', () => {
     formas.clear()
-    formas.set(144, [{ id: 'articuno_galarian', dex: 144, name: 'Articuno (Galarian)', nameEs: 'Articuno (Galar)', types: ['psychic', 'flying'], spriteId: '10169', regional: true }])
+    formas.set(144, [{ id: 'articuno_galarian', dex: 144, name: 'Galarian Articuno', nameEs: 'Articuno de Galar', types: ['psychic', 'flying'], spriteId: '10169', regional: true }])
     const w = montar({ ...paso(144, 'Articuno', ['ice', 'flying']), evolution_info: {} }, { formId: 'articuno_galarian' })
-    expect(nombres(w)).toEqual(['#144 Articuno (Galar)'])
+    expect(nombres(w)).toEqual(['#144 Articuno de Galar'])
   })
 })
