@@ -74,6 +74,21 @@ export const useGameDataStore = defineStore('gameData', () => {
    * que lo usan sencillamente no se pintan.
    */
   const maxLive = shallowRef(null)
+
+  /**
+   * Antigüedad de los combates Max, en ms: desde que Snacknap actualizó su
+   * página (`freshAt`) o, si no lo dice, desde que se descargó. El workflow
+   * pasa cada tres horas; si falla, los jefes de hace días se enseñarían como
+   * si fueran de hoy. `now` lo pone la vista, para que la cuenta avance.
+   */
+  const maxLiveEdad = (now = new Date()) => {
+    const marca = maxLive.value?.freshAt ?? maxLive.value?.fetchedAt
+    const at = marca ? new Date(marca).getTime() : NaN
+    return Number.isFinite(at) ? Math.max(0, now.getTime() - at) : null
+  }
+  // Tres pasadas seguidas sin actualizar: algo ha fallado.
+  const MAX_LIVE_CADUCA_MS = 9 * 60 * 60 * 1000
+  const maxLiveCaducado = (now = new Date()) => (maxLiveEdad(now) ?? 0) > MAX_LIVE_CADUCA_MS
   const status = ref('idle')
   const error = ref(null)
 
@@ -327,6 +342,8 @@ export const useGameDataStore = defineStore('gameData', () => {
     meta,
     maxBattles,
     maxLive,
+    maxLiveEdad,
+    maxLiveCaducado,
     maxInfoFor,
     status,
     error,
