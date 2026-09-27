@@ -434,15 +434,13 @@ function caminosDelRoster(roster, existe) {
  * - Requisitos, del GAME_MASTER, que manda en todo lo que define. Lo que no
  *   sabe decir (una rama por forma con costes distintos, un objeto sin
  *   traducción) se deja como esté.
- * - Nombre y tipos de cada paso, de la fila de ese Pokémon. El nombre solo se
- *   corrige cuando es el de otra especie; si no, se respeta el de la cadena,
- *   que suele estar mejor escrito (Nidoran♀, Mr. Mime).
+ * - Nombre y tipos de cada paso, de la fila de ese Pokémon, que ya lleva el
+ *   nombre oficial. Había pasos con el de otra especie (Crocalor «Fuecoco»).
  */
 async function syncEvolutionChains(client, roster, gm) {
   const { rows } = await client.query(
     'SELECT pokemon_id, name, types, sprites, is_released, is_shiny_released, evolution_info FROM public.pokemons')
   const fila = new Map(rows.map((r) => [r.pokemon_id, r]))
-  const porNombre = new Map(rows.map((r) => [r.name.trim().toLowerCase(), r.pokemon_id]))
   const { requisitos, dudosos } = requisitosDelJuego(gm)
 
   const familia = new Map()
@@ -468,17 +466,9 @@ async function syncEvolutionChains(client, roster, gm) {
     }
   }
 
-  // El nombre para un paso nuevo: el que ya lleve en otra cadena (Hakamo-o),
-  // si no el del roster cuando no trae la forma entre paréntesis (Jangmo-o) y
-  // si no el de la fila, que a veces viene sin guiones ni puntos.
-  const nombreEnCadena = new Map()
-  for (const paso of conocidos.values()) nombreEnCadena.set(paso.pokemon_id, paso.name?.trim())
-  const nombreDelRoster = new Map()
-  for (const p of roster) {
-    if (p.mega || p.shadow || p.regional || nombreDelRoster.has(p.dex)) continue
-    nombreDelRoster.set(p.dex, /\(/.test(p.name) ? null : p.name)
-  }
-  const nombreDe = (dex) => nombreEnCadena.get(dex) || nombreDelRoster.get(dex) || fila.get(dex).name.trim()
+  // El nombre, el de la fila, que syncFichaDesdeJuego ya ha dejado con el
+  // oficial del juego (Nidoran♀, Mr. Mime, Jangmo-o).
+  const nombreDe = (dex) => fila.get(dex).name.trim()
 
   const pasoNuevo = (dex) => {
     const f = fila.get(dex)
@@ -490,9 +480,7 @@ async function syncEvolutionChains(client, roster, gm) {
     const f = fila.get(paso.pokemon_id)
     const out = { ...paso }
     if (f) {
-      const otro = porNombre.get(String(paso.name ?? '').trim().toLowerCase())
-      if (!paso.name || (otro != null && otro !== paso.pokemon_id)) out.name = nombreDe(paso.pokemon_id)
-      else out.name = paso.name.trim()
+      out.name = nombreDe(paso.pokemon_id)
       out.types = f.types
     }
     const req = siguiente == null ? null : requisitos.get(`${paso.pokemon_id}>${siguiente}`)

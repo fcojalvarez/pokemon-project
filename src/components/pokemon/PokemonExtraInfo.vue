@@ -210,15 +210,15 @@ const costs = computed(() => {
  * Solo las excepciones: el 97 % es intercambiable y transferible, así que
  * ponerle la etiqueta a todos sería ruido. Lo que importa es cuando NO se
  * puede. `is_raid_exclusive` no entra: está a false en los 1017 registros
- * porque el script que repuebla la tabla nunca lo rellena.
+ * porque el script que repuebla la tabla nunca lo rellena. Tampoco «Puede ser
+ * un Ditto» ni «Solo por combates»: eran listas escritas a mano en 2023 sin
+ * ninguna fuente que las mantenga al día.
  */
 const flags = computed(() => {
   const p = props.pokemon
   return [
     !p.is_tradeable && 'notTradeable',
     !p.is_transferable && 'notTransferable',
-    p.is_possible_ditto && 'possibleDitto',
-    p.is_pvp_exclusive && 'pvpExclusive',
     p.is_shadow_released && 'canBeShadow'
   ].filter(Boolean)
 })

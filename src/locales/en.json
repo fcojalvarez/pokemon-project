@@ -85,8 +85,6 @@
         "flags": {
             "notTradeable": "Cannot be traded",
             "notTransferable": "Cannot be transferred",
-            "possibleDitto": "Could be a Ditto",
-            "pvpExclusive": "Battles only",
             "canBeShadow": "Has a Shadow form"
         },
         "costLabels": {

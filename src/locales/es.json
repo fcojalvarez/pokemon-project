@@ -85,8 +85,6 @@
         "flags": {
             "notTradeable": "No se puede intercambiar",
             "notTransferable": "No se puede transferir",
-            "possibleDitto": "Puede ser un Ditto",
-            "pvpExclusive": "Solo por combates",
             "canBeShadow": "Tiene versión oscura"
         },
         "costLabels": {
