@@ -17,8 +17,11 @@ import EventMon from './EventMon.vue'
 import EventDateBlock from './EventDateBlock.vue'
 
 const props = defineProps({
-  event: { type: Object, required: true }
+  event: { type: Object, required: true },
+  /** Dentro del detalle del evento: cartel en grande y sin abrir nada al pulsar. */
+  detalle: Boolean
 })
+const emit = defineEmits(['abrir'])
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
@@ -97,21 +100,18 @@ const displayName = computed(() => {
  * navegador deja su icono de imagen rota en mitad de la tarjeta.
  */
 /**
- * La tarjeta entera lleva al evento en LeekDuck.
+ * La tarjeta entera abre el detalle del evento (con la noticia oficial, si la
+ * hay, y los enlaces a ella y a LeekDuck).
  *
- * El enlace de «Ver en LeekDuck» se comía una línea en cada tarjeta para decir
- * algo que ya se entiende pinchando. El enlace de verdad sigue estando en el
- * título —hace falta uno real para llegar con el teclado y que un lector de
- * pantalla lo anuncie—, y esto solo añade que valga pinchar en cualquier
- * parte.
- *
- * Se ignora el clic que cae sobre otro enlace (los Pokémon llevan a su ficha)
- * para no robarle su destino.
+ * El botón de verdad está en el título —hace falta uno real para llegar con
+ * el teclado y que un lector de pantalla lo anuncie—, y esto solo añade que
+ * valga pinchar en cualquier parte. Se ignora el clic que cae sobre otro
+ * enlace o botón (los Pokémon llevan a su ficha) para no robarle su destino.
  */
 const abrirEvento = (evento) => {
-  if (!props.event.link) return
+  if (props.detalle) return
   if (evento.target.closest('a, button')) return
-  window.open(props.event.link, '_blank', 'noopener')
+  emit('abrir', props.event)
 }
 
 const imagenRota = ref(false)
@@ -183,8 +183,10 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
 
 <template>
   <article
-    class="flex flex-col p-3 sm:p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
-    :class="event.link ? 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-600' : ''"
+    class="flex flex-col text-gray-800 dark:text-gray-200"
+    :class="detalle
+      ? 'p-4'
+      : 'p-3 sm:p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 cursor-pointer hover:border-gray-400 dark:hover:border-gray-600'"
     @click="abrirEvento"
   >
     <!--
@@ -196,9 +198,12 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       :key="cartel.src"
       :src="cartel.src"
       :srcset="cartel.srcset ?? undefined"
-      sizes="(min-width: 1536px) 30vw, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, 100vw"
+      :sizes="detalle ? '(min-width: 768px) 768px, 100vw' : '(min-width: 1536px) 30vw, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, 100vw'"
       alt=""
-      class="-mx-3 -mt-3 mb-2.5 w-[calc(100%+1.5rem)] h-24 sm:-mx-4 sm:-mt-4 sm:mb-3 sm:w-[calc(100%+2rem)] sm:h-32 max-w-none object-cover rounded-t-xl bg-gray-100 dark:bg-gray-800"
+      class="max-w-none object-cover bg-gray-100 dark:bg-gray-800"
+      :class="detalle
+        ? '-mx-4 -mt-4 mb-4 w-[calc(100%+2rem)] h-auto aspect-video'
+        : '-mx-3 -mt-3 mb-2.5 w-[calc(100%+1.5rem)] h-24 sm:-mx-4 sm:-mt-4 sm:mb-3 sm:w-[calc(100%+2rem)] sm:h-32 rounded-t-xl'"
       loading="lazy"
       decoding="async"
       @error="alFallarCartel"
@@ -221,9 +226,9 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
             {{ typeLabel }}
           </span>
           <!-- Siempre un h2 (la página lleva su h1), con el enlace dentro si lo hay. -->
-          <h2 class="text-sm sm:text-base font-bold leading-snug">
-            <a v-if="event.link" :href="event.link" target="_blank" rel="noopener">{{ displayName }}</a>
-            <template v-else>{{ displayName }}</template>
+          <h2 class="font-bold leading-snug" :class="detalle ? 'text-lg' : 'text-sm sm:text-base'">
+            <template v-if="detalle">{{ displayName }}</template>
+            <button v-else type="button" class="text-left hover:underline" @click="emit('abrir', event)">{{ displayName }}</button>
           </h2>
         </div>
 

@@ -172,6 +172,11 @@
         "eliteHelp": "Apágalo para ver solo conjuntos que se aprenden con MT normales: los ataques élite necesitan una MT Élite o un evento concreto."
     },
     "events": {
+        "detail": "Detalle del evento",
+        "official": "Noticia oficial de Pokémon GO",
+        "noOfficial": "Este evento no tiene noticia oficial en la web de Pokémon GO: arriba va lo que publica LeekDuck.",
+        "openOfficial": "Ver la noticia oficial",
+        "openLeekDuck": "Ver en LeekDuck",
         "active": "En marcha",
         "upcoming": "Próximos",
         "past": "Pasados",

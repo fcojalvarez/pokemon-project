@@ -11,6 +11,7 @@ import {
   SkeletonLoader
 } from '../components/index'
 import EventCard from '../components/events/EventCard.vue'
+import EventDetail from '../components/events/EventDetail.vue'
 import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useMedia } from '../composables/useMedia'
@@ -24,6 +25,8 @@ const ancho = useMedia('(min-width: 1280px)')
 
 const tab = ref('active')
 const typeFilter = ref('all')
+/** El evento con el detalle abierto (tarjeta en grande y noticia oficial). */
+const abierto = ref(null)
 
 // Ni pasados ni sin fecha: uno que ya terminó no sirve para nada, y los que
 // LeekDuck publica sin fechas no se pueden ni situar en el tiempo.
@@ -196,9 +199,11 @@ onMounted(() => {
         <base-empty-state v-else-if="list.length === 0" :message="$t('common.empty')" />
 
         <div v-else :class="rejilla">
-          <event-card v-for="event in list" :key="event.eventID" :event="event" />
+          <event-card v-for="event in list" :key="event.eventID" :event="event" @abrir="abierto = $event" />
         </div>
       </div>
     </div>
+
+    <event-detail :event="abierto" @close="abierto = null" />
   </section>
 </template>

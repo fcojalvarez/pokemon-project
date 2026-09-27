@@ -18,6 +18,30 @@ const OPCIONALES = ['maxlive', 'traducciones']
  * que el resto y solo hacen falta al abrir la galería de una ficha, así que se
  * piden entonces, una vez por sesión.
  */
+/**
+ * Noticias oficiales de Pokémon GO asociadas a cada evento (las escribe
+ * `pnpm noticias`): `{ eventos: {eventID: slug}, noticias: {slug: {url, es, en}} }`.
+ * Solo hacen falta al abrir el detalle de un evento.
+ */
+let noticiasPendientes = null
+export function cargarNoticias() {
+  noticiasPendientes ??= supabase
+    .from('game_data')
+    .select('payload')
+    .eq('name', 'noticias')
+    .maybeSingle()
+    .then(({ data, error }) => {
+      if (error) throw new Error(error.message)
+      return data?.payload ?? { eventos: {}, noticias: {} }
+    })
+    .catch((err) => {
+      console.warn('noticias no disponibles:', err.message)
+      noticiasPendientes = null
+      return { eventos: {}, noticias: {} }
+    })
+  return noticiasPendientes
+}
+
 let formasPendientes = null
 export function cargarFormas() {
   formasPendientes ??= (async () => {

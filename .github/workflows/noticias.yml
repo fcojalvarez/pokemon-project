@@ -1,0 +1,43 @@
+# Noticias oficiales de Pokémon GO para el detalle de los eventos.
+#
+# `pnpm noticias` lee pokemongo.com/es/news (y su versión en inglés), busca a
+# qué evento de LeekDuck corresponde cada noticia y guarda en game_data
+# (fila `noticias`) las que tienen evento. Así el detalle de un evento enseña
+# sus bonus, Pokémon destacados e investigaciones, ya en español oficial.
+name: Noticias
+
+on:
+  schedule:
+    # Cada tres horas, a una hora rara para no coincidir con los demás.
+    - cron: '50 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: noticias
+  cancel-in-progress: false
+
+jobs:
+  noticias:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Sin `version`: la lee de `packageManager` en package.json.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Leer las noticias y subir a Supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: pnpm noticias
