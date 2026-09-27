@@ -12,6 +12,7 @@ import TypeIcons from './base/TypeIcons.vue';
 import { spriteUrl } from '../utils/sprites';
 import BaseSprite from './base/BaseSprite.vue';
 import SkeletonLoader from './base/SkeletonLoader.vue';
+import { localName } from '../composables/useTranslate';
 
 const pokemon = ref(null);
 const route = useRoute();
@@ -34,7 +35,9 @@ const hero = computed(() => {
     const f = form.value;
     return {
         number: String(p.pokemon_id).padStart(3, '0'),
-        name: f?.nameEs || p.name,
+        // El `name` de la tabla `pokemons` es el inglés, que para las especies
+        // coincide con el español; las formas sí cambian («Mega Venusaur»).
+        name: f ? localName(f) : p.name,
         types: f?.types || p.types || [],
         image: f
             ? spriteUrl(f.spriteId, { shiny: isShowShiny.value })

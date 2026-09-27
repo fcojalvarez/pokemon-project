@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 import BaseIcon from '../base/BaseIcon.vue'
 import SuggestionButton from './SuggestionButton.vue'
 import ToggleDarkMode from '../ToggleDarkMode.vue'
+import LanguageSelector from './LanguageSelector.vue'
 import { useInertApp } from '../../composables/useInertApp'
 
 const mainStore = useMainStore()
@@ -154,19 +155,17 @@ watch(
 
       <div class="flex flex-col items-end gap-2 px-4 py-3 border-t border-gray-300 dark:border-gray-600">
         <!--
-          Abajo a la derecha del cajón. En móvil el botón de modo oscuro vive
-          aquí, al lado de Sugerencias: en la cabecera le quitaba al buscador
-          el sitio que necesita. Es el mismo botón que en escritorio.
+          Una fila al pie del cajón: idioma y modo oscuro, solo con el icono,
+          y Sugerencias con el ancho que sobra. En móvil el modo oscuro vive
+          aquí: en la cabecera le quitaba al buscador el sitio que necesita.
+          En escritorio sigue en la cabecera, así que aquí no sale. items-
+          stretch: los tres botones, de la misma altura.
         -->
-        <!--
-          Dos columnas iguales: los dos botones miden lo mismo. En pantallas
-          muy estrechas (320 px) no caben en una fila y pasan a una columna,
-          los dos a todo el ancho, en vez de cortarse.
-        -->
-        <div class="w-full grid grid-cols-[repeat(auto-fit,minmax(128px,1fr))] gap-2 md:flex md:justify-end">
-          <toggle-dark-mode con-texto class="md:hidden justify-center" />
+        <div class="w-full flex items-stretch gap-2">
+          <language-selector />
+          <toggle-dark-mode en-menu class="md:hidden" />
           <suggestion-button
-            class="justify-center"
+            class="flex-1 justify-center"
             @open="close({ restoreFocus: false })"
             @close="trigger?.focus()"
           />

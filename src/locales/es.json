@@ -37,6 +37,7 @@
         "all": "Todos",
         "results": "resultados",
         "level": "Nivel",
+        "levelShort": "Nv.",
         "yes": "Sí",
         "no": "No",
         "staleData": "Datos de hace {age}: puede que ya no sean los de ahora"
@@ -99,6 +100,7 @@
         "inMaxBattles": "En combates Max"
     },
     "top": {
+        "pokemonColumn": "Pokémon",
         "score": "Puntuación",
         "moves": "Ataques",
         "mode": "Modo",
@@ -439,6 +441,14 @@
         "teamNote": "Ordenado por ataque y ventaja de tipo, no por daño: los ataques Max no publican potencia. Como todos los de un tipo comparten Ataque Max, dentro de la comparación esa parte se cancela. Al evolucionar se conserva la forma Dinamax.",
         "availableVia": "evolucionando a {pokemon}",
         "tapForTeam": "Toca ▾ en un jefe para ver el equipo recomendado."
+    },
+    "language": {
+        "label": "Idioma",
+        "choose": "Cambiar idioma. Ahora: {language}",
+        "names": {
+            "es": "Español",
+            "en": "English"
+        }
     },
     "a11y": {
         "skipToContent": "Saltar al contenido",

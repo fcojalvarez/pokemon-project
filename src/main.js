@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import { createApp, watch } from 'vue';
 import { createPinia } from 'pinia';
 
 import App from './App.vue';
@@ -23,11 +23,15 @@ document.documentElement.lang = i18n.global.locale;
 
 // Título de pestaña por página. La ficha lo pone ella misma cuando sabe qué
 // Pokémon es, así que aquí se deja en paz.
-router.afterEach((to) => {
+const ponerTitulo = (to) => {
     if (to.name === 'PokemonPage') return;
     const key = to.meta?.titleKey;
     document.title = key ? `${i18n.global.t(key)} · PogoDex` : 'PogoDex';
-});
+};
+router.afterEach(ponerTitulo);
+
+// Al cambiar de idioma desde el menú, el título de la pestaña también.
+watch(() => i18n.global.locale, () => ponerTitulo(router.currentRoute.value));
 
 app.mount('#app');
 

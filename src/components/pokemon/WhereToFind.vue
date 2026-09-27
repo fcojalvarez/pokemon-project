@@ -111,8 +111,8 @@ const resumen = computed(() => {
             :to="irA('raids')"
             class="flex items-center gap-1 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
           >
-            <img :src="boss.image" :alt="boss.name" class="w-6 h-6" loading="lazy" />
-            {{ boss.name }}
+            <img :src="boss.image" alt="" class="w-6 h-6" loading="lazy" />
+            {{ gameData.nombreEs(boss.name) }}
           </router-link>
         </div>
       </div>

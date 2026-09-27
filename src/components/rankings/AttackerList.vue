@@ -10,13 +10,14 @@
  *
  * Cada fila admite dos formas:
  *   - PvE: `{ fast, charged, dps, tdo, er }` tal y como sale de evaluatePokemon.
- *   - PvP: `{ moves: [{ nameEs, type }], value }` ya normalizada por la vista.
+ *   - PvP: `{ moves: [{ name, nameEs, type }], value }` ya normalizada por la vista.
  */
 import { computed } from 'vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import { spriteUrl } from '../../utils/sprites'
 import BaseSprite from '../base/BaseSprite.vue'
+import { localName } from '../../composables/useTranslate'
 
 const props = defineProps({
   rows: { type: Array, required: true },
@@ -78,7 +79,7 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2">
           <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
-            {{ row.nameEs }}
+            {{ localName(row) }}
           </span>
           <type-icons :types="row.types" size="12" />
         </div>
@@ -87,7 +88,7 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
             v-for="move in movesOf(row)"
             :key="move.id ?? move.nameEs"
             chip
-            :name="move.nameEs"
+            :name="localName(move)"
             :type="move.type"
             :elite="move.elite"
             :legacy="move.legacy"

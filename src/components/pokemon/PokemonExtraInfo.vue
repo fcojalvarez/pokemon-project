@@ -18,7 +18,7 @@ const props = defineProps({
 })
 
 const gameData = useGameDataStore()
-const { t, tc, locale } = useTranslate()
+const { t, tc, localName, intlLocale } = useTranslate()
 
 const CP_LABELS = {
   20: 'pokemon.cpLevel20',
@@ -194,7 +194,7 @@ const flags = computed(() => {
   ].filter(Boolean)
 })
 
-const formatNumber = (value) => new Intl.NumberFormat(locale.value).format(value)
+const formatNumber = (value) => new Intl.NumberFormat(intlLocale()).format(value)
 
 /**
  * Ataques de este Pokémon que hacen algo además de daño, con el efecto ya
@@ -214,10 +214,11 @@ const moveEffects = computed(() => {
       const stats = effect.stats
         .map((stat) => t(`moves.statNames.${effect.target}.${stat}`))
         .join(` ${t('and')} `)
-      const percent = effectChanceLabel(effect.chance, locale.value)
+      const percent = effectChanceLabel(effect.chance, intlLocale())
 
       return {
         id: move.id,
+        name: move.name,
         nameEs: move.nameEs,
         type: move.type,
         elite: move.elite,
@@ -266,7 +267,7 @@ const resumen = computed(() => {
   if (cpTable.value.length) {
     const primero = cpTable.value[0]
     const ultimo = cpTable.value[cpTable.value.length - 1]
-    r.pc = `Nv. ${primero.level}: ${primero.cp} · Nv. ${ultimo.level}: ${ultimo.cp}`
+    r.pc = `${t('common.levelShort')} ${primero.level}: ${primero.cp} · ${t('common.levelShort')} ${ultimo.level}: ${ultimo.cp}`
   }
   const pve = pveRanks.value
   r.pve = pve.byType.length
@@ -276,9 +277,9 @@ const resumen = computed(() => {
     ? pvpRanks.value.slice(0, 2).map((entry) => `${t(`top.${entry.league}`)} #${entry.rank}`).join(' · ')
     : t('pokemon.noPvpRank')
   const mejor = bestMovesets.value[0]
-  if (mejor) r.ataques = `${mejor.fast.nameEs} + ${mejor.charged.nameEs} · ${mejor.dps.toFixed(1)} DPS`
+  if (mejor) r.ataques = `${localName(mejor.fast)} + ${localName(mejor.charged)} · ${mejor.dps.toFixed(1)} DPS`
   const efecto = moveEffects.value[0]
-  if (efecto) r.efectos = `${efecto.nameEs}: ${efecto.text}${moveEffects.value.length > 1 ? ` · +${moveEffects.value.length - 1}` : ''}`
+  if (efecto) r.efectos = `${localName(efecto)}: ${efecto.text}${moveEffects.value.length > 1 ? ` · +${moveEffects.value.length - 1}` : ''}`
   r.debilidades = matchups.value.weak.slice(0, 3)
     .map((entry) => `${t(`types.${entry.type}`)} ×${entry.mult.toFixed(2)}`).join(' · ')
   return r
@@ -347,7 +348,7 @@ const resumen = computed(() => {
             class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
           >
             <dt class="text-mini text-gray-600 dark:text-gray-300">
-              Nv. {{ row.level }} · {{ $t(CP_LABELS[row.level]) }}
+              {{ $t('common.levelShort') }} {{ row.level }} · {{ $t(CP_LABELS[row.level]) }}
             </dt>
             <dd class="text-lg font-bold">{{ row.cp }}</dd>
           </div>
@@ -378,7 +379,7 @@ const resumen = computed(() => {
               >
                 <type-icons :types="[entry.type]" size="13" />
                 <span class="font-semibold">{{ $t(`types.${entry.type}`) }}</span>
-                <span class="text-gray-600 dark:text-gray-300 truncate">{{ entry.nameEs }}</span>
+                <span class="text-gray-600 dark:text-gray-300 truncate">{{ localName(entry) }}</span>
                 <span class="ml-auto shrink-0">
                   #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
                 </span>
@@ -399,7 +400,7 @@ const resumen = computed(() => {
               class="flex items-center gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
             >
               <span class="font-semibold">{{ $t(`top.${entry.league}`) }}</span>
-              <span class="text-gray-600 dark:text-gray-300 truncate">{{ entry.nameEs }}</span>
+              <span class="text-gray-600 dark:text-gray-300 truncate">{{ localName(entry) }}</span>
               <span class="ml-auto shrink-0">
                 #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
               </span>
@@ -418,7 +419,7 @@ const resumen = computed(() => {
           >
             <move-tag
               chip
-              :name="set.fast.nameEs"
+              :name="localName(set.fast)"
               :type="set.fast.type"
               size="11"
               :elite="set.fast.elite"
@@ -426,7 +427,7 @@ const resumen = computed(() => {
             />
             <move-tag
               chip
-              :name="set.charged.nameEs"
+              :name="localName(set.charged)"
               :type="set.charged.type"
               size="11"
               :elite="set.charged.elite"
@@ -444,7 +445,7 @@ const resumen = computed(() => {
               v-for="move in movepool.fast"
               :key="move.id"
               chip
-              :name="move.nameEs"
+              :name="localName(move)"
               :type="move.type"
               :elite="move.elite"
               :legacy="move.legacy"
@@ -458,7 +459,7 @@ const resumen = computed(() => {
               v-for="move in movepool.charged"
               :key="move.id"
               chip
-              :name="move.nameEs"
+              :name="localName(move)"
               :type="move.type"
               :elite="move.elite"
               :legacy="move.legacy"
@@ -484,7 +485,7 @@ const resumen = computed(() => {
             class="flex flex-wrap items-center gap-x-3 gap-y-1 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
           >
             <move-tag
-              :name="move.nameEs"
+              :name="localName(move)"
               :type="move.type"
               size="11"
               :elite="move.elite"

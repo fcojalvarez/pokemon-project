@@ -15,7 +15,7 @@ import { useTranslate } from '../composables/useTranslate'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
-const { t, te } = useTranslate()
+const { t, te, locale } = useTranslate()
 
 const tab = ref('active')
 const typeFilter = ref('all')
@@ -40,7 +40,7 @@ const typeOptions = computed(() => {
     { value: 'all', label: `${t('common.all')} (${source.value.length})` },
     ...[...seen.entries()]
       .map(([value, label]) => ({ value, label }))
-      .sort((a, b) => a.label.localeCompare(b.label, 'es'))
+      .sort((a, b) => a.label.localeCompare(b.label, locale()))
   ]
 })
 

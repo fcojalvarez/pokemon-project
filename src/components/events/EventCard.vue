@@ -7,8 +7,7 @@ import { useTranslate } from '../../composables/useTranslate'
 import {
   parseEventName,
   parseMaxBattle,
-  splitPokemonList,
-  translatePokemonName
+  splitPokemonList
 } from '../../utils/eventName'
 import { spriteUrl } from '../../utils/sprites'
 import { summarizeEvent } from '../../utils/eventSummary'
@@ -21,7 +20,7 @@ const props = defineProps({
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
-const { t, te, locale } = useTranslate()
+const { t, te, localName, intlLocale } = useTranslate()
 
 /** LeekDuck publica tipos nuevos de vez en cuando: si falta, usamos su título. */
 const typeLabel = computed(() => {
@@ -54,11 +53,7 @@ const displayName = computed(() => {
   // Hay eventos con varios protagonistas: se traduce cada uno y se unen con
   // la conjunción del idioma, que el "and" inglés en mitad de una frase en
   // español canta mucho.
-  const nombres = splitPokemonList(parts.pokemon).map((uno) =>
-    translatePokemonName(uno, gameData.namesEs, (form, base) =>
-      t(`events.forms.${form}`, { pokemon: base })
-    )
-  )
+  const nombres = splitPokemonList(parts.pokemon).map((uno) => gameData.nombreEs(uno))
   const pokemon =
     nombres.length > 1
       ? `${nombres.slice(0, -1).join(', ')} ${t('and')} ${nombres.at(-1)}`
@@ -109,7 +104,8 @@ const maxBattle = computed(() => {
 
   return {
     gigantamax: parsed.gigantamax,
-    nameEs: entry?.nameEs ?? parsed.pokemon,
+    // Sin entrada en el roster solo queda el nombre del título, en inglés.
+    label: entry ? localName(entry) : parsed.pokemon,
     dex: entry?.dex ?? null,
     image: entry ? spriteUrl(entry.spriteId) : null
   }
@@ -195,9 +191,9 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
     </div>
 
     <p v-if="event.startDate" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
-      {{ formatDateTime(event.startDate, locale() === 'en' ? 'en-GB' : 'es-ES') }}
+      {{ formatDateTime(event.startDate, intlLocale()) }}
       <template v-if="event.endDate">
-        → {{ formatDateTime(event.endDate, locale() === 'en' ? 'en-GB' : 'es-ES') }}
+        → {{ formatDateTime(event.endDate, intlLocale()) }}
       </template>
     </p>
 
@@ -222,7 +218,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
         :class="maxBattle.dex ? 'hover:underline' : ''"
       >
         <img v-if="maxBattle.image" :src="maxBattle.image" alt="" class="w-8 h-8" loading="lazy" />
-        <strong v-if="maxBattle.nameEs" class="text-sm truncate">{{ maxBattle.nameEs }}</strong>
+        <strong v-if="maxBattle.label" class="text-sm truncate">{{ maxBattle.label }}</strong>
         <span v-else class="text-sm font-semibold">
           {{ $t(maxBattle.gigantamax ? 'max.legendGigantamax' : 'max.legendDynamax') }}
         </span>

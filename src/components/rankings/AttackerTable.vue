@@ -23,7 +23,7 @@ const props = defineProps({
   sortBy: { type: String, default: 'dps' }
 })
 const emit = defineEmits(['update:sortBy'])
-const { t } = useTranslate()
+const { t, localName } = useTranslate()
 
 const METRICAS = ['dps', 'tdo', 'er']
 
@@ -49,7 +49,7 @@ const ordenar = (metrica) => {
       <thead class="bg-gray-100 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
         <tr class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
           <th scope="col" class="w-10 px-3 py-2 font-semibold text-right">#</th>
-          <th scope="col" class="px-3 py-2 font-semibold">Pokémon</th>
+          <th scope="col" class="px-3 py-2 font-semibold">{{ $t('top.pokemonColumn') }}</th>
           <template v-if="mode === 'pve'">
             <th scope="col" class="px-3 py-2 font-semibold">{{ $t('pokemon.fastMoves') }}</th>
             <th scope="col" class="px-3 py-2 font-semibold">{{ $t('pokemon.chargedMoves') }}</th>
@@ -97,17 +97,17 @@ const ordenar = (metrica) => {
                 v-if="row.dex"
                 :to="`/pokemon/${row.dex}`"
                 class="text-sm font-semibold text-gray-800 dark:text-gray-200 after:absolute after:inset-0 after:content-['']"
-              >{{ row.nameEs }}</router-link>
-              <span v-else class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ row.nameEs }}</span>
+              >{{ localName(row) }}</router-link>
+              <span v-else class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ localName(row) }}</span>
               <type-icons :types="row.types" size="12" class="shrink-0" />
             </div>
           </td>
           <template v-if="mode === 'pve'">
             <td class="px-3 py-1.5 text-mini">
-              <move-tag chip :name="row.fast.nameEs" :type="row.fast.type" :elite="row.fast.elite" :legacy="row.fast.legacy" />
+              <move-tag chip :name="localName(row.fast)" :type="row.fast.type" :elite="row.fast.elite" :legacy="row.fast.legacy" />
             </td>
             <td class="px-3 py-1.5 text-mini">
-              <move-tag chip :name="row.charged.nameEs" :type="row.charged.type" :elite="row.charged.elite" :legacy="row.charged.legacy" :mega="row.charged.mega" />
+              <move-tag chip :name="localName(row.charged)" :type="row.charged.type" :elite="row.charged.elite" :legacy="row.charged.legacy" :mega="row.charged.mega" />
             </td>
             <td
               v-for="metrica in METRICAS"
@@ -132,7 +132,7 @@ const ordenar = (metrica) => {
                   v-for="move in movesOf(row)"
                   :key="move.id ?? move.nameEs"
                   chip
-                  :name="move.nameEs"
+                  :name="localName(move)"
                   :type="move.type"
                   :elite="move.elite"
                   :legacy="move.legacy"

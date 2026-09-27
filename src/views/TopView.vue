@@ -127,10 +127,12 @@ const maxRows = computed(() => {
         rank: indice + 1,
         dex: entry.dex,
         spriteId: entry.spriteId,
+        name: entry.name,
         nameEs: entry.nameEs,
         types: entry.types,
         moves: [info?.gmaxMove, info?.maxMove].filter(Boolean).map((movimiento) => ({
           id: movimiento.id,
+          name: movimiento.name,
           nameEs: movimiento.nameEs,
           type: movimiento.type
         })),
@@ -139,7 +141,6 @@ const maxRows = computed(() => {
     })
 })
 
-const moveName = (id) => gameData.moves[id]?.nameEs ?? id
 const moveType = (id) => gameData.moves[id]?.type ?? 'normal'
 
 /**
@@ -158,11 +159,14 @@ const pvpAsRows = computed(() =>
       rank: row.rank,
       dex: entry?.dex ?? null,
       spriteId: entry?.spriteId ?? 0,
+      name: row.name,
       nameEs: row.nameEs,
       types: row.types,
+      // Sin el movimiento en moves.json queda el id, que es mejor que nada.
       moves: (row.moveset ?? []).map((id) => ({
         id,
-        nameEs: moveName(id),
+        name: gameData.moves[id]?.name ?? id,
+        nameEs: gameData.moves[id]?.nameEs ?? id,
         type: moveType(id),
         elite: elite.has(id),
         legacy: legacy.has(id),

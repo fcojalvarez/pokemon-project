@@ -58,7 +58,7 @@ async function desdeFicheros() {
  * filtros, así que cambiar de pestaña no repite el trabajo.
  */
 export const useGameDataStore = defineStore('gameData', () => {
-  const { t } = useTranslate()
+  const { t, te, locale } = useTranslate()
 
   const roster = shallowRef([])
   const moves = shallowRef({})
@@ -165,11 +165,15 @@ export const useGameDataStore = defineStore('gameData', () => {
     baseByDex(dex)?.shinyReleased ?? !!delFeed
 
   /**
-   * Nombre en español de un Pokémon publicado en inglés, con su forma.
-   * Estaba repetido en las tres vistas que pintan Pokémon del feed.
+   * Nombre en el idioma de la app de un Pokémon publicado en inglés, con su
+   * forma. Estaba repetido en las tres vistas que pintan Pokémon del feed.
+   *
+   * En inglés el nombre ya viene bien; solo se rehace el prefijo de forma con
+   * la misma plantilla, para que se escriba igual en toda la app. El idioma se
+   * lee en cada llamada: desde una plantilla o un computed, cambia con él.
    */
   const nombreEs = (name) =>
-    translatePokemonName(name, namesEs.value, (form, base) =>
+    translatePokemonName(name, locale() === 'en' ? null : namesEs.value, (form, base) =>
       t(`events.forms.${form}`, { pokemon: base })
     )
 
@@ -295,11 +299,24 @@ export const useGameDataStore = defineStore('gameData', () => {
 
   /**
    * Traduce una tarea o bonificación con las frases del propio juego.
-   * Si no hay equivalencia, devuelve el original en inglés.
+   * Si no hay equivalencia, devuelve el original en inglés. Con la app en
+   * inglés no hay nada que traducir: el texto ya llega así.
    */
-  const translateText = (text) => translateGameText(text, texts.value)
+  const translateText = (text) => (locale() === 'en' ? text : translateGameText(text, texts.value))
 
-  const typeName = (type) => typeChart.value.es[type] ?? type
+  /**
+   * Nombre del tipo en el idioma de la app. El español sale de la tabla de
+   * tipos del juego; el inglés, de los ficheros de idioma o, si es un tipo
+   * nuevo que aún no está ahí, del propio id con mayúscula.
+   */
+  const typeName = (type) => {
+    if (locale() === 'en') {
+      if (te(`types.${type}`)) return t(`types.${type}`)
+      const id = String(type ?? '')
+      return id.charAt(0).toUpperCase() + id.slice(1)
+    }
+    return typeChart.value.es[type] ?? type
+  }
 
   return {
     roster,

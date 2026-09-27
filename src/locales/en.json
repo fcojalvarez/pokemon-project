@@ -37,6 +37,7 @@
         "all": "All",
         "results": "results",
         "level": "Level",
+        "levelShort": "Lv.",
         "yes": "Yes",
         "no": "No",
         "staleData": "Data is {age} old: it may no longer be current"
@@ -99,6 +100,7 @@
         "inMaxBattles": "In Max Battles"
     },
     "top": {
+        "pokemonColumn": "Pokémon",
         "score": "Score",
         "moves": "Moves",
         "mode": "Mode",
@@ -439,6 +441,14 @@
         "teamNote": "Ranked by attack and type advantage, not damage: Max Moves publish no power. Since every Pokémon of a type shares the same Max Move, that part cancels out within the comparison. Evolving keeps the Dynamax form.",
         "availableVia": "by evolving {pokemon}",
         "tapForTeam": "Tap ▾ on a boss to see the suggested team."
+    },
+    "language": {
+        "label": "Language",
+        "choose": "Change language. Current: {language}",
+        "names": {
+            "es": "Español",
+            "en": "English"
+        }
     },
     "a11y": {
         "skipToContent": "Skip to content",

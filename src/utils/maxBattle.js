@@ -68,7 +68,7 @@ export function maxCounters(jefe, roster, chart, options = {}) {
         // Lo ya disponible directamente no necesita ruta, y sin `has` una
         // familia con evoluciones cruzadas daría vueltas para siempre.
         if (!entry || desdeEvolucion.has(siguiente) || disponibles.has(entry.dex)) continue
-        desdeEvolucion.set(siguiente, { id: origen.id, nameEs: origen.nameEs })
+        desdeEvolucion.set(siguiente, { id: origen.id, name: origen.name, nameEs: origen.nameEs })
         cola.push({ actual: entry, origen })
       }
     }
@@ -93,6 +93,7 @@ export function maxCounters(jefe, roster, chart, options = {}) {
     candidatos.push({
       id: entry.id,
       dex: entry.dex,
+      name: entry.name,
       nameEs: entry.nameEs,
       spriteId: entry.spriteId ?? entry.dex,
       types: entry.types,

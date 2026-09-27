@@ -58,9 +58,11 @@ describe('botón de modo oscuro', () => {
     expect(w.get('button').attributes('aria-pressed')).toBe('false')
   })
 
-  it('en el menú lleva el texto a la vista; en la cabecera, las clases que le pasen', () => {
+  it('en el menú va solo el icono; en la cabecera, las clases que le pasen', () => {
     sistema(false)
-    expect(montar({ conTexto: true }).text()).toContain('Modo oscuro')
+    const enMenu = montar({ enMenu: true })
+    expect(enMenu.text()).toBe('')
+    expect(enMenu.get('button').attributes('aria-label')).toBe('Modo oscuro')
     // La cabecera lo oculta en móvil con clases: tienen que llegar al botón.
     // Se rompió una vez por dejar comentarios HTML junto a v-if/v-else.
     const pinia = createPinia()

@@ -26,7 +26,7 @@ const auth = useAuthStore()
 const suggestions = useSuggestionsStore()
 const { isReady, isSignedIn, isBusy, email } = storeToRefs(auth)
 const { items, isLoading, error, countsByStatus } = storeToRefs(suggestions)
-const { t, locale } = useTranslate()
+const { t, intlLocale } = useTranslate()
 
 const formEmail = ref('')
 const formPassword = ref('')
@@ -57,7 +57,7 @@ const statusStyle = {
 }
 
 const fecha = (value) =>
-  formatDateTime(value ? new Date(value) : null, locale() === 'en' ? 'en-GB' : 'es-ES')
+  formatDateTime(value ? new Date(value) : null, intlLocale())
 
 const signIn = async () => {
   if (await auth.signIn(formEmail.value, formPassword.value)) {

@@ -26,7 +26,7 @@ import BaseSprite from '../components/base/BaseSprite.vue'
 const live = useLiveStore()
 const gameData = useGameDataStore()
 const route = useRoute()
-const { t, te } = useTranslate()
+const { t, te, locale, localName } = useTranslate()
 
 const tab = ref('raids')
 
@@ -102,7 +102,7 @@ const equipoMax = computed(() => {
 /** Cómo conseguirlo hoy: directamente, evolucionando, o de ninguna forma. */
 const comoConseguir = (quien) => {
   if (quien.availableNow) return t('max.availableNow')
-  if (quien.availableFrom) return t('max.availableVia', { pokemon: quien.availableFrom.nameEs })
+  if (quien.availableFrom) return t('max.availableVia', { pokemon: localName(quien.availableFrom) })
   return null
 }
 
@@ -116,6 +116,8 @@ const maxPorNivel = computed(() => {
     if (!grupos.has(uno.tier)) grupos.set(uno.tier, [])
     grupos.get(uno.tier).push({
       ...uno,
+      // Sin entrada en el roster, el nombre de la fuente (en inglés) para los dos.
+      name: entry?.name ?? uno.name,
       nameEs: entry?.nameEs ?? uno.name,
       image: entry ? spriteUrl(entry.spriteId) : null
     })
@@ -177,7 +179,7 @@ const researchGroups = computed(() => {
       label: te(`raids.researchTypes.${type}`) ? t(`raids.researchTypes.${type}`) : type,
       list
     }))
-    .sort((a, b) => a.label.localeCompare(b.label, 'es'))
+    .sort((a, b) => a.label.localeCompare(b.label, locale()))
 })
 
 /** El texto de la tarea viene envuelto en <span>. */
@@ -343,18 +345,18 @@ onMounted(() => {
                     class="w-8 h-8 shrink-0"
                   />
                   <div class="flex-1 min-w-0">
-                    <div class="text-xs font-semibold truncate">{{ counter.nameEs }}</div>
+                    <div class="text-xs font-semibold truncate">{{ localName(counter) }}</div>
                     <div class="flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-300">
                       <move-tag
                         chip
-                        :name="counter.fast.nameEs"
+                        :name="localName(counter.fast)"
                         hide-icon
                         :elite="counter.fast.elite"
                         :legacy="counter.fast.legacy"
                       />
                       <move-tag
                         chip
-                        :name="counter.charged.nameEs"
+                        :name="localName(counter.charged)"
                         hide-icon
                         :elite="counter.charged.elite"
                         :legacy="counter.charged.legacy"
@@ -400,7 +402,7 @@ onMounted(() => {
               <live-mon-card
                 :id="`mon-${uno.dex}`"
                 :highlight="destacado === uno.dex"
-                :name="uno.nameEs"
+                :name="localName(uno)"
                 :image="uno.image"
                 :dex="uno.dex"
                 :combat-power="uno.cp"
@@ -415,7 +417,7 @@ onMounted(() => {
                   type="button"
                   class="shrink-0 px-1.5 py-1 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
                   :aria-expanded="openMax === uno.dex"
-                  :aria-label="`${$t('max.team')}: ${uno.nameEs}`"
+                  :aria-label="`${$t('max.team')}: ${localName(uno)}`"
                   @click.prevent.stop="openMax = openMax === uno.dex ? null : uno.dex"
                 >
                   <base-chevron :open="openMax === uno.dex" size="w-3 h-3" />
@@ -431,7 +433,7 @@ onMounted(() => {
                 class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
               >
                 <p class="text-mini text-gray-600 dark:text-gray-300 mb-3">
-                  {{ $t('max.teamIntro', { pokemon: uno.nameEs }) }}
+                  {{ $t('max.teamIntro', { pokemon: localName(uno) }) }}
                 </p>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -441,7 +443,7 @@ onMounted(() => {
                       <live-mon-card
                         v-for="quien in equipoMax.tanks"
                         :key="`t-${quien.id}`"
-                        :name="quien.nameEs"
+                        :name="localName(quien)"
                         :image="spriteUrl(quien.spriteId)"
                         :dex="quien.dex"
                         :badge="comoConseguir(quien)"
@@ -459,7 +461,7 @@ onMounted(() => {
                       <live-mon-card
                         v-for="quien in equipoMax.attackers"
                         :key="`a-${quien.id}`"
-                        :name="quien.nameEs"
+                        :name="localName(quien)"
                         :image="spriteUrl(quien.spriteId)"
                         :dex="quien.dex"
                         :badge="comoConseguir(quien)"

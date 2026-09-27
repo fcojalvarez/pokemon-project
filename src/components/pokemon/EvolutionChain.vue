@@ -6,6 +6,7 @@
 import { computed, provide, toRef } from 'vue'
 import { useGameDataStore } from '../../stores/gameData'
 import { spriteUrl } from '../../utils/sprites'
+import { localName } from '../../composables/useTranslate'
 import { construirArbol, nodosDe } from '../../utils/evolutionTree'
 import EvolutionTramo from './EvolutionTramo.vue'
 
@@ -28,7 +29,7 @@ const megasDe = (mon) => {
       destino: {
         mon: {
           pokemon_id: form.dex,
-          name: form.nameEs,
+          name: localName(form),
           types: form.types,
           is_shiny_released: mon.is_shiny_released,
           sprites: {

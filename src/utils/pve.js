@@ -77,6 +77,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
   const exclusive = new Set(entry.megaMoves ?? [])
   const describe = (id, move) => ({
     id,
+    name: move.name,
     nameEs: move.nameEs,
     type: move.type,
     elite: elite.has(id),

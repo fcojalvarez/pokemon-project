@@ -21,7 +21,7 @@ const props = defineProps({
 })
 
 const gameData = useGameDataStore()
-const { t, locale } = useTranslate()
+const { t, localName } = useTranslate()
 
 const maxInfo = computed(() =>
   gameData.isReady && props.entry ? gameData.maxInfoFor(props.entry) : null
@@ -60,8 +60,7 @@ const upgradeRows = computed(() => {
 const resumen = computed(() => {
   const info = maxInfo.value
   if (!info) return ''
-  const nombre = (move) => (locale() === 'en' ? move.name : move.nameEs)
-  return [info.maxMove && nombre(info.maxMove), info.gmaxMove && nombre(info.gmaxMove)].filter(Boolean).join(' · ')
+  return [info.maxMove && localName(info.maxMove), info.gmaxMove && localName(info.gmaxMove)].filter(Boolean).join(' · ')
 })
 </script>
 
@@ -91,7 +90,7 @@ const resumen = computed(() => {
         <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.maxMove') }}</dt>
         <dd class="flex items-center gap-2 text-sm font-semibold">
           <type-icons :types="[maxInfo.maxMove.type]" size="16" />
-          {{ locale() === 'en' ? maxInfo.maxMove.name : maxInfo.maxMove.nameEs }}
+          {{ localName(maxInfo.maxMove) }}
         </dd>
       </div>
 
@@ -102,7 +101,7 @@ const resumen = computed(() => {
         <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.gmaxMove') }}</dt>
         <dd class="flex items-center gap-2 text-sm font-semibold">
           <type-icons :types="[maxInfo.gmaxMove.type]" size="16" />
-          {{ locale() === 'en' ? maxInfo.gmaxMove.name : maxInfo.gmaxMove.nameEs }}
+          {{ localName(maxInfo.gmaxMove) }}
         </dd>
       </div>
     </dl>
