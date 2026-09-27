@@ -248,7 +248,7 @@
             "gift": "Gifts",
             "ar mapping": "AR mapping"
         },
-        "tapForCounters": "Tap ▾ on a boss to see the best counters."
+        "tapForCounters": "Tap the arrow on a boss to see the best counters."
     },
     "filters": {
         "type": "Type",
@@ -443,7 +443,7 @@
         "availableNow": "available now",
         "teamNote": "Ranked by attack and type advantage, not damage: Max Moves publish no power. Since every Pokémon of a type shares the same Max Move, that part cancels out within the comparison. Evolving keeps the Dynamax form.",
         "availableVia": "by evolving {pokemon}",
-        "tapForTeam": "Tap ▾ on a boss to see the suggested team."
+        "tapForTeam": "Tap the arrow on a boss to see the suggested team."
     },
     "language": {
         "label": "Language",

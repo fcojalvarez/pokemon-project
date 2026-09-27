@@ -88,7 +88,8 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
         class="block text-mini text-gray-600 dark:text-gray-300 truncate"
         :title="`${$t('raids.cpRange')} ${cpLabel}`"
       >
-        <span class="hidden sm:inline">{{ $t('raids.cpRange') }} </span>{{ cpLabel }}
+        <!-- &nbsp;: el espacio normal al final del span se perdía («PC529–574»). -->
+        <span class="hidden sm:inline">{{ $t('raids.cpRange') }}&nbsp;</span>{{ cpLabel }}
       </span>
       <span v-if="badge" class="block text-mini text-gray-600 dark:text-gray-300">{{ badge }}</span>
     </span>
