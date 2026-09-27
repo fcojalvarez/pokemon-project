@@ -50,7 +50,7 @@ const hasWhereToFind = computed(() => {
 })
 
 const irA = (pestana) => ({
-  path: '/ahora',
+  path: '/live',
   query: { tab: pestana, dex: props.pokemon.pokemon_id }
 })
 

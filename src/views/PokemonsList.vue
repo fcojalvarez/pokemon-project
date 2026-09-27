@@ -6,11 +6,50 @@ import MaxLegend from '../components/pokemon/MaxLegend.vue';
 import PokedexFilters from '../components/pokemon/PokedexFilters.vue';
 import { storeToRefs } from 'pinia';
 import { usePokemonsStore } from '@/stores/pokemons';
-import { MAX_LENGH_POKEMONS,NEXT_LOAD_LENGTH_ITEMS, DISTANCE_TO_BOTTOM_PAGE } from '../utils/Settings';
+import { MAX_LENGH_POKEMONS,NEXT_LOAD_LENGTH_ITEMS, DISTANCE_TO_BOTTOM_PAGE, typesSVG } from '../utils/Settings';
+import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl';
+import { useRoute } from 'vue-router';
 
 const pokemonStore = usePokemonsStore();
+const route = useRoute();
 const { pokemons, isLoading, isSearching, filters, searchTerm } = storeToRefs(pokemonStore);
-const { getPokemons, addPokemons } = pokemonStore;
+const { getPokemons, addPokemons, setFilters, clearFilters, filterPokemons, setIsSearching } = pokemonStore;
+
+/**
+ * Los filtros, en la URL: un enlace o una recarga conservan la selección.
+ *
+ * Cada campo escribe en la store, pero los que llegan juntos (al entrar con
+ * una URL con varios) se agrupan en una sola llamada a setFilters, que es la
+ * que consulta a Supabase. Si ya están así en la store (al volver de una
+ * ficha), no se toca nada: la lista y el scroll siguen como estaban.
+ */
+let pendiente = null;
+const aplicar = (cambio) => {
+    const iguales = Object.entries(cambio).every(([clave, valor]) => JSON.stringify(filters.value[clave]) === JSON.stringify(valor));
+    if (iguales) return;
+    const primero = !pendiente;
+    pendiente = { ...(pendiente ?? {}), ...cambio };
+    if (primero) queueMicrotask(() => { const junto = pendiente; pendiente = null; setFilters(junto); });
+};
+const filtro = (clave) => computed({ get: () => filters.value[clave], set: (valor) => aplicar({ [clave]: valor }) });
+const SOLO = { shiny: 'onlyShiny', shadow: 'onlyShadow', dynamax: 'onlyDynamax', gigantamax: 'onlyGigantamax' };
+const solo = computed({
+    get: () => Object.entries(SOLO).filter(([, clave]) => filters.value[clave]).map(([nombre]) => nombre),
+    set: (nombres) => aplicar(Object.fromEntries(Object.entries(SOLO).map(([nombre, clave]) => [clave, nombres.includes(nombre)])))
+});
+// La búsqueda también, como ?q=. Al restaurarla desde la URL se busca igual
+// que si se hubiera escrito en el buscador.
+const busqueda = computed({
+    get: () => searchTerm.value,
+    set: (texto) => { setIsSearching(Boolean(texto)); filterPokemons(texto); }
+});
+const { habiaFiltros } = useFiltrosEnUrl({
+    q: { valor: busqueda, defecto: '' },
+    kinds: { valor: filtro('types'), defecto: [], ...lista(Object.keys(typesSVG)) },
+    gen: { valor: filtro('generation'), defecto: null, leer: (texto) => (/^[1-9]$/.test(texto) ? Number(texto) : undefined), escribir: (valor) => (valor ? String(valor) : '') },
+    rarity: { valor: filtro('rarity'), defecto: null, leer: entre(['standard', 'legendary', 'mythic']), escribir: (valor) => valor ?? '' },
+    only: { valor: solo, defecto: [], ...lista(Object.keys(SOLO)) }
+});
 
 const currentPokemonsLength = computed(() => pokemons.value.length );
 const isAllPokemonsLoaded = ref(false);
@@ -32,6 +71,26 @@ const scrollHandler = async({target: {scrollingElement: {scrollTop, scrollHeight
     }
 }
 
+/**
+ * La URL manda. Al volver atrás (del navegador o de la app) trae los filtros y
+ * la búsqueda, que se escriben en ella al aplicarlos, y se restauran. Al
+ * entrar desde el menú llega sin nada: entonces se limpian también en la
+ * store, que si no seguía aplicando lo de la visita anterior.
+ */
+const hayAlgoAplicado = () =>
+    Boolean(searchTerm.value) || JSON.stringify(filters.value) !== JSON.stringify({
+        types: [], generation: null, rarity: null, onlyShiny: false, onlyShadow: false, onlyDynamax: false, onlyGigantamax: false
+    });
+const limpiar = () => {
+    if (searchTerm.value) { setIsSearching(false); filterPokemons(''); }
+    if (hayAlgoAplicado()) clearFilters();
+};
+if (!habiaFiltros && hayAlgoAplicado()) limpiar();
+// Pulsar «Pokédex» en el menú estando ya en la Pokédex: misma página, URL limpia.
+watch(() => route.query, (query) => {
+    if (!Object.keys(query).length && hayAlgoAplicado()) limpiar();
+});
+
 // passive: le dice al navegador que el listener no va a hacer preventDefault,
 // así no tiene que esperarnos para desplazar la página. Se nota en móvil.
 // Al cambiar de filtros la store reinicia el listado: aquí hay que soltar la
@@ -39,7 +98,8 @@ const scrollHandler = async({target: {scrollingElement: {scrollTop, scrollHeight
 watch(filters, () => { isAllPokemonsLoaded.value = false; }, { deep: true });
 
 onMounted(async() => {
-    if(pokemons.value.length === 0) await getPokemons();
+    // Con filtros en la URL, la primera carga la hace setFilters (ver arriba).
+    if(pokemons.value.length === 0 && !habiaFiltros) await getPokemons();
     document.addEventListener('scroll', scrollHandler, { passive: true });
 })
 onUnmounted(() => {

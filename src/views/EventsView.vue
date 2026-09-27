@@ -12,6 +12,7 @@ import {
 } from '../components/index'
 import EventCard from '../components/events/EventCard.vue'
 import { useTranslate } from '../composables/useTranslate'
+import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useMedia } from '../composables/useMedia'
 
 const live = useLiveStore()
@@ -27,6 +28,14 @@ const typeFilter = ref('all')
 // Ni pasados ni sin fecha: uno que ya terminó no sirve para nada, y los que
 // LeekDuck publica sin fechas no se pueden ni situar en el tiempo.
 const TABS = ['active', 'upcoming']
+
+// En la URL, para volver de un evento con la misma pestaña y el mismo tipo.
+// Antes del watch de abajo: si no, al leer la pestaña de la URL se borraría el
+// tipo que también viene en ella.
+useFiltrosEnUrl({
+  view: { valor: tab, defecto: 'active', leer: entre(TABS) },
+  kind: { valor: typeFilter, defecto: 'all', leer: (texto) => (/^[\w-]+$/.test(texto) ? texto : undefined) }
+})
 
 const source = computed(() => live[tab.value] ?? [])
 
@@ -73,7 +82,7 @@ const list = computed(() =>
 
 // También el roster: las tarjetas lo necesitan para traducir el nombre del
 // Pokémon del título y para sacar su sprite. Sin esto, entrando directo a
-// /eventos los títulos se quedaban a medio traducir.
+// /events los títulos se quedaban a medio traducir.
 onMounted(() => {
   live.load()
   gameData.load()

@@ -11,8 +11,8 @@ import { expect, test } from '@playwright/test'
 const RUTAS = [
   { url: '/', nombre: 'Pokédex' },
   { url: '/top', nombre: 'Top' },
-  { url: '/ahora', nombre: 'Ahora en juego' },
-  { url: '/eventos', nombre: 'Eventos' },
+  { url: '/live', nombre: 'Ahora en juego' },
+  { url: '/events', nombre: 'Eventos' },
   { url: '/pokemon/3', nombre: 'Ficha de Pokémon' }
 ]
 

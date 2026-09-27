@@ -21,6 +21,7 @@ import LiveMonCard from '../components/pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../utils/sprites'
 import { maxCounters } from '../utils/maxBattle'
 import { useTranslate } from '../composables/useTranslate'
+import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import BaseSprite from '../components/base/BaseSprite.vue'
 
 const live = useLiveStore()
@@ -57,6 +58,11 @@ const openBoss = ref(null)
 const openMax = ref(null)
 
 const TABS = ['raids', 'eggs', 'research']
+
+// La pestaña, en la URL (?tab=, la misma que usan los enlaces desde la ficha).
+// El ?dex= con el que se llega señalando a un Pokémon es de un solo uso: al
+// cambiar de pestaña se quita, para no volver a señalarlo.
+useFiltrosEnUrl({ tab: { valor: tab, defecto: 'raids', leer: entre(TABS) } }, { quitar: ['dex'] })
 
 const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
 

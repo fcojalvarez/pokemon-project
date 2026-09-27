@@ -10,8 +10,8 @@ test('cada página tiene su título, su h1 y el idioma en español', async ({ pa
   const paginas = [
     ['/', 'PogoDex', 'Pokédex'],
     ['/top', 'Top · PogoDex', 'Top'],
-    ['/eventos', 'Eventos · PogoDex', 'Eventos'],
-    ['/ahora', 'Ahora en juego · PogoDex', 'Ahora en juego'],
+    ['/events', 'Eventos · PogoDex', 'Eventos'],
+    ['/live', 'Ahora en juego · PogoDex', 'Ahora en juego'],
     ['/pokemon/6', 'Charizard · PogoDex', 'Charizard']
   ]
   for (const [ruta, titulo, h1] of paginas) {

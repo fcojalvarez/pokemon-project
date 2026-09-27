@@ -11,7 +11,9 @@ import BaseDropdown from './BaseDropdown.vue'
 defineProps({
   modelValue: { type: [String, Number], default: '' },
   label: { type: String, default: '' },
-  options: { type: Array, required: true }
+  options: { type: Array, required: true },
+  /** Con un campo para escribir y localizar la opción. */
+  buscable: Boolean
 })
 
 defineEmits(['update:modelValue'])
@@ -22,6 +24,7 @@ defineEmits(['update:modelValue'])
     :model-value="modelValue"
     :label="label"
     :options="options"
+    :buscable="buscable"
     @update:model-value="$emit('update:modelValue', $event)"
   />
 </template>

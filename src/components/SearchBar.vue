@@ -88,10 +88,14 @@
         isShowModalSearch.value = false;
     })
 
-    watch(() => route.fullPath, () => {
+    // Al cambiar de página, el buscador enseña la búsqueda de la Pokédex si la
+    // URL la trae (?q=, al volver atrás) y se vacía si no. Solo al cambiar de
+    // página, no con cada tecla: la URL se actualiza mientras se escribe y, si
+    // se copiara de vuelta, podría pisar lo último tecleado.
+    watch(() => route.path, () => {
         if(isListView.value) isShowModalSearch.value = false;
-        inputValue.value = null;
-    })
+        inputValue.value = isListView.value && route.query.q ? String(route.query.q) : null;
+    }, { immediate: true })
 </script>
 
 <template>

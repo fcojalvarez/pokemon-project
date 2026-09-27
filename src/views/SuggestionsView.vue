@@ -1,6 +1,6 @@
 <script setup>
 /**
- * Panel de gestión de las sugerencias (`/sugerencias`).
+ * Panel de gestión de las sugerencias (`/suggestions`).
  *
  * No está enlazado desde el menú: es para una sola persona. Aun así, lo que lo
  * protege no es que la URL no se enseñe, sino las políticas RLS de

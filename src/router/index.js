@@ -31,13 +31,13 @@ const router = createRouter({
             component: () => import('@/views/TopView.vue')
         },
         {
-            path: '/eventos',
+            path: '/events',
             name: 'EventsPage',
             meta: { titleKey: 'nav.events' },
             component: () => import('@/views/EventsView.vue')
         },
         {
-            path: '/ahora',
+            path: '/live',
             name: 'LivePage',
             meta: { titleKey: 'nav.raids' },
             component: () => import('@/views/RaidsView.vue')
@@ -45,18 +45,21 @@ const router = createRouter({
         {
             // Panel de sugerencias. No se enlaza desde el menú: quien lo
             // protege es la RLS de Supabase, no que la URL esté escondida.
-            path: '/sugerencias',
+            path: '/suggestions',
             name: 'SuggestionsPage',
             meta: { titleKey: 'suggestions.panel' },
             component: () => import('@/views/SuggestionsView.vue')
         },
         {
-            // La sección se llamaba "Incursiones" y ahora cubre también huevos
-            // y tareas. Se mantiene la ruta vieja redirigiendo, para no romper
-            // enlaces guardados ni los que ya estuvieran compartidos.
+            // Las URL van en inglés. Las rutas de antes redirigen a las nuevas,
+            // con su query, para no romper enlaces guardados ni compartidos.
+            // «/incursiones» es aún más vieja: la sección cubre ya huevos y tareas.
             path: '/incursiones',
-            redirect: '/ahora'
+            redirect: (to) => ({ path: '/live', query: to.query })
         },
+        { path: '/ahora', redirect: (to) => ({ path: '/live', query: to.query }) },
+        { path: '/eventos', redirect: (to) => ({ path: '/events', query: to.query }) },
+        { path: '/sugerencias', redirect: (to) => ({ path: '/suggestions', query: to.query }) },
         {
             path: "/:catchAll(.*)",
             redirect: `/`

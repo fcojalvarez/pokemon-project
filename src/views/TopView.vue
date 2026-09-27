@@ -13,6 +13,7 @@ import AttackerTable from '../components/rankings/AttackerTable.vue'
 import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
 import { useMedia } from '../composables/useMedia'
+import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useTranslate } from '../composables/useTranslate'
 
 const gameData = useGameDataStore()
@@ -35,6 +36,33 @@ const includeShadow = ref(true)
 const includeLegacy = ref(true)
 /** Los élite solo salen con MT Élite o en eventos: mismo trato que los legacy. */
 const includeElite = ref(true)
+
+/**
+ * La selección va en la URL (en inglés, como las rutas): al ir a una ficha y
+ * volver, el Top sale igual. «Incluir» se guarda como lo que se quita
+ * (?without=legacy,elite), que es lo raro.
+ */
+const excluidos = computed({
+  get: () => [
+    !includeMega.value && 'mega',
+    !includeShadow.value && 'shadow',
+    !includeLegacy.value && 'legacy',
+    !includeElite.value && 'elite'
+  ].filter(Boolean),
+  set: (quitados) => {
+    includeMega.value = !quitados.includes('mega')
+    includeShadow.value = !quitados.includes('shadow')
+    includeLegacy.value = !quitados.includes('legacy')
+    includeElite.value = !quitados.includes('elite')
+  }
+})
+useFiltrosEnUrl({
+  mode: { valor: mode, defecto: 'pve', leer: entre(['pve', 'max', 'pvp']) },
+  kind: { valor: type, defecto: 'all', leer: (texto) => (/^[a-z]+$/.test(texto) ? texto : undefined) },
+  sort: { valor: sortBy, defecto: 'dps', leer: entre(['dps', 'tdo', 'er']) },
+  league: { valor: league, defecto: 'great', leer: entre(['great', 'ultra', 'master']) },
+  without: { valor: excluidos, defecto: [], ...lista(['mega', 'shadow', 'legacy', 'elite']) }
+})
 
 // Dinamax va justo detrás de incursiones: las dos son PvE, y el PvP es lo
 // que se sale del grupo.
@@ -213,18 +241,20 @@ onMounted(() => gameData.load())
 
     <!--
       Desde xl (1280 px), los filtros van en una barra lateral que se queda
-      fija al hacer scroll y el ranking en tabla a su derecha. Por debajo, todo
+      fija al hacer scroll (si la pantalla tiene altura para ella) y el ranking
+      en tabla a su derecha. Sin overflow propio: si recortara, las opciones de
+      los desplegables quedarían encerradas dentro de la barra. Por debajo, todo
       en una columna, filtros arriba y lista de tarjetas.
     -->
     <div :class="ancho ? 'grid grid-cols-[280px_minmax(0,1fr)] gap-6 items-start' : ''">
       <aside
         :class="ancho
-          ? 'sticky top-[104px] max-h-[calc(100vh-120px)] overflow-y-auto flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
+          ? '[@media(min-height:720px)]:sticky top-[104px] flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
           : ''"
       >
         <div :class="ancho ? 'flex flex-col gap-3' : 'grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mb-3'">
           <base-filter-select v-model="mode" :label="$t('top.mode')" :options="modeOptions" />
-          <base-filter-select v-model="type" :label="$t('top.type')" :options="typeOptions" />
+          <base-filter-select v-model="type" buscable :label="$t('top.type')" :options="typeOptions" />
           <!--
             En la tabla también se ordena pulsando las cabeceras; los dos van a
             la par. Lo que significa cada orden va justo debajo del selector.

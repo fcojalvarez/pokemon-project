@@ -68,3 +68,42 @@
         scroll-behavior: auto !important;
     }
 }
+
+/*
+ * Barra de scroll a juego con la app: fina, redondeada y en los grises de los
+ * bordes, sin el carril gris del sistema. Se ensancha al pasar por encima
+ * para que siga siendo fácil de agarrar con el ratón.
+ */
+html {
+    scrollbar-width: thin;
+    scrollbar-color: #9ca3af transparent;
+}
+html.dark {
+    scrollbar-color: #4b5563 transparent;
+}
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #9ca3af;
+    border: 3px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280;
+    border-width: 2px;
+}
+.dark ::-webkit-scrollbar-thumb {
+    background-color: #4b5563;
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+    background-color: #6b7280;
+}
+::-webkit-scrollbar-corner {
+    background: transparent;
+}

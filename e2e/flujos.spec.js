@@ -88,7 +88,7 @@ test('el Top cambia entre PvE y PvP sin romperse', async ({ page }) => {
 })
 
 test('las pestañas de Ahora en juego cambian de contenido', async ({ page }) => {
-  await page.goto('/ahora')
+  await page.goto('/live')
 
   const huevos = page.getByRole('button', { name: /huevos/i })
   await huevos.click()
@@ -135,7 +135,7 @@ test('la supermega enseña su ataque exclusivo', async ({ page }) => {
 })
 
 test('los eventos se listan con el título en español', async ({ page }) => {
-  await page.goto('/eventos')
+  await page.goto('/events')
   await page.waitForLoadState('networkidle')
 
   // El estado son pastillas y arranca en "En marcha".
@@ -260,7 +260,7 @@ test.describe('volver desde la ficha', () => {
   })
 
   test('de Ahora en juego a la ficha de un counter y vuelta', async ({ page }) => {
-    await page.goto('/ahora')
+    await page.goto('/live')
     const boss = page.locator('main button[aria-expanded]').first()
     await expect(boss).toBeVisible()
     await boss.click()
@@ -269,7 +269,7 @@ test.describe('volver desde la ficha', () => {
     await counter.click()
     await expect(page).toHaveURL(/\/pokemon\/\d+/)
     await volver(page).click()
-    await expect(page).toHaveURL(/\/ahora/)
+    await expect(page).toHaveURL(/\/live/)
   })
 
   test('de una ficha a otra por la línea evolutiva, y vuelta a la anterior', async ({ page }) => {
@@ -315,4 +315,47 @@ test.describe('Top en escritorio ancho', () => {
     await page.getByRole('option', { name: /\(ER\)/ }).click()
     await expect(page.locator('th[aria-sort="descending"]')).toContainText(/er/i)
   })
+})
+
+/**
+ * Los filtros van en la URL: al volver de una ficha o al recargar, la página
+ * sale con la misma selección.
+ */
+test.describe('filtros en la URL', () => {
+  test('el Top conserva tipo e «Incluir» al volver de una ficha y al recargar', async ({ page }) => {
+    await page.goto('/top')
+    await page.getByRole('combobox', { name: /tipo/i }).click()
+    await page.getByRole('option', { name: 'Fuego', exact: true }).click()
+    await page.getByRole('button', { name: 'Legacy', exact: true }).click()
+    await expect(page).toHaveURL(/kind=fire/)
+    await expect(page).toHaveURL(/without=legacy/)
+
+    await page.locator('[data-fila-top] a').first().click()
+    await expect(page).toHaveURL(/\/pokemon\//)
+    await page.locator('header button.back-btn').click()
+    await expect(page).toHaveURL(/\/top\?.*kind=fire/)
+    await expect(page.getByRole('combobox', { name: /tipo/i })).toContainText('Fuego')
+    await expect(page.getByRole('button', { name: 'Legacy', exact: true })).toHaveAttribute('aria-pressed', 'false')
+
+    await page.reload()
+    await expect(page.getByRole('combobox', { name: /tipo/i })).toContainText('Fuego')
+  })
+
+  test('la Pokédex abre con los filtros de la URL', async ({ page }) => {
+    await page.goto('/?kinds=fire&only=gigantamax')
+    await expect(page.getByText('Charizard', { exact: true })).toBeVisible()
+    await expect(page.getByText('Bulbasaur', { exact: true })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: /filtros/i })).toContainText('2')
+  })
+})
+
+/** Las URL van en inglés; las de antes redirigen, con su query. */
+test('las rutas antiguas en español redirigen a las nuevas', async ({ page }) => {
+  await page.goto('/ahora?tab=eggs')
+  await expect(page).toHaveURL(/\/live\?tab=eggs$/)
+  await expect(page.getByRole('button', { name: /huevos/i })).toHaveAttribute('aria-pressed', 'true')
+  await page.goto('/eventos')
+  await expect(page).toHaveURL(/\/events$/)
+  await page.goto('/incursiones')
+  await expect(page).toHaveURL(/\/live$/)
 })

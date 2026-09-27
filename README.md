@@ -43,9 +43,14 @@ Las credenciales están en el panel de Supabase: *Project Settings → API* (URL
 | `/pokemon/:id`   | Toda la información de un Pokémon (ver abajo)                          |
 | `/pokemon/:id?form=` | Una forma concreta: megas y supermegas tienen su propia pantalla   |
 | `/top`           | Mejores Pokémon, con un select para PvE (por defecto) o PvP            |
-| `/eventos`       | Eventos con cuenta atrás en hora local                                 |
-| `/incursiones`   | Jefes actuales con sus counters, huevos y tareas de campo              |
-| `/sugerencias`   | Panel de las sugerencias recibidas (pide contraseña; no está enlazado) |
+| `/events`        | Eventos con cuenta atrás en hora local                                 |
+| `/live`          | Jefes actuales con sus counters, huevos y tareas de campo              |
+| `/suggestions`   | Panel de las sugerencias recibidas (pide contraseña; no está enlazado) |
+
+Las URL van en inglés. Las rutas antiguas en español (`/eventos`, `/ahora`, `/incursiones`,
+`/sugerencias`) redirigen a las nuevas con su query. Los filtros de la Pokédex, el Top, los eventos
+y «Ahora en juego» también van en la URL (`/top?kind=fire&without=legacy`, `/?kinds=fire&only=shiny`):
+al volver atrás o al recargar se mantiene la selección.
 
 La ficha de cada Pokémon reúne evoluciones, megaevoluciones, PC de un 100 %, dónde sale ahora
 mismo (incursión, huevo o tarea), variocolor, debilidades y resistencias, mejores ataques, y su
@@ -55,7 +60,7 @@ puesto en los rankings de PvE y PvP.
 
 En el menú lateral, abajo a la derecha, hay un botón que abre un formulario: categoría, texto y
 un email opcional. Lo que se envía va a la tabla `suggestions` de Supabase, y se gestiona desde
-`/sugerencias` (filtrar por estado, anotar, marcar como hecha o descartada, borrar).
+`/suggestions` (filtrar por estado, anotar, marcar como hecha o descartada, borrar).
 
 Antes de que funcione hay que crear la tabla una vez: pegar `supabase/suggestions.sql` en el SQL
 Editor de Supabase y ejecutarlo. Ese fichero crea también las políticas RLS, que son lo que de
@@ -68,7 +73,7 @@ verdad protege el panel:
   función.
 
 El usuario del panel se crea a mano en *Authentication → Users* del panel de Supabase, con el
-mismo email que tenga la función. En `/sugerencias` no hay registro a propósito.
+mismo email que tenga la función. En `/suggestions` no hay registro a propósito.
 
 Que la URL no esté enlazada no protege nada: la clave `anon` va en el bundle y cualquiera puede
 preguntar por la tabla. Lo que hace que la respuesta llegue vacía es la RLS.
@@ -118,7 +123,7 @@ filtros.
 - Frustración y Retroceso quedan fuera: no son opciones reales.
 
 No modela esquivar, relevos ni ventanas de daño exactas: sirve para **ordenar atacantes entre sí**,
-no para cronometrar un combate. Para un jefe concreto están los counters de `/incursiones`, que sí
+no para cronometrar un combate. Para un jefe concreto están los counters de `/live`, que sí
 aplican la efectividad real.
 
 ## Tests
