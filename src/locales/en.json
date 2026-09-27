@@ -49,6 +49,7 @@
         "staleData": "Data is {age} old: it may no longer be current"
     },
     "forms": {
+        "buttonShort": "Forms ({n})",
         "back": "Back to gallery",
         "previous": "Previous",
         "next": "Next",
@@ -172,6 +173,8 @@
         "eliteHelp": "Turn it off to see only movesets you can get with regular TMs: Elite moves need an Elite TM or a specific event."
     },
     "events": {
+        "bonus": "Bonuses",
+        "moreBonus": "and {n} more | and {n} more",
         "detail": "Event details",
         "official": "Official Pokémon GO news",
         "noOfficial": "This event has no official news post on the Pokémon GO website: above is what LeekDuck publishes.",

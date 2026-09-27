@@ -10,8 +10,8 @@ name: Traducciones
 
 on:
   schedule:
-    # Cada tres horas, a una hora rara para no coincidir con los demás.
-    - cron: '40 */3 * * *'
+    # Una vez al día, tras las noticias: los eventos se anuncian con antelación.
+    - cron: '20 5 * * *'
   workflow_dispatch:
 
 permissions:

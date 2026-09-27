@@ -9,12 +9,15 @@
  * corresponden a un evento de LeekDuck, con qué evento es cada una. La lógica
  * de leer y asociar está en scripts/lib/noticias.mjs.
  *
- * Para no pedir de más, una noticia ya guardada solo se vuelve a leer si se
- * publicó hace menos de tres semanas: más tarde ya no cambia.
+ * Se lanza una vez al día: los eventos se anuncian con bastante antelación.
+ * Los que ya han terminado desaparecen solos, porque solo se guardan las
+ * noticias de los eventos que ScrapedDuck sigue publicando. Y una noticia ya
+ * guardada solo se vuelve a leer si se publicó hace menos de tres semanas: más
+ * tarde ya no cambia.
  */
 import fs from 'node:fs/promises'
 import { loadEnv } from './lib/env.mjs'
-import { asociarEventos, leerNoticia, slugsDePortada } from './lib/noticias.mjs'
+import { asociarEventos, bonusDe, depurar, leerNoticia, slugsDePortada } from './lib/noticias.mjs'
 import { normalizeName } from '../src/utils/gameText.js'
 
 const SECO = process.argv.includes('--dry-run')
@@ -70,7 +73,9 @@ async function main() {
       const previa = guardado.noticias?.[slug]
       const publicada = previa?.es?.publicada ? new Date(previa.es.publicada).getTime() : 0
       if (previa && ahora - publicada > RELEER_DIAS * 86_400_000) {
-        noticias[slug] = previa
+        // Lo guardado pasa también por el filtro: si se afina, se aplica a todo.
+        const limpia = (n) => (n ? { ...n, secciones: depurar(n.secciones ?? []) } : n)
+        noticias[slug] = { ...previa, es: limpia(previa.es), en: limpia(previa.en) }
         continue
       }
       try {
@@ -99,6 +104,12 @@ async function main() {
     const payload = {
       actualizado: new Date().toISOString(),
       eventos: eventosANoticia,
+      // Los bonus de cada evento, para la tarjeta: sin tener que abrir el detalle.
+      bonus: Object.fromEntries(
+        Object.entries(eventosANoticia)
+          .map(([id, slug]) => [id, { es: bonusDe(noticias[slug]?.es), en: bonusDe(noticias[slug]?.en) }])
+          .filter(([, b]) => b.es.length)
+      ),
       noticias: Object.fromEntries(
         [...usadas].map((slug) => [slug, { url: `${WEB}/es/news/${slug}`, ...noticias[slug] }])
       )

@@ -19,7 +19,9 @@ import EventDateBlock from './EventDateBlock.vue'
 const props = defineProps({
   event: { type: Object, required: true },
   /** Dentro del detalle del evento: cartel en grande y sin abrir nada al pulsar. */
-  detalle: Boolean
+  detalle: Boolean,
+  /** Bonus de la noticia oficial, si la hay (ya en el idioma de la app). */
+  bonus: { type: Array, default: () => [] }
 })
 const emit = defineEmits(['abrir'])
 
@@ -178,6 +180,28 @@ const esVariocolor = (uno) => !!uno?.canBeShiny || conVariocolor.value.has(uno?.
 
 const spotlight = computed(() => props.event.extraData?.spotlight ?? null)
 const communityDay = computed(() => props.event.extraData?.communityday ?? null)
+
+/**
+ * Los bonus, en una lista corta y con el mismo aspecto en todas las tarjetas.
+ *
+ * Si hay noticia oficial, su texto: es el del juego («Triple de PX por
+ * capturar Pokémon») y trae todos. Si no, los que da LeekDuck, traducidos.
+ * Antes el Día de la Comunidad los pintaba como pastillas verdes, y las largas
+ * se volvían bloques de cuatro líneas: la tarjeta medía una pantalla.
+ *
+ * En la tarjeta, los tres primeros y cuántos más hay; en el detalle, todos,
+ * salvo que haya noticia, que ya los da en su sección.
+ */
+const MAX_BONUS = 3
+const oficial = computed(() => props.bonus.length > 0)
+const todosLosBonus = computed(() =>
+  oficial.value ? props.bonus : (communityDay.value?.bonuses ?? []).map((uno) => gameData.translateText(uno.text))
+)
+const bonusVisibles = computed(() => {
+  if (props.detalle) return oficial.value ? [] : todosLosBonus.value
+  return todosLosBonus.value.slice(0, MAX_BONUS)
+})
+const bonusOcultos = computed(() => (props.detalle ? 0 : todosLosBonus.value.length - bonusVisibles.value.length))
 const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? [])
 </script>
 
@@ -198,6 +222,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       :key="cartel.src"
       :src="cartel.src"
       :srcset="cartel.srcset ?? undefined"
+      crossorigin="anonymous"
       :sizes="detalle ? '(min-width: 768px) 768px, 100vw' : '(min-width: 1536px) 30vw, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, 100vw'"
       alt=""
       class="max-w-none object-cover bg-gray-100 dark:bg-gray-800"
@@ -263,7 +288,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
             class="flex items-center gap-2 min-w-0"
             :class="maxBattle.dex ? 'hover:underline' : ''"
           >
-            <img v-if="maxBattle.image" :src="maxBattle.image" alt="" class="w-8 h-8" loading="lazy" />
+            <img v-if="maxBattle.image" :src="maxBattle.image" alt="" crossorigin="anonymous" class="w-8 h-8" loading="lazy" />
             <strong v-if="maxBattle.label" class="text-sm truncate">{{ maxBattle.label }}</strong>
             <span v-else class="text-sm font-semibold">
               {{ $t(maxBattle.gigantamax ? 'max.legendGigantamax' : 'max.legendDynamax') }}
@@ -299,15 +324,6 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
               class="text-mini"
             />
           </div>
-          <div class="flex flex-wrap gap-1 mt-2">
-            <span
-              v-for="bonus in communityDay.bonuses"
-              :key="bonus.text"
-              class="px-2 py-0.5 text-mini rounded-full border border-green-400 text-green-700 dark:text-green-400"
-            >
-              {{ gameData.translateText(bonus.text) }}
-            </span>
-          </div>
         </div>
 
         <div v-if="raidBosses.length" class="flex flex-wrap gap-2 mt-3">
@@ -320,6 +336,19 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
             sprite-class="w-5 h-5"
             class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600"
           />
+        </div>
+
+        <div v-if="bonusVisibles.length" class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700">
+          <p class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('events.bonus') }}</p>
+          <ul class="mt-1 flex flex-col gap-0.5 pl-4 list-disc text-xs">
+            <li v-for="uno in bonusVisibles" :key="uno">{{ uno }}</li>
+          </ul>
+          <button
+            v-if="bonusOcultos > 0"
+            type="button"
+            class="mt-1 text-mini text-gray-600 dark:text-gray-300 underline"
+            @click="emit('abrir', event)"
+          >{{ $tc('events.moreBonus', bonusOcultos, { n: bonusOcultos }) }}</button>
         </div>
 
         <!--
@@ -349,7 +378,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
         </div>
 
         <p
-          v-for="nota in resumen?.notes ?? []"
+          v-for="nota in detalle && !oficial ? resumen?.notes ?? [] : []"
           :key="nota"
           class="mt-2 text-mini text-gray-600 dark:text-gray-300"
         >

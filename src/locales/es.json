@@ -49,6 +49,7 @@
         "staleData": "Datos de hace {age}: puede que ya no sean los de ahora"
     },
     "forms": {
+        "buttonShort": "Formas ({n})",
         "back": "Volver a la galería",
         "previous": "Anterior",
         "next": "Siguiente",
@@ -172,6 +173,8 @@
         "eliteHelp": "Apágalo para ver solo conjuntos que se aprenden con MT normales: los ataques élite necesitan una MT Élite o un evento concreto."
     },
     "events": {
+        "bonus": "Bonus",
+        "moreBonus": "y {n} más | y {n} más",
         "detail": "Detalle del evento",
         "official": "Noticia oficial de Pokémon GO",
         "noOfficial": "Este evento no tiene noticia oficial en la web de Pokémon GO: arriba va lo que publica LeekDuck.",

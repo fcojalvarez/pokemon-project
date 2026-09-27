@@ -76,8 +76,83 @@ export function leerNoticia(html) {
     titulo,
     imagen: meta('og:image'),
     publicada: marca ? new Date(Number(marca)).toISOString() : null,
-    secciones
+    secciones: depurar(secciones)
   }
+}
+
+/** Secciones que no son del evento: cómo jugar en general, tienda, promoción. */
+const SECCIONES_FUERA = [
+  /^¿Dónde (puedo|podéis) encontrar/i,
+  /^Where can I find/i,
+  /^Tienda en línea/i,
+  /^Pokémon GO Web Store/i,
+  /^¿Buscas Entrenadores/i,
+  /^Looking for Trainers/i
+]
+
+/** «Sábado 10 de octubre de 2026 de 14:00 a 17:00…» / «Saturday, October 10, 2026…». */
+const FECHA = /^(lunes|martes|miércoles|jueves|viernes|sábado|domingo|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b.*\b20\d\d\b/i
+
+/** Frases de relleno o del pie de la web que se cuelan al final. */
+const FRASES_FUERA = [
+  /^Prestad siempre atención a vuestro entorno/i,
+  /^Always be aware of your surroundings/i,
+  /^Noticias\s*Temporadas/i,
+  /^News\s*Seasons/i,
+  /©/,
+  /^Aquí podéis obtener más información/i,
+  /^Pronto podréis echarle un vistazo/i,
+  // Lo de siempre sobre las entradas: cómo regalarlas, reembolsos, restricciones.
+  /^Prestad atención para saber cuándo/i,
+  /podéis comprar y regalar entradas/i,
+  /^Para regalar una entrada/i,
+  /no son reembolsables/i,
+  /^\*?Se aplicarán determinadas restricciones/i,
+  /can (now )?purchase and gift tickets/i,
+  /^To gift a ticket/i,
+  /non-refundable/i,
+  /^\*?Some restrictions apply/i
+]
+
+/**
+ * Deja lo que sirve de una noticia: la de Cinderace Gigamax traía cómo buscar
+ * Combates Max en general, la tienda en línea, el aviso de seguridad y hasta
+ * el menú del pie. Se queda lo que dice algo del evento:
+ *
+ *   - Fuera las secciones genéricas y la primera si solo repite la fecha (la
+ *     tarjeta ya la da).
+ *   - Fuera las frases que solo presentan una lista sin dar un dato («También
+ *     recibiréis estos bonus:») y los párrafos larguísimos de relleno.
+ *   - Se quedan las listas y todo lo que lleve fechas o cifras («Los bonus
+ *     siguientes estarán activos el 2 de octubre de 00:00 a 17:00»).
+ */
+export function depurar(secciones) {
+  const salida = []
+  secciones.forEach((seccion, i) => {
+    if (SECCIONES_FUERA.some((re) => re.test(seccion.titulo))) return
+    const bloques = seccion.bloques.filter((b, j, todos) => {
+      if (FRASES_FUERA.some((re) => re.test(b.x))) return false
+      // La línea de fecha y hora del principio: la tarjeta ya la da.
+      if (i === 0 && b.t === 'p' && b.x.length < 120 && FECHA.test(b.x)) return false
+      if (b.t !== 'p') return true
+      const conDato = /\d/.test(b.x)
+      const presentaLista = todos[j + 1]?.t === 'li' && b.x.length < 140
+      if (presentaLista && !conDato) return false
+      if (b.x.length > 280 && !conDato) return false
+      return true
+    })
+    // La primera sección suele ser solo el título del evento y su horario.
+    if (i === 0 && bloques.length <= 1 && bloques.every((b) => b.t === 'p')) return
+    if (bloques.length) salida.push({ ...seccion, bloques })
+  })
+  return salida
+}
+
+/** Los bonus de la noticia, para enseñarlos en la tarjeta sin abrir el detalle. */
+export function bonusDe(noticia) {
+  return (noticia?.secciones ?? [])
+    .filter((s) => /bonus|bonificaci/i.test(s.titulo))
+    .flatMap((s) => s.bloques.filter((b) => b.t === 'li').map((b) => b.x))
 }
 
 // ---------------------------------------------------------------------------

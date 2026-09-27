@@ -46,6 +46,12 @@ const noticia = computed(() => {
   }
 })
 
+/** Los bonus de la noticia: con ellos, la tarjeta no los repite. */
+const bonusOficial = computed(() => {
+  const b = datos.value?.bonus?.[props.event?.eventID]
+  return (locale() === 'en' && b?.en?.length ? b.en : b?.es) ?? []
+})
+
 /**
  * Los bloques de una sección, con los elementos de lista seguidos juntos en
  * una misma lista: la web los da sueltos, uno detrás de otro.
@@ -68,7 +74,7 @@ const agrupar = (bloques) => {
 <template>
   <base-modal :open="Boolean(event)" :title="$t('events.detail')" size="sm:max-w-3xl" @close="emit('close')">
     <template v-if="event">
-      <event-card :event="event" detalle />
+      <event-card :event="event" detalle :bonus="bonusOficial" />
 
       <div class="px-4 pb-4">
         <p v-if="cargando" class="text-xs text-gray-600 dark:text-gray-300">{{ $t('common.loading') }}</p>

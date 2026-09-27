@@ -8,8 +8,8 @@ name: Noticias
 
 on:
   schedule:
-    # Cada tres horas, a una hora rara para no coincidir con los demás.
-    - cron: '50 */3 * * *'
+    # Una vez al día: los eventos se anuncian con bastante antelación.
+    - cron: '50 4 * * *'
   workflow_dispatch:
 
 permissions:

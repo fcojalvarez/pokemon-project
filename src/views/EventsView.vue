@@ -12,6 +12,7 @@ import {
 } from '../components/index'
 import EventCard from '../components/events/EventCard.vue'
 import EventDetail from '../components/events/EventDetail.vue'
+import { cargarNoticias } from '../stores/gameData'
 import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useMedia } from '../composables/useMedia'
@@ -27,6 +28,13 @@ const tab = ref('active')
 const typeFilter = ref('all')
 /** El evento con el detalle abierto (tarjeta en grande y noticia oficial). */
 const abierto = ref(null)
+
+/** Bonus de la noticia oficial de cada evento, para enseñarlos en su tarjeta. */
+const noticias = ref(null)
+const bonusDe = (evento) => {
+  const b = noticias.value?.bonus?.[evento.eventID]
+  return (locale() === 'en' && b?.en?.length ? b.en : b?.es) ?? []
+}
 
 // Ni pasados ni sin fecha: uno que ya terminó no sirve para nada, y los que
 // LeekDuck publica sin fechas no se pueden ni situar en el tiempo.
@@ -86,9 +94,10 @@ const list = computed(() =>
 // También el roster: las tarjetas lo necesitan para traducir el nombre del
 // Pokémon del título y para sacar su sprite. Sin esto, entrando directo a
 // /events los títulos se quedaban a medio traducir.
-onMounted(() => {
+onMounted(async () => {
   live.load()
   gameData.load()
+  noticias.value = await cargarNoticias()
 })
 </script>
 
@@ -199,7 +208,7 @@ onMounted(() => {
         <base-empty-state v-else-if="list.length === 0" :message="$t('common.empty')" />
 
         <div v-else :class="rejilla">
-          <event-card v-for="event in list" :key="event.eventID" :event="event" @abrir="abierto = $event" />
+          <event-card v-for="event in list" :key="event.eventID" :event="event" :bonus="bonusDe(event)" @abrir="abierto = $event" />
         </div>
       </div>
     </div>

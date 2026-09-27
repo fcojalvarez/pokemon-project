@@ -30,13 +30,19 @@ describe('leer una noticia oficial', () => {
     expect(noticia.publicada).toBe(new Date(1788973200000).toISOString())
   })
 
-  it('saca las secciones con sus párrafos y listas, sin despedida, promoción ni pie', () => {
-    expect(noticia.secciones.map((s) => s.titulo)).toEqual(['Día de Combates Max de Cinderace Gigamax', 'Bonus del evento'])
-    expect(noticia.secciones[1].bloques).toEqual([
-      { t: 'p', x: 'Los bonus siguientes estarán activos durante el evento.' },
+  it('se queda con lo que dice algo del evento', () => {
+    // Fuera: la primera sección (solo repite la fecha, que ya da la tarjeta),
+    // la frase que solo presenta la lista, la despedida, la promoción y el pie.
+    expect(noticia.secciones.map((s) => s.titulo)).toEqual(['Bonus del evento'])
+    expect(noticia.secciones[0].bloques).toEqual([
       { t: 'li', x: 'Límite de Partículas Max aumentado a 1600' },
       { t: 'li', x: 'Hasta tres intercambios especiales al día' }
     ])
+  })
+
+  it('deja las frases con fechas o cifras aunque presenten una lista', () => {
+    const conFecha = leerNoticia(POST.replace('Los bonus siguientes estarán activos durante el evento.', 'Los bonus siguientes estarán activos el 2 de octubre de 00:00 a 17:00.'))
+    expect(conFecha.secciones[0].bloques[0]).toEqual({ t: 'p', x: 'Los bonus siguientes estarán activos el 2 de octubre de 00:00 a 17:00.' })
   })
 
   it('no revienta con una página sin nada', () => {
