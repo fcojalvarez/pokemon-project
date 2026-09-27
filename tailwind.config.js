@@ -29,7 +29,10 @@ module.exports = {
             dropShadow: {
                 'svg': '2px 2px 4px rgba(0, 0, 0, 0.4)',
                 'pokemon_dark': '3px -7px 5px #333333',
-                'pokemon_light': '3px -7px 5px #33333370'
+                'pokemon_light': '3px -7px 5px #33333370',
+                // Contorno fino para sprites pequeños sobre blanco: sin él,
+                // los Pokémon casi blancos (Pheromosa, Cottonee) no se veían.
+                'contorno': ['0 0 1px #00000099', '0 0 1px #00000059']
             },
             // `leading-none` vuelve a ser el de Tailwind (1). El 0 que tenía lo
             // necesitan solo las estrellas de variocolor, que se apilan pegadas.

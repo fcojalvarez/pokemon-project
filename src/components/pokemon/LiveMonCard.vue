@@ -63,6 +63,7 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
         v-if="image"
         :src="image"
         class="w-9 h-9 sm:w-10 sm:h-10"
+        img-class="drop-shadow-contorno dark:drop-shadow-none"
       />
       <shiny-mark
         v-if="canBeShiny"
