@@ -3,12 +3,14 @@
  *
  *   npm run data          usa la caché de .cache/ si existe
  *   npm run data:fresh    vuelve a descargar todo
+ *   npm run data -- --dry-run   todo igual, pero sin guardar nada en Supabase
  *
  * Fuentes:
  *   - PokeMiners/game_masters  -> stats de movimientos en PvE, tabla de tipos, CPM
  *   - PokeMiners/pogo_assets   -> nombres en español
  *   - pvpoke.com/data          -> roster jugable + stats de movimientos en PvP
  *   - pvpoke.com/data/rankings -> rankings PvP de las tres ligas
+ *   - leekduck.com/shiny       -> variocolores liberados, con fecha de estreno
  *
  * Los eventos, incursiones, huevos e investigaciones NO se generan aquí:
  * la app los pide en vivo a ScrapedDuck en cada arranque.
@@ -25,6 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { CPM_BY_LEVEL } from '../src/utils/formulas.js'
 import { normalizeText } from '../src/utils/gameText.js'
 import { loadEnv } from './lib/env.mjs'
+import VARIOCOLORES_POGOAPI from './datos/variocolores-pogoapi.json' with { type: 'json' }
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const CACHE = path.join(ROOT, '.cache')
@@ -35,13 +38,46 @@ const FRESH = process.argv.includes('--fresh')
  * dejaría el workflow en verde sin haber actualizado nada.
  */
 const EXIGE_SUBIDA = process.argv.includes('--must-upload')
+/**
+ * Ensayo: hace la pasada entera contra Supabase, con sus mensajes de lo que
+ * cambiaría, pero al final deshace la transacción. Para revisar un cambio en
+ * el pipeline antes de dejar que toque la base de datos.
+ */
+const ENSAYO = process.argv.includes('--dry-run')
+
+/**
+ * Qué especies tienen variocolor en el juego.
+ *
+ * Hasta septiembre de 2026 salía de pogoapi.net, que dejó de actualizarse el
+ * 31 de enero de 2026 (Nickit, Applin, Snom, Zacian… no salían aunque ya
+ * estaban). Ya no se consulta: su última lista está congelada en
+ * scripts/datos/variocolores-pogoapi.json, y sus datos (también `shiny_found`,
+ * dónde aparece cada uno) se quedan en la tabla tal cual.
+ *
+ * Lo nuevo sale de LeekDuck (la misma web de la que ScrapedDuck saca los
+ * eventos), que trae la fecha de estreno de cada uno, también de los
+ * anunciados: solo cuentan los que ya han salido, así que un estreno
+ * anunciado se enciende solo el día que toca. Una especie cuenta si
+ * cualquiera de sus formas lo tiene.
+ */
+function especiesConVariocolor(leekRaw) {
+  const hoy = new Date().toISOString().slice(0, 10).replace(/-/g, '/')
+  const leekDuck = new Set(
+    (Array.isArray(leekRaw) ? leekRaw : [])
+      .filter((uno) => Number.isInteger(uno?.dex) && /^\d{4}\/\d\d\/\d\d$/.test(uno.released_date ?? '') && uno.released_date <= hoy)
+      .map((uno) => uno.dex)
+  )
+  // Si LeekDuck falla o cambia de formato, se sigue con lo congelado y se avisa
+  // en el registro de la Action; nunca se apaga nada por eso.
+  if (leekDuck.size < 800) {
+    console.warn(`  ⚠ la lista de variocolores de LeekDuck trae ${leekDuck.size} especies: no se usa hoy`)
+    leekDuck.clear()
+  }
+  return new Set([...VARIOCOLORES_POGOAPI.especies, ...leekDuck])
+}
 
 /**
  * Pone al día qué variocolores están liberados en la tabla `pokemons`.
- *
- * Esto no salía de ningún sitio: era un dato estático que había que tocar a
- * mano cada vez que el juego estrenaba uno, así que en cuanto empezaba un
- * evento la Pokédex se quedaba mintiendo. Ahora entra en la pasada diaria.
  *
  * Dos detalles que importan:
  *
@@ -53,48 +89,44 @@ const EXIGE_SUBIDA = process.argv.includes('--must-upload')
  *     `evolution_info`, que es de donde lo lee la cadena evolutiva de la
  *     ficha. Si se toca solo la columna, la estrella no aparece ahí.
  */
-async function syncShinyReleases(client, shinyRaw) {
-  const entradas = Object.values(shinyRaw ?? {}).filter((s) => Number.isInteger(s?.id))
-  if (entradas.length < 500) {
-    throw new Error(`la lista de variocolores viene con ${entradas.length} entradas: no me fío`)
-  }
-
-  const ids = entradas.map((s) => s.id)
-  const sitios = entradas.map((s) =>
-    JSON.stringify({
-      wild: !!s.found_wild,
-      raid: !!s.found_raid,
-      egg: !!s.found_egg,
-      research: !!s.found_research,
-      evolution: !!s.found_evolution,
-      photobomb: !!s.found_photobomb,
-    })
-  )
-
+async function syncShinyReleases(client, conVariocolor) {
   const { rowCount: nuevos } = await client.query(
-    `UPDATE public.pokemons p
+    `UPDATE public.pokemons
         SET is_shiny_released = true,
-            shiny_found = fuente.sitios,
             updated_at = now()
-       FROM (SELECT unnest($1::int[]) AS dex, unnest($2::jsonb[]) AS sitios) AS fuente
-      WHERE p.pokemon_id = fuente.dex
-        AND (p.is_shiny_released IS DISTINCT FROM true
-             OR p.shiny_found IS DISTINCT FROM fuente.sitios)`,
-    [ids, sitios]
+      WHERE pokemon_id = ANY($1::int[])
+        AND is_shiny_released IS DISTINCT FROM true`,
+    [[...conVariocolor]]
   )
 
   // Y la copia que vive dentro de evolution_info, que es la que pinta la
   // estrella en la cadena evolutiva.
-  const { rowCount: cadenas } = await client.query(`
+  const cadenas = await resincronizarCadenas(client, 'is_shiny_released')
+
+  console.log(`  variocolores   ${conVariocolor.size} especies con variocolor; ` +
+    `${nuevos} recién liberados, ${cadenas} cadenas evolutivas resincronizadas`)
+}
+
+/**
+ * Copia un campo de cada Pokémon a los pasos de evolution_info que lo
+ * mencionan. La cadena evolutiva guarda su propia copia de algunos campos de
+ * la tabla (variocolor, liberado) y, si se toca solo la columna, se queda
+ * atrás. `campo` es siempre uno de los nombres fijos de abajo, nunca algo que
+ * venga de fuera.
+ */
+const CAMPOS_COPIADOS = ['is_shiny_released', 'is_released']
+async function resincronizarCadenas(client, campo) {
+  if (!CAMPOS_COPIADOS.includes(campo)) throw new Error(`campo no permitido: ${campo}`)
+  const { rowCount } = await client.query(`
     UPDATE public.pokemons p
        SET evolution_info = (
              SELECT jsonb_object_agg(fam.key, (
                       SELECT jsonb_agg(
                                CASE
-                                 WHEN ref.is_shiny_released IS DISTINCT FROM
-                                      (uno->>'is_shiny_released')::boolean
-                                 THEN jsonb_set(uno, '{is_shiny_released}',
-                                                to_jsonb(coalesce(ref.is_shiny_released, false)))
+                                 WHEN ref.${campo} IS DISTINCT FROM
+                                      (uno->>'${campo}')::boolean
+                                 THEN jsonb_set(uno, '{${campo}}',
+                                                to_jsonb(coalesce(ref.${campo}, false)))
                                  ELSE uno
                                END ORDER BY t.idx)
                         FROM jsonb_array_elements(fam.value) WITH ORDINALITY AS t(uno, idx)
@@ -109,12 +141,515 @@ async function syncShinyReleases(client, shinyRaw) {
                     jsonb_array_elements(fam.value) uno
                LEFT JOIN public.pokemons ref
                       ON ref.pokemon_id = (uno->>'pokemon_id')::int
-              WHERE coalesce(ref.is_shiny_released, false)
-                    IS DISTINCT FROM coalesce((uno->>'is_shiny_released')::boolean, false))
+              WHERE coalesce(ref.${campo}, false)
+                    IS DISTINCT FROM coalesce((uno->>'${campo}')::boolean, false))
   `)
+  return rowCount
+}
 
-  console.log(`  variocolores   ${entradas.length} liberados según la fuente; ` +
-    `${nuevos} filas al día, ${cadenas} cadenas evolutivas resincronizadas`)
+/**
+ * Qué Pokémon están liberados en el juego, en la tabla `pokemons`.
+ *
+ * Igual que el variocolor, `is_released` era un dato estático de cuando se
+ * sembró la tabla (src/utils/released.json) y nadie lo tocaba después: Kubfu y
+ * Urshifu salían tachados y en gris en la Pokédex aunque ya estaban en el
+ * juego, incluso en combates Dinamax. Ahora sale del roster, que viene del
+ * GAME_MASTER de pvpoke, en la misma pasada diaria.
+ *
+ * Solo enciende, nunca apaga: liberar un Pokémon es permanente, así que un
+ * fallo de la fuente no puede des-liberar nada. Una especie cuenta como
+ * liberada si lo está cualquiera de sus formas.
+ */
+async function syncReleases(client, roster) {
+  const liberados = new Set(roster.filter((p) => p.released && Number.isInteger(p.dex)).map((p) => p.dex))
+  if (liberados.size < 700) {
+    throw new Error(`el roster trae ${liberados.size} especies liberadas: no me fío`)
+  }
+
+  const { rowCount: nuevos } = await client.query(
+    `UPDATE public.pokemons
+        SET is_released = true,
+            updated_at = now()
+      WHERE pokemon_id = ANY($1::int[])
+        AND is_released IS DISTINCT FROM true`,
+    [[...liberados]]
+  )
+  const cadenas = await resincronizarCadenas(client, 'is_released')
+
+  console.log(`  liberados      ${liberados.size} especies según el roster; ` +
+    `${nuevos} recién liberadas, ${cadenas} cadenas evolutivas resincronizadas`)
+}
+
+/**
+ * Qué Pokémon tienen versión oscura en el juego (`is_shadow_released`).
+ *
+ * Otro dato estático de la siembra: había 212 marcados sin oscuro que ya lo
+ * tenían, y eso decide el filtro «Solo oscuro», el aviso de la ficha y el
+ * coste de purificar. Como los demás, solo enciende, nunca apaga.
+ */
+async function syncShadowReleases(client, roster) {
+  const conOscuro = new Set(roster.filter((p) => p.shadow && p.released && Number.isInteger(p.dex)).map((p) => p.dex))
+  if (conOscuro.size < 300) {
+    throw new Error(`el roster trae ${conOscuro.size} especies con versión oscura: no me fío`)
+  }
+  const { rowCount } = await client.query(
+    `UPDATE public.pokemons
+        SET is_shadow_released = true,
+            updated_at = now()
+      WHERE pokemon_id = ANY($1::int[])
+        AND is_shadow_released IS DISTINCT FROM true`,
+    [[...conOscuro]]
+  )
+  console.log(`  oscuros        ${conOscuro.size} especies según el roster; ${rowCount} recién marcadas`)
+}
+
+const GENERACIONES = [151, 251, 386, 493, 649, 721, 809, 905, 1025]
+const generacionDe = (dex) => GENERACIONES.findIndex((tope) => dex <= tope) + 1 || GENERACIONES.length
+// El roster da el coste del segundo ataque en polvo; los caramelos van a la par.
+const CARAMELOS_POR_POLVO = { 10000: 25, 50000: 50, 75000: 75, 100000: 100 }
+
+/**
+ * Da de alta en `pokemons` las especies que el juego ya tiene y la tabla no.
+ *
+ * La tabla se sembró una vez y acababa en Ogerpon (#1017): Archaludon,
+ * Hydrapple, las paradojas nuevas, Terapagos y Pecharunt no salían en la
+ * Pokédex, aunque Hydrapple ya está liberado. Las filas nuevas llevan el mismo
+ * formato que las demás, con lo que trae el roster; la ficha lee de todas
+ * formas ataques y estadísticas del roster. Solo inserta, nunca pisa una fila
+ * que ya exista.
+ */
+async function addMissingSpecies(client, roster) {
+  const { rows } = await client.query('SELECT pokemon_id FROM public.pokemons')
+  const existentes = new Set(rows.map((r) => r.pokemon_id))
+  const base = new Map()
+  for (const p of roster) {
+    if (!Number.isInteger(p.dex) || p.mega || p.shadow || p.regional) continue
+    if (!base.has(p.dex)) base.set(p.dex, p)
+  }
+  const conOscuro = new Set(roster.filter((p) => p.shadow && p.released).map((p) => p.dex))
+  const nuevas = [...base.values()].filter((p) => !existentes.has(p.dex)).map((p) => {
+    const elite = new Set(p.eliteMoves ?? [])
+    const sprite = (shiny) =>
+      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${shiny ? 'shiny/' : ''}${p.dex}.png`
+    return {
+      pokemon_id: p.dex,
+      name: p.name,
+      sprites: { male: sprite(false), male_shiny: sprite(true) },
+      is_shiny_released: p.shinyReleased === true,
+      is_released: p.released === true,
+      is_raid_exclusive: false,
+      is_possible_ditto: false,
+      stats: { base_attack: p.stats?.atk ?? 0, base_defense: p.stats?.def ?? 0, base_stamina: p.stats?.hp ?? 0 },
+      moves: {
+        fast: p.fast.filter((m) => !elite.has(m)),
+        charged: p.charged.filter((m) => !elite.has(m)),
+        elite_fast: p.fast.filter((m) => elite.has(m)),
+        elite_charged: p.charged.filter((m) => elite.has(m))
+      },
+      buddy: { candy_rewards: 1, mega_distance: 0, candy_distance: p.buddyDistance ?? 0 },
+      pokemon_encounter_data: {},
+      types: p.types,
+      rarity: p.mythical ? 'mythic' : p.legendary ? 'legendary' : 'standard',
+      generation: generacionDe(p.dex),
+      is_shadow_released: conOscuro.has(p.dex),
+      shadow_info: null,
+      third_move: { candy_required: CARAMELOS_POR_POLVO[p.thirdMoveCost] ?? 0, startdust_required: p.thirdMoveCost ?? 0 },
+      // Los singulares no se pueden intercambiar; el resto, como casi todos.
+      is_tradeable: !p.mythical,
+      is_transferable: true,
+      is_pvp_exclusive: false,
+      evolution_info: {}
+    }
+  })
+  if (!nuevas.length) {
+    console.log('  especies       ninguna nueva')
+    return
+  }
+  const { rowCount } = await client.query(
+    // `id` no tiene valor por defecto: las filas de la siembra van seguidas
+    // (10098 + número de Pokédex), así que las nuevas siguen detrás de la última.
+    `INSERT INTO public.pokemons (
+        id, pokemon_id, name, sprites, is_shiny_released, is_released, is_raid_exclusive,
+        is_possible_ditto, forms, stats, moves, buddy, pokemon_encounter_data, types,
+        rarity, generation, is_shadow_released, shadow_info, third_move, is_tradeable,
+        is_transferable, is_pvp_exclusive, evolution_info)
+     SELECT (SELECT max(id) FROM public.pokemons) + row_number() OVER (ORDER BY n.pokemon_id),
+            n.pokemon_id, n.name, n.sprites, n.is_shiny_released, n.is_released, n.is_raid_exclusive,
+            n.is_possible_ditto, '{}'::jsonb[], n.stats, n.moves, n.buddy, n.pokemon_encounter_data, n.types,
+            n.rarity, n.generation, n.is_shadow_released, n.shadow_info, n.third_move, n.is_tradeable,
+            n.is_transferable, n.is_pvp_exclusive, n.evolution_info
+       FROM jsonb_to_recordset($1::jsonb) AS n(
+              pokemon_id int, name text, sprites jsonb, is_shiny_released boolean, is_released boolean,
+              is_raid_exclusive boolean, is_possible_ditto boolean, stats jsonb, moves jsonb,
+              buddy jsonb, pokemon_encounter_data jsonb, types jsonb, rarity text, generation int,
+              is_shadow_released boolean, shadow_info jsonb, third_move jsonb, is_tradeable boolean,
+              is_transferable boolean, is_pvp_exclusive boolean, evolution_info jsonb)
+      WHERE NOT EXISTS (SELECT 1 FROM public.pokemons p WHERE p.pokemon_id = n.pokemon_id)`,
+    [JSON.stringify(nuevas)]
+  )
+  console.log(`  especies       ${rowCount} nuevas: ${nuevas.map((n) => `#${n.pokemon_id} ${n.name}`).join(', ')}`)
+}
+
+const RAMAS = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary', 'nonary', 'denary']
+
+// Objetos y cebos del GAME_MASTER con el nombre que usa la tabla (y la ficha
+// para el icono y la traducción, en evolutions.items y evolutions.lure).
+const OBJETOS_DE_EVOLUCION = {
+  ITEM_SUN_STONE: 'Sun Stone',
+  ITEM_KINGS_ROCK: "King's Rock",
+  ITEM_METAL_COAT: 'Metal Coat',
+  ITEM_DRAGON_SCALE: 'Dragon Scale',
+  ITEM_UP_GRADE: 'Upgrade',
+  ITEM_GEN4_EVOLUTION_STONE: 'Sinnoh Stone',
+  ITEM_GEN5_EVOLUTION_STONE: 'Unova Stone',
+  ITEM_OTHER_EVOLUTION_STONE_MAPLE_A: 'Sweet Apple',
+  ITEM_OTHER_EVOLUTION_STONE_MAPLE_B: 'Tart Apple',
+  ITEM_OTHER_EVOLUTION_STONE_MAPLE_C: 'Syrupy Apple',
+  ITEM_OTHER_EVOLUTION_STONE_A: 'Gimmighoul Coin',
+}
+const CEBOS_DE_EVOLUCION = {
+  ITEM_TROY_DISK_MAGNETIC: 'magneticLureModule',
+  ITEM_TROY_DISK_MOSSY: 'mossyLureModule',
+  ITEM_TROY_DISK_GLACIAL: 'glacialLureModule',
+  ITEM_TROY_DISK_RAINY: 'rainyLureModule',
+}
+
+/**
+ * Cada requisito de la tabla y cómo se lee de una rama del GAME_MASTER.
+ * `undefined` = el GAME_MASTER lo trae en un formato que no sabemos pintar:
+ * entonces se deja lo que haya.
+ */
+const REQUISITOS_DEL_JUEGO = {
+  candy_required: (b) => b.candyCost ?? null,
+  item_required: (b) => (b.evolutionItemRequirement ? OBJETOS_DE_EVOLUCION[b.evolutionItemRequirement] : null),
+  item_cost: (b) => (b.evolutionItemRequirementCost > 1 ? b.evolutionItemRequirementCost : null),
+  lure_required: (b) => (b.lureItemRequirement ? CEBOS_DE_EVOLUCION[b.lureItemRequirement] : null),
+  buddy_distance_required: (b) => b.kmBuddyDistanceRequirement ?? null,
+  must_be_buddy_to_evolve: (b) => b.mustBeBuddy === true || null,
+  only_evolves_in_daytime: (b) => b.onlyDaytime === true || null,
+  only_evolves_in_nighttime: (b) => b.onlyNighttime === true || null,
+  only_evolves_in_full_moon: (b) => b.onlyFullMoon === true || null,
+  gender_required: (b) => ({ MALE: 'Male', FEMALE: 'Female' })[b.genderRequirement] ?? null,
+  no_candy_cost_if_traded: (b) => b.noCandyCostViaTrade === true || null,
+  upside_down: (b) => b.onlyUpsideDown === true || null,
+}
+const FORMAS_REGIONALES = /_(ALOLA|GALARIAN|HISUIAN|PALDEA)/
+
+const sinVacios = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v != null))
+const conRepetidos = (rama) => new Set(rama.map((paso) => paso.pokemon_id)).size !== rama.length
+
+/**
+ * Los requisitos de cada evolución según el GAME_MASTER, por `${dex}>${dexDestino}`.
+ *
+ * Una misma evolución puede venir en varias ramas (una por forma: Pyroar macho
+ * y hembra, Sinistcha falsificado y genuino). Un requisito solo se da por bueno
+ * si todas coinciden; si no, esa evolución no lo lleva en la tabla, que no
+ * distingue formas. Las regionales van aparte (Meowth de Galar → Perrserker)
+ * porque sus cadenas no son las de la especie.
+ */
+function requisitosDelJuego(gm) {
+  const dexDe = new Map()
+  for (const t of gm) {
+    const m = /^V(\d{4})_POKEMON_/.exec(t.templateId)
+    const s = t.data?.pokemonSettings
+    if (m && s?.pokemonId && !dexDe.has(s.pokemonId)) dexDe.set(s.pokemonId, Number(m[1]))
+  }
+  const ramas = new Map()
+  for (const t of gm) {
+    const s = t.data?.pokemonSettings
+    const dex = dexDe.get(s?.pokemonId)
+    if (!dex || !s.evolutionBranch || FORMAS_REGIONALES.test(t.templateId)) continue
+    for (const b of s.evolutionBranch) {
+      const destino = dexDe.get(b.evolution)
+      if (!destino || destino === dex || b.temporaryEvolution) continue
+      const clave = `${dex}>${destino}`
+      if (!ramas.has(clave)) ramas.set(clave, [])
+      ramas.get(clave).push(b)
+    }
+  }
+  const requisitos = new Map()
+  const dudosos = []
+  for (const [clave, lista] of ramas) {
+    const req = {}
+    for (const [campo, leer] of Object.entries(REQUISITOS_DEL_JUEGO)) {
+      const valores = new Set(lista.map((b) => JSON.stringify(leer(b) ?? null)))
+      if (valores.size === 1) req[campo] = JSON.parse([...valores][0])
+      else dudosos.push(`${clave} ${campo}`)
+    }
+    // Un objeto que no sabemos pintar: mejor no tocar ni el objeto ni su número.
+    if (lista.some((b) => b.evolutionItemRequirement && !OBJETOS_DE_EVOLUCION[b.evolutionItemRequirement])) {
+      delete req.item_required
+      delete req.item_cost
+    }
+    if (lista.some((b) => b.lureItemRequirement && !CEBOS_DE_EVOLUCION[b.lureItemRequirement])) delete req.lure_required
+    requisitos.set(clave, req)
+  }
+  return { requisitos, dudosos }
+}
+
+/**
+ * Todas las líneas evolutivas del roster, de la raíz a cada forma final, en
+ * números de Pokédex. Solo cuentan las evoluciones que el GAME_MASTER también
+ * tiene (`existe`): pvpoke apunta alguna que en GO no se hace evolucionando,
+ * como Scyther → Kleavor.
+ */
+function caminosDelRoster(roster, existe) {
+  const base = roster.filter((p) => Number.isInteger(p.dex) && !p.mega && !p.shadow && !p.regional)
+  const dexDe = new Map(base.map((p) => [p.id, p.dex]))
+  const sale = new Map()
+  const entra = new Set()
+  for (const p of base) {
+    for (const id of p.evolutions ?? []) {
+      const d = dexDe.get(id)
+      if (!d || d === p.dex || !existe(p.dex, d)) continue
+      if (!sale.has(p.dex)) sale.set(p.dex, new Set())
+      sale.get(p.dex).add(d)
+      entra.add(d)
+    }
+  }
+  const caminos = []
+  const andar = (camino) => {
+    const siguientes = [...(sale.get(camino.at(-1)) ?? [])].filter((d) => !camino.includes(d)).sort((a, b) => a - b)
+    if (!siguientes.length) return caminos.push(camino)
+    for (const d of siguientes) andar([...camino, d])
+  }
+  for (const dex of [...sale.keys()].filter((d) => !entra.has(d)).sort((a, b) => a - b)) andar([dex])
+  return caminos
+}
+
+/**
+ * Mantiene al día las cadenas evolutivas de `pokemons` (`evolution_info`).
+ *
+ * Venían de la siembra y nadie las tocaba: a Dipplin le faltaba Hydrapple, a
+ * Duraludon Archaludon, a las especies nuevas todo; casi toda la Gen 9 salía
+ * sin caramelos, Applin y Kubfu pedían el doble, Frosmoth no decía que es de
+ * noche y el paso de Crocalor se llamaba «Fuecoco». Cada Pokémon guarda la
+ * familia entera, una rama por línea de la raíz a la forma final.
+ *
+ * - Enlaces, del roster. Solo añade: alarga ramas cortas y crea las que
+ *   faltan, sin quitar ninguna. Se rehacen solo las rotas (un Pokémon
+ *   repetido: Jangmo-o traía a Hakamo-o dos veces). Si la raíz de la tabla y
+ *   la del roster no coinciden no se toca nada: el roster trae alguna al
+ *   revés (Sinistcha «evoluciona» en Poltchageist).
+ * - Requisitos, del GAME_MASTER, que manda en todo lo que define. Lo que no
+ *   sabe decir (una rama por forma con costes distintos, un objeto sin
+ *   traducción) se deja como esté.
+ * - Nombre y tipos de cada paso, de la fila de ese Pokémon. El nombre solo se
+ *   corrige cuando es el de otra especie; si no, se respeta el de la cadena,
+ *   que suele estar mejor escrito (Nidoran♀, Mr. Mime).
+ */
+async function syncEvolutionChains(client, roster, gm) {
+  const { rows } = await client.query(
+    'SELECT pokemon_id, name, types, sprites, is_released, is_shiny_released, evolution_info FROM public.pokemons')
+  const fila = new Map(rows.map((r) => [r.pokemon_id, r]))
+  const porNombre = new Map(rows.map((r) => [r.name.trim().toLowerCase(), r.pokemon_id]))
+  const { requisitos, dudosos } = requisitosDelJuego(gm)
+
+  const familia = new Map()
+  for (const camino of caminosDelRoster(roster, (a, b) => requisitos.has(`${a}>${b}`)).filter((c) => c.every((d) => fila.has(d)))) {
+    if (!familia.has(camino[0])) familia.set(camino[0], [])
+    familia.get(camino[0]).push(camino)
+  }
+  const familiaDe = new Map()
+  for (const lista of familia.values()) for (const d of new Set(lista.flat())) familiaDe.set(d, lista)
+
+  // Los pasos que ya hay en alguna fila, por evolución: traen lo que el
+  // GAME_MASTER no dice en este formato (la prioridad de Eevee, por ejemplo).
+  // Primero las filas de las raíces, que suelen ser las completas.
+  const esRaiz = (r) => familiaDe.get(r.pokemon_id)?.[0][0] === r.pokemon_id
+  const conocidos = new Map()
+  for (const r of [...rows].sort((a, b) => esRaiz(b) - esRaiz(a))) {
+    for (const rama of Object.values(r.evolution_info ?? {})) {
+      if (!Array.isArray(rama) || conRepetidos(rama)) continue
+      rama.forEach((paso, i) => {
+        const clave = `${paso.pokemon_id}>${rama[i + 1]?.pokemon_id}`
+        if (rama[i + 1] && !conocidos.has(clave)) conocidos.set(clave, paso)
+      })
+    }
+  }
+
+  // El nombre para un paso nuevo: el que ya lleve en otra cadena (Hakamo-o),
+  // si no el del roster cuando no trae la forma entre paréntesis (Jangmo-o) y
+  // si no el de la fila, que a veces viene sin guiones ni puntos.
+  const nombreEnCadena = new Map()
+  for (const paso of conocidos.values()) nombreEnCadena.set(paso.pokemon_id, paso.name?.trim())
+  const nombreDelRoster = new Map()
+  for (const p of roster) {
+    if (p.mega || p.shadow || p.regional || nombreDelRoster.has(p.dex)) continue
+    nombreDelRoster.set(p.dex, /\(/.test(p.name) ? null : p.name)
+  }
+  const nombreDe = (dex) => nombreEnCadena.get(dex) || nombreDelRoster.get(dex) || fila.get(dex).name.trim()
+
+  const pasoNuevo = (dex) => {
+    const f = fila.get(dex)
+    return { name: nombreDe(dex), types: f.types, sprites: f.sprites, pokemon_id: dex,
+      is_released: Boolean(f.is_released), is_shiny_released: Boolean(f.is_shiny_released) }
+  }
+  // El paso con lo que diga el juego encima. `siguiente` es a quién evoluciona.
+  const alDia = (paso, siguiente) => {
+    const f = fila.get(paso.pokemon_id)
+    const out = { ...paso }
+    if (f) {
+      const otro = porNombre.get(String(paso.name ?? '').trim().toLowerCase())
+      if (!paso.name || (otro != null && otro !== paso.pokemon_id)) out.name = nombreDe(paso.pokemon_id)
+      else out.name = paso.name.trim()
+      out.types = f.types
+    }
+    const req = siguiente == null ? null : requisitos.get(`${paso.pokemon_id}>${siguiente}`)
+    if (req) {
+      for (const [campo, valor] of Object.entries(req)) {
+        if (valor == null) delete out[campo]
+        else out[campo] = valor
+      }
+    }
+    if (siguiente == null) for (const campo of Object.keys(REQUISITOS_DEL_JUEGO)) delete out[campo]
+    return out
+  }
+  const ids = (rama) => rama.map((paso) => paso.pokemon_id).join('>')
+
+  const cambios = []
+  const saltadas = []
+  let enlaces = 0
+  for (const r of rows) {
+    const original = r.evolution_info && typeof r.evolution_info === 'object' ? r.evolution_info : {}
+    const info = { ...original }
+    for (const [k, rama] of Object.entries(info)) if (Array.isArray(rama) && conRepetidos(rama)) delete info[k]
+
+    const caminos = familiaDe.get(r.pokemon_id)
+    const existentes = Object.entries(info).filter(([, rama]) => Array.isArray(rama) && rama.length)
+    if (caminos && existentes.some(([, rama]) => rama[0].pokemon_id !== caminos[0][0])) {
+      saltadas.push(`#${r.pokemon_id} ${r.name}`)
+    } else if (caminos) {
+      for (const camino of caminos) {
+        const clave = camino.join('>')
+        if (existentes.some(([, rama]) => ids(rama) === clave || ids(rama).startsWith(clave + '>'))) continue
+        const pasos = camino.map((dex, i) => {
+          const siguiente = camino[i + 1]
+          if (siguiente == null) return pasoNuevo(dex)
+          const hasta = camino.slice(0, i + 2).join('>')
+          const igual = existentes.find(([, rama]) => rama.length > i + 1 && ids(rama.slice(0, i + 2)) === hasta)
+          const previo = igual?.[1][i] ?? conocidos.get(`${dex}>${siguiente}`)
+          return previo ? sinVacios(previo) : pasoNuevo(dex)
+        })
+        const corta = existentes.find(([, rama]) => clave.startsWith(ids(rama) + '>'))
+        const k = corta ? corta[0] : RAMAS.find((x) => !(x in info))
+        if (!k) break
+        info[k] = pasos
+        if (corta) existentes.splice(existentes.indexOf(corta), 1, [k, pasos])
+        else existentes.push([k, pasos])
+        enlaces++
+      }
+    }
+
+    for (const [k, rama] of Object.entries(info)) {
+      if (Array.isArray(rama)) info[k] = rama.map((paso, i) => alDia(paso, rama[i + 1]?.pokemon_id))
+    }
+    if (JSON.stringify(info) !== JSON.stringify(original)) cambios.push([r.pokemon_id, JSON.stringify(info)])
+  }
+
+  for (const [id, info] of cambios) {
+    await client.query(
+      'UPDATE public.pokemons SET evolution_info = $2::jsonb, updated_at = now() WHERE pokemon_id = $1', [id, info])
+  }
+  console.log(`  evoluciones    ${cambios.length} cadenas al día (${enlaces} ramas nuevas o alargadas)` +
+    (saltadas.length ? `; no cuadran con el roster y se dejan: ${saltadas.join(', ')}` : ''))
+  if (dudosos.length) console.log(`                 requisitos distintos según la forma, sin tocar: ${dudosos.join(', ')}`)
+}
+
+/**
+ * Lo que la ficha lee de `pokemons` y el GAME_MASTER sabe: nombre, estadísticas,
+ * coste del segundo ataque, compañero, purificación y si se puede intercambiar
+ * o transferir.
+ *
+ * Todo esto se sembró una vez en 2023 (src/utils/PokemonDDBB.js) y no se volvió
+ * a tocar: las especies más nuevas tenían las estadísticas a 0, el polvo del
+ * segundo ataque a 0, las que estrenaron oscuro después no tenían coste de
+ * purificar, la energía mega al caminar salía en Pokémon sin mega, y los
+ * nombres venían del identificador interno («Nidoran female», «Mr mime»,
+ * «Wirdeer»), que además no casaban con los de LeekDuck en «Dónde encontrarlo».
+ *
+ * Se lee la plantilla base de cada especie (V0003_POKEMON_VENUSAUR, sin forma)
+ * y se escribe solo lo que el juego define, mezclado con lo que ya hay en cada
+ * jsonb, así que un campo que el GAME_MASTER no trae se queda como estaba.
+ */
+async function syncFichaDesdeJuego(client, gm, en) {
+  const nombres = i18nMap(en)
+  const porDex = new Map()
+  for (const t of gm) {
+    const m = /^V(\d{4})_POKEMON_([A-Z0-9_]+)$/.exec(t.templateId)
+    const s = t.data?.pokemonSettings
+    // La plantilla base: sin `form`, o la primera si todas tienen (Unown).
+    if (!m || !s || (s.form && porDex.has(Number(m[1])))) continue
+    if (porDex.has(Number(m[1])) && porDex.get(Number(m[1])).form == null) continue
+    porDex.set(Number(m[1]), s)
+  }
+
+  // Qué especies megaevolucionan: las que tienen `tempEvoOverrides` en alguna
+  // plantilla. `buddyWalkedMegaEnergyAward` no sirve para esto: lo lleva
+  // Bulbasaur y no Charizard, Mewtwo ni Gardevoir.
+  const conMega = new Set()
+  for (const t of gm) {
+    const m = /^V(\d{4})_POKEMON_/.exec(t.templateId)
+    if (m && t.data?.pokemonSettings?.tempEvoOverrides?.length) conMega.add(Number(m[1]))
+  }
+
+  const filas = []
+  for (const [dex, s] of porDex) {
+    const nombre = nombres.get(`pokemon_name_${String(dex).padStart(4, '0')}`)
+    const fila = { pokemon_id: dex }
+    if (nombre) fila.name = nombre
+    if (s.stats?.baseAttack) {
+      fila.stats = { base_attack: s.stats.baseAttack, base_defense: s.stats.baseDefense, base_stamina: s.stats.baseStamina }
+    }
+    if (s.thirdMove) {
+      fila.third_move = { candy_required: s.thirdMove.candyToUnlock ?? 0, startdust_required: s.thirdMove.stardustToUnlock ?? 0 }
+    }
+    if (s.kmBuddyDistance) {
+      // La energía mega al caminar solo la dan los que megaevolucionan, cada
+      // tantos km como los caramelos. La siembra la ponía en todos.
+      fila.buddy = { candy_distance: s.kmBuddyDistance, mega_distance: conMega.has(dex) ? s.kmBuddyDistance : null }
+    }
+    if (s.shadow?.purificationCandyNeeded) {
+      fila.shadow_info = {
+        candy_required_purification: s.shadow.purificationCandyNeeded,
+        stardust_required_purification: s.shadow.purificationStardustNeeded ?? null,
+      }
+    }
+    if (typeof s.isTradable === 'boolean') fila.is_tradeable = s.isTradable
+    if (typeof s.isTransferable === 'boolean') fila.is_transferable = s.isTransferable
+    filas.push(fila)
+  }
+  if (filas.length < 1000) throw new Error(`el GAME_MASTER trae ${filas.length} especies: no me fío`)
+
+  const { rowCount } = await client.query(
+    `WITH juego AS (
+       SELECT * FROM jsonb_to_recordset($1::jsonb) AS j(
+         pokemon_id int, name text, stats jsonb, third_move jsonb, buddy jsonb,
+         shadow_info jsonb, is_tradeable boolean, is_transferable boolean)
+     ), nuevo AS (
+       SELECT p.pokemon_id,
+              coalesce(j.name, p.name) AS name,
+              CASE WHEN j.stats IS NULL THEN p.stats ELSE coalesce(p.stats, '{}') || j.stats END AS stats,
+              CASE WHEN j.third_move IS NULL THEN p.third_move ELSE coalesce(p.third_move, '{}') || j.third_move END AS third_move,
+              CASE WHEN j.buddy IS NULL THEN p.buddy ELSE coalesce(p.buddy, '{}') || j.buddy END AS buddy,
+              CASE WHEN j.shadow_info IS NULL THEN p.shadow_info ELSE coalesce(p.shadow_info, '{}') || j.shadow_info END AS shadow_info,
+              coalesce(j.is_tradeable, p.is_tradeable) AS is_tradeable,
+              coalesce(j.is_transferable, p.is_transferable) AS is_transferable
+         FROM public.pokemons p JOIN juego j USING (pokemon_id)
+     )
+     UPDATE public.pokemons p
+        SET name = n.name, stats = n.stats, third_move = n.third_move, buddy = n.buddy,
+            shadow_info = n.shadow_info, is_tradeable = n.is_tradeable,
+            is_transferable = n.is_transferable, updated_at = now()
+       FROM nuevo n
+      WHERE p.pokemon_id = n.pokemon_id
+        AND (p.name, p.stats, p.third_move, p.buddy, p.shadow_info, p.is_tradeable, p.is_transferable)
+            IS DISTINCT FROM
+            (n.name, n.stats, n.third_move, n.buddy, n.shadow_info, n.is_tradeable, n.is_transferable)`,
+    [JSON.stringify(filas)]
+  )
+  console.log(`  ficha          ${filas.length} especies en el GAME_MASTER; ${rowCount} filas al día ` +
+    '(nombre, estadísticas, segundo ataque, compañero, purificación, intercambio)')
 }
 
 async function updatePokemonsTable(client, roster) {
@@ -138,7 +673,7 @@ async function updatePokemonsTable(client, roster) {
   console.log(`  pokemons       ${rowCount} filas tocadas (${dinamax.size} Dinamax, ${gigamax.size} Gigamax)`)
 }
 
-async function uploadToSupabase(data, roster, shinyRaw) {
+async function uploadToSupabase(data, roster, conVariocolor, gm, en) {
   const url = process.env.SUPABASE_DB_URL
   if (!url) {
     if (EXIGE_SUBIDA) {
@@ -172,9 +707,21 @@ async function uploadToSupabase(data, roster, shinyRaw) {
       )
       console.log(`  ${name.padEnd(14)} ${(json.length / 1024).toFixed(0)} KB`)
     }
+    // Las altas primero: así las filas nuevas pasan también por los ajustes
+    // de Dinamax, variocolor y liberado de abajo.
+    await addMissingSpecies(client, roster)
+    await syncFichaDesdeJuego(client, gm, en)
     await updatePokemonsTable(client, roster)
-    await syncShinyReleases(client, shinyRaw)
-    await client.query('COMMIT')
+    await syncShinyReleases(client, conVariocolor)
+    await syncReleases(client, roster)
+    await syncShadowReleases(client, roster)
+    await syncEvolutionChains(client, roster, gm)
+    if (ENSAYO) {
+      await client.query('ROLLBACK')
+      console.log('  --dry-run: no se ha guardado nada')
+    } else {
+      await client.query('COMMIT')
+    }
   } catch (err) {
     await client.query('ROLLBACK')
     throw new Error(`no se ha podido subir a Supabase: ${err.message}`)
@@ -194,7 +741,9 @@ const SOURCES = {
   // Una sola llamada para saber el id de sprite de cada forma (megas incluidas).
   forms: 'https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0',
   // Lista canónica de variocolores liberados, con de dónde sale cada uno.
-  shiny: 'https://pogoapi.net/api/v1/shiny_pokemon.json',
+  // Variocolores liberados, con fecha de estreno. pogoapi.net se paró en enero
+  // de 2026 y ya no se consulta (ver especiesConVariocolor).
+  shinyLeekDuck: 'https://leekduck.com/shiny/pms.json',
 }
 
 /** pvpoke nombra las formas distinto que PokeAPI. */
@@ -641,15 +1190,12 @@ function buildMaxData(gm, en, es) {
   return { movimientos, porTipo, gmaxPorEspecie, gigamax, dinamax, grupoCoste, costes }
 }
 
-function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, shinyRaw) {
+function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny) {
   // Qué especies tienen el variocolor liberado. LeekDuck publica un
   // `canBeShiny` por encuentro, pero viene a false en TODAS las recompensas de
   // investigación, así que no se puede usar. Y da igual el sitio: si el
   // variocolor está liberado, puede salir en cualquier encuentro de esa
-  // especie.
-  const conShiny = new Set(
-    Object.values(shinyRaw ?? {}).map((uno) => uno?.id).filter(Number.isInteger)
-  )
+  // especie. `conShiny` sale de especiesConVariocolor.
   const out = []
   for (const p of pvpGm.pokemon) {
     const tags = p.tags ?? []
@@ -733,7 +1279,7 @@ function trimRankings(list, roster, limit) {
 async function main() {
   await loadEnv()
   console.log('Descargando fuentes…')
-  const [gmRaw, esRaw, enRaw, pvpGm, great, ultra, master, formsRaw, shinyRaw] = await Promise.all([
+  const [gmRaw, esRaw, enRaw, pvpGm, great, ultra, master, formsRaw, leekRaw] = await Promise.all([
     load('gm', SOURCES.gm),
     load('es', SOURCES.es),
     load('en', SOURCES.en),
@@ -742,7 +1288,11 @@ async function main() {
     load('rank-ultra', SOURCES.ultra),
     load('rank-master', SOURCES.master),
     load('pokeapi-forms', SOURCES.forms),
-    load('shiny', SOURCES.shiny),
+    // Si LeekDuck falla, se sigue con lo que ya había en vez de tirar la pasada.
+    load('shiny-leekduck', SOURCES.shinyLeekDuck).catch((err) => {
+      console.warn(`  ⚠ ${err.message}`)
+      return []
+    }),
   ])
 
   const es = i18nMap(esRaw)
@@ -763,7 +1313,8 @@ async function main() {
   )
   const megaEnergy = buildMegaEnergy(gmRaw)
   const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
-  const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, shinyRaw)
+  const conVariocolor = especiesConVariocolor(leekRaw)
+  const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, conVariocolor)
   console.log(`  ${maxData.dinamax.size} pueden Dinamax, ${maxData.gigamax.size} Gigamax`)
   console.log(`  ${megaEnergy.size} megas con coste de energía`)
 
@@ -811,7 +1362,7 @@ async function main() {
     console.log(`  ${file.padEnd(14)} ${(json.length / 1024).toFixed(0)} KB`)
   }
 
-  await uploadToSupabase(data, pokemon, shinyRaw)
+  await uploadToSupabase(data, pokemon, conVariocolor, gmRaw, enRaw)
 
   console.log(`\n${pokemon.length} Pokémon (${data['meta.json'].counts.released} disponibles), ` +
     `${Object.keys(moves).length} movimientos.`)
