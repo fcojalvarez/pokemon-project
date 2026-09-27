@@ -28,6 +28,7 @@ import { CPM_BY_LEVEL } from '../src/utils/formulas.js'
 import { normalizeText } from '../src/utils/gameText.js'
 import { loadEnv } from './lib/env.mjs'
 import { maxLiberados } from './lib/maxLiberados.mjs'
+import { buildFormas } from './lib/formas.mjs'
 import { createRequire } from 'node:module'
 
 // La última lista de variocolores de pogoapi, congelada (ver especiesConVariocolor).
@@ -1888,6 +1889,13 @@ async function main() {
       sources: SOURCES,
     },
   }
+
+  // Formas y disfraces (ver scripts/lib/formas.mjs). pokemon-go-api es solo
+  // un respaldo en esta pasada: si no ha respondido, no se sube la fila y se
+  // queda la de la vez anterior en vez de una vacía.
+  const formas = buildFormas(pgaRaw, { es, en: i18nMap(enRaw), shinyLeekDuck: leekRaw })
+  if (Object.keys(formas).length > 100) data['formas.json'] = formas
+  else console.warn('  ⚠ sin pokemon-go-api: las formas se quedan como estaban')
 
   await fs.mkdir(OUT, { recursive: true })
   console.log('\nEscribiendo public/data/')

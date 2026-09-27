@@ -10,6 +10,32 @@ import { useTranslate } from '../composables/useTranslate'
 const BASE = import.meta.env.BASE_URL
 
 const FICHEROS = ['roster', 'moves', 'typechart', 'pvp', 'texts', 'meta', 'maxbattles']
+/** Las escriben workflows aparte: si faltan, la app sigue sin ellas. */
+const OPCIONALES = ['maxlive', 'traducciones']
+
+/**
+ * Formas y disfraces de cada Pokémon (Vivillon, Zygarde, Pikachu…). Pesan más
+ * que el resto y solo hacen falta al abrir la galería de una ficha, así que se
+ * piden entonces, una vez por sesión.
+ */
+let formasPendientes = null
+export function cargarFormas() {
+  formasPendientes ??= (async () => {
+    try {
+      const { data, error } = await supabase.from('game_data').select('payload').eq('name', 'formas').maybeSingle()
+      if (error) throw new Error(error.message)
+      if (data?.payload) return data.payload
+    } catch (err) {
+      console.warn('formas no disponibles en game_data, se usa el fichero:', err.message)
+    }
+    const res = await fetch(`${BASE}data/formas.json`)
+    return res.ok ? res.json() : {}
+  })().catch(() => {
+    formasPendientes = null
+    return {}
+  })
+  return formasPendientes
+}
 
 /**
  * Los datos de juego, desde la tabla `game_data` de Supabase.
@@ -19,7 +45,12 @@ const FICHEROS = ['roster', 'moves', 'typechart', 'pvp', 'texts', 'meta', 'maxba
  * permite que actualizar los datos no obligue a redesplegar la app.
  */
 async function desdeSupabase() {
-  const { data, error } = await supabase.from('game_data').select('name,payload')
+  // Solo las filas que se usan al arrancar: en la tabla hay más (las formas y
+  // disfraces, la memoria de Max liberados) y no hace falta bajarlas siempre.
+  const { data, error } = await supabase
+    .from('game_data')
+    .select('name,payload')
+    .in('name', [...FICHEROS, ...OPCIONALES])
   if (error) throw new Error(error.message)
 
   const porNombre = Object.fromEntries((data ?? []).map((fila) => [fila.name, fila.payload]))
