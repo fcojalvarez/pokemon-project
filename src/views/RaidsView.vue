@@ -293,10 +293,10 @@ onMounted(() => {
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ $t('nav.raids') }}</h1>
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.raids') }}</h1>
 
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-      <p class="text-sm text-gray-600 dark:text-gray-300">{{ $t('raids.intro') }}</p>
+    <div class="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
+      <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{{ $t('raids.intro') }}</p>
     </div>
 
     <!-- Solo salta si los datos se han quedado viejos. -->

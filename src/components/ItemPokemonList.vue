@@ -73,9 +73,13 @@
             un nombre largo el truncado se activaba enseguida. Ahora el nombre
             tiene la fila entera y los tipos van debajo.
         -->
-        <div class="mt-3 flex items-center justify-center gap-1 text-gray-800 dark:text-gray-300">
-            <span v-if="pokemonId" class="text-xs font-semibold shrink-0">#{{ pokemonId }}</span>
-            <span :class="[props.is_released? '' : 'line-through', 'font-semibold text-sm truncate']">
+        <!--
+            En móvil van tres por fila y «#001 Bulbasaur» no cabe en una línea:
+            el número pasa encima, pequeño, y el nombre se queda la fila entera.
+        -->
+        <div class="mt-2 sm:mt-3 flex flex-col sm:flex-row items-center justify-center sm:gap-1 text-gray-800 dark:text-gray-300">
+            <span v-if="pokemonId" class="text-mini sm:text-xs font-semibold shrink-0 leading-tight">#{{ pokemonId }}</span>
+            <span :class="[props.is_released? '' : 'line-through', 'max-w-full font-semibold text-xs sm:text-sm truncate']">
                 {{ props.name }}
             </span>
         </div>

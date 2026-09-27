@@ -139,6 +139,7 @@
         "method2": "El DPS sale de resolver el balance de energía del ciclo rápido/cargado, contando la energía que genera el daño recibido. El TDO asume un DPS entrante de 900 dividido entre tu defensa. No modela esquivar ni relevos.",
         "method3": "Frustración y Retroceso quedan fuera: no son opciones reales para un atacante optimizado.",
         "include": "Incluir",
+        "without": "sin {list}",
         "legacyHelp": "Apágalo para ver solo conjuntos que aún se pueden conseguir: hay Pokémon que suben mucho gracias a un ataque que ya no se aprende.",
         "eliteHelp": "Apágalo para ver solo conjuntos que se aprenden con MT normales: los ataques élite necesitan una MT Élite o un evento concreto."
     },

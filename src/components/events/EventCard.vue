@@ -183,7 +183,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
 
 <template>
   <article
-    class="flex flex-col p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+    class="flex flex-col p-3 sm:p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
     :class="event.link ? 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-600' : ''"
     @click="abrirEvento"
   >
@@ -198,14 +198,14 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       :srcset="cartel.srcset ?? undefined"
       sizes="(min-width: 1536px) 30vw, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, 100vw"
       alt=""
-      class="-mx-4 -mt-4 mb-3 w-[calc(100%+2rem)] max-w-none h-32 object-cover rounded-t-xl bg-gray-100 dark:bg-gray-800"
+      class="-mx-3 -mt-3 mb-2.5 w-[calc(100%+1.5rem)] h-24 sm:-mx-4 sm:-mt-4 sm:mb-3 sm:w-[calc(100%+2rem)] sm:h-32 max-w-none object-cover rounded-t-xl bg-gray-100 dark:bg-gray-800"
       loading="lazy"
       decoding="async"
       @error="alFallarCartel"
     />
 
     <!-- La fecha, lo primero que se busca: la hoja de calendario a la izquierda. -->
-    <div class="flex gap-4">
+    <div class="flex gap-3 sm:gap-4">
       <event-date-block
         v-if="event.startDate"
         :date="event.startDate"
@@ -221,14 +221,14 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
             {{ typeLabel }}
           </span>
           <!-- Siempre un h2 (la página lleva su h1), con el enlace dentro si lo hay. -->
-          <h2 class="text-base font-bold leading-snug">
+          <h2 class="text-sm sm:text-base font-bold leading-snug">
             <a v-if="event.link" :href="event.link" target="_blank" rel="noopener">{{ displayName }}</a>
             <template v-else>{{ displayName }}</template>
           </h2>
         </div>
 
         <!-- El horario entero y, debajo, la cuenta atrás: primero cuándo, luego cuánto falta. -->
-        <p v-if="horario" class="mt-2 text-sm tabular-nums">{{ horario }}</p>
+        <p v-if="horario" class="mt-1.5 sm:mt-2 text-xs sm:text-sm tabular-nums">{{ horario }}</p>
         <p v-if="event.status === 'active' || countdown" class="mt-0.5 text-mini">
           <span v-if="event.status === 'active'" class="text-green-700 dark:text-green-400">● {{ $t('events.inProgress') }}</span>
           <template v-if="event.status === 'active' && countdown"> · </template>

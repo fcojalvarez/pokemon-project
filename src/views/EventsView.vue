@@ -91,7 +91,7 @@ onMounted(() => {
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ $t('nav.events') }}</h1>
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.events') }}</h1>
 
     <!--
       En escritorio ancho, como en el Top: barra lateral fija con las pestañas y
@@ -167,11 +167,11 @@ onMounted(() => {
             <div
               v-for="n in 6"
               :key="n"
-              class="p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+              class="p-3 sm:p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
             >
-              <span class="esqueleto block -mx-4 -mt-4 mb-3 h-32 rounded-t-xl rounded-b-none"></span>
+              <span class="esqueleto block -mx-3 -mt-3 mb-2.5 h-24 sm:-mx-4 sm:-mt-4 sm:mb-3 sm:h-32 rounded-t-xl rounded-b-none"></span>
               <div class="flex gap-4 items-start">
-                <span class="esqueleto w-16 h-20 shrink-0 rounded-xl"></span>
+                <span class="esqueleto w-14 h-[4.5rem] sm:w-16 sm:h-20 shrink-0 rounded-xl"></span>
                 <div class="flex-1 flex flex-col gap-2">
                   <span class="esqueleto h-4 w-20 rounded-full"></span>
                   <span class="esqueleto h-3.5 w-full rounded-full"></span>

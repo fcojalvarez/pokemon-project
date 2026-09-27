@@ -12,6 +12,7 @@ import AttackerList from '../components/rankings/AttackerList.vue'
 import AttackerTable from '../components/rankings/AttackerTable.vue'
 import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
+import BaseChevron from '../components/base/BaseChevron.vue'
 import { useMedia } from '../composables/useMedia'
 import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useTranslate } from '../composables/useTranslate'
@@ -90,6 +91,43 @@ const leagueOptions = computed(() => [
 ])
 
 const sortHelp = computed(() => t(`top.${sortBy.value}Help`))
+
+/**
+ * En móvil los filtros van plegados, como en la Pokédex: abiertos se comían
+ * la primera pantalla entera (tres desplegables y cuatro botones, unos 740 px)
+ * antes del primer atacante. Cerrados queda una línea con lo elegido.
+ */
+const movil = useMedia('(max-width: 639px)')
+const filtrosAbiertos = ref(false)
+
+const etiqueta = (opciones, valor) => opciones.find((opcion) => opcion.value === valor)?.label ?? valor
+
+const resumenFiltros = computed(() => {
+  const partes = [etiqueta(modeOptions.value, mode.value), etiqueta(typeOptions.value, type.value)]
+  if (mode.value === 'pve') {
+    // La sigla: «Daño por segundo (DPS)» entero no cabe en la línea.
+    partes.push(sortBy.value.toUpperCase())
+    const quitados = [
+      !includeMega.value && t('top.megas'),
+      !includeShadow.value && t('top.shadows'),
+      !includeLegacy.value && t('moves.legacy'),
+      !includeElite.value && t('moves.elite')
+    ].filter(Boolean)
+    if (quitados.length) partes.push(t('top.without', { list: quitados.join(', ') }))
+  } else if (mode.value === 'pvp') {
+    partes.push(t(`top.${league.value}`))
+  }
+  return partes.join(' · ')
+})
+
+/** Cuántos filtros no están como vienen, para el contador del botón. */
+const filtrosCambiados = computed(
+  () =>
+    (type.value !== 'all' ? 1 : 0) +
+    (mode.value === 'pve' && sortBy.value !== 'dps' ? 1 : 0) +
+    (mode.value === 'pvp' && league.value !== 'great' ? 1 : 0) +
+    (mode.value === 'pve' ? excluidos.value.length : 0)
+)
 
 /** Si la pestaña activa tiene algo que pintar; si no, sale el vacío. */
 const rowsShown = computed(() =>
@@ -233,9 +271,9 @@ onMounted(() => gameData.load())
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ $t('nav.top') }}</h1>
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.top') }}</h1>
 
-    <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">
       {{ mode === 'max' ? $t('max.tabIntro') : mode === 'pve' ? $t('top.pveIntro') : $t('top.pvpIntro') }}
     </p>
 
@@ -252,6 +290,32 @@ onMounted(() => gameData.load())
           ? '[@media(min-height:720px)]:sticky top-[104px] flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
           : ''"
       >
+        <!-- Móvil: una línea con lo elegido y el botón que abre los filtros. -->
+        <div v-if="movil" class="flex items-center gap-3 mb-3">
+          <p class="flex-1 min-w-0 text-mini text-gray-600 dark:text-gray-300 truncate" :title="resumenFiltros">
+            {{ resumenFiltros }}
+          </p>
+          <button
+            type="button"
+            class="zona-tactil [--zona:-8px_-3px] shrink-0 flex items-center gap-2 px-3 py-1.5 text-xs rounded-xl border border-gray-400 shadow-md transition-colors bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
+            :aria-expanded="filtrosAbiertos"
+            aria-controls="filtros-top"
+            @click="filtrosAbiertos = !filtrosAbiertos"
+          >
+            {{ $t('filters.title') }}
+            <span
+              v-if="filtrosCambiados"
+              class="px-1.5 rounded-full bg-gray-600 dark:bg-gray-500 text-white text-mini"
+            >{{ filtrosCambiados }}</span>
+            <base-chevron :open="filtrosAbiertos" />
+          </button>
+        </div>
+
+        <div
+          v-show="!movil || filtrosAbiertos"
+          id="filtros-top"
+          :class="ancho ? 'contents' : movil ? 'mb-3 p-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900' : ''"
+        >
         <div :class="ancho ? 'flex flex-col gap-3' : 'grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mb-3'">
           <base-filter-select v-model="mode" :label="$t('top.mode')" :options="modeOptions" />
           <base-filter-select v-model="type" buscable :label="$t('top.type')" :options="typeOptions" />
@@ -323,6 +387,7 @@ onMounted(() => gameData.load())
               {{ $t('moves.elite') }}
             </base-pill-button>
           </div>
+        </div>
         </div>
 
         <move-legend

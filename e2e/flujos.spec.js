@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test'
 
+/** En móvil los filtros del Top van plegados: se abren antes de tocarlos. */
+async function abrirFiltrosTop(page) {
+  const boton = page.locator('button[aria-controls="filtros-top"]')
+  if (await boton.isVisible()) await boton.click()
+}
+
 /**
  * En móvil y tablet las secciones de la ficha empiezan plegadas: para mirar
  * lo que hay dentro, antes hay que abrirlas. En escritorio van siempre
@@ -80,6 +86,7 @@ test('el Top cambia entre PvE y PvP sin romperse', async ({ page }) => {
 
   // Ya no es un <select> nativo: es el desplegable propio, que se abre y se
   // elige con clics como haría cualquiera.
+  await abrirFiltrosTop(page)
   await page.getByRole('combobox', { name: /modo/i }).click()
   await page.getByRole('option', { name: /pvp/i }).click()
 
@@ -178,6 +185,7 @@ test('si game_data no responde, tira de los ficheros desplegados', async ({ page
  */
 test('el Top Dinamax ordena por ataque y enseña el Ataque Max', async ({ page }) => {
   await page.goto('/top')
+  await abrirFiltrosTop(page)
 
   await page.getByRole('combobox', { name: /modo/i }).click()
   await page.getByRole('option', { name: /dinamax/i }).click()
@@ -227,6 +235,7 @@ test('el botón Élite quita los ataques élite del ranking', async ({ page }) =
   const conElite = () => filas.filter({ has: page.locator('[title="Solo se aprende con MT Élite"]') })
   expect(await conElite().count()).toBeGreaterThan(0)
 
+  await abrirFiltrosTop(page)
   const boton = page.getByRole('button', { name: 'Élite', exact: true })
   await boton.click()
   await expect(boton).toHaveAttribute('aria-pressed', 'false')
@@ -331,6 +340,7 @@ test.describe('Top en escritorio ancho', () => {
 test.describe('filtros en la URL', () => {
   test('el Top conserva tipo e «Incluir» al volver de una ficha y al recargar', async ({ page }) => {
     await page.goto('/top')
+    await abrirFiltrosTop(page)
     await page.getByRole('combobox', { name: /tipo/i }).click()
     await page.getByRole('option', { name: 'Fuego', exact: true }).click()
     await page.getByRole('button', { name: 'Legacy', exact: true }).click()
@@ -341,10 +351,12 @@ test.describe('filtros en la URL', () => {
     await expect(page).toHaveURL(/\/pokemon\//)
     await page.locator('header button.back-btn').click()
     await expect(page).toHaveURL(/\/top\?.*kind=fire/)
+    await abrirFiltrosTop(page)
     await expect(page.getByRole('combobox', { name: /tipo/i })).toContainText('Fuego')
     await expect(page.getByRole('button', { name: 'Legacy', exact: true })).toHaveAttribute('aria-pressed', 'false')
 
     await page.reload()
+    await abrirFiltrosTop(page)
     await expect(page.getByRole('combobox', { name: /tipo/i })).toContainText('Fuego')
   })
 

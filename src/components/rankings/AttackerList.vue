@@ -64,40 +64,32 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
       <component
         :is="row.dex ? 'router-link' : 'div'"
         :to="row.dex ? `/pokemon/${row.dex}` : undefined"
-        class="flex items-center gap-3 p-2 pr-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
+        class="grid grid-cols-[auto_auto_minmax(0,1fr)_auto] items-center gap-x-2 sm:gap-x-3 gap-y-1.5 sm:gap-y-1 p-2 pr-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
       >
-      <span class="w-6 shrink-0 text-right text-xs text-gray-600 dark:text-gray-300">
+      <!--
+        En móvil, dos pisos: arriba puesto, sprite, nombre y cifra; debajo los
+        ataques a todo lo ancho. En una sola fila no cabía nada entero
+        («Regigigas…», «Cola Drag…»). Desde sm, como siempre: los ataques bajo
+        el nombre y el resto ocupando las dos líneas.
+      -->
+      <span class="w-5 sm:w-6 sm:row-span-2 shrink-0 text-right text-xs text-gray-600 dark:text-gray-300">
         {{ row.rank }}
       </span>
 
       <base-sprite
         :src="spriteUrl(row.spriteId)"
-        class="w-12 h-12 shrink-0"
+        class="w-10 h-10 sm:w-12 sm:h-12 sm:row-span-2 shrink-0"
         img-class="drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
       />
 
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">
-            {{ localName(row) }}
-          </span>
-          <type-icons :types="row.types" size="12" />
-        </div>
-        <div class="mt-1 flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-300">
-          <move-tag
-            v-for="move in movesOf(row)"
-            :key="move.id ?? move.nameEs"
-            chip
-            :name="localName(move)"
-            :type="move.type"
-            :elite="move.elite"
-            :legacy="move.legacy"
-            :mega="move.mega"
-          />
-        </div>
+      <div class="min-w-0 flex items-center gap-2 sm:self-end">
+        <span class="min-w-0 text-sm font-semibold leading-snug text-gray-800 dark:text-gray-200 sm:truncate break-words">
+          {{ localName(row) }}
+        </span>
+        <type-icons :types="row.types" size="12" class="shrink-0" />
       </div>
 
-      <div class="w-[72px] shrink-0 text-right">
+      <div class="w-[72px] sm:row-span-2 shrink-0 text-right">
         <div class="font-bold text-gray-800 dark:text-gray-100 leading-tight">
           {{ mainValue(row) }}
           <span v-if="unitLabel" class="text-mini font-normal text-gray-600 dark:text-gray-300">
@@ -114,6 +106,19 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
           <template v-if="sortBy !== 'dps'">{{ row.dps.toFixed(1) }} DPS</template>
           <template v-else>{{ Math.round(row.tdo) }} TDO</template>
         </div>
+      </div>
+
+      <div class="col-span-4 sm:col-span-1 sm:col-start-3 sm:row-start-2 sm:self-start flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-300">
+        <move-tag
+          v-for="move in movesOf(row)"
+          :key="move.id ?? move.nameEs"
+          chip
+          :name="localName(move)"
+          :type="move.type"
+          :elite="move.elite"
+          :legacy="move.legacy"
+          :mega="move.mega"
+        />
       </div>
       </component>
     </li>

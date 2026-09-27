@@ -41,7 +41,7 @@ const panelId = computed(() => `seccion-${props.id}`)
           <span class="flex items-center gap-2">{{ title }}<slot name="titulo" /></span>
           <span
             v-if="!abierta && summary"
-            class="block mt-0.5 text-xs font-normal text-gray-600 dark:text-gray-300 truncate"
+            class="block mt-0.5 text-xs font-normal leading-snug text-gray-600 dark:text-gray-300 line-clamp-2"
           >{{ summary }}</span>
         </span>
         <!-- Mismo trazo que el resto de desplegables de la app; gira al abrir -->

@@ -126,13 +126,23 @@ onUnmounted(() => {
             </span>
         </pokedex-filters>
 
+        <!--
+            Rejilla de verdad: antes cada tarjeta medía lo que su contenido y
+            el flex-wrap metía las que cupieran, así que en un móvil de 375 px
+            salía una por fila. Ahora, tres en móvil (como la Pokédex del
+            juego) y las que quepan de ahí para arriba.
+        -->
+        <div
+            v-if="pokemons.length > 0 || isLoading"
+            class="w-full grid grid-cols-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(176px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(224px,1fr))] gap-x-1 gap-y-2 sm:gap-y-4 md:p-2"
+        >
         <template v-if="pokemons.length > 0">
             <div
                 v-for="{ name, pokemon_id, is_released, types, sprites, is_shiny_released, can_dynamax, can_gigantamax } in pokemons"
-                class="w-4/8 md:w-3/8 p-4 mx-auto"
+                class="min-w-0 flex justify-center"
                 :key="pokemon_id"
             >
-                <ItemPokemonList :id="pokemon_id" :image="sprites.male" :name="name" :is_released="is_released" :types="types" :is_shiny_released="is_shiny_released" :can_dynamax="can_dynamax" :can_gigantamax="can_gigantamax" class="w-32 md:w-48"/>
+                <ItemPokemonList :id="pokemon_id" :image="sprites.male" :name="name" :is_released="is_released" :types="types" :is_shiny_released="is_shiny_released" :can_dynamax="can_dynamax" :can_gigantamax="can_gigantamax" class="w-full max-w-[8rem] md:max-w-[12rem]"/>
             </div>
         </template>
 
@@ -147,10 +157,10 @@ onUnmounted(() => {
             <div
                 v-for="n in (pokemons.length ? 10 : 20)"
                 :key="`esqueleto-${n}`"
-                class="w-4/8 md:w-3/8 p-4 mx-auto"
+                class="min-w-0 flex justify-center"
                 aria-hidden="true"
             >
-                <div class="w-32 md:w-48 p-2">
+                <div class="w-full max-w-[8rem] md:max-w-[12rem] p-2">
                     <div class="w-24 h-24 mx-auto flex items-center justify-center">
                         <div class="w-[76%] h-[76%] rounded-full esqueleto"></div>
                     </div>
@@ -165,7 +175,8 @@ onUnmounted(() => {
                 </div>
             </div>
         </template>
-        
+        </div>
+
         <scroll-up-button />
     </section>   
 </template>
