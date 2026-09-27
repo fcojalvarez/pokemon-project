@@ -27,7 +27,10 @@ import { fileURLToPath } from 'node:url'
 import { CPM_BY_LEVEL } from '../src/utils/formulas.js'
 import { normalizeText } from '../src/utils/gameText.js'
 import { loadEnv } from './lib/env.mjs'
-import VARIOCOLORES_POGOAPI from './datos/variocolores-pogoapi.json' with { type: 'json' }
+import { createRequire } from 'node:module'
+
+// La última lista de variocolores de pogoapi, congelada (ver especiesConVariocolor).
+const VARIOCOLORES_POGOAPI = createRequire(import.meta.url)('./datos/variocolores-pogoapi.json')
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const CACHE = path.join(ROOT, '.cache')

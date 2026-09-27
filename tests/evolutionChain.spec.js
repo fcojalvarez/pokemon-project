@@ -14,7 +14,14 @@ import i18n from '../src/plugins/i18n'
 // Las megas salen del catálogo de formas del juego: se simula con lo justo.
 const formas = new Map()
 vi.mock('../src/stores/gameData', () => ({
-  useGameDataStore: () => ({ isReady: true, formsByDex: formas })
+  useGameDataStore: () => ({
+    isReady: true,
+    formsByDex: formas,
+    // Como en la store: cada forma por su id.
+    get byId() {
+      return new Map([...formas.values()].flat().map((forma) => [forma.id, forma]))
+    }
+  })
 }))
 
 const { default: EvolutionChain } = await import('../src/components/pokemon/EvolutionChain.vue')
@@ -145,5 +152,31 @@ describe('línea evolutiva', () => {
     const w = montar({ ...paso(384, 'Rayquaza', ['dragon', 'flying']), evolution_info: {} }, { formId: 'rayquaza_mega' })
     expect(w.get('[aria-current="page"]').text()).toContain('Mega Rayquaza')
     expect(w.find('a[href="/pokemon/384"]').exists()).toBe(true)
+  })
+
+  it('en la ficha de una forma regional, la cadena es la de la forma', () => {
+    formas.clear()
+    formas.set(52, [{
+      id: 'meowth_galarian', dex: 52, name: 'Meowth (Galarian)', nameEs: 'Meowth (Galar)', types: ['steel'],
+      spriteId: '10161', regional: true,
+      cadena: {
+        primary: [
+          paso(52, 'Galarian Meowth', ['steel'], { nameEs: 'Meowth de Galar', form: 'meowth_galarian', candy_required: 50 }),
+          paso(863, 'Perrserker', ['steel'])
+        ]
+      }
+    }])
+    const kanto = { primary: [paso(52, 'Meowth', ['normal'], { candy_required: 50 }), paso(53, 'Persian', ['normal'])] }
+    const w = montar({ ...paso(52, 'Meowth', ['normal']), evolution_info: kanto }, { formId: 'meowth_galarian' })
+    expect(nombres(w)).toEqual(['#52 Meowth de Galar', '#863 Perrserker'])
+    expect(w.get('[aria-current="page"]').text()).toContain('Meowth de Galar')
+    expect(w.text()).not.toContain('Persian')
+  })
+
+  it('una forma regional que no evoluciona sale sola, sin las megas de la especie', () => {
+    formas.clear()
+    formas.set(144, [{ id: 'articuno_galarian', dex: 144, name: 'Articuno (Galarian)', nameEs: 'Articuno (Galar)', types: ['psychic', 'flying'], spriteId: '10169', regional: true }])
+    const w = montar({ ...paso(144, 'Articuno', ['ice', 'flying']), evolution_info: {} }, { formId: 'articuno_galarian' })
+    expect(nombres(w)).toEqual(['#144 Articuno (Galar)'])
   })
 })
