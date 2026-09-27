@@ -1,7 +1,7 @@
 <script setup>
 /**
  * Lo que pide una evolución, con sus iconos: caramelos, megaenergía, objeto,
- * cebo, caminar con el compañero, día o noche, sexo e intercambio.
+ * cebo, caminar con el compañero, día, noche o luna llena, sexo e intercambio.
  *
  * `parte` decide qué se pinta, porque en la cadena el coste va encima de la
  * flecha y el resto debajo, o bajo el nombre dentro de un grupo.
@@ -44,7 +44,7 @@ const hayAlgo = computed(() => {
   const r = props.req
   const deCoste = r.candy_required || r.mega_energy_required
   const deResto = r.item_required || r.lure_required || r.buddy_distance_required ||
-    r.only_evolves_in_daytime || r.only_evolves_in_nighttime || r.gender_required || r.no_candy_cost_if_traded
+    r.only_evolves_in_daytime || r.only_evolves_in_nighttime || r.only_evolves_in_full_moon || r.gender_required || r.no_candy_cost_if_traded
   return (coste.value && deCoste) || (resto.value && deResto)
 })
 </script>
@@ -67,7 +67,9 @@ const hayAlgo = computed(() => {
     <template v-if="resto">
       <li v-if="req.item_required" class="req">
         <img v-if="OBJETOS[objeto]" :src="OBJETOS[objeto]" alt="" class="w-3.5 h-3.5  drop-shadow icono">
-        {{ $t(`evolutions.items.${objeto}`) }}
+        <!-- Cuántos, si es más de uno: 999 monedas para Gimmighoul. -->
+        <template v-if="req.item_cost">×{{ req.item_cost }}</template>
+        {{ $te(`evolutions.items.${objeto}`) ? $t(`evolutions.items.${objeto}`) : req.item_required }}
       </li>
       <li v-if="req.lure_required" class="req">
         <img :src="lure" alt="" class="invert dark:invert-0 w-4 h-2.5 icono">
@@ -84,6 +86,10 @@ const hayAlgo = computed(() => {
       <li v-if="req.only_evolves_in_nighttime" class="req">
         <img :src="moon" alt="" class="invert dark:invert-0 w-3 h-3 icono">
         {{ $t('evolutions.nightShort') }}
+      </li>
+      <li v-if="req.only_evolves_in_full_moon" class="req">
+        <img :src="moon" alt="" class="invert dark:invert-0 w-3 h-3 icono">
+        {{ $t('evolutions.fullMoonShort') }}
       </li>
       <li v-if="req.gender_required" class="req">
         <img :src="req.gender_required === 'Female' ? female : male" alt="" class="invert dark:invert-0 w-3 h-3 icono">

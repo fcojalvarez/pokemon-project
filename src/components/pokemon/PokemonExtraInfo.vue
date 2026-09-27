@@ -33,16 +33,36 @@ const form = computed(() =>
   props.formId && gameData.isReady ? gameData.byId.get(props.formId) ?? null : null
 )
 
+/**
+ * La especie en el roster, que sale del GAME_MASTER y se regenera cada día.
+ * De aquí salen los ataques, las estadísticas y el coste del segundo ataque:
+ * en la tabla `pokemons` eran de la siembra y se habían quedado atrás (a 511
+ * especies les faltaban ataques nuevos, y las más recientes tenían las
+ * estadísticas a cero). La tabla queda de respaldo por si el roster no la trae.
+ *
+ * Se busca la forma que se llama como la especie (charizard, no charizard_x);
+ * si no hay, la primera que no sea mega, oscura ni regional.
+ */
+const baseDelRoster = computed(() => {
+  if (!gameData.isReady) return null
+  const formas = (gameData.formsByDex.get(props.pokemon.pokemon_id) ?? []).filter(
+    (entry) => !entry.mega && !entry.shadow && !entry.regional
+  )
+  const nombre = String(props.pokemon.name ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '_')
+  return formas.find((entry) => entry.id === nombre) ?? formas[0] ?? null
+})
+
 const cpTable = computed(() => {
   if (!gameData.isReady) return []
-  if (form.value) {
+  const stats = form.value?.stats ?? (baseDelRoster.value?.stats?.atk ? baseDelRoster.value.stats : null)
+  if (stats) {
     const ivs = { atk: 15, def: 15, hp: 15 }
     return [20, 25, 30, 35, 40, 50].map((level) => ({
       level,
-      cp: calcCP(form.value.stats, ivs, level)
+      cp: calcCP(stats, ivs, level)
     }))
   }
-  return props.pokemon.stats ? gameData.perfectCP(props.pokemon.stats) : []
+  return props.pokemon.stats?.base_attack ? gameData.perfectCP(props.pokemon.stats) : []
 })
 
 const matchups = computed(() => {
@@ -57,6 +77,9 @@ const matchups = computed(() => {
  */
 const asRosterEntry = computed(() => {
   if (form.value) return form.value
+  if (baseDelRoster.value) return baseDelRoster.value
+
+  // Sin roster (aún cargando o especie que no trae): lo que haya en la tabla.
 
   const { stats, moves, types } = props.pokemon
   if (!stats || !moves) return null
@@ -142,7 +165,13 @@ const costs = computed(() => {
   const { third_move: third, shadow_info: shadow, buddy } = props.pokemon
   const rows = []
 
-  if (third?.candy_required) {
+  // El coste del segundo ataque, del roster (en polvo; los caramelos van a la
+  // par). En la tabla había especies con el polvo a 0.
+  const polvo = baseDelRoster.value?.thirdMoveCost
+  const CARAMELOS = { 10000: 25, 50000: 50, 75000: 75, 100000: 100 }
+  if (polvo) {
+    rows.push({ key: 'secondCharged', candy: CARAMELOS[polvo] ?? third?.candy_required ?? null, dust: polvo })
+  } else if (third?.candy_required) {
     // Sí, en la base de datos la columna se llama "startdust_required".
     rows.push({
       key: 'secondCharged',

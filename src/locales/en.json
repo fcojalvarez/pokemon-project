@@ -276,6 +276,7 @@
     "evolutions": {
         "dayShort": "By day",
         "nightShort": "At night",
+        "fullMoonShort": "During a full moon",
         "buddyShort": "{km} km with buddy",
         "FemaleShort": "Female",
         "MaleShort": "Male",
@@ -300,7 +301,11 @@
             "UnovaStone": "Teselia stone",
             "DragonScale": "Dragon scale",
             "Upgrade": "Upgrade",
-            "MetalCoat": "Metal coat"
+            "MetalCoat": "Metal coat",
+            "SweetApple": "Sweet apple",
+            "TartApple": "Tart apple",
+            "SyrupyApple": "Syrupy apple",
+            "GimmighoulCoin": "Gimmighoul coin"
         },
         "tradeLegend": "Free when traded"
     },

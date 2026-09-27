@@ -276,6 +276,7 @@
     "evolutions": {
         "dayShort": "De día",
         "nightShort": "De noche",
+        "fullMoonShort": "Con luna llena",
         "buddyShort": "{km} km con compañero",
         "FemaleShort": "Hembra",
         "MaleShort": "Macho",
@@ -300,7 +301,11 @@
             "UnovaStone": "Piedra teselia",
             "DragonScale": "Escama dragón",
             "Upgrade": "Mejora",
-            "MetalCoat": "Revestimiento metálico"
+            "MetalCoat": "Revestimiento metálico",
+            "SweetApple": "Manzana dulce",
+            "TartApple": "Manzana ácida",
+            "SyrupyApple": "Manzana melosa",
+            "GimmighoulCoin": "Moneda de Gimmighoul"
         },
         "tradeLegend": "Gratis al intercambiar"
     },

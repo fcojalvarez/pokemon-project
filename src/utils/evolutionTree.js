@@ -17,10 +17,12 @@ export const CAMPOS_REQUISITO = [
   'candy_required',
   'mega_energy_required',
   'item_required',
+  'item_cost',
   'lure_required',
   'buddy_distance_required',
   'only_evolves_in_daytime',
   'only_evolves_in_nighttime',
+  'only_evolves_in_full_moon',
   'gender_required',
   'no_candy_cost_if_traded'
 ]

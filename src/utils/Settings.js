@@ -1,6 +1,8 @@
 export const status200 = 200;
 
-export const MAX_LENGH_POKEMONS = 1017;
+// Última especie de la tabla `pokemons` (Pecharunt). El pipeline da de alta las
+// que salgan nuevas en el juego: si pasa, hay que subir este tope.
+export const MAX_LENGH_POKEMONS = 1025;
 export const NEXT_LOAD_LENGTH_ITEMS = 100;
 export const DISTANCE_TO_BOTTOM_PAGE = 1500;
 
