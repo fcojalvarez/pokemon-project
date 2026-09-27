@@ -340,6 +340,11 @@ const REQUISITOS_DEL_JUEGO = {
 const FORMAS_REGIONALES = /_(ALOLA|GALARIAN|HISUIAN|PALDEA)/
 
 const sinVacios = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v != null))
+// JSON con las claves ordenadas: Postgres guarda las de un jsonb en su propio
+// orden y, comparando el texto tal cual, las misiones ({es, en}) salían
+// distintas en cada pasada aunque no hubieran cambiado.
+const canonico = (valor) => JSON.stringify(valor, (_, v) =>
+  v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : 1))) : v)
 const conRepetidos = (rama) => new Set(rama.map((paso) => paso.pokemon_id)).size !== rama.length
 
 /**
@@ -563,7 +568,7 @@ async function syncEvolutionChains(client, roster, gm, es, en) {
     for (const [k, rama] of Object.entries(info)) {
       if (Array.isArray(rama)) info[k] = rama.map((paso, i) => alDia(paso, rama[i + 1]?.pokemon_id))
     }
-    if (JSON.stringify(info) !== JSON.stringify(original)) cambios.push([r.pokemon_id, JSON.stringify(info)])
+    if (canonico(info) !== canonico(original)) cambios.push([r.pokemon_id, JSON.stringify(info)])
   }
 
   for (const [id, info] of cambios) {
@@ -826,6 +831,25 @@ const TYPE_ES = {
 }
 
 /** Traducción de los sufijos de forma que usa pvpoke en speciesName. */
+/**
+ * Los Pikachu disfrazados que cuentan como forma propia (tienen ataques
+ * suyos), con el nombre que les da GO. El juego no tiene clave de forma para
+ * ellos, pero los nombra en otros textos: «Pikachu Roquera» y «Pikachu
+ * Superstar» en la elección del GO Fest 2021, «Pikachu Enmascarada» en la
+ * ropa del avatar, «Pikachu Vuelo» y «Capitán Pikachu» en eventos. Los tres
+ * últimos no aparecen en ningún texto y son traducción nuestra.
+ */
+const DISFRACES = {
+  pikachu_pop_star: { es: 'Pikachu Superstar', en: 'Pikachu Pop Star' },
+  pikachu_rock_star: { es: 'Pikachu Roquera', en: 'Pikachu Rock Star' },
+  pikachu_libre: { es: 'Pikachu Enmascarada', en: 'Pikachu Libre' },
+  pikachu_flying: { es: 'Pikachu Vuelo', en: 'Flying Pikachu' },
+  pikachu_horizons: { es: 'Capitán Pikachu', en: 'Captain Pikachu' },
+  pikachu_kariyushi: { es: 'Pikachu Kariyushi', en: 'Kariyushi Pikachu' },
+  pikachu_5th_anniversary: { es: 'Pikachu 5.º aniversario', en: '5th Anniversary Pikachu' },
+  pikachu_shaymin: { es: 'Pikachu con bufanda de Shaymin', en: 'Shaymin Scarf Pikachu' },
+}
+
 const FORM_ES = [
   [/\(Shadow\)/i, '(Oscuro)'],
   [/\(Mega X\)/i, '(Mega X)'],
@@ -1255,8 +1279,8 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny) {
       id: p.speciesId,
       dex: p.dex,
       spriteId: spriteIdFor(p.speciesId, p.dex, forms),
-      name: p.speciesName,
-      nameEs: spanishName(p.speciesName, p.dex, es, p.speciesId),
+      name: DISFRACES[p.speciesId]?.en ?? p.speciesName,
+      nameEs: DISFRACES[p.speciesId]?.es ?? spanishName(p.speciesName, p.dex, es, p.speciesId),
       types: p.types.filter((t) => t && t !== 'none'),
       stats: p.baseStats,
       fast,
@@ -1303,7 +1327,7 @@ function trimRankings(list, roster, limit) {
     return {
       rank: i + 1,
       id: r.speciesId,
-      name: r.speciesName,
+      name: p?.name ?? r.speciesName,
       nameEs: p?.nameEs ?? r.speciesName,
       types: p?.types ?? [],
       score: r.score,

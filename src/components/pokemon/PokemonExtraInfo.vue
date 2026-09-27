@@ -402,17 +402,24 @@ const resumen = computed(() => {
               {{ $t('top.overall') }}: <strong>#{{ pveRanks.overall.rank }}</strong>
             </p>
             <ul class="mt-2 flex flex-col gap-1.5">
+              <!--
+                En dos líneas: tipo y puesto arriba, la forma debajo a todo el
+                ancho. En una sola, en la columna estrecha, «Pikachu 5.º
+                aniversario» o «Mega Charizard Y» se partían a media palabra.
+              -->
               <li
                 v-for="entry in pveRanks.byType"
                 :key="`${entry.type}-${entry.id}`"
-                class="flex items-center gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+                class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
               >
-                <type-icons :types="[entry.type]" size="13" />
-                <span class="font-semibold">{{ $t(`types.${entry.type}`) }}</span>
-                <span class="text-gray-600 dark:text-gray-300 truncate">{{ localName(entry) }}</span>
-                <span class="ml-auto shrink-0">
-                  #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
+                <span class="flex items-center gap-2">
+                  <type-icons :types="[entry.type]" size="13" />
+                  <span class="font-semibold">{{ $t(`types.${entry.type}`) }}</span>
+                  <span class="ml-auto shrink-0">
+                    #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
+                  </span>
                 </span>
+                <span class="block mt-0.5 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
               </li>
             </ul>
           </template>
@@ -427,13 +434,15 @@ const resumen = computed(() => {
             <li
               v-for="entry in pvpRanks"
               :key="`${entry.league}-${entry.id}`"
-              class="flex items-center gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+              class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
             >
-              <span class="font-semibold">{{ $t(`top.${entry.league}`) }}</span>
-              <span class="text-gray-600 dark:text-gray-300 truncate">{{ localName(entry) }}</span>
-              <span class="ml-auto shrink-0">
-                #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
+              <span class="flex items-center gap-2">
+                <span class="font-semibold">{{ $t(`top.${entry.league}`) }}</span>
+                <span class="ml-auto shrink-0">
+                  #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
+                </span>
               </span>
+              <span class="block mt-0.5 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
             </li>
           </ul>
         </ficha-seccion>
