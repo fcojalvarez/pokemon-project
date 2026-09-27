@@ -84,6 +84,11 @@
         "noPveRank": "Fuera del top 500",
         "superMega": "Supermega",
         "shinyLegend": "Variocolor liberado",
+        "category": {
+            "legendary": "Legendario",
+            "mythical": "Singular",
+            "ultraBeast": "Ultraente"
+        },
         "status": "Avisos",
         "costs": "Costes",
         "stardust": "polvo",

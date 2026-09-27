@@ -84,6 +84,11 @@
         "noPveRank": "Outside the top 500",
         "superMega": "Super Mega",
         "shinyLegend": "Shiny released",
+        "category": {
+            "legendary": "Legendary",
+            "mythical": "Mythical",
+            "ultraBeast": "Ultra Beast"
+        },
         "status": "Heads-up",
         "costs": "Costs",
         "stardust": "dust",

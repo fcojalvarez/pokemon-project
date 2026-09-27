@@ -49,6 +49,20 @@ const hero = computed(() => {
     };
 });
 
+/**
+ * Legendario, singular o ultraente: lo marca el propio juego, y cambia mucho
+ * cómo se consigue (casi siempre en incursiones de nivel 5 o misiones).
+ */
+const categoria = computed(() => {
+    const p = pokemon.value;
+    if(!p) return null;
+    const entrada = form.value || gameData.baseByDex(p.pokemon_id);
+    if(entrada?.mythical) return 'mythical';
+    if(entrada?.ultraBeast) return 'ultraBeast';
+    if(entrada?.legendary) return 'legendary';
+    return null;
+});
+
 // El título de la pestaña lo pone el router para las páginas fijas; aquí
 // depende de qué Pokémon se cargue.
 watch(() => hero.value?.name, (name) => {
@@ -115,6 +129,10 @@ watch(() => route.params.id, async(newId) => {
                     <span class="block text-xs text-gray-600 dark:text-gray-300">#{{ hero.number }}</span>
                     <h1 class="text-2xl font-bold leading-tight text-gray-900 dark:text-gray-100">{{ hero.name }}</h1>
                     <type-icons :types="hero.types" size="14" with-label class="mt-1.5 flex-wrap text-gray-800 dark:text-gray-200" />
+                    <span
+                        v-if="categoria"
+                        class="inline-block mt-2 px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-amber-500 text-amber-700 dark:text-amber-400"
+                    >{{ $t(`pokemon.category.${categoria}`) }}</span>
                 </div>
             </header>
 
