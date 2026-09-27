@@ -129,8 +129,8 @@ watch(() => route.params.id, async(newId) => {
         </base-card>
 
         <!-- Cadena evolutiva: en línea desde lg; en móvil, lo que sale de varias formas baja -->
-        <base-card class="!px-3 !pb-4 lg:!px-6 lg:!pb-6">
-            <h2 class="px-1 lg:px-0 text-sm font-bold text-gray-800 dark:text-gray-200">{{ $t('pokemon.evolutionLine') }}</h2>
+        <base-card class="!px-2 !pb-4 lg:!px-6 lg:!pb-6">
+            <h2 class="px-2 lg:px-0 text-sm font-bold text-gray-800 dark:text-gray-200">{{ $t('pokemon.evolutionLine') }}</h2>
             <div class="mt-4">
                 <evolution-chain :pokemon="pokemon" :form-id="formId" :shiny="isShowShiny" />
             </div>

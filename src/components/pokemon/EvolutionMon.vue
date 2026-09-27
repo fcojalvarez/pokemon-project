@@ -34,12 +34,17 @@ const nombre = computed(() => (props.sinNumero ? props.mon.name : `#${props.mon.
 
 const sprite = computed(() => (props.shiny ? props.mon.sprites?.male_shiny : props.mon.sprites?.male) ?? null)
 
+// El ancho incluye el relleno de la tarjeta (p-1.5 / lg:p-2).
 const ancho = computed(() => {
-  if (!props.enGrupo) return 'w-[68px] lg:w-32'
+  if (!props.enGrupo) return 'w-[72px] lg:w-32'
   return props.pocos ? 'w-[132px] lg:w-[136px]' : 'w-full lg:w-[104px]'
 })
-// El que se está viendo mide lo mismo que los demás: se marca solo con el
-// fondo y el borde, que van por fuera del sprite y no lo encogen ni lo mueven.
+// Igual que las tarjetas de la Pokédex: la tarjeta es el sprite, el nombre y
+// los tipos. El que se está viendo se marca con fondo y borde, y mide lo mismo
+// que los demás; los demás se resaltan al pasar el ratón.
+const activo = 'bg-gray-200 dark:bg-gray-700 outline outline-1 outline-gray-400 dark:outline-gray-500'
+const alPasar = 'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600'
+
 const caja = computed(() =>
   props.enGrupo ? 'w-[54px] h-[54px] lg:w-[72px] lg:h-[72px]' : 'w-[60px] h-[60px] lg:w-24 lg:h-24'
 )
@@ -50,13 +55,10 @@ const caja = computed(() =>
     :is="to && !active ? 'router-link' : 'div'"
     :to="to && !active ? to : undefined"
     :aria-current="active ? 'page' : undefined"
-    class="flex flex-col items-center gap-1.5 shrink-0 rounded-xl text-gray-800 dark:text-gray-200"
-    :class="ancho"
+    class="flex flex-col items-center gap-1.5 shrink-0 p-1.5 lg:p-2 rounded-xl text-gray-800 dark:text-gray-200"
+    :class="[ancho, active ? activo : to ? alPasar : '']"
   >
-    <span
-      class="relative grid place-items-center"
-      :class="[caja, active ? 'rounded-xl bg-gray-200 dark:bg-gray-700 outline outline-1 outline-offset-2 outline-gray-400 dark:outline-gray-500 ring-4 ring-gray-200 dark:ring-gray-700' : '']"
-    >
+    <span class="relative grid place-items-center" :class="caja">
       <base-sprite
         :src="sprite"
         :lazy="false"

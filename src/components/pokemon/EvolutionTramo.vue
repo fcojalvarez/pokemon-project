@@ -116,7 +116,7 @@ const monProps = (nodo, extra = {}) => ({
         v-if="principal && tramo.final"
         vertical
         class="lg:hidden"
-        :class="tramo.unidades.length > 1 ? 'self-end mr-[22px]' : 'self-center'"
+        :class="tramo.unidades.length > 1 ? 'self-end mr-[24px]' : 'self-center'"
         :req="tramo.final.req"
         :type="tramo.final.caramelo"
       />
