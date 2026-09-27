@@ -8,8 +8,8 @@
  * Fuentes:
  *   - PokeMiners/game_masters  -> stats de movimientos en PvE, tabla de tipos, CPM
  *   - PokeMiners/pogo_assets   -> nombres en español
- *   - pvpoke.com/data          -> roster jugable + stats de movimientos en PvP
- *   - pvpoke.com/data/rankings -> rankings PvP de las tres ligas
+ *   - pvpoke (su repo de GitHub) -> roster jugable + stats de movimientos en PvP
+ *   - pvpoke (su repo de GitHub) -> rankings PvP de las tres ligas
  *   - leekduck.com/shiny       -> variocolores liberados, con fecha de estreno
  *
  * Los eventos, incursiones, huevos e investigaciones NO se generan aquí:
@@ -907,14 +907,21 @@ async function uploadToSupabase(data, roster, conVariocolor, gm, en, es) {
   }
 }
 
+const PVPOKE_REPO = 'https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/'
+
 const SOURCES = {
   gm: 'https://raw.githubusercontent.com/PokeMiners/game_masters/master/latest/latest.json',
   es: 'https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Texts/Latest%20APK/JSON/i18n_spanish.json',
   en: 'https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Texts/Latest%20APK/JSON/i18n_english.json',
-  pvpGm: 'https://pvpoke.com/data/gamemaster.json',
-  great: 'https://pvpoke.com/data/rankings/all/overall/rankings-1500.json',
-  ultra: 'https://pvpoke.com/data/rankings/all/overall/rankings-2500.json',
-  master: 'https://pvpoke.com/data/rankings/all/overall/rankings-10000.json',
+  // pvpoke, desde su repositorio de GitHub y no desde su web: la web responde
+  // 403 a los servidores de GitHub Actions (el workflow diario no pasaba de
+  // aquí), y el repo trae los mismos ficheros —los rankings, idénticos byte a
+  // byte; el gamemaster solo cambia en las copas de temporada, que no se usan—.
+  // La web queda de respaldo por si el repo fallara.
+  pvpGm: [PVPOKE_REPO + 'gamemaster.json', 'https://pvpoke.com/data/gamemaster.json'],
+  great: [PVPOKE_REPO + 'rankings/all/overall/rankings-1500.json', 'https://pvpoke.com/data/rankings/all/overall/rankings-1500.json'],
+  ultra: [PVPOKE_REPO + 'rankings/all/overall/rankings-2500.json', 'https://pvpoke.com/data/rankings/all/overall/rankings-2500.json'],
+  master: [PVPOKE_REPO + 'rankings/all/overall/rankings-10000.json', 'https://pvpoke.com/data/rankings/all/overall/rankings-10000.json'],
   // Una sola llamada para saber el id de sprite de cada forma (megas incluidas).
   forms: 'https://pokeapi.co/api/v2/pokemon?limit=100000&offset=0',
   // Lista canónica de variocolores liberados, con de dónde sale cada uno.
@@ -1070,7 +1077,11 @@ const FORM_ES = [
   [/\(Core\)/i, '(Núcleo)'],
 ]
 
-async function load(name, url) {
+/**
+ * Descarga (o lee de la caché) una fuente. `urls` puede ser una lista: se
+ * prueba en orden y vale la primera que responda.
+ */
+async function load(name, urls) {
   await fs.mkdir(CACHE, { recursive: true })
   const file = path.join(CACHE, name + '.json')
   if (!FRESH) {
@@ -1083,8 +1094,20 @@ async function load(name, url) {
     }
   }
   process.stdout.write(`  ${name}: descargando… `)
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`${name}: HTTP ${res.status}`)
+  const lista = Array.isArray(urls) ? urls : [urls]
+  let res = null
+  const fallos = []
+  for (const url of lista) {
+    try {
+      res = await fetch(url)
+      if (res.ok) break
+      fallos.push(`HTTP ${res.status} en ${new URL(url).host}`)
+    } catch (err) {
+      fallos.push(`${err.message} en ${new URL(url).host}`)
+    }
+    res = null
+  }
+  if (!res) throw new Error(`${name}: ${fallos.join('; ')}`)
   const raw = await res.text()
   await fs.writeFile(file, raw)
   console.log(`${(raw.length / 1e6).toFixed(1)} MB`)
