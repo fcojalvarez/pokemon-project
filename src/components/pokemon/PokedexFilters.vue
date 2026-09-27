@@ -140,9 +140,16 @@ const rarityOptions = computed(() => [
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3">
+      <!--
+        En escritorio, selectores e interruptores comparten una fila y van más
+        bajos: a todo el ancho y con 44 px de alto se desperdiciaba medio panel.
+        En móvil, cada grupo en su rejilla de dos columnas, como siempre.
+      -->
+      <div class="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-end lg:gap-4">
+      <div class="grid grid-cols-2 gap-3 lg:flex">
         <base-dropdown
-          class="min-w-0"
+          class="min-w-0 lg:w-56"
+          compacto
           :label="$t('filters.generation')"
           :model-value="filters.generation ?? ''"
           :options="generationOptions"
@@ -150,7 +157,8 @@ const rarityOptions = computed(() => [
         />
 
         <base-dropdown
-          class="min-w-0"
+          class="min-w-0 lg:w-56"
+          compacto
           :label="$t('filters.rarity')"
           :model-value="filters.rarity ?? ''"
           :options="rarityOptions"
@@ -159,39 +167,40 @@ const rarityOptions = computed(() => [
       </div>
 
       <!--
-        Mismo ancho y alto que los selectores, pero separados por una línea:
-        pegados debajo parecían opciones de generación y rareza, y son otra
-        cosa (interruptores, no listas).
+        Separados de los selectores por una línea (horizontal en móvil,
+        vertical en escritorio): pegados parecían opciones de generación y
+        rareza, y son otra cosa (interruptores, no listas).
       -->
-      <div class="grid grid-cols-2 gap-3 pt-4 mt-1 border-t border-gray-300 dark:border-gray-700">
+      <div class="grid grid-cols-2 gap-3 pt-4 mt-1 border-t border-gray-300 dark:border-gray-700 lg:flex lg:gap-2 lg:pt-0 lg:mt-0 lg:border-t-0 lg:border-l lg:pl-4">
         <base-pill-button
-          class="h-11 w-full text-sm"
+          class="h-11 w-full text-sm lg:h-9 lg:w-auto lg:text-xs lg:px-4"
           :active="filters.onlyShiny"
           @click="setFilters({ onlyShiny: !filters.onlyShiny })"
         >
           {{ $t('filters.onlyShiny') }}
         </base-pill-button>
         <base-pill-button
-          class="h-11 w-full text-sm"
+          class="h-11 w-full text-sm lg:h-9 lg:w-auto lg:text-xs lg:px-4"
           :active="filters.onlyShadow"
           @click="setFilters({ onlyShadow: !filters.onlyShadow })"
         >
           {{ $t('filters.onlyShadow') }}
         </base-pill-button>
         <base-pill-button
-          class="h-11 w-full text-sm"
+          class="h-11 w-full text-sm lg:h-9 lg:w-auto lg:text-xs lg:px-4"
           :active="filters.onlyDynamax"
           @click="setFilters({ onlyDynamax: !filters.onlyDynamax })"
         >
           {{ $t('filters.onlyDynamax') }}
         </base-pill-button>
         <base-pill-button
-          class="h-11 w-full text-sm"
+          class="h-11 w-full text-sm lg:h-9 lg:w-auto lg:text-xs lg:px-4"
           :active="filters.onlyGigantamax"
           @click="setFilters({ onlyGigantamax: !filters.onlyGigantamax })"
         >
           {{ $t('filters.onlyGigantamax') }}
         </base-pill-button>
+      </div>
       </div>
       </div>
     </transition>

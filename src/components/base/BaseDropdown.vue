@@ -22,7 +22,9 @@ const props = defineProps({
   options: { type: Array, required: true },
   label: { type: String, default: '' },
   /** Para cuando no hay etiqueta visible. */
-  ariaLabel: { type: String, default: null }
+  ariaLabel: { type: String, default: null },
+  /** Más bajo en escritorio (lg), para filas de filtros donde sobra altura. */
+  compacto: Boolean
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -120,6 +122,7 @@ useDetectOutsideClick(root, () => close())
 
     <button
       type="button"
+      :class="compacto ? 'lg:h-9 lg:text-xs' : ''"
       class="w-full h-11 flex items-center gap-2 pl-3 pr-3 cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-300"
       role="combobox"
       :aria-expanded="isOpen"
