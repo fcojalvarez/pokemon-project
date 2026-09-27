@@ -32,12 +32,17 @@
         filterPokemons(inputValue.value);
     }
 
+    // Solo cuenta la respuesta a lo último que se ha escrito: si no, la de
+    // «sir» podía llegar después que la de «sirfetchd» y quedarse en pantalla.
+    let ultimaBusqueda = 0;
     const inputSearchModal = async() => {
         setIsSearching(true);
         isShowModalSearch.value = true;
         isLoadingPokemonNames.value = true;
-        
+
+        const esta = ++ultimaBusqueda;
         const pokemonsResponse = await filterPokemons(inputValue.value, true);
+        if(esta !== ultimaBusqueda) return;
         pokemonsNamesArrFiltered.value = pokemonsResponse;
         setIsSearching(false);
         isLoadingPokemonNames.value = false;

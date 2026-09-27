@@ -80,6 +80,37 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         return data || [];
     }
 
+    /**
+     * Búsqueda por nombre sin fijarse en mayúsculas, tildes ni signos: «mr
+     * mime» encuentra «Mr. Mime», «sirfetchd» a «Sirfetch'd» y «hooh» a
+     * «Ho-Oh». Con un `ilike` contra la base no se podía. La lista de nombres
+     * (1025, poca cosa) se pide una vez y se busca en ella; primero los que
+     * empiezan por lo escrito y luego los que lo contienen.
+     */
+    let nombres = null;
+    const normalizar = (texto) => String(texto ?? '')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase().replace(/[^a-z0-9]/g, '');
+    const cargarNombres = async() => {
+        if(!nombres) {
+            // Sin .range, Supabase corta en 1000 filas y faltarían los últimos.
+            const { data } = await supabase.from('pokemons').select('pokemon_id,name').order('pokemon_id').range(0, 1999);
+            if(data?.length) nombres = data;
+        }
+        return nombres ?? [];
+    };
+    const buscarPorNombre = async(texto) => {
+        const q = normalizar(texto);
+        if(!q) return [];
+        const empiezan = [], contienen = [];
+        for(const p of await cargarNombres()) {
+            const n = normalizar(p.name);
+            if(n.startsWith(q)) empiezan.push(p);
+            else if(n.includes(q)) contienen.push(p);
+        }
+        return [...empiezan, ...contienen];
+    };
+
     const filterPokemons = async(inputValue, toSearchModal = false) => {
         const value = (inputValue || '').toLowerCase().trim();
         const isWritingName = isNaN(value); 
@@ -97,12 +128,21 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             return;
         }
 
+        // El desplegable solo necesita número y nombre.
+        if(toSearchModal && isWritingName) return buscarPorNombre(value);
+
         const peticion = nuevaPeticion();
-        const { data: pokemons } = await supabase.from('pokemons').select('*').filter(
-            isWritingName? 'name' : 'pokemon_id',
-            isWritingName? 'ilike' : 'eq',
-            isWritingName? `%${value}%`: parseInt(value)
-        );
+        let pokemons;
+        if(isWritingName) {
+            const encontrados = await buscarPorNombre(value);
+            const orden = new Map(encontrados.map((p, i) => [p.pokemon_id, i]));
+            const { data } = encontrados.length
+                ? await supabase.from('pokemons').select('*').in('pokemon_id', [...orden.keys()])
+                : { data: [] };
+            pokemons = (data || []).sort((a, b) => orden.get(a.pokemon_id) - orden.get(b.pokemon_id));
+        } else {
+            ({ data: pokemons } = await supabase.from('pokemons').select('*').eq('pokemon_id', parseInt(value)));
+        }
 
         if(toSearchModal) return pokemons || [];
 

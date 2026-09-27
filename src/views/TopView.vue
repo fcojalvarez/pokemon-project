@@ -259,7 +259,8 @@ onMounted(() => gameData.load())
             En la tabla también se ordena pulsando las cabeceras; los dos van a
             la par. Lo que significa cada orden va justo debajo del selector.
           -->
-          <div v-if="mode === 'pve'" class="min-w-0">
+          <!-- A dos columnas va solo en su fila: a media anchura se cortaba («Daño por segundo (…»). -->
+          <div v-if="mode === 'pve'" class="min-w-0 xs:col-span-2 sm:col-span-1">
             <base-filter-select
               v-model="sortBy"
               :label="$t('top.sortBy')"

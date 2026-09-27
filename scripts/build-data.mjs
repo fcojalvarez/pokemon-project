@@ -913,6 +913,9 @@ const SOURCES = {
   // Variocolores liberados, con fecha de estreno. pogoapi.net se paró en enero
   // de 2026 y ya no se consulta (ver especiesConVariocolor).
   shinyLeekDuck: 'https://leekduck.com/shiny/pms.json',
+  // Los textos del juego, al día (los de PokeMiners se pararon en agosto de
+  // 2025). Solo para los nombres de ataque que faltan.
+  pokemonGoApi: 'https://pokemon-go-api.github.io/pokemon-go-api/api/pokedex.json',
 }
 
 /** pvpoke nombra las formas distinto que PokeAPI. */
@@ -1191,7 +1194,20 @@ function buildMegaEnergy(gm) {
   return costs
 }
 
-function buildMoves(gm, pvpGm, es) {
+/** Nombre de cada ataque en español e inglés, sacado de pokemon-go-api. */
+function nombresDeAtaques(pga) {
+  const nombres = new Map()
+  for (const p of Array.isArray(pga) ? pga : []) {
+    for (const campo of ['quickMoves', 'cinematicMoves', 'eliteQuickMoves', 'eliteCinematicMoves']) {
+      for (const m of Object.values(p[campo] ?? {})) {
+        if (m?.id && m.names?.Spanish && !nombres.has(m.id)) nombres.set(m.id, { es: m.names.Spanish, en: m.names.English })
+      }
+    }
+  }
+  return nombres
+}
+
+function buildMoves(gm, pvpGm, es, nombresPga = new Map()) {
   const moves = {}
 
   // Stats PvE del GAME_MASTER.
@@ -1254,6 +1270,13 @@ function buildMoves(gm, pvpGm, es) {
       buffTarget: m.buffTarget ?? null,
       buffApplyChance: m.buffApplyChance ? Number(m.buffApplyChance) : null,
     }
+  }
+
+  // Los textos del juego de PokeMiners no se actualizan desde agosto de 2025:
+  // los ataques de después (Pico Cañón, Cabeza Sorpresa, Agua Fría…) salían
+  // en inglés. pokemon-go-api publica los mismos textos del juego y al día.
+  for (const entry of Object.values(moves)) {
+    if (!entry.nameEs) entry.nameEs = nombresPga.get(entry.id)?.es ?? null
   }
 
   for (const entry of Object.values(moves)) {
@@ -1629,7 +1652,7 @@ function trimRankings(list, roster, limit) {
 async function main() {
   await loadEnv()
   console.log('Descargando fuentes…')
-  const [gmRaw, esRaw, enRaw, pvpGm, great, ultra, master, formsRaw, leekRaw] = await Promise.all([
+  const [gmRaw, esRaw, enRaw, pvpGm, great, ultra, master, formsRaw, leekRaw, pgaRaw] = await Promise.all([
     load('gm', SOURCES.gm),
     load('es', SOURCES.es),
     load('en', SOURCES.en),
@@ -1640,6 +1663,11 @@ async function main() {
     load('pokeapi-forms', SOURCES.forms),
     // Si LeekDuck falla, se sigue con lo que ya había en vez de tirar la pasada.
     load('shiny-leekduck', SOURCES.shinyLeekDuck).catch((err) => {
+      console.warn(`  ⚠ ${err.message}`)
+      return []
+    }),
+    // Solo de respaldo para nombres: si falla, se sigue sin ella.
+    load('pokemon-go-api', SOURCES.pokemonGoApi).catch((err) => {
       console.warn(`  ⚠ ${err.message}`)
       return []
     }),
@@ -1657,7 +1685,7 @@ async function main() {
   }
 
   const chart = buildTypeChart(gmRaw)
-  const moves = buildMoves(gmRaw, pvpGm, es)
+  const moves = buildMoves(gmRaw, pvpGm, es, nombresDeAtaques(pgaRaw))
   const forms = new Map(
     formsRaw.results.map((r) => [r.name, Number(r.url.split('/').filter(Boolean).pop())])
   )
