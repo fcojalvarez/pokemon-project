@@ -103,7 +103,19 @@ export default defineConfig({
           // origen. Y caducan en un mes (una semana los carteles), para que una
           // imagen corregida acabe llegando.
           {
-            // Sprites de PokeAPI: más de mil especies y sus variocolores.
+            // Miniaturas WebP propias (scripts/build-sprites.mjs): se sirven
+            // desde nuestra web y son las que usa la app para los sprites. No
+            // van en la precaché (son 2.400): se guardan según se ven.
+            urlPattern: /\/sprites\/(shiny\/)?\d+\.webp$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'miniaturas-v1',
+              expiration: { maxEntries: 2500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [200] }
+            }
+          },
+          {
+            // Sprites de PokeAPI (el PNG original, si falta la miniatura).
             urlPattern: /^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/.*/i,
             handler: 'CacheFirst',
             options: {

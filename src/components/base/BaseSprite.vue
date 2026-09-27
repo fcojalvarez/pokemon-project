@@ -13,7 +13,8 @@
  * Las clases que se le pasen van al contenedor (tamaño, posición); las de la
  * imagen en sí (sombra, escala de grises…) van en `img-class`.
  */
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { miniatura } from '../../utils/sprites'
 
 defineOptions({ inheritAttrs: false })
 
@@ -29,6 +30,23 @@ const props = defineProps({
    */
   entrada: { type: String, default: 'suave' }
 })
+
+/**
+ * Los sprites de PokeAPI, en su miniatura WebP propia: pesan diez veces menos.
+ * Si una no está (un Pokémon recién añadido que aún no tiene miniatura), se
+ * cae al PNG original en vez de dejar la imagen rota.
+ */
+const sinMiniatura = ref(false)
+const fuente = computed(() => (sinMiniatura.value ? null : miniatura(props.src)) ?? props.src)
+
+const alFallar = () => {
+  if (!sinMiniatura.value && miniatura(props.src)) {
+    sinMiniatura.value = true
+    estado.value = 'cargando'
+    return
+  }
+  estado.value = 'error'
+}
 
 const img = ref(null)
 // 'cargando' | 'brillando' | 'lista' | 'error'
@@ -51,6 +69,7 @@ const comprobarCache = () => {
 }
 
 watch(() => props.src, () => {
+  sinMiniatura.value = false
   estado.value = 'cargando'
   nextTick(comprobarCache)
 })
@@ -67,7 +86,7 @@ onMounted(comprobarCache)
     <img
       v-if="src"
       ref="img"
-      :src="src"
+      :src="fuente"
       crossorigin="anonymous"
       :alt="alt"
       :loading="lazy ? 'lazy' : undefined"
@@ -80,7 +99,7 @@ onMounted(comprobarCache)
       :style="estado === 'cargando' ? { opacity: 0 } : null"
       @load="alCargar"
       @animationend="estado = 'lista'"
-      @error="estado = 'error'"
+      @error="alFallar"
     >
   </span>
 </template>

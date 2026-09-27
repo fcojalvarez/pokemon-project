@@ -86,6 +86,23 @@ describe('BaseSprite', () => {
     expect(w.find('.esqueleto').exists()).toBe(false)
   })
 
+  it('los sprites de PokeAPI salen de la miniatura WebP propia, y si falta, del PNG', async () => {
+    imagen({ complete: false })
+    const png = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/shiny/6.png'
+    const w = montar({ src: png })
+    expect(w.get('img').attributes('src')).toBe('/sprites/shiny/6.webp')
+    await w.get('img').trigger('error')
+    expect(w.get('img').attributes('src')).toBe(png)
+    // Y si también falla el PNG, se da por rota: no se queda probando.
+    await w.get('img').trigger('error')
+    expect(w.find('.esqueleto').exists()).toBe(false)
+  })
+
+  it('cualquier otra imagen se pide tal cual', () => {
+    imagen({ complete: false })
+    expect(montar().get('img').attributes('src')).toBe('https://ejemplo.test/6.png')
+  })
+
   it('al cambiar de imagen (ver shiny) vuelve a enseñar el hueco hasta que llega', async () => {
     imagen({ complete: false })
     const w = montar()

@@ -4,5 +4,13 @@
       "source": "/((?!_next|assets|icons|data|.*\\..*).*)",
       "destination": "/"
     }
+  ],
+  "headers": [
+    {
+      "source": "/sprites/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=2592000" }
+      ]
+    }
   ]
 }

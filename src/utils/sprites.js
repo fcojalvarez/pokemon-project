@@ -16,3 +16,15 @@ const BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/p
 export function spriteUrl(spriteId, { shiny = false } = {}) {
   return `${BASE}/home/${shiny ? 'shiny/' : ''}${spriteId}.png`
 }
+
+/**
+ * La miniatura WebP propia de un sprite de PokeAPI (ver scripts/build-sprites.mjs):
+ * 256 px y unos 12 KB en vez de un PNG de 512 px y 80-200 KB. Para cualquier
+ * otra imagen, null.
+ */
+const HOME = /\/sprites\/pokemon\/other\/home\/(shiny\/)?(\d+)\.png$/
+
+export function miniatura(url) {
+  const m = typeof url === 'string' ? HOME.exec(url) : null
+  return m ? `${import.meta.env.BASE_URL}sprites/${m[1] ?? ''}${m[2]}.webp` : null
+}
