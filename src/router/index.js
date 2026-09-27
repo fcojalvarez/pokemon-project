@@ -2,6 +2,17 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
     history: createWebHistory( import.meta.env.BASE_URL ),
+    /**
+     * Al volver atrás, cada página recupera el scroll que tenía: del Top a una
+     * ficha y vuelta, se sigue por el mismo Pokémon del ranking. Al ir a una
+     * página nueva, arriba. Si solo cambia la query (?form=, ?tab=), no se
+     * mueve.
+     */
+    scrollBehavior(to, from, savedPosition) {
+        if (savedPosition) return savedPosition;
+        if (to.path === from.path) return false;
+        return { top: 0 };
+    },
     routes: [
         {
             path: '/',

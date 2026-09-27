@@ -1,6 +1,6 @@
 <script setup>
     import { computed } from 'vue';
-    import { useRoute } from 'vue-router';
+    import { useRoute, useRouter } from 'vue-router';
     import { SearchBar, ToggleDarkMode, BaseIcon, NavMenu } from '../index';
     import { useMainStore } from '../../stores/main';
     import { storeToRefs } from 'pinia';
@@ -12,6 +12,19 @@
     // Solo en la ficha de un Pokémon: entre páginas principales se navega
     // con el menú, así que ahí el botón de volver no pinta nada.
     const isPokemonView = computed(() => route.name === 'PokemonPage');
+
+    const router = useRouter();
+
+    /**
+     * Vuelve a donde se estaba: el Top, los eventos, otra ficha… Antes iba
+     * siempre a la Pokédex. Si se entró directamente a la ficha (un enlace
+     * compartido) no hay a dónde volver dentro de la app, y entonces sí se va
+     * a la Pokédex. El router guarda la página anterior en history.state.back.
+     */
+    const volver = () => {
+        if (window.history.state?.back) router.back();
+        else router.push('/');
+    };
 </script>
 
 <template>
@@ -27,7 +40,7 @@
             :tabindex="isPokemonView ? 0 : -1"
             :aria-hidden="!isPokemonView"
             :aria-label="$t('back')"
-            @click="$router.push('/')"
+            @click="volver"
         >
             <div class="flex md:hidden justify-center items-center h-full">
                 <base-icon
@@ -61,9 +74,13 @@
     padding: 0;
     border-width: 0;
     overflow: hidden;
-    transition: max-width 0.3s ease, opacity 0.25s ease, padding 0.3s ease;
+    /* Oculto mide 0, pero el gap-3 de la fila seguía dejando 12 px antes del
+       buscador y este no quedaba alineado con el contenido. */
+    margin-right: -0.75rem;
+    transition: max-width 0.3s ease, opacity 0.25s ease, padding 0.3s ease, margin 0.3s ease;
 }
 .back-btn-visible {
+    margin-right: 0;
     max-width: 60px;
     opacity: 1;
     padding: 9px 16px;

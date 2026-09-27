@@ -222,3 +222,58 @@ test('el botón Élite quita los ataques élite del ranking', async ({ page }) =
   await expect(conElite()).toHaveCount(0)
   await expect(filas.first()).toBeVisible()
 })
+
+/**
+ * El botón de volver de la ficha lleva a la página de donde se venía, no
+ * siempre a la Pokédex. Y esa página recupera su scroll.
+ */
+test.describe('volver desde la ficha', () => {
+  const volver = (page) => page.locator('header button.back-btn')
+
+  test('del Top a la ficha y vuelta al Top, en el mismo sitio', async ({ page }) => {
+    await page.goto('/top')
+    const filas = page.locator('ol > li')
+    await expect(filas.nth(20)).toBeAttached()
+    // Se baja siempre lo mismo, sea cual sea el alto de la pantalla, y se
+    // pulsa la primera fila que quede a la vista.
+    await page.evaluate(() => window.scrollTo(0, 800))
+    const scrollAntes = await page.evaluate(() => window.scrollY)
+    expect(scrollAntes).toBeGreaterThan(100)
+    const indice = await filas.evaluateAll((ls) => ls.findIndex((li) => li.getBoundingClientRect().top > 120))
+
+    await filas.nth(indice).getByRole('link').click()
+    await expect(page).toHaveURL(/\/pokemon\/\d+/)
+    await volver(page).click()
+    await expect(page).toHaveURL(/\/top$/)
+    await expect(filas.nth(indice)).toBeInViewport()
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(scrollAntes - 50)
+  })
+
+  test('de Ahora en juego a la ficha de un counter y vuelta', async ({ page }) => {
+    await page.goto('/ahora')
+    const boss = page.locator('main button[aria-expanded]').first()
+    await expect(boss).toBeVisible()
+    await boss.click()
+    const counter = page.locator('main ol li a').first()
+    await expect(counter).toBeVisible()
+    await counter.click()
+    await expect(page).toHaveURL(/\/pokemon\/\d+/)
+    await volver(page).click()
+    await expect(page).toHaveURL(/\/ahora/)
+  })
+
+  test('de una ficha a otra por la línea evolutiva, y vuelta a la anterior', async ({ page }) => {
+    await page.goto('/pokemon/6')
+    await page.getByRole('link', { name: /Charmander/ }).first().click()
+    await expect(page).toHaveURL(/\/pokemon\/4$/)
+    await volver(page).click()
+    await expect(page).toHaveURL(/\/pokemon\/6$/)
+  })
+
+  test('si se entró directamente a la ficha, vuelve a la Pokédex', async ({ page }) => {
+    await page.goto('/pokemon/6')
+    await expect(volver(page)).toBeVisible()
+    await volver(page).click()
+    await expect(page).toHaveURL(/\/$/)
+  })
+})

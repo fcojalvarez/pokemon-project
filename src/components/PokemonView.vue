@@ -65,8 +65,10 @@ onMounted(async() => {
     gameData.load();
     live.load();
 
+    // El scroll arriba lo hace el router (scrollBehavior). Aquí había un
+    // scrollTo suave que, si se volvía atrás antes de que acabara, seguía
+    // subiendo y pisaba el scroll recuperado de la página anterior.
     if(pokemonId) await getPokemon(pokemonId);
-    window.scrollTo({ top: 0, behavior: "smooth" });
 })
 
 watch(() => route.params.id, async(newId) => {
