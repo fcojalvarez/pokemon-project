@@ -1661,7 +1661,12 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny, en = n
       stats: p.baseStats,
       fast,
       charged,
-      released: p.released === true,
+      // pvpoke solo marca liberado lo que sirve para combatir: Ditto, Shedinja,
+      // Spewpa o Aegislash salían sin liberar aunque llevan tiempo en el juego.
+      // Si su variocolor está liberado, el Pokémon lo está; eso solo vale para
+      // la forma normal, no para una mega o un oscuro que aún no hayan salido.
+      released: p.released === true ||
+        (conShiny.has(p.dex) && !tags.includes('shadow') && !tags.includes('mega')),
       shadow: tags.includes('shadow'),
       mega: tags.includes('mega'),
       // Las supermegas son megas con stats y movimientos propios.
