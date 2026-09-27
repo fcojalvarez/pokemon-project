@@ -57,7 +57,7 @@ onUnmounted(() => {
         </p>
 
         <!-- La leyenda va dentro de los filtros: comparten la primera línea. -->
-        <pokedex-filters class="px-4 pt-3">
+        <pokedex-filters class="pt-3">
             <!-- Las leyendas comparten el hueco de la izquierda y bajan de
                  línea solas cuando no caben. -->
             <span v-if="pokemons.length > 0" class="flex flex-wrap items-center gap-x-4 gap-y-1">
