@@ -38,7 +38,7 @@ defineProps({
     </div>
   </div>
 
-  <div v-else class="flex flex-col items-center gap-0.5 lg:px-2">
+  <div v-else class="flex flex-col items-center gap-0.5 md:px-3 lg:px-5">
     <evolution-requirements :req="req" :type="type" parte="coste" />
     <svg
       class="shrink-0 -scale-y-100 stroke-gray-700 dark:stroke-white"

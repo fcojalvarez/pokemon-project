@@ -46,7 +46,7 @@ const sprite = computed(() => (props.shiny ? props.mon.sprites?.male_shiny : pro
 
 // El ancho incluye el relleno de la tarjeta (p-1.5 / lg:p-2).
 const ancho = computed(() => {
-  if (!props.enGrupo) return 'w-[72px] lg:w-32'
+  if (!props.enGrupo) return 'w-[72px] md:w-24 lg:w-32'
   return props.pocos ? 'w-[132px] lg:w-[136px]' : 'w-full lg:w-[104px]'
 })
 // Igual que las tarjetas de la Pokédex: la tarjeta es el sprite, el nombre y
@@ -56,7 +56,7 @@ const activo = 'bg-gray-200 dark:bg-gray-700 outline outline-1 outline-gray-400 
 const alPasar = 'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600'
 
 const caja = computed(() =>
-  props.enGrupo ? 'w-[54px] h-[54px] lg:w-[72px] lg:h-[72px]' : 'w-[60px] h-[60px] lg:w-24 lg:h-24'
+  props.enGrupo ? 'w-[54px] h-[54px] lg:w-[72px] lg:h-[72px]' : 'w-[60px] h-[60px] md:w-[72px] md:h-[72px] lg:w-24 lg:h-24'
 )
 </script>
 
