@@ -307,6 +307,7 @@ const resumen = computed(() => {
     : t('pokemon.noPvpRank')
   const mejor = bestMovesets.value[0]
   if (mejor) r.ataques = `${localName(mejor.fast)} + ${localName(mejor.charged)} · ${mejor.dps.toFixed(1)} DPS`
+  else r.ataques = [...movepool.value.fast, ...movepool.value.charged].map(localName).join(' · ')
   const efecto = moveEffects.value[0]
   if (efecto) r.efectos = `${localName(efecto)}: ${efecto.text}${moveEffects.value.length > 1 ? ` · +${moveEffects.value.length - 1}` : ''}`
   r.debilidades = matchups.value.weak.slice(0, 3)
@@ -438,9 +439,11 @@ const resumen = computed(() => {
         </ficha-seccion>
       </div>
 
-      <!-- ---------- Mejores ataques ---------- -->
-      <ficha-seccion v-if="bestMovesets.length" id="ataques" :title="$t('pokemon.bestMoves')" :summary="resumen.ataques">
-        <ol class="mt-2 flex flex-col gap-1.5">
+      <!-- ---------- Mejores ataques ----------
+           Aunque no haya combinaciones que puntuar (Applin solo tiene
+           Forcejeo, que no cuenta), la lista de ataques se enseña igual. -->
+      <ficha-seccion v-if="bestMovesets.length || movepool.fast.length" id="ataques" :title="$t('pokemon.bestMoves')" :summary="resumen.ataques">
+        <ol v-if="bestMovesets.length" class="mt-2 flex flex-col gap-1.5">
           <li
             v-for="set in bestMovesets"
             :key="`${set.fast.id}-${set.charged.id}`"
@@ -467,7 +470,7 @@ const resumen = computed(() => {
           </li>
         </ol>
 
-        <div class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700">
+        <div :class="bestMovesets.length ? 'mt-3 pt-3 border-t border-gray-300 dark:border-gray-700' : 'mt-2'">
           <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.fastMoves') }}</span>
           <div class="flex flex-wrap gap-1 mt-1">
             <move-tag

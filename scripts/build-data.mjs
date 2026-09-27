@@ -843,6 +843,21 @@ const FORM_ES = [
   [/\(Autumn\)/i, '(Otoño)'],
   [/\(Spring\)/i, '(Primavera)'],
   [/\(Normal\)/i, '(Normal)'],
+  [/\(Male\)/i, '(Macho)'],
+  [/\(Female\)/i, '(Hembra)'],
+  [/\(Plant\)/i, '(Tronco Planta)'],
+  [/\(Sandy\)/i, '(Tronco Arena)'],
+  [/\(Trash\)/i, '(Tronco Basura)'],
+  [/\(Aqua\)/i, '(Raza Acuática)'],
+  [/\(Blaze\)/i, '(Raza Ardiente)'],
+  [/\(Combat\)/i, '(Raza Combativa)'],
+  [/\(10% Forme\)/i, '(Forma 10 %)'],
+  [/\(50% Forme\)/i, '(Forma 50 %)'],
+  [/\(Pa'u\)/i, '(Estilo Plácido)'],
+  [/\(Pom-Pom\)/i, '(Estilo Animado)'],
+  [/\(Armored\)/i, '(Acorazado)'],
+  [/\(Galarian Zen\)/i, '(Galar, Modo Daruma)'],
+  [/\(Core\)/i, '(Núcleo)'],
 ]
 
 async function load(name, url) {
@@ -1060,26 +1075,40 @@ function buildMoves(gm, pvpGm, es) {
   return moves
 }
 
-function spanishName(speciesName, dex, es) {
+function spanishName(speciesName, dex, es, speciesId = '') {
   const base = es.get(`pokemon_name_${String(dex).padStart(4, '0')}`)
   if (!base) return speciesName
-  const suffix = /\(([^)]+)\)\s*$/.exec(speciesName)
-  if (!suffix) return base
-  let tail = `(${suffix[1]})`
-  for (const [re, rep] of FORM_ES) {
-    if (re.test(tail)) {
-      tail = rep
-      break
-    }
-  }
+  // Todos los sufijos, no solo el último: «Sandslash (Alolan) (Shadow)» se
+  // quedaba en «Sandslash (Oscuro)», sin la región.
+  const sufijos = [...speciesName.matchAll(/\(([^)]+)\)/g)].map((m) => m[1].trim())
+  if (!sufijos.length) return base
 
   // Las megas se nombran como en el juego, con el "Mega" delante: "Mega
-  // Blastoise", "Mega Charizard X". El resto de formas se quedan con el
-  // sufijo entre paréntesis, que es como se las nombra ("Marowak (Alola)").
-  const mega = /^\(Mega(?:\s+([XY]))?\)$/i.exec(tail)
+  // Blastoise", "Mega Charizard X".
+  const mega = sufijos.map((f) => /^Mega(?:\s+([XY]))?$/i.exec(f)).find(Boolean)
   if (mega) return `Mega ${base}${mega[1] ? ` ${mega[1].toUpperCase()}` : ''}`
 
-  return `${base} ${tail}`
+  const especie = speciesId.split('_')[0]
+  const partes = []
+  for (const forma of sufijos) {
+    // pvpoke parte algunos nombres como si fueran forma: «Mime (Jr)», «Type (Null)».
+    if (/^(jr|null)$/i.test(forma) || base.toLowerCase().includes(forma.toLowerCase())) continue
+    const fija = FORM_ES.find(([re]) => re.test(`(${forma})`))
+    if (fija) {
+      partes.push(fija[1].slice(1, -1))
+      continue
+    }
+    // Si no, el nombre que da el propio juego (form_rotom_wash → «Rotom
+    // Lavado», form_toxtricity_low_key → «Forma Grave»).
+    const clave = forma.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
+    const delJuego = [clave, clave.replace(/_forme?$/, '')]
+      .flatMap((c) => [`form_${especie}_${c}`, `form_${c}`])
+      .map((c) => es.get(c))
+      .find(Boolean)
+    if (delJuego?.toLowerCase().startsWith(base.toLowerCase())) return delJuego
+    partes.push(delJuego ?? forma)
+  }
+  return partes.length ? `${base} (${partes.join(', ')})` : base
 }
 
 /**
@@ -1196,7 +1225,7 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny) {
       dex: p.dex,
       spriteId: spriteIdFor(p.speciesId, p.dex, forms),
       name: p.speciesName,
-      nameEs: spanishName(p.speciesName, p.dex, es),
+      nameEs: spanishName(p.speciesName, p.dex, es, p.speciesId),
       types: p.types.filter((t) => t && t !== 'none'),
       stats: p.baseStats,
       fast,

@@ -19,7 +19,9 @@ const saltarAlContenido = (event) => {
       {{ $t('a11y.skipToContent') }}
     </a>
 
-    <HeaderComponent class="mb-6 pt-6 sticky top-0 z-20" />
+    <!-- Con el fondo de la página: sin él, al bajar, los nombres pasaban por detrás
+         del buscador y se leían entre los botones. -->
+    <HeaderComponent class="mb-6 pt-6 sticky top-0 z-20 bg-gray-100 dark:bg-gray-700 transition-colors" />
 
     <!-- tabindex -1: recibe el foco del enlace de salto sin entrar en el orden del tabulador. -->
     <main id="contenido" tabindex="-1" class="min-h-[74vh] mb-4 focus:outline-none">

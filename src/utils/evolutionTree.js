@@ -87,6 +87,9 @@ export function repartirRequisitos(ramas) {
     const valor = ramas[0].req[campo]
     if (valor !== undefined && ramas.every((rama) => rama.req[campo] === valor)) comunes[campo] = valor
   }
+  // La cantidad va con su objeto: las tres manzanas de Applin piden 20, pero
+  // cada una es distinta, y «×20» suelto en la flecha no diría de qué.
+  if ('item_cost' in comunes && !('item_required' in comunes)) delete comunes.item_cost
   const propios = ramas.map((rama) => {
     const resto = {}
     for (const [campo, valor] of Object.entries(rama.req)) if (!(campo in comunes)) resto[campo] = valor

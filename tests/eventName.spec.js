@@ -81,7 +81,11 @@ describe('translatePokemonName', () => {
     ['Farfetch’d', 'Sirfetch’d']
   ])
   const forma = (form, pokemon) =>
-    ({ mega: `Mega ${pokemon}`, shadow: `${pokemon} Oscuro`, dynamax: `${pokemon} Dinamax` })[form]
+    ({ mega: `Mega ${pokemon}`, shadow: `${pokemon} Oscuro`, dynamax: `${pokemon} Dinamax`, alola: `${pokemon} de Alola` })[form]
+
+  it('traduce también un segundo prefijo', () => {
+    expect(translatePokemonName('Shadow Alolan Bulbasaur', namesEs, forma)).toBe('Bulbasaur de Alola Oscuro')
+  })
 
   it('traduce el nombre base', () => {
     expect(translatePokemonName('Farfetch’d', namesEs, forma)).toBe('Sirfetch’d')

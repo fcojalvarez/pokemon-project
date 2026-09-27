@@ -238,9 +238,18 @@ const TIER_ORDER = [
     return grupos
   })
 
-  const eggsByType = computed(() =>
-    groupBy(eggs.value, 'eggType', ['1 km', '2 km', '5 km', '7 km', '10 km', '12 km'])
-  )
+  // LeekDuck repite a veces el mismo Pokémon en el mismo huevo (Corsola de
+  // Galar en 7 km, uno normal y otro de intercambio de regalos): se enseña una vez.
+  const eggsByType = computed(() => {
+    const vistos = new Set()
+    const unicos = eggs.value.filter((egg) => {
+      const clave = `${egg.eggType}|${egg.name}`
+      if (vistos.has(clave)) return false
+      vistos.add(clave)
+      return true
+    })
+    return groupBy(unicos, 'eggType', ['1 km', '2 km', '5 km', '7 km', '10 km', '12 km'])
+  })
 
   /**
    * Dónde sale ahora mismo un Pokémon concreto: incursiones, huevos y tareas.

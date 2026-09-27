@@ -108,8 +108,9 @@ export function translatePokemonName(name, namesEs, translateForm = (form) => fo
 
   for (const [re, form] of FORM_PREFIXES) {
     if (!re.test(clean)) continue
-    const base = clean.replace(re, '')
-    const baseEs = namesEs?.get(base) ?? base
+    // Puede haber dos prefijos seguidos («Shadow Alolan Sandslash»): el resto
+    // se traduce igual, que si no se quedaba «Alolan Sandslash Oscuro».
+    const baseEs = translatePokemonName(clean.replace(re, ''), namesEs, translateForm)
     return translateForm(form, baseEs)
   }
 
