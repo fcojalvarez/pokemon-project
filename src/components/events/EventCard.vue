@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useLiveStore } from '../../stores/live'
 import { useGameDataStore } from '../../stores/gameData'
-import { formatDateTime, formatDuration } from '../../utils/time'
+import { formatDuration } from '../../utils/time'
 import { useTranslate } from '../../composables/useTranslate'
 import {
   parseEventName,
@@ -13,6 +13,7 @@ import { spriteUrl } from '../../utils/sprites'
 import { summarizeEvent } from '../../utils/eventSummary'
 import MaxMark from '../pokemon/MaxMark.vue'
 import EventMon from './EventMon.vue'
+import EventDateBlock from './EventDateBlock.vue'
 
 const props = defineProps({
   event: { type: Object, required: true }
@@ -35,6 +36,24 @@ const countdown = computed(() => {
   if (remaining <= 0) return null
   const prefix = props.event.status === 'upcoming' ? t('events.startsIn') : t('events.endsIn')
   return { text: `${prefix} ${formatDuration(remaining)}`, urgent: remaining < 6 * 3600 * 1000 }
+})
+
+/**
+ * El día de inicio ya lo dice la hoja de calendario; aquí va el resto:
+ * «14:00 → 17:00» si acaba ese mismo día, «02:00 → dom 27, 18:00» si no, y
+ * con el mes si acaba en otro.
+ */
+const horario = computed(() => {
+  const { startDate: inicio, endDate: fin } = props.event
+  if (!inicio) return ''
+  const fmt = (date, opciones) => new Intl.DateTimeFormat(intlLocale(), opciones).format(date)
+  const hora = (date) => fmt(date, { hour: '2-digit', minute: '2-digit' })
+  if (!fin) return hora(inicio)
+  if (inicio.toDateString() === fin.toDateString()) return `${hora(inicio)} → ${hora(fin)}`
+  const dia = fmt(fin, inicio.getMonth() === fin.getMonth()
+    ? { weekday: 'short', day: 'numeric' }
+    : { weekday: 'short', day: 'numeric', month: 'short' })
+  return `${hora(inicio)} → ${dia}, ${hora(fin)}`
 })
 
 /**
@@ -146,169 +165,166 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
     :class="event.link ? 'cursor-pointer hover:border-gray-400 dark:hover:border-gray-600' : ''"
     @click="abrirEvento"
   >
-    <div class="flex gap-3 items-start">
-      <img
-        v-if="event.image && !imagenRota"
-        :src="event.image"
-        alt=""
-        class="w-20 h-14 shrink-0 object-cover rounded-xl bg-gray-100 dark:bg-gray-800"
-        loading="lazy"
-        @error="imagenRota = true"
-      />
-      <div class="min-w-0 flex flex-col items-start gap-1">
-        <span
-          class="px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
-        >
-          {{ typeLabel }}
-        </span>
-        <!-- Siempre un h2 (la página lleva su h1), con el enlace dentro si lo hay. -->
-        <h2 class="text-sm font-bold leading-snug">
-          <a v-if="event.link" :href="event.link" target="_blank" rel="noopener">{{ displayName }}</a>
-          <template v-else>{{ displayName }}</template>
-        </h2>
-      </div>
-    </div>
-
-    <div class="flex flex-wrap items-center gap-2 mt-3">
-      <span
-        v-if="event.status === 'active'"
-        class="flex items-center gap-1 px-2 py-0.5 text-mini rounded-full border border-green-500 text-green-700 dark:text-green-400"
-      >
-        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-        {{ $t('events.inProgress') }}
-      </span>
-      <span
-        v-if="countdown"
-        class="px-2 py-0.5 text-mini rounded-full border"
-        :class="
-          countdown.urgent
-            ? 'border-amber-500 text-amber-700 dark:text-amber-400'
-            : 'border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300'
-        "
-      >
-        {{ countdown.text }}
-      </span>
-    </div>
-
-    <p v-if="event.startDate" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
-      {{ formatDateTime(event.startDate, intlLocale()) }}
-      <template v-if="event.endDate">
-        → {{ formatDateTime(event.endDate, intlLocale()) }}
-      </template>
-    </p>
-
     <!--
-      Combate Max: la marca dice de un vistazo si es Dinamax (hueca) o Gigamax
-      (rellena), que es lo que de verdad cambia entre un lunes Max y un Día de
-      Combates Max.
+      El cartel del evento, de cabecera a todo lo ancho. Si LeekDuck no publica
+      imagen, o la que publica no existe, la tarjeta empieza por la fecha.
     -->
-    <div
-      v-if="maxBattle"
-      class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
-    >
-      <max-mark
-        :variant="maxBattle.gigantamax ? 'gigantamax' : 'dynamax'"
-        :size="20"
-        class="shrink-0 text-gray-800 dark:text-gray-200"
+    <img
+      v-if="event.image && !imagenRota"
+      :src="event.image"
+      alt=""
+      class="-mx-4 -mt-4 mb-3 w-[calc(100%+2rem)] max-w-none h-20 object-cover rounded-t-xl bg-gray-100 dark:bg-gray-800"
+      loading="lazy"
+      @error="imagenRota = true"
+    />
+
+    <!-- La fecha, lo primero que se busca: la hoja de calendario a la izquierda. -->
+    <div class="flex gap-4">
+      <event-date-block
+        v-if="event.startDate"
+        :date="event.startDate"
+        :active="event.status === 'active'"
+        class="shrink-0 self-start"
       />
-      <component
-        :is="maxBattle.dex ? 'router-link' : 'span'"
-        :to="maxBattle.dex ? `/pokemon/${maxBattle.dex}` : undefined"
-        class="flex items-center gap-2 min-w-0"
-        :class="maxBattle.dex ? 'hover:underline' : ''"
-      >
-        <img v-if="maxBattle.image" :src="maxBattle.image" alt="" class="w-8 h-8" loading="lazy" />
-        <strong v-if="maxBattle.label" class="text-sm truncate">{{ maxBattle.label }}</strong>
-        <span v-else class="text-sm font-semibold">
-          {{ $t(maxBattle.gigantamax ? 'max.legendGigantamax' : 'max.legendDynamax') }}
-        </span>
-      </component>
-    </div>
 
-    <!-- Hora destacada: el Pokémon y la bonificación son lo que importa -->
-    <div
-      v-if="spotlight"
-      class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
-    >
-      <div class="min-w-0">
-        <event-mon
-          :name="spotlight.name"
-          :image="spotlight.image"
-          :can-be-shiny="esVariocolor(spotlight)"
-          class="text-sm font-bold"
-        />
-        <div class="text-mini text-gray-600 dark:text-gray-300">{{ gameData.translateText(spotlight.bonus) }}</div>
-      </div>
-    </div>
+      <div class="min-w-0 flex-1 flex flex-col">
+        <div class="flex flex-col items-start gap-1">
+          <span
+            class="px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
+          >
+            {{ typeLabel }}
+          </span>
+          <!-- Siempre un h2 (la página lleva su h1), con el enlace dentro si lo hay. -->
+          <h2 class="text-base font-bold leading-snug">
+            <a v-if="event.link" :href="event.link" target="_blank" rel="noopener">{{ displayName }}</a>
+            <template v-else>{{ displayName }}</template>
+          </h2>
+        </div>
 
-    <div v-if="communityDay" class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700">
-      <div class="flex flex-wrap items-center gap-2">
-        <event-mon
-          v-for="spawn in communityDay.spawns"
-          :key="spawn.name"
-          :name="spawn.name"
-          :image="spawn.image"
-          :can-be-shiny="esVariocolor(spawn)"
-          sprite-class="w-7 h-7"
-          class="text-mini"
-        />
-      </div>
-      <div class="flex flex-wrap gap-1 mt-2">
-        <span
-          v-for="bonus in communityDay.bonuses"
-          :key="bonus.text"
-          class="px-2 py-0.5 text-mini rounded-full border border-green-400 text-green-700 dark:text-green-400"
+        <!-- El horario entero y, debajo, la cuenta atrás: primero cuándo, luego cuánto falta. -->
+        <p v-if="horario" class="mt-2 text-sm tabular-nums">{{ horario }}</p>
+        <p v-if="event.status === 'active' || countdown" class="mt-0.5 text-mini">
+          <span v-if="event.status === 'active'" class="text-green-700 dark:text-green-400">● {{ $t('events.inProgress') }}</span>
+          <template v-if="event.status === 'active' && countdown"> · </template>
+          <span
+            v-if="countdown"
+            :class="countdown.urgent ? 'text-amber-700 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'"
+          >{{ countdown.text }}</span>
+        </p>
+
+        <!--
+          Combate Max: la marca dice de un vistazo si es Dinamax (hueca) o Gigamax
+          (rellena), que es lo que de verdad cambia entre un lunes Max y un Día de
+          Combates Max.
+        -->
+        <div
+          v-if="maxBattle"
+          class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
         >
-          {{ gameData.translateText(bonus.text) }}
-        </span>
+          <max-mark
+            :variant="maxBattle.gigantamax ? 'gigantamax' : 'dynamax'"
+            :size="20"
+            class="shrink-0 text-gray-800 dark:text-gray-200"
+          />
+          <component
+            :is="maxBattle.dex ? 'router-link' : 'span'"
+            :to="maxBattle.dex ? `/pokemon/${maxBattle.dex}` : undefined"
+            class="flex items-center gap-2 min-w-0"
+            :class="maxBattle.dex ? 'hover:underline' : ''"
+          >
+            <img v-if="maxBattle.image" :src="maxBattle.image" alt="" class="w-8 h-8" loading="lazy" />
+            <strong v-if="maxBattle.label" class="text-sm truncate">{{ maxBattle.label }}</strong>
+            <span v-else class="text-sm font-semibold">
+              {{ $t(maxBattle.gigantamax ? 'max.legendGigantamax' : 'max.legendDynamax') }}
+            </span>
+          </component>
+        </div>
+
+        <!-- Hora destacada: el Pokémon y la bonificación son lo que importa -->
+        <div
+          v-if="spotlight"
+          class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
+        >
+          <div class="min-w-0">
+            <event-mon
+              :name="spotlight.name"
+              :image="spotlight.image"
+              :can-be-shiny="esVariocolor(spotlight)"
+              class="text-sm font-bold"
+            />
+            <div class="text-mini text-gray-600 dark:text-gray-300">{{ gameData.translateText(spotlight.bonus) }}</div>
+          </div>
+        </div>
+
+        <div v-if="communityDay" class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700">
+          <div class="flex flex-wrap items-center gap-2">
+            <event-mon
+              v-for="spawn in communityDay.spawns"
+              :key="spawn.name"
+              :name="spawn.name"
+              :image="spawn.image"
+              :can-be-shiny="esVariocolor(spawn)"
+              sprite-class="w-7 h-7"
+              class="text-mini"
+            />
+          </div>
+          <div class="flex flex-wrap gap-1 mt-2">
+            <span
+              v-for="bonus in communityDay.bonuses"
+              :key="bonus.text"
+              class="px-2 py-0.5 text-mini rounded-full border border-green-400 text-green-700 dark:text-green-400"
+            >
+              {{ gameData.translateText(bonus.text) }}
+            </span>
+          </div>
+        </div>
+
+        <div v-if="raidBosses.length" class="flex flex-wrap gap-2 mt-3">
+          <event-mon
+            v-for="boss in raidBosses"
+            :key="boss.name"
+            :name="boss.name"
+            :image="boss.image"
+            :can-be-shiny="esVariocolor(boss)"
+            sprite-class="w-5 h-5"
+            class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600"
+          />
+        </div>
+
+        <!--
+          Lo que trae el evento y no sale arriba. Para la mayoría de eventos
+          («generic») esto es lo único que hay: LeekDuck no publica descripción,
+          solo si hay apariciones en libertad y si hay tareas de campo.
+        -->
+        <div
+          v-if="resumen && (resumen.hasSpawns || resumen.hasResearch)"
+          class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
+        >
+          <div v-if="resumen.hasSpawns || resumen.hasResearch" class="flex flex-wrap gap-1.5">
+            <span
+              v-if="resumen.hasSpawns"
+              class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
+            >
+              {{ $t('events.hasSpawns') }}
+            </span>
+            <span
+              v-if="resumen.hasResearch"
+              class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
+            >
+              {{ $t('events.hasResearch') }}
+            </span>
+          </div>
+
+        </div>
+
+        <p
+          v-for="nota in resumen?.notes ?? []"
+          :key="nota"
+          class="mt-2 text-mini text-gray-600 dark:text-gray-300"
+        >
+          {{ gameData.translateText(nota) }}
+        </p>
       </div>
     </div>
-
-    <div v-if="raidBosses.length" class="flex flex-wrap gap-2 mt-3">
-      <event-mon
-        v-for="boss in raidBosses"
-        :key="boss.name"
-        :name="boss.name"
-        :image="boss.image"
-        :can-be-shiny="esVariocolor(boss)"
-        sprite-class="w-5 h-5"
-        class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600"
-      />
-    </div>
-
-    <!--
-      Lo que trae el evento y no sale arriba. Para la mayoría de eventos
-      («generic») esto es lo único que hay: LeekDuck no publica descripción,
-      solo si hay apariciones en libertad y si hay tareas de campo.
-    -->
-    <div
-      v-if="resumen && (resumen.hasSpawns || resumen.hasResearch)"
-      class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
-    >
-      <div v-if="resumen.hasSpawns || resumen.hasResearch" class="flex flex-wrap gap-1.5">
-        <span
-          v-if="resumen.hasSpawns"
-          class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
-        >
-          {{ $t('events.hasSpawns') }}
-        </span>
-        <span
-          v-if="resumen.hasResearch"
-          class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
-        >
-          {{ $t('events.hasResearch') }}
-        </span>
-      </div>
-
-    </div>
-
-    <p
-      v-for="nota in resumen?.notes ?? []"
-      :key="nota"
-      class="mt-2 text-mini text-gray-600 dark:text-gray-300"
-    >
-      {{ gameData.translateText(nota) }}
-    </p>
-
   </article>
 </template>
