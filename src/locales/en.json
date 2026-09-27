@@ -88,10 +88,12 @@
         "costs": "Costs",
         "stardust": "dust",
         "flags": {
+            "notReleased": "Not in Pokémon GO yet",
             "notTradeable": "Cannot be traded",
             "notTransferable": "Cannot be transferred",
             "canBeShadow": "Has a Shadow form"
         },
+        "cannotLearn": "Can't learn one",
         "costLabels": {
             "secondCharged": "Second charged",
             "purify": "Purify",
@@ -278,7 +280,8 @@
         "rarities": {
             "standard": "Standard",
             "legendary": "Legendary",
-            "mythic": "Mythical"
+            "mythic": "Mythical",
+            "ultra_beast": "Ultra Beast"
         }
     },
     "evolutions": {

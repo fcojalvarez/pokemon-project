@@ -88,10 +88,12 @@
         "costs": "Costes",
         "stardust": "polvo",
         "flags": {
+            "notReleased": "Aún no está en Pokémon GO",
             "notTradeable": "No se puede intercambiar",
             "notTransferable": "No se puede transferir",
             "canBeShadow": "Tiene versión oscura"
         },
+        "cannotLearn": "No puede aprenderlo",
         "costLabels": {
             "secondCharged": "Segundo cargado",
             "purify": "Purificar",
@@ -278,7 +280,8 @@
         "rarities": {
             "standard": "Normal",
             "legendary": "Legendario",
-            "mythic": "Singular"
+            "mythic": "Singular",
+            "ultra_beast": "Ultraente"
         }
     },
     "evolutions": {

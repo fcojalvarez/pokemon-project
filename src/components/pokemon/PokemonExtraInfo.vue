@@ -52,6 +52,15 @@ const baseDelRoster = computed(() => {
   return formas.find((entry) => entry.id === nombre) ?? formas[0] ?? null
 })
 
+/**
+ * La especie tiene una sola forma (sin contar megas, oscuros ni regionales):
+ * entonces en los puestos no hace falta repetir su nombre en cada fila. Con
+ * varias (Urshifu, Deoxys) sí, que si no no se sabe de cuál es cada una.
+ */
+const formaUnica = computed(() =>
+  (gameData.formsByDex.get(props.pokemon.pokemon_id) ?? []).filter((e) => !e.mega && !e.shadow && !e.regional).length === 1
+)
+
 const cpTable = computed(() => {
   if (!gameData.isReady) return []
   const stats = form.value?.stats ?? (baseDelRoster.value?.stats?.atk ? baseDelRoster.value.stats : null)
@@ -169,7 +178,11 @@ const costs = computed(() => {
   // par). En la tabla había especies con el polvo a 0.
   const polvo = baseDelRoster.value?.thirdMoveCost
   const CARAMELOS = { 10000: 25, 50000: 50, 75000: 75, 100000: 100 }
-  if (polvo) {
+  // El juego pone 9.999.999 caramelos a los que no pueden aprenderlo
+  // (Smeargle): salía tal cual como coste.
+  if (third?.candy_required >= 1000000) {
+    rows.push({ key: 'secondCharged', texto: t('pokemon.cannotLearn') })
+  } else if (polvo) {
     rows.push({ key: 'secondCharged', candy: CARAMELOS[polvo] ?? third?.candy_required ?? null, dust: polvo })
   } else if (third?.candy_required) {
     // Sí, en la base de datos la columna se llama "startdust_required".
@@ -217,6 +230,9 @@ const costs = computed(() => {
 const flags = computed(() => {
   const p = props.pokemon
   return [
+    // Terapagos, Gouging Fire…: en la Pokédex salen tachados; en la ficha no
+    // lo decía nada.
+    !p.is_released && 'notReleased',
     !p.is_tradeable && 'notTradeable',
     !p.is_transferable && 'notTransferable',
     p.is_shadow_released && 'canBeShadow'
@@ -283,6 +299,7 @@ const pvpRanks = computed(() => {
  * que muchas veces no haga falta abrirla.
  */
 const costeTexto = (row) => {
+  if (row.texto) return row.texto
   if (row.candy) return `${formatNumber(row.candy)} ${tc('candy', row.candy).toLowerCase()}${row.dust ? ` · ${formatNumber(row.dust)} ${t('pokemon.stardust')}` : ''}`
   if (row.energy) return `${formatNumber(row.energy)} ${t('megaenergy')}`
   return `${formatNumber(row.km)} ${t('unitDistance')}`
@@ -419,7 +436,7 @@ const resumen = computed(() => {
                     #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
                   </span>
                 </span>
-                <span class="block mt-0.5 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
+                <span v-if="!formaUnica || entry.id !== baseDelRoster?.id" class="block mt-0.5 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
               </li>
             </ul>
           </template>
@@ -442,7 +459,7 @@ const resumen = computed(() => {
                   #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
                 </span>
               </span>
-              <span class="block mt-0.5 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
+              <span v-if="!formaUnica || entry.id !== baseDelRoster?.id" class="block mt-0.5 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
             </li>
           </ul>
         </ficha-seccion>
