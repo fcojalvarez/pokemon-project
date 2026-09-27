@@ -41,7 +41,7 @@ const source = computed(() => live[tab.value] ?? [])
 
 const typeLabel = (eventType, heading) => {
   const key = `events.types.${eventType}`
-  return te(key) ? t(key) : heading || t('events.types.event')
+  return te(key) ? t(key) : gameData.autoTranslate(heading) || t('events.types.event')
 }
 
 const typeOptions = computed(() => {

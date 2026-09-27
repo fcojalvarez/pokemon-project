@@ -27,7 +27,7 @@ const { t, te, localName, intlLocale } = useTranslate()
 /** LeekDuck publica tipos nuevos de vez en cuando: si falta, usamos su título. */
 const typeLabel = computed(() => {
   const key = `events.types.${props.event.eventType}`
-  return te(key) ? t(key) : props.event.heading || t('events.types.event')
+  return te(key) ? t(key) : gameData.autoTranslate(props.event.heading) || t('events.types.event')
 })
 
 const countdown = computed(() => {
@@ -59,16 +59,17 @@ const horario = computed(() => {
 
 /**
  * El título llega en inglés desde LeekDuck ("Mega Malamar in Mega Raids").
- * Si sigue uno de los patrones conocidos se arma en el idioma de la interfaz;
- * si no (eventos con nombre propio como "LEGO Stores and Pokémon GO"), se deja
- * tal cual, que traducirlos sería peor.
+ * Si sigue uno de los patrones conocidos se arma en el idioma de la interfaz,
+ * con el nombre del Pokémon traducido. Si no (eventos con nombre propio como
+ * «Harvest Festival 2026: Applin Picking»), se usa la traducción automática
+ * que deja `pnpm traducir`, y mientras no la haya, el inglés.
  */
 const displayName = computed(() => {
   const parts = parseEventName(props.event.name)
-  if (!parts) return props.event.name
+  if (!parts) return gameData.autoTranslate(props.event.name)
 
   const key = `events.names.${parts.key}`
-  if (!te(key)) return props.event.name
+  if (!te(key)) return gameData.autoTranslate(props.event.name)
 
   // Hay eventos con varios protagonistas: se traduce cada uno y se unen con
   // la conjunción del idioma, que el "and" inglés en mitad de una frase en

@@ -74,6 +74,13 @@ export const useGameDataStore = defineStore('gameData', () => {
    * que lo usan sencillamente no se pintan.
    */
   const maxLive = shallowRef(null)
+  /**
+   * Traducciones automáticas de lo que LeekDuck publica en inglés y ni las
+   * frases del juego ni los patrones de título cubren: `{ [inglés]: { texto,
+   * origen, modelo, fecha } }`. Las escribe `pnpm traducir` (Gemini) cada pocas
+   * horas; como `maxLive`, puede no estar, y entonces se ve el inglés.
+   */
+  const traducciones = shallowRef({})
 
   /**
    * Antigüedad de los combates Max, en ms: desde que Snacknap actualizó su
@@ -241,6 +248,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     texts.value = datos.texts
     maxBattles.value = datos.maxbattles
     maxLive.value = datos.maxlive ?? null
+    traducciones.value = datos.traducciones?.es ?? {}
     meta.value = datos.meta
     status.value = 'ready'
   }
@@ -313,11 +321,24 @@ export const useGameDataStore = defineStore('gameData', () => {
   }
 
   /**
-   * Traduce una tarea o bonificación con las frases del propio juego.
-   * Si no hay equivalencia, devuelve el original en inglés. Con la app en
-   * inglés no hay nada que traducir: el texto ya llega así.
+   * Un texto de LeekDuck con la traducción automática, si la hay; si no, tal
+   * cual. Es el último recurso: antes van las frases del juego y los patrones.
    */
-  const translateText = (text) => (locale() === 'en' ? text : translateGameText(text, texts.value))
+  const autoTranslate = (text) => {
+    if (locale() === 'en' || typeof text !== 'string') return text
+    return traducciones.value[text.trim()]?.texto ?? text
+  }
+
+  /**
+   * Traduce una tarea o bonificación con las frases del propio juego y, si no
+   * hay equivalencia, con la traducción automática. Si tampoco hay, el original
+   * en inglés. Con la app en inglés no hay nada que traducir.
+   */
+  const translateText = (text) => {
+    if (locale() === 'en') return text
+    const delJuego = translateGameText(text, texts.value)
+    return delJuego !== text ? delJuego : autoTranslate(text)
+  }
 
   /**
    * Nombre del tipo en el idioma de la app. El español sale de la tabla de
@@ -366,6 +387,8 @@ export const useGameDataStore = defineStore('gameData', () => {
     perfectCP,
     pveRanksFor,
     pvpRanksFor,
+    traducciones,
+    autoTranslate,
     translateText,
     typeName
   }

@@ -20,7 +20,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "icons": "node scripts/build-icons.mjs",
-    "max": "node scripts/fetch-max-battles.mjs"
+    "max": "node scripts/fetch-max-battles.mjs",
+    "traducir": "node scripts/translate-live.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.33.2",

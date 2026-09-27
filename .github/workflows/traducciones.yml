@@ -1,0 +1,48 @@
+# Traducciones automáticas de lo que LeekDuck publica en inglés.
+#
+# `pnpm traducir` baja de ScrapedDuck eventos y tareas, se queda con los textos
+# que la app no sabe traducir sola (títulos con nombre propio, bonificaciones y
+# tareas que no están entre las frases del juego), los traduce con Gemini y los
+# guarda en game_data (fila `traducciones`), que la app lee con el resto de
+# datos. Cada texto se traduce una sola vez, así que casi todas las pasadas no
+# mandan nada o muy poco.
+name: Traducciones
+
+on:
+  schedule:
+    # Cada tres horas, a una hora rara para no coincidir con los demás.
+    - cron: '40 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: traducciones
+  cancel-in-progress: false
+
+jobs:
+  traducir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      # Sin `version`: la lee de `packageManager` en package.json.
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Traducir con Gemini y subir a Supabase
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Opcional: para cambiar de modelo sin tocar el código.
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+        run: pnpm traducir
