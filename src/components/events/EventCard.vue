@@ -10,6 +10,7 @@ import {
   splitPokemonList
 } from '../../utils/eventName'
 import { spriteUrl } from '../../utils/sprites'
+import { eventImageSrc, eventImageSrcset } from '../../utils/eventImage'
 import { summarizeEvent } from '../../utils/eventSummary'
 import MaxMark from '../pokemon/MaxMark.vue'
 import EventMon from './EventMon.vue'
@@ -113,7 +114,27 @@ const abrirEvento = (evento) => {
 }
 
 const imagenRota = ref(false)
-watch(() => props.event.image, () => { imagenRota.value = false })
+/**
+ * Primero se pide el cartel redimensionado; si el redimensionado falla, se
+ * prueba con el original antes de darla por rota.
+ */
+const sinRedimensionar = ref(false)
+watch(() => props.event.image, () => {
+  imagenRota.value = false
+  sinRedimensionar.value = false
+})
+
+const cartel = computed(() => {
+  const url = props.event.image
+  if (!url || imagenRota.value) return null
+  if (sinRedimensionar.value) return { src: url, srcset: null }
+  return { src: eventImageSrc(url), srcset: eventImageSrcset(url) }
+})
+
+const alFallarCartel = () => {
+  if (!sinRedimensionar.value && eventImageSrcset(props.event.image)) sinRedimensionar.value = true
+  else imagenRota.value = true
+}
 
 const maxBattle = computed(() => {
   const parsed = parseMaxBattle(props.event.name)
@@ -170,12 +191,16 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       imagen, o la que publica no existe, la tarjeta empieza por la fecha.
     -->
     <img
-      v-if="event.image && !imagenRota"
-      :src="event.image"
+      v-if="cartel"
+      :key="cartel.src"
+      :src="cartel.src"
+      :srcset="cartel.srcset ?? undefined"
+      sizes="(min-width: 1536px) 30vw, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, 100vw"
       alt=""
-      class="-mx-4 -mt-4 mb-3 w-[calc(100%+2rem)] max-w-none h-20 object-cover rounded-t-xl bg-gray-100 dark:bg-gray-800"
+      class="-mx-4 -mt-4 mb-3 w-[calc(100%+2rem)] max-w-none h-32 object-cover rounded-t-xl bg-gray-100 dark:bg-gray-800"
       loading="lazy"
-      @error="imagenRota = true"
+      decoding="async"
+      @error="alFallarCartel"
     />
 
     <!-- La fecha, lo primero que se busca: la hoja de calendario a la izquierda. -->

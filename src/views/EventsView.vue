@@ -169,7 +169,7 @@ onMounted(() => {
               :key="n"
               class="p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
             >
-              <span class="esqueleto block -mx-4 -mt-4 mb-3 h-20 rounded-t-xl rounded-b-none"></span>
+              <span class="esqueleto block -mx-4 -mt-4 mb-3 h-32 rounded-t-xl rounded-b-none"></span>
               <div class="flex gap-4 items-start">
                 <span class="esqueleto w-16 h-20 shrink-0 rounded-xl"></span>
                 <div class="flex-1 flex flex-col gap-2">
