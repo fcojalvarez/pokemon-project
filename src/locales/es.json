@@ -195,6 +195,11 @@
         "tabRaids": "Incursiones",
         "tabEggs": "Huevos",
         "tabResearch": "Misiones",
+        "all": {
+            "raids": "Todas",
+            "eggs": "Todos",
+            "research": "Todas"
+        },
         "counters": "Mejores counters",
         "countersHelp": "Nivel 40, IVs 15/15/15, con la efectividad real contra este jefe.",
         "weakTo": "Débil a",

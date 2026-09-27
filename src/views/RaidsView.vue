@@ -8,12 +8,12 @@ import {
   BaseErrorMessage,
   BasePillButton,
   DataFreshness,
-  MoveTag,
-  SkeletonLoader,
-  TypeIcons
+  SkeletonLoader
 } from '../components/index'
-import MoveLegend from '../components/pokemon/MoveLegend.vue'
 import MaxMark from '../components/pokemon/MaxMark.vue'
+import RaidCountersPanel from '../components/raids/RaidCountersPanel.vue'
+import MaxTeamPanel from '../components/raids/MaxTeamPanel.vue'
+import { useMedia } from '../composables/useMedia'
 import MaxLegend from '../components/pokemon/MaxLegend.vue'
 import BaseChevron from '../components/base/BaseChevron.vue'
 import ShinyLegend from '../components/pokemon/ShinyLegend.vue'
@@ -22,10 +22,12 @@ import { spriteUrl } from '../utils/sprites'
 import { maxCounters } from '../utils/maxBattle'
 import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
-import BaseSprite from '../components/base/BaseSprite.vue'
+import { formatDuration } from '../utils/time'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
+// Antigüedad de los combates Max, con el reloj de `live` para que avance.
+const edadMax = computed(() => gameData.maxLiveEdad(live.now))
 const route = useRoute()
 const { t, te, locale, localName } = useTranslate()
 
@@ -46,6 +48,8 @@ let temporizador = null
 
 const senalar = (dex) => {
   clearTimeout(temporizador)
+  // Que no se quede escondido tras un filtro.
+  filtro.value = 'all'
   destacado.value = dex
   // Tras pintar, se lleva a la vista; el aro aguanta unos segundos.
   requestAnimationFrame(() => {
@@ -62,7 +66,79 @@ const TABS = ['raids', 'eggs', 'research']
 // La pestaña, en la URL (?tab=, la misma que usan los enlaces desde la ficha).
 // El ?dex= con el que se llega señalando a un Pokémon es de un solo uso: al
 // cambiar de pestaña se quita, para no volver a señalarlo.
-useFiltrosEnUrl({ tab: { valor: tab, defecto: 'raids', leer: entre(TABS) } }, { quitar: ['dex'] })
+/** Qué grupo de la pestaña se ve: 'all', o el id de uno (nivel, km, tipo de tarea). */
+const filtro = ref('all')
+
+// En la URL, para volver de una ficha con la misma pestaña y el mismo grupo.
+// Antes del watch de abajo: si no, al leer la pestaña de la URL se borraría el
+// grupo que también viene en ella.
+useFiltrosEnUrl(
+  {
+    tab: { valor: tab, defecto: 'raids', leer: entre(TABS) },
+    group: { valor: filtro, defecto: 'all', leer: (texto) => (/^[\w-]+$/.test(texto) ? texto : undefined) }
+  },
+  { quitar: ['dex'] }
+)
+
+// Cada pestaña tiene sus grupos: el elegido en otra no existe aquí.
+watch(tab, () => {
+  filtro.value = 'all'
+})
+
+/**
+ * Como en el Top y en Eventos: en escritorio ancho, las pestañas van en una
+ * barra lateral fija, y debajo los grupos de la pestaña con cuántos hay en
+ * cada uno para quedarse solo con uno de un clic. Entre incursiones, oscuras y
+ * combates Max la página pasaba de 2000 px. Por debajo, pestañas arriba y se
+ * ve todo.
+ */
+const ancho = useMedia('(min-width: 1280px)')
+
+const tabLabel = (name) => t(`raids.tab${name.charAt(0).toUpperCase()}${name.slice(1)}`)
+
+const slug = (texto) => String(texto).toLowerCase().replace(/[^a-z0-9]+/g, '-')
+
+const idIncursion = (grupo) => `nivel-${slug(grupo.name)}`
+const idMax = (grupo) => `max-${grupo.tier}`
+const idHuevo = (grupo) => `huevos-${slug(grupo.name)}`
+const idTarea = (grupo) => `tareas-${slug(grupo.type)}`
+
+/** Los grupos de la pestaña, con cuántos tiene cada uno, y «Todas» delante. */
+const filtros = computed(() => {
+  let grupos
+  if (tab.value === 'raids') {
+    grupos = [
+      ...live.raidsByTier.map((grupo) => ({
+        id: idIncursion(grupo),
+        label: grupo.shadow ? t('raids.tiers.shadow') : tierLabel(grupo.name),
+        count: grupo.list.length
+      })),
+      ...maxPorNivel.value.map((grupo) => ({
+        id: idMax(grupo),
+        label: `Max · ${t('max.tier', { n: grupo.tier })}`,
+        count: grupo.list.length
+      }))
+    ]
+  } else if (tab.value === 'eggs') {
+    grupos = live.eggsByType.map((grupo) => ({ id: idHuevo(grupo), label: grupo.name, count: grupo.list.length }))
+  } else {
+    grupos = researchGroups.value.map((grupo) => ({ id: idTarea(grupo), label: grupo.label, count: grupo.list.length }))
+  }
+  if (!grupos.length) return []
+  const total = grupos.reduce((suma, grupo) => suma + grupo.count, 0)
+  return [{ id: 'all', label: t(`raids.all.${tab.value}`), count: total }, ...grupos]
+})
+
+/** Sin barra lateral no hay filtro que tocar: se ve todo. */
+const seVe = (id) => !ancho.value || filtro.value === 'all' || filtro.value === id
+
+const incursionesVisibles = computed(() => live.raidsByTier.filter((grupo) => seVe(idIncursion(grupo))))
+const maxVisibles = computed(() => maxPorNivel.value.filter((grupo) => seVe(idMax(grupo))))
+const huevosVisibles = computed(() => live.eggsByType.filter((grupo) => seVe(idHuevo(grupo))))
+const tareasVisibles = computed(() => researchGroups.value.filter((grupo) => seVe(idTarea(grupo))))
+
+const jefeAbierto = computed(() => live.raids.find((raid) => raid.name === openBoss.value) ?? null)
+const climaAbierto = computed(() => (jefeAbierto.value?.boostedWeather ?? []).map((w) => weatherLabel(w.name)))
 
 const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
 
@@ -221,328 +297,290 @@ onMounted(() => {
 
     <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
       <p class="text-sm text-gray-600 dark:text-gray-300">{{ $t('raids.intro') }}</p>
-      <div class="flex items-center gap-2">
-
-      </div>
     </div>
 
     <!-- Solo salta si los datos se han quedado viejos. -->
     <data-freshness :age-ms="live.cacheAge" :stale="live.isStale" class="mb-3" />
 
-    <div class="flex flex-wrap gap-2 mb-4">
-      <base-pill-button
-        v-for="name in TABS"
-        :key="name"
-        :active="tab === name"
-        @click="tab = name"
+    <div :class="ancho ? 'grid grid-cols-[240px_minmax(0,1fr)] gap-6 items-start' : ''">
+      <!-- En escritorio ancho, barra lateral con las pestañas y los grupos de la pestaña -->
+      <aside
+        v-if="ancho"
+        class="[@media(min-height:720px)]:sticky top-[104px] flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
       >
-        {{ $t(`raids.tab${name.charAt(0).toUpperCase()}${name.slice(1)}`) }}
-      </base-pill-button>
-    </div>
-
-    <!--
-      La estrella que llevan las tarjetas solo tenía `title`, que en móvil no
-      existe. Aquí se dice con palabras.
-    -->
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3">
-      <shiny-legend variant="dex" />
-      <!-- Una vez por pestaña: repetirla en cada nivel era más ruido que ayuda. -->
-      <p v-if="tab === 'raids'" class="text-mini text-gray-600 dark:text-gray-300">
-        {{ $t('raids.tapForCounters') }}
-      </p>
-    </div>
-
-    <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
-      <section v-for="grupo in 2" :key="grupo" class="mb-5">
-        <span class="esqueleto block h-4 w-20 mb-2 rounded-full"></span>
-        <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
-          <div
-            v-for="n in 4"
-            :key="n"
-            class="flex items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
+        <div class="flex flex-col gap-2">
+          <base-pill-button
+            v-for="name in TABS"
+            :key="name"
+            :active="tab === name"
+            @click="tab = name"
           >
-            <span class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
-            <span class="flex-1 flex flex-col gap-1.5">
-              <span class="esqueleto h-3 w-3/4 rounded-full"></span>
-              <span class="esqueleto h-2.5 w-1/2 rounded-full"></span>
-            </span>
-            <span class="esqueleto w-8 h-8 shrink-0 rounded-xl"></span>
-          </div>
+            {{ tabLabel(name) }}
+          </base-pill-button>
         </div>
-      </section>
-    </skeleton-loader>
+        <!-- Como el tipo en Eventos: un clic, con cuántos hay de cada uno. -->
+        <ul v-if="filtros.length" role="group" :aria-label="tabLabel(tab)" class="flex flex-col gap-0.5">
+          <li v-for="opcion in filtros" :key="opcion.id">
+            <button
+              type="button"
+              class="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-sm text-left rounded-lg transition-colors"
+              :class="filtro === opcion.id
+                ? 'bg-gray-500 dark:bg-gray-600 text-white'
+                : 'text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800'"
+              :aria-label="`${opcion.label} (${opcion.count})`"
+              :aria-pressed="filtro === opcion.id"
+              @click="filtro = opcion.id"
+            >
+              <span class="min-w-0">{{ opcion.label }}</span>
+              <span
+                class="shrink-0 text-mini tabular-nums"
+                :class="filtro === opcion.id ? 'text-white' : 'text-gray-600 dark:text-gray-300'"
+              >{{ opcion.count }}</span>
+            </button>
+          </li>
+        </ul>
+      </aside>
 
-    <base-error-message
-      v-else-if="live.status === 'error'"
-      :message="$t('common.error')"
-      :detail="live.error"
-    />
-
-    <!-- ---------- Incursiones ---------- -->
-    <template v-else-if="tab === 'raids'">
-      <base-empty-state
-        v-if="live.raidsByTier.length === 0 && maxPorNivel.length === 0"
-        :message="$t('raids.noRaids')"
-      />
-
-      <section v-for="group in live.raidsByTier" :key="group.name" class="mb-5">
-        <h2 class="text-sm font-bold mb-2">
-          {{ group.shadow ? $t('raids.tiers.shadow') : tierLabel(group.name) }}
-        </h2>
-
+      <div class="min-w-0">
+        <div v-if="!ancho" class="flex flex-wrap gap-2 mb-4">
+          <base-pill-button
+            v-for="name in TABS"
+            :key="name"
+            :active="tab === name"
+            @click="tab = name"
+          >
+            {{ tabLabel(name) }}
+          </base-pill-button>
+        </div>
 
         <!--
-          El panel de counters se cuela como un hijo más de la rejilla ocupando
-          todas las columnas, justo detrás de su jefe. Así el desplegable usa
-          el ancho entero en vez de estrecharse dentro de una tarjeta, y la
-          rejilla no se descuadra.
+          La estrella que llevan las tarjetas solo tenía `title`, que en móvil no
+          existe. Aquí se dice con palabras.
         -->
-        <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
-          <template v-for="boss in group.list" :key="boss.name">
-            <live-mon-card
-              :id="`mon-${dexFromImage(boss.image)}`"
-              :highlight="destacado === dexFromImage(boss.image)"
-              :name="gameData.nombreEs(boss.name)"
-              :image="boss.image"
-              :dex="dexFromImage(boss.image)"
-              :combat-power="boss.combatPower?.normal"
-              :can-be-shiny="gameData.shinyReleased(dexFromImage(boss.image), boss.canBeShiny)"
-              :shadow="group.shadow"
-              :badge="group.shadow ? tierLabel(boss.tier) : null"
-            >
-              <button
-                type="button"
-                class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
-                :aria-expanded="openBoss === boss.name"
-                :aria-label="`${$t('raids.counters')}: ${gameData.nombreEs(boss.name)}`"
-                @click.prevent.stop="toggleBoss(boss)"
-              >
-                <span aria-hidden="true">{{ openBoss === boss.name ? '▴' : '▾' }}</span>
-              </button>
-            </live-mon-card>
-
-            <div
-              v-if="openBoss === boss.name"
-              class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
-            >
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-                <span v-if="weaknesses.length" class="flex items-center gap-2">
-                  <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('raids.weakTo') }}</span>
-                  <type-icons :types="weaknesses" size="14" />
-                </span>
-                <span v-if="boss.boostedWeather?.length" class="flex items-center gap-2">
-                  <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('raids.boostedBy') }}</span>
-                  <span class="text-mini">{{ boss.boostedWeather.map((w) => weatherLabel(w.name)).join(' · ') }}</span>
-                </span>
-              </div>
-
-              <ol class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-1.5">
-                <li
-                  v-for="counter in counters"
-                  :key="`${counter.id}-${counter.fast.id}-${counter.charged.id}`"
-                >
-                  <component
-                    :is="counter.dex ? 'router-link' : 'div'"
-                    :to="counter.dex ? `/pokemon/${counter.dex}` : undefined"
-                    class="flex items-center gap-2 p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-150 hover:dark:bg-gray-700"
-                  >
-                  <base-sprite
-                    :src="spriteUrl(counter.spriteId)"
-                    class="w-8 h-8 shrink-0"
-                  />
-                  <div class="flex-1 min-w-0">
-                    <div class="text-xs font-semibold truncate">{{ localName(counter) }}</div>
-                    <div class="flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-300">
-                      <move-tag
-                        chip
-                        :name="localName(counter.fast)"
-                        hide-icon
-                        :elite="counter.fast.elite"
-                        :legacy="counter.fast.legacy"
-                      />
-                      <move-tag
-                        chip
-                        :name="localName(counter.charged)"
-                        hide-icon
-                        :elite="counter.charged.elite"
-                        :legacy="counter.charged.legacy"
-                        :mega="counter.charged.mega"
-                      />
-                    </div>
-                  </div>
-                  <span class="text-xs font-bold shrink-0">{{ counter.dps.toFixed(1) }}</span>
-                  </component>
-                </li>
-              </ol>
-
-              <move-legend
-                v-if="counterOrigins.elite || counterOrigins.legacy || counterOrigins.mega"
-                class="mt-2"
-                :elite="counterOrigins.elite"
-                :legacy="counterOrigins.legacy"
-                :mega="counterOrigins.mega"
-              />
-            </div>
-          </template>
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3">
+          <shiny-legend variant="dex" />
+          <!-- Una vez por pestaña: repetirla en cada nivel era más ruido que ayuda. -->
+          <p v-if="tab === 'raids'" class="text-mini text-gray-600 dark:text-gray-300">
+            {{ $t('raids.tapForCounters') }}
+          </p>
         </div>
-      </section>
-      <!--
-        Los combates Max son incursiones al fin y al cabo, así que van aquí y
-        no en una pestaña aparte. Con su propio encabezado porque se juegan
-        distinto: tres Pokémon, uno aguantando y dos pegando.
-      -->
-      <template v-if="maxPorNivel.length">
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-6">
-          <h2 class="text-sm font-bold">{{ $t('max.battlesTitle') }}</h2>
-          <max-legend />
-        </div>
-        <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">{{ $t('max.tapForTeam') }}</p>
 
-        <section v-for="grupo in maxPorNivel" :key="grupo.tier" class="mb-5">
-          <h3 class="text-sm font-bold mb-2">
-            {{ $t('max.tier', { n: grupo.tier }) }}
-            <span class="font-normal text-gray-600 dark:text-gray-300">({{ grupo.list.length }})</span>
-          </h3>
-          <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
-            <template v-for="uno in grupo.list" :key="`${grupo.tier}-${uno.dex}`">
-              <live-mon-card
-                :id="`mon-${uno.dex}`"
-                :highlight="destacado === uno.dex"
-                :name="localName(uno)"
-                :image="uno.image"
-                :dex="uno.dex"
-                :combat-power="uno.cp"
-                :can-be-shiny="uno.canBeShiny"
-              >
-                <max-mark
-                  :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
-                  :size="15"
-                  class="shrink-0 text-gray-600 dark:text-gray-300"
-                />
-                <button
-                  type="button"
-                  class="shrink-0 px-1.5 py-1 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
-                  :aria-expanded="openMax === uno.dex"
-                  :aria-label="`${$t('max.team')}: ${localName(uno)}`"
-                  @click.prevent.stop="openMax = openMax === uno.dex ? null : uno.dex"
-                >
-                  <base-chevron :open="openMax === uno.dex" size="w-3 h-3" />
-                </button>
-              </live-mon-card>
-
-              <!--
-                El equipo ocupa la fila entera: al lado de una tarjeta de 160px
-                no cabría, y así queda debajo del jefe al que pertenece.
-              -->
+        <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
+          <section v-for="grupo in 2" :key="grupo" class="mb-5">
+            <span class="esqueleto block h-4 w-20 mb-2 rounded-full"></span>
+            <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
               <div
-                v-if="openMax === uno.dex && equipoMax"
-                class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
+                v-for="n in 4"
+                :key="n"
+                class="flex items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
               >
-                <p class="text-mini text-gray-600 dark:text-gray-300 mb-3">
-                  {{ $t('max.teamIntro', { pokemon: localName(uno) }) }}
-                </p>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 class="text-xs font-bold mb-2">{{ $t('max.tank') }}</h4>
-                    <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1.5">
-                      <live-mon-card
-                        v-for="quien in equipoMax.tanks"
-                        :key="`t-${quien.id}`"
-                        :name="localName(quien)"
-                        :image="spriteUrl(quien.spriteId)"
-                        :dex="quien.dex"
-                        :badge="comoConseguir(quien)"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 class="text-xs font-bold mb-2">{{ $t('max.attackers') }}</h4>
-                    <base-empty-state
-                      v-if="equipoMax.attackers.length === 0"
-                      :message="$t('max.noAttackers')"
-                    />
-                    <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1.5">
-                      <live-mon-card
-                        v-for="quien in equipoMax.attackers"
-                        :key="`a-${quien.id}`"
-                        :name="localName(quien)"
-                        :image="spriteUrl(quien.spriteId)"
-                        :dex="quien.dex"
-                        :badge="comoConseguir(quien)"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <p class="mt-3 text-mini text-gray-600 dark:text-gray-300">
-                  {{ $t('max.teamNote') }}
-                </p>
+                <span class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
+                <span class="flex-1 flex flex-col gap-1.5">
+                  <span class="esqueleto h-3 w-3/4 rounded-full"></span>
+                  <span class="esqueleto h-2.5 w-1/2 rounded-full"></span>
+                </span>
+                <span class="esqueleto w-8 h-8 shrink-0 rounded-xl"></span>
               </div>
-            </template>
-          </div>
-        </section>
+            </div>
+          </section>
+        </skeleton-loader>
 
-        <p class="text-mini text-gray-600 dark:text-gray-300">
-          {{ $t('max.liveSource') }}
-        </p>
-      </template>
-    </template>
+        <base-error-message
+          v-else-if="live.status === 'error'"
+          :message="$t('common.error')"
+          :detail="live.error"
+        />
 
-    <!-- ---------- Huevos ---------- -->
-    <template v-else-if="tab === 'eggs'">
-      <base-empty-state v-if="live.eggsByType.length === 0" :message="$t('raids.noEggs')" />
-
-      <section v-for="group in live.eggsByType" :key="group.name" class="mb-5">
-        <h2 class="text-sm font-bold mb-2">{{ group.name }}</h2>
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
-          <live-mon-card
-            v-for="egg in group.list"
-            :key="`${group.name}-${egg.name}`"
-            :id="`mon-${dexFromImage(egg.image)}`"
-            :highlight="destacado === dexFromImage(egg.image)"
-            :name="gameData.nombreEs(egg.name)"
-            :image="egg.image"
-            :dex="dexFromImage(egg.image)"
-            :combat-power="egg.combatPower"
-            :can-be-shiny="gameData.shinyReleased(dexFromImage(egg.image), egg.canBeShiny)"
+        <!-- ---------- Incursiones ---------- -->
+        <template v-else-if="tab === 'raids'">
+          <base-empty-state
+            v-if="live.raidsByTier.length === 0 && maxPorNivel.length === 0"
+            :message="$t('raids.noRaids')"
           />
-        </div>
-      </section>
-    </template>
 
-
-    <!-- ---------- Tareas ---------- -->
-    <template v-else>
-      <base-empty-state v-if="researchGroups.length === 0" :message="$t('raids.noResearch')" />
-
-      <section v-for="group in researchGroups" :key="group.type" class="mb-5">
-        <h2 class="text-sm font-bold mb-2">{{ group.label }}</h2>
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 items-start">
-          <article
-            v-for="(task, index) in group.list"
-            :key="`${group.type}-${index}`"
-            class="p-2.5 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900"
+          <section
+            v-for="group in incursionesVisibles"
+            :key="group.name"
+            class="mb-5"
           >
-            <p class="text-xs font-semibold mb-2">{{ taskText(task.text) }}</p>
-            <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-1.5">
+            <h2 class="text-sm font-bold mb-2">
+              {{ group.shadow ? $t('raids.tiers.shadow') : tierLabel(group.name) }}
+            </h2>
+
+            <!--
+              El panel de counters se cuela como un hijo más de la rejilla ocupando
+              todas las columnas, justo detrás de su jefe. Así el desplegable usa
+              el ancho entero en vez de estrecharse dentro de una tarjeta, y la
+              rejilla no se descuadra.
+            -->
+            <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
+              <template v-for="boss in group.list" :key="boss.name">
+                <live-mon-card
+                  :id="`mon-${dexFromImage(boss.image)}`"
+                  :highlight="destacado === dexFromImage(boss.image)"
+                  :name="gameData.nombreEs(boss.name)"
+                  :image="boss.image"
+                  :dex="dexFromImage(boss.image)"
+                  :combat-power="boss.combatPower?.normal"
+                  :can-be-shiny="gameData.shinyReleased(dexFromImage(boss.image), boss.canBeShiny)"
+                  :shadow="group.shadow"
+                  :badge="group.shadow ? tierLabel(boss.tier) : null"
+                >
+                  <button
+                    type="button"
+                    class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+                    :aria-expanded="openBoss === boss.name"
+                    :aria-label="`${$t('raids.counters')}: ${gameData.nombreEs(boss.name)}`"
+                    @click.prevent.stop="toggleBoss(boss)"
+                  >
+                    <!-- Con panel lateral la flecha apunta hacia él; si no, abre hacia abajo. -->
+                    <base-chevron :open="openBoss === boss.name" size="w-3.5 h-3.5" />
+                  </button>
+                </live-mon-card>
+
+                <raid-counters-panel
+                  v-if="openBoss === boss.name"
+                  class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
+                  :weaknesses="weaknesses"
+                  :weather="climaAbierto"
+                  :counters="counters"
+                  :origins="counterOrigins"
+                />
+              </template>
+            </div>
+          </section>
+
+          <!--
+            Los combates Max son incursiones al fin y al cabo, así que van aquí y
+            no en una pestaña aparte. Con su propio encabezado porque se juegan
+            distinto: tres Pokémon, uno aguantando y dos pegando.
+          -->
+          <template v-if="maxVisibles.length">
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-6">
+              <h2 class="text-sm font-bold">{{ $t('max.battlesTitle') }}</h2>
+              <max-legend />
+            </div>
+            <data-freshness :age-ms="edadMax" :stale="gameData.maxLiveCaducado(live.now)" class="mb-2" />
+            <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">{{ $t('max.tapForTeam') }}</p>
+
+            <section
+            v-for="grupo in maxVisibles"
+            :key="grupo.tier"
+            class="mb-5"
+          >
+              <h3 class="text-sm font-bold mb-2">
+                {{ $t('max.tier', { n: grupo.tier }) }}
+                <span class="font-normal text-gray-600 dark:text-gray-300">({{ grupo.list.length }})</span>
+              </h3>
+              <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
+                <template v-for="uno in grupo.list" :key="`${grupo.tier}-${uno.dex}`">
+                  <live-mon-card
+                    :id="`mon-${uno.dex}`"
+                    :highlight="destacado === uno.dex"
+                    :name="localName(uno)"
+                    :image="uno.image"
+                    :dex="uno.dex"
+                    :combat-power="uno.cp"
+                    :can-be-shiny="uno.canBeShiny"
+                  >
+                    <max-mark
+                      :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
+                      :size="15"
+                      class="shrink-0 text-gray-600 dark:text-gray-300"
+                    />
+                    <button
+                      type="button"
+                      class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+                      :aria-expanded="openMax === uno.dex"
+                      :aria-label="`${$t('max.team')}: ${localName(uno)}`"
+                      @click.prevent.stop="openMax = openMax === uno.dex ? null : uno.dex"
+                    >
+                      <base-chevron :open="openMax === uno.dex" size="w-3.5 h-3.5" />
+                    </button>
+                  </live-mon-card>
+
+                  <!--
+                    El equipo ocupa la fila entera: al lado de una tarjeta de 160px
+                    no cabría, y así queda debajo del jefe al que pertenece.
+                  -->
+                  <max-team-panel
+                    v-if="openMax === uno.dex && equipoMax"
+                    class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
+                    :boss-name="localName(uno)"
+                    :team="equipoMax"
+                    :how-to-get="comoConseguir"
+                  />
+                </template>
+              </div>
+            </section>
+
+            <p class="text-mini text-gray-600 dark:text-gray-300">
+              {{ $t('max.liveSource') }}
+              <template v-if="edadMax != null">{{ $t('max.updatedAgo', { age: formatDuration(edadMax) }) }}</template>
+            </p>
+          </template>        </template>
+
+        <!-- ---------- Huevos ---------- -->
+        <template v-else-if="tab === 'eggs'">
+          <base-empty-state v-if="live.eggsByType.length === 0" :message="$t('raids.noEggs')" />
+
+          <section
+            v-for="group in huevosVisibles"
+            :key="group.name"
+            class="mb-5"
+          >
+            <h2 class="text-sm font-bold mb-2">{{ group.name }}</h2>
+            <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
               <live-mon-card
-                v-for="reward in task.rewards"
-                :key="reward.name"
-                :id="`mon-${dexFromImage(reward.image)}`"
-                :highlight="destacado === dexFromImage(reward.image)"
-                :name="gameData.nombreEs(reward.name)"
-                :image="reward.image"
-                :dex="dexFromImage(reward.image)"
-                :combat-power="reward.combatPower"
-                :can-be-shiny="gameData.shinyReleased(dexFromImage(reward.image), reward.canBeShiny)"
+                v-for="egg in group.list"
+                :key="`${group.name}-${egg.name}`"
+                :id="`mon-${dexFromImage(egg.image)}`"
+                :highlight="destacado === dexFromImage(egg.image)"
+                :name="gameData.nombreEs(egg.name)"
+                :image="egg.image"
+                :dex="dexFromImage(egg.image)"
+                :combat-power="egg.combatPower"
+                :can-be-shiny="gameData.shinyReleased(dexFromImage(egg.image), egg.canBeShiny)"
               />
             </div>
-          </article>
-        </div>
-      </section>
-    </template>
+          </section>
+        </template>
 
+        <!-- ---------- Tareas ---------- -->
+        <template v-else>
+          <base-empty-state v-if="researchGroups.length === 0" :message="$t('raids.noResearch')" />
+
+          <section
+            v-for="group in tareasVisibles"
+            :key="group.type"
+            class="mb-5"
+          >
+            <h2 class="text-sm font-bold mb-2">{{ group.label }}</h2>
+            <div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 items-start">
+              <article
+                v-for="(task, index) in group.list"
+                :key="`${group.type}-${index}`"
+                class="p-2.5 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900"
+              >
+                <p class="text-xs font-semibold mb-2">{{ taskText(task.text) }}</p>
+                <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-1.5">
+                  <live-mon-card
+                    v-for="reward in task.rewards"
+                    :key="reward.name"
+                    :id="`mon-${dexFromImage(reward.image)}`"
+                    :highlight="destacado === dexFromImage(reward.image)"
+                    :name="gameData.nombreEs(reward.name)"
+                    :image="reward.image"
+                    :dex="dexFromImage(reward.image)"
+                    :combat-power="reward.combatPower"
+                    :can-be-shiny="gameData.shinyReleased(dexFromImage(reward.image), reward.canBeShiny)"
+                  />
+                </div>
+              </article>
+            </div>
+          </section>
+        </template>
+      </div>
+    </div>
   </section>
 </template>

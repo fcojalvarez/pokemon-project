@@ -195,6 +195,11 @@
         "tabRaids": "Raids",
         "tabEggs": "Eggs",
         "tabResearch": "Research",
+        "all": {
+            "raids": "All",
+            "eggs": "All",
+            "research": "All"
+        },
         "counters": "Best counters",
         "countersHelp": "Level 40, 15/15/15 IVs, with the real effectiveness against this boss.",
         "weakTo": "Weak to",
