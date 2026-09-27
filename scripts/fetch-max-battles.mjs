@@ -18,9 +18,12 @@
  * Lo que el GAME_MASTER no sabe es esto: él dice quién PUEDE dinamaxizar
  * (156 especies), no quién ESTÁ hoy en los nodos.
  */
+import fs from 'node:fs/promises'
 import { loadEnv } from './lib/env.mjs'
+import { dexPorNombre, maxEnEventos, sumarVistos } from './lib/maxLiberados.mjs'
 
 const FUENTE = 'https://www.snacknap.com/max-battles'
+const EVENTOS = 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/events.json'
 const SECO = process.argv.includes('--dry-run')
 
 /**
@@ -146,8 +149,28 @@ async function main() {
       `, ${pokemon.filter((p) => p.gigantamax).length} Gigamax`
   )
 
+  // Además de lo que hay ahora, los eventos Max de LeekDuck que ya han
+  // empezado: es el primer aviso de que sale un Dinamax o un Gigamax nuevo.
+  // Todo esto va a `maxliberados`, que no se vacía nunca: build-data lo usa
+  // para dejar la marca de Dinamax y Gigamax solo en los ya liberados.
+  const vistosAhora = [...pokemon]
+  try {
+    const roster = JSON.parse(await fs.readFile(new URL('../public/data/roster.json', import.meta.url), 'utf8'))
+    const eventos = await (await fetch(EVENTOS)).json()
+    const enEventos = maxEnEventos(eventos, dexPorNombre(roster))
+    vistosAhora.push(
+      ...enEventos.dinamax.map((dex) => ({ dex, gigantamax: false })),
+      ...enEventos.gigamax.map((dex) => ({ dex, gigantamax: true }))
+    )
+    console.log(`  eventos Max ya empezados: ${enEventos.dinamax.length} Dinamax, ${enEventos.gigamax.length} Gigamax`)
+  } catch (err) {
+    // Sin eventos se sigue: lo de Snacknap basta para esta pasada.
+    console.log(`  eventos de LeekDuck: ${err.message}`)
+  }
+
   if (SECO) {
     console.log(JSON.stringify(payload, null, 1).slice(0, 1200))
+    console.log(JSON.stringify(sumarVistos({}, vistosAhora)).slice(0, 600))
     return
   }
 
@@ -168,6 +191,35 @@ async function main() {
       [json, json.length]
     )
     console.log(`  maxlive        ${(json.length / 1024).toFixed(1)} KB subidos a Supabase`)
+
+    // La memoria de liberados: se suma a lo que había, nunca se quita nada.
+    await client.query('BEGIN')
+    const { rows } = await client.query(
+      `SELECT payload FROM public.game_data WHERE name = 'maxliberados' FOR UPDATE`
+    )
+    const antes = rows[0]?.payload ?? {}
+    const liberados = sumarVistos(antes, vistosAhora, payload.fetchedAt)
+    const nuevos =
+      Object.keys(liberados.dinamax).length - Object.keys(antes.dinamax ?? {}).length +
+      Object.keys(liberados.gigamax).length - Object.keys(antes.gigamax ?? {}).length
+    const jsonLiberados = JSON.stringify(liberados)
+    await client.query(
+      `INSERT INTO public.game_data (name, payload, bytes, generated_at, updated_at)
+            VALUES ('maxliberados', $1::jsonb, $2, now(), now())
+       ON CONFLICT (name) DO UPDATE
+              SET payload = EXCLUDED.payload,
+                  bytes = EXCLUDED.bytes,
+                  updated_at = now()`,
+      [jsonLiberados, jsonLiberados.length]
+    )
+    await client.query('COMMIT')
+    console.log(
+      `  maxliberados   ${Object.keys(liberados.dinamax).length} Dinamax y ` +
+        `${Object.keys(liberados.gigamax).length} Gigamax vistos (${nuevos} nuevos)`
+    )
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {})
+    throw err
   } finally {
     await client.end()
   }

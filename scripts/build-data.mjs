@@ -27,10 +27,13 @@ import { fileURLToPath } from 'node:url'
 import { CPM_BY_LEVEL } from '../src/utils/formulas.js'
 import { normalizeText } from '../src/utils/gameText.js'
 import { loadEnv } from './lib/env.mjs'
+import { maxLiberados } from './lib/maxLiberados.mjs'
 import { createRequire } from 'node:module'
 
 // La última lista de variocolores de pogoapi, congelada (ver especiesConVariocolor).
 const VARIOCOLORES_POGOAPI = createRequire(import.meta.url)('./datos/variocolores-pogoapi.json')
+// Los Dinamax ya liberados hasta la fecha de la semilla (ver scripts/lib/maxLiberados.mjs).
+const DINAMAX_LIBERADOS = createRequire(import.meta.url)('./datos/dinamax-liberados.json')
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const CACHE = path.join(ROOT, '.cache')
@@ -1704,6 +1707,73 @@ function trimRankings(list, roster, limit) {
   })
 }
 
+/**
+ * Lo que `pnpm max` ha ido viendo en los combates Max y en los eventos de
+ * LeekDuck (fila `maxliberados`) y lo que hay ahora mismo (`maxlive`). Sin
+ * base de datos, o si falla, nada: quedan la semilla y LeekDuck.
+ */
+async function leerVistosMax() {
+  if (!process.env.SUPABASE_DB_URL) return {}
+  const { default: pg } = await import('pg')
+  const client = new pg.Client({ connectionString: process.env.SUPABASE_DB_URL, ssl: { rejectUnauthorized: false } })
+  try {
+    await client.connect()
+    const { rows } = await client.query(
+      `SELECT name, payload FROM public.game_data WHERE name IN ('maxliberados', 'maxlive')`
+    )
+    const fila = Object.fromEntries(rows.map((uno) => [uno.name, uno.payload]))
+    const vistos = {
+      dinamax: { ...(fila.maxliberados?.dinamax ?? {}) },
+      gigamax: { ...(fila.maxliberados?.gigamax ?? {}) },
+    }
+    for (const uno of fila.maxlive?.pokemon ?? []) {
+      const donde = uno.gigantamax ? vistos.gigamax : vistos.dinamax
+      donde[uno.dex] ??= fila.maxlive.fetchedAt ?? true
+    }
+    return vistos
+  } catch (err) {
+    console.warn(`  ⚠ no se han podido leer los combates Max vistos: ${err.message}`)
+    return {}
+  } finally {
+    await client.end().catch(() => {})
+  }
+}
+
+/**
+ * Deja la marca de Dinamax y Gigamax solo en los ya liberados. El GAME_MASTER
+ * los declara antes de tiempo (Flapple y Appletun salían con Gigamax), y la
+ * marca, como la del variocolor, solo sirve si se puede conseguir.
+ *
+ * Si LeekDuck no ha respondido, los Gigamax se quedan como en la pasada
+ * anterior en vez de quitarlos todos.
+ */
+async function soloMaxLiberados(pokemon, leekRaw) {
+  const vistos = await leerVistosMax()
+  const { dinamax, gigamax } = maxLiberados(pokemon, {
+    semilla: DINAMAX_LIBERADOS.dinamax,
+    vistos,
+    shinyLeekDuck: leekRaw,
+  })
+
+  if (!leekRaw.length) {
+    try {
+      const anterior = JSON.parse(await fs.readFile(path.join(OUT, 'roster.json'), 'utf8'))
+      for (const p of anterior) if (p.gigantamax) gigamax.add(p.id)
+      console.warn('  ⚠ sin LeekDuck: los Gigamax, como en la pasada anterior')
+    } catch {
+      /* sin roster anterior: se queda lo visto en los combates Max */
+    }
+  }
+
+  const antes = { d: pokemon.filter((p) => p.dynamax).length, g: pokemon.filter((p) => p.gigantamax).length }
+  for (const p of pokemon) {
+    p.dynamax = p.dynamax && dinamax.has(p.id)
+    p.gigantamax = p.gigantamax && gigamax.has(p.id)
+  }
+  const despues = { d: pokemon.filter((p) => p.dynamax).length, g: pokemon.filter((p) => p.gigantamax).length }
+  console.log(`  Max liberados: ${despues.d} de ${antes.d} Dinamax, ${despues.g} de ${antes.g} Gigamax`)
+}
+
 async function main() {
   await loadEnv()
   console.log('Descargando fuentes…')
@@ -1748,6 +1818,7 @@ async function main() {
   const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
   const conVariocolor = especiesConVariocolor(leekRaw)
   const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, conVariocolor, i18nMap(enRaw))
+  await soloMaxLiberados(pokemon, leekRaw)
   const cadenasFormas = cadenasDeFormasRegionales(gmRaw, pokemon, es, i18nMap(enRaw))
   for (const p of pokemon) if (cadenasFormas.has(p.id)) p.cadena = cadenasFormas.get(p.id)
   console.log(`  ${cadenasFormas.size} formas regionales con cadena propia`)
