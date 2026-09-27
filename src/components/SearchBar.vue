@@ -108,13 +108,13 @@
          metido dentro del borde y se veía como un segundo recuadro. -->
     <!-- Menos relleno en móvil: con 28 px por lado, en la ficha a 320 px solo
          cabía la «B» de «Buscar». -->
-    <section class="relative transition-colors w-full px-2 md:px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300">
+    <section class="relative flex items-center gap-2 transition-colors w-full px-2 md:px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300">
         <input
             id="input-search"
             type="text"
             v-model="inputValue"
             autocomplete="off"
-            class="w-full bg-transparent py-2 px-1.5 md:px-3 mt-2 md:mt-0 outline-none focus-visible:outline-none text-black dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+            class="flex-1 min-w-0 bg-transparent py-2 px-1.5 md:px-3 outline-none focus-visible:outline-none text-black dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400"
             :placeholder="$t('searchPokemon')"
             :aria-label="$t('a11y.search')"
             :role="isListView ? undefined : 'combobox'"
@@ -127,12 +127,12 @@
         >
         <base-icon
             :stroke-width="1.5"
-            icon-class="hidden sm:block xs:absolute bottom-4 md:bottom-2 right-4 w-6"
+            icon-class="hidden sm:block shrink-0 w-6"
             class-path="stroke-gray-600 dark:stroke-gray-100"
             d="m17 17 4 4M3 11a8 8 0 1 0 16 0 8 8 0 0 0-16 0z"
         />
 
-        <section ref="searchBarRef" v-if="isShowModalSearch" class="absolute left-0 z-40 mt-5 w-full  m-0 py-2 border border-gray-400 bg-white dark:bg-gray-900 dark:text-white rounded-xl shadow-md">
+        <section ref="searchBarRef" v-if="isShowModalSearch" class="absolute left-0 top-full z-40 mt-2 w-full py-2 border border-gray-400 bg-white dark:bg-gray-900 dark:text-white rounded-xl shadow-md">
            <div class="overflow-y-scroll search-modal min-h-[120px] max-h-96">
                 <SpinnerComponent v-if="isLoadingPokemonNames"/>
 
