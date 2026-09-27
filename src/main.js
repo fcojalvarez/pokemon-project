@@ -42,6 +42,16 @@ app.mount('#app');
  * nueva. Una sola vez por pestaña y cada cinco minutos como mucho: si el fallo
  * fuera otro, no hay que entrar en bucle.
  */
+/**
+ * Cachés de imágenes de versiones anteriores, que guardaban respuestas opacas:
+ * ya no se leen (las nuevas llevan otro nombre, ver vite.config.js) y solo
+ * ocupan sitio. Se borran al arrancar.
+ */
+const CACHES_VIEJAS = ['pokeapi-sprites', 'leekduck-img', 'formas', 'noticias-img'];
+if (typeof caches !== 'undefined') {
+  for (const nombre of CACHES_VIEJAS) caches.delete(nombre).catch(() => {});
+}
+
 window.addEventListener('vite:preloadError', (evento) => {
   try {
     const antes = Number(sessionStorage.getItem('recarga-version') ?? 0);

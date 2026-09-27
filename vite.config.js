@@ -91,6 +91,12 @@ export default defineConfig({
           },
           // Imágenes: caché primero, para no volver a bajarlas en cada visita.
           //
+          // Las cachés llevan versión (-v2): las de antes guardaban respuestas
+          // opacas, y servidas a una petición con crossorigin el navegador las
+          // rechaza. En producción no cargaba ni una imagen a quien ya había
+          // entrado. Con otro nombre, el service worker nuevo no lee nada viejo;
+          // las antiguas se borran al arrancar (ver main.js).
+          //
           // Solo se guarda lo que llega bien (200): las imágenes se piden con
           // crossorigin, así que no hay respuestas opacas, que podían esconder
           // un 404 y dejar una imagen rota en la caché aunque se arreglara en
@@ -101,7 +107,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'pokeapi-sprites',
+              cacheName: 'pokeapi-sprites-v2',
               expiration: { maxEntries: 2000, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [200] }
             }
@@ -111,7 +117,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/raw\.githubusercontent\.com\/pokemon-go-api\/assets\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'formas',
+              cacheName: 'formas-v2',
               expiration: { maxEntries: 1500, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [200] }
             }
@@ -121,7 +127,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/cdn\.leekduck\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'leekduck-img',
+              cacheName: 'leekduck-img-v2',
               expiration: { maxEntries: 400, maxAgeSeconds: 60 * 60 * 24 * 7 },
               cacheableResponse: { statuses: [200] }
             }
