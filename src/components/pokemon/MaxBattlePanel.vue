@@ -14,6 +14,8 @@ import { useTranslate } from '../../composables/useTranslate'
 import FichaSeccion from './FichaSeccion.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MaxMark from './MaxMark.vue'
+import MaxTeamPanel from '../raids/MaxTeamPanel.vue'
+import { maxCounters } from '../../utils/maxBattle'
 
 const props = defineProps({
   /** Entrada del roster con la forma que se está viendo. */
@@ -55,6 +57,24 @@ const upgradeRows = computed(() => {
     }
   }).filter((fila) => fila.levels > 0)
 })
+
+/**
+ * Con quién ganarle si sale de jefe en un combate Max: el mismo equipo que
+ * «Ahora en juego» (uno que aguante y los que pegan, solo Max liberados), con
+ * los que hoy están en los nodos marcados.
+ */
+const equipo = computed(() => {
+  if (!maxInfo.value || !gameData.isReady) return null
+  const disponibles = new Set((gameData.maxLive?.pokemon ?? []).map((uno) => uno.dex))
+  const salida = maxCounters(props.entry, gameData.roster, gameData.chart, { limit: 6, available: disponibles })
+  return salida.tanks.length || salida.attackers.length ? salida : null
+})
+
+const comoConseguir = (quien) => {
+  if (quien.availableNow) return t('max.availableNow')
+  if (quien.availableFrom) return t('max.availableVia', { pokemon: localName(quien.availableFrom) })
+  return null
+}
 
 /** Plegada: el ataque Max (y el Gigamax, si lo tiene). */
 const resumen = computed(() => {
@@ -132,6 +152,13 @@ const resumen = computed(() => {
       <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">
         {{ $t('max.upgradeNote') }}
       </p>
+    </div>
+
+    <div v-if="equipo" class="mt-4 pt-3 border-t border-gray-300 dark:border-gray-700">
+      <h3 class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">
+        {{ $t('max.teamAgainst', { pokemon: localName(entry) }) }}
+      </h3>
+      <max-team-panel :boss-name="localName(entry)" :team="equipo" :how-to-get="comoConseguir" />
     </div>
   </ficha-seccion>
 

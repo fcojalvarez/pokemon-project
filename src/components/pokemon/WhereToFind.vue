@@ -39,9 +39,17 @@ const enCombatesMax = computed(() =>
   (gameData.maxLive?.pokemon ?? []).filter((uno) => uno.dex === props.pokemon.pokemon_id)
 )
 
+/**
+ * Ditto no sale nunca con su aspecto: en estado salvaje siempre va disfrazado
+ * de otro Pokémon, y de cuáles va cambiando cada cierto tiempo. Decir que
+ * «ahora mismo no está» era falso: se puede capturar siempre.
+ */
+const esDitto = computed(() => props.pokemon.pokemon_id === 132)
+
 const hasWhereToFind = computed(() => {
   const where = whereToFind.value
   return (
+    esDitto.value ||
     where.raids.length ||
     where.eggs.length ||
     where.research.length ||
@@ -62,6 +70,7 @@ const resumen = computed(() => {
   if (!hasWhereToFind.value) return t('pokemon.notAvailableNow')
   const where = whereToFind.value
   return [
+    esDitto.value && t('pokemon.dittoWild'),
     enCombatesMax.value.length && t('pokemon.inMaxBattles'),
     where.raids.length && t('pokemon.inRaids'),
     where.eggs.length && t('pokemon.inEggs'),
@@ -78,6 +87,11 @@ const resumen = computed(() => {
     </p>
 
     <template v-else>
+      <div v-if="esDitto" class="mt-3">
+        <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.dittoWild') }}</span>
+        <p class="mt-1 text-xs text-gray-800 dark:text-gray-200">{{ $t('pokemon.dittoHelp') }}</p>
+      </div>
+
       <div v-if="enCombatesMax.length" class="mt-3">
         <span class="text-mini text-gray-600 dark:text-gray-300">
           {{ $t('pokemon.inMaxBattles') }}
