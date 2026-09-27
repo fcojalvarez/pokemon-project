@@ -1,0 +1,48 @@
+# Sube el último número de la versión en cada subida a main.
+#
+# La versión de package.json solo cambiaba cuando alguien se acordaba, y se
+# quedó en 0.0.48 muchos despliegues después. Esto la sube sola: en cada push a
+# main, 0.0.48 → 0.0.49, con un commit propio que la app enseña en el pie.
+#
+# Ese commit lo hace el propio workflow y no vuelve a lanzarlo: GitHub no
+# dispara workflows con los pushes hechos con GITHUB_TOKEN, y por si acaso se
+# comprueba también quién lo hace.
+name: Versión
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+# Dos subidas seguidas: la segunda espera a que termine la primera, y así cada
+# una sube un número y no se pisan.
+concurrency:
+  group: version
+  cancel-in-progress: false
+
+jobs:
+  subir:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Subir el último número y guardarlo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase origin main
+          npm version patch --no-git-tag-version
+          VERSION=$(node -p "require('./package.json').version")
+          git commit -am "chore(version): v$VERSION"
+          git push origin HEAD:main
