@@ -1,4 +1,4 @@
--- Sugerencias de los usuarios de PogoDex.
+-- Sugerencias de los usuarios de PoGoDex.
 --
 -- Se ejecuta a mano una vez, desde el SQL Editor de Supabase
 -- (Project > SQL Editor > New query > pegar > Run). El script es idempotente:

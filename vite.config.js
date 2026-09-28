@@ -58,8 +58,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icons/favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
-        name: 'PogoDex',
-        short_name: 'PogoDex',
+        name: 'PoGoDex',
+        short_name: 'PoGoDex',
         description:
           'Pokédex de Pokémon GO: evoluciones, PC de un 100 %, eventos, incursiones y los mejores en PvE y PvP.',
         lang: 'es',

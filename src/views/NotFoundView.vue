@@ -13,7 +13,7 @@ import { useTranslate } from '../composables/useTranslate'
 const route = useRoute()
 const { t } = useTranslate()
 // También sale dentro de la ficha (/pokemon/99999), que no pasa por el título del router.
-onMounted(() => { document.title = `${t('notFound.title')} · PogoDex` })
+onMounted(() => { document.title = `${t('notFound.title')} · PoGoDex` })
 const ruta = computed(() => route.fullPath)
 
 const SECCIONES = [

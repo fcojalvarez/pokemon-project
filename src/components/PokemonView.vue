@@ -85,7 +85,7 @@ const { irA } = useFichaSecciones();
 // El título de la pestaña lo pone el router para las páginas fijas; aquí
 // depende de qué Pokémon se cargue.
 watch(() => hero.value?.name, (name) => {
-    if(name) document.title = `${name} · PogoDex`;
+    if(name) document.title = `${name} · PoGoDex`;
 }, { immediate: true });
 
 const getPokemon = async(pokemonId) => {

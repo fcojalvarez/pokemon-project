@@ -1,4 +1,4 @@
-# PogoDex
+# PoGoDex
 
 Pokédex de Pokémon GO construida con Vue 3 + Vite + Tailwind, con los datos servidos desde Supabase
 y una capa de datos de juego propia para rankings, eventos e incursiones.

@@ -23,7 +23,7 @@ app.use(i18n);
 const ponerTitulo = (to) => {
     if (to.name === 'PokemonPage') return;
     const key = to.meta?.titleKey;
-    document.title = key ? `${i18n.global.t(key)} · PogoDex` : 'PogoDex';
+    document.title = key ? `${i18n.global.t(key)} · PoGoDex` : 'PoGoDex';
 };
 router.afterEach(ponerTitulo);
 

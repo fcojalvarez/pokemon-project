@@ -8,11 +8,11 @@ import { expect, test } from '@playwright/test'
 
 test('cada página tiene su título, su h1 y el idioma en español', async ({ page }) => {
   const paginas = [
-    ['/', 'PogoDex', 'Pokédex'],
-    ['/top', 'Top · PogoDex', 'Top'],
-    ['/events', 'Eventos · PogoDex', 'Eventos'],
-    ['/live', 'Ahora en el juego · PogoDex', 'Ahora en el juego'],
-    ['/pokemon/6', 'Charizard · PogoDex', 'Charizard']
+    ['/', 'PoGoDex', 'Pokédex'],
+    ['/top', 'Top · PoGoDex', 'Top'],
+    ['/events', 'Eventos · PoGoDex', 'Eventos'],
+    ['/live', 'Ahora en el juego · PoGoDex', 'Ahora en el juego'],
+    ['/pokemon/6', 'Charizard · PoGoDex', 'Charizard']
   ]
   for (const [ruta, titulo, h1] of paginas) {
     await page.goto(ruta)
@@ -65,9 +65,9 @@ test('con el menú abierto la página queda inerte, y al cerrarlo vuelve el foco
 })
 
 /**
- * En móvil, Ajustes sustituye al menú: el panel sale del engranaje, deja la
+ * En móvil, Ajustes sustituye al menú: el panel sale del botón de ajustes, deja la
  * página inerte, cambia tema e idioma al momento y al cerrarlo devuelve el
- * foco al engranaje.
+ * foco a ese botón.
  */
 test('en móvil los ajustes cambian tema e idioma y devuelven el foco', async ({ page }) => {
   test.skip(page.viewportSize().width >= 640, 'solo en móvil')

@@ -1,6 +1,6 @@
 <script setup>
 /**
- * Ajustes en móvil: un engranaje en la cabecera que abre un panel pegado a
+ * Ajustes en móvil: un botón de reguladores en la cabecera que abre un panel pegado a
  * él, con el tema, el idioma, Sugerencias y la versión.
  *
  * Con la barra de secciones abajo (BottomNav), el menú lateral en móvil ya
@@ -8,9 +8,9 @@
  * `sm` se sigue usando el menú de siempre y esto no se enseña.
  *
  * El panel crece desde el propio botón (transform-origin arriba a la
- * derecha, donde está el engranaje) y lleva un pico que apunta a él. Mientras
+ * derecha, donde está el botón) y lleva un pico que apunta a él. Mientras
  * está abierto, el resto de la app queda inerte, como con el menú: el foco
- * entra en el panel y al cerrar vuelve al engranaje.
+ * entra en el panel y al cerrar vuelve al botón.
  */
 import { computed, nextTick, onUnmounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
@@ -27,7 +27,8 @@ const version = import.meta.env.VITE_APP_VERSION
 const build = import.meta.env.VITE_APP_BUILD
 
 const ICONOS = {
-  ajustes: 'M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0',
+  // Reguladores (Tabler, adjustments-horizontal): más ligero que el engranaje y se lee como «preferencias».
+  ajustes: 'M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 6l8 0 M16 6l4 0 M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 12l2 0 M10 12l10 0 M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 18l11 0 M19 18l1 0',
   claro: 'M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7',
   oscuro: 'M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z'
 }
@@ -35,13 +36,13 @@ const ICONOS = {
 const isOpen = ref(false)
 const trigger = ref(null)
 const panel = ref(null)
-/** Dónde va el panel: justo debajo del engranaje, con el pico en su centro. */
+/** Dónde va el panel: justo debajo del botón, con el pico en su centro. */
 const posicion = ref({ top: 0, right: 0, pico: 0 })
 const { bloquear, liberar } = useInertApp()
 
 const open = async () => {
   // clientWidth y no innerWidth: este cuenta la barra de scroll, y el panel
-  // quedaba corrido a la izquierda del engranaje lo que mide ella.
+  // quedaba corrido a la izquierda del botón lo que mide ella.
   const ancho = document.documentElement.clientWidth
   const caja = trigger.value.getBoundingClientRect()
   const right = Math.max(8, ancho - caja.right)
@@ -106,8 +107,8 @@ const opcion = (elegida) => [
     :aria-label="$t(isOpen ? 'settings.close' : 'settings.open')"
     :aria-expanded="isOpen"
     aria-controls="ajustes"
-    class="flex justify-center items-center w-[50px] border rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800 transition-colors"
-    :class="isOpen ? 'border-gray-600 dark:border-gray-300' : 'border-gray-400'"
+    class="flex justify-center items-center w-11 rounded-xl text-gray-500 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-800 transition-colors"
+    :class="isOpen ? 'bg-gray-200 dark:bg-gray-800' : ''"
     @click="isOpen ? close() : open()"
   >
     <base-icon
@@ -117,8 +118,6 @@ const opcion = (elegida) => [
       color="currentColor"
       stroke-linecap="round"
       stroke-linejoin="round"
-      class="text-gray-600 dark:text-gray-100 transition-transform duration-300"
-      :class="isOpen ? 'rotate-45' : ''"
       :d="ICONOS.ajustes"
     />
   </button>
@@ -140,7 +139,7 @@ const opcion = (elegida) => [
         :style="{ top: `${posicion.top}px`, right: `${posicion.right}px`, '--pico': `${posicion.pico}px` }"
         @keydown="onKeydown"
       >
-        <!-- El pico que apunta al engranaje. -->
+        <!-- El pico que apunta al botón. -->
         <span class="pico" aria-hidden="true"></span>
 
         <div>
@@ -206,7 +205,7 @@ const opcion = (elegida) => [
 </template>
 
 <style scoped>
-/* Crece desde el engranaje: el origen, arriba a la derecha, donde apunta el pico. */
+/* Crece desde el botón: el origen, arriba a la derecha, donde apunta el pico. */
 .ajustes {
   transform-origin: calc(100% - var(--pico)) top;
 }

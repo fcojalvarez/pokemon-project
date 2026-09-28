@@ -108,9 +108,9 @@ watch(
     >
       <div class="flex items-center gap-3 px-4 py-4 border-b border-gray-300 dark:border-gray-600">
         <span class="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200">
-          <!-- alt vacío: al lado ya pone «PogoDex». -->
+          <!-- alt vacío: al lado ya pone «PoGoDex». -->
           <img src="/icons/favicon.svg" alt="" class="w-7 h-7" width="28" height="28">
-          PogoDex
+          PoGoDex
         </span>
         <button
           type="button"
