@@ -42,13 +42,11 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     const esLaUltima = (peticion) => peticion === peticionActual;
     const isLoadingPokemons = ref(false);
     const searchingPokemon = ref(false);
-    const pokemonTypes = ref([]);
     const pokemonsFiltered = ref([]);
     // Lo último que se buscó en la Pokédex: con él la vista sabe si lo que
     // enseña son resultados de búsqueda (y cuántos anunciar) o la lista normal.
     const searchTerm = ref('');
 
-    const types = computed(() => pokemonTypes.value);
     const pokemons = computed(() => pokemonsFiltered.value);
     const isLoading = computed(() => isLoadingPokemons.value);
     const allPokemons = computed(() => pokemonList.value);
@@ -223,16 +221,6 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         return pokemonList.value.find( pokemon => pokemon.pokemon_id === id );
     }
 
-    const getTypes = async() => {
-        const { data: types } = await supabase
-            .from('types')
-            .select('*')
-
-        setTypes(types || []);
-    }
-
-    const setTypes = (typesArr) => pokemonTypes.value = typesArr;
-
     const setPokemons = (pokemonsArr) => {
         pokemonList.value = [...pokemonsArr];
         pokemonsFiltered.value = [...pokemonsArr];
@@ -256,12 +244,10 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         filterPokemons,
         getPokemon,
         getPokemons,
-        getTypes,
         isLoading,
         isSearching,
         searchTerm,
         setIsSearching,
-        types,
         pokemons
     }
   })
