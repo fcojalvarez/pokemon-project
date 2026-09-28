@@ -1,6 +1,8 @@
 import { computed, ref } from 'vue'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { supabase } from '../lib/supabaseClient'
+import { supabaseCompleto } from '../lib/supabaseClient'
+// El cliente con sesión se descarga al usarlo por primera vez: el botón de
+// sugerencias está en el menú, y cargarlo al arrancar metía 32 KB en el bundle.
 
 /** Las categorías y estados válidos están replicados en el CHECK de la tabla. */
 export const CATEGORIES = ['bug', 'idea', 'data', 'other']
@@ -112,7 +114,7 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
     try {
       // Sin `.select()` a propósito: la RLS no deja leer, así que pedir la
       // fila de vuelta haría fallar un insert que en realidad ha ido bien.
-      const { error: fallo } = await supabase.from('suggestions').insert({
+      const { error: fallo } = await (await supabaseCompleto()).from('suggestions').insert({
         category,
         message: String(message).trim(),
         contact: String(contact ?? '').trim() || null,
@@ -136,7 +138,7 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
     isLoading.value = true
     error.value = null
     try {
-      const { data, error: fallo } = await supabase
+      const { data, error: fallo } = await (await supabaseCompleto())
         .from('suggestions')
         .select('*')
         .order('created_at', { ascending: false })
@@ -162,7 +164,7 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
     const previo = indice >= 0 ? { ...items.value[indice] } : null
     if (indice >= 0) items.value[indice] = { ...items.value[indice], ...cambios }
 
-    const { error: fallo } = await supabase.from('suggestions').update(cambios).eq('id', id)
+    const { error: fallo } = await (await supabaseCompleto()).from('suggestions').update(cambios).eq('id', id)
     if (fallo) {
       if (previo) items.value[indice] = previo
       error.value = fallo.message
@@ -174,7 +176,7 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
   const setStatus = (id, status) => update(id, { status })
 
   const remove = async (id) => {
-    const { error: fallo } = await supabase.from('suggestions').delete().eq('id', id)
+    const { error: fallo } = await (await supabaseCompleto()).from('suggestions').delete().eq('id', id)
     if (fallo) {
       error.value = fallo.message
       return false

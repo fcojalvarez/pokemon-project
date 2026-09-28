@@ -3,6 +3,13 @@ import { defineStore } from 'pinia';
 import { supabase } from '../lib/supabaseClient';
 import { NEXT_LOAD_LENGTH_ITEMS } from '../utils/Settings';
 
+/**
+ * Lo que pinta la tarjeta de la Pokédex. Con `*` cada Pokémon traía también
+ * sus evoluciones, encuentros, ataques… (unos 2,7 KB): una página de 100
+ * pesaba 270 KB para usar un 5 %. La ficha pide su fila entera aparte.
+ */
+const COLUMNAS_TARJETA = 'pokemon_id,name,types,is_released,is_shiny_released,can_dynamax,can_gigantamax,sprite:sprites->>male';
+
 export const usePokemonsStore = defineStore('pokemon', () => {
     const pokemonList = ref([]);
     /**
@@ -66,16 +73,21 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         return query;
     }
 
-    // Consulta paginada a Supabase, ordenada por pokemon_id
+    // Consulta paginada a Supabase, ordenada por pokemon_id.
+    //
+    // El total solo se enseña con filtros puestos, y solo cambia al cambiar
+    // los filtros: se cuenta en la primera página y nada más. Contar la tabla
+    // en cada página le costaba a Supabase unos 200 ms por petición.
     const fetchPokemonsRange = async({ start, end }) => {
+        const contar = start === 0 && activeFilterCount.value > 0;
         const query = applyFilters(
-            supabase.from('pokemons').select('*', { count: 'exact' })
+            supabase.from('pokemons').select(COLUMNAS_TARJETA, contar ? { count: 'exact' } : undefined)
         ).order('pokemon_id', { ascending: true }).range(start, end);
 
         const { data, error, count } = await query;
 
         if(error) console.error(error);
-        if(typeof count === 'number') totalCount.value = count;
+        if(start === 0) totalCount.value = typeof count === 'number' ? count : null;
 
         return data || [];
     }
@@ -137,11 +149,11 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             const encontrados = await buscarPorNombre(value);
             const orden = new Map(encontrados.map((p, i) => [p.pokemon_id, i]));
             const { data } = encontrados.length
-                ? await supabase.from('pokemons').select('*').in('pokemon_id', [...orden.keys()])
+                ? await supabase.from('pokemons').select(COLUMNAS_TARJETA).in('pokemon_id', [...orden.keys()])
                 : { data: [] };
             pokemons = (data || []).sort((a, b) => orden.get(a.pokemon_id) - orden.get(b.pokemon_id));
         } else {
-            ({ data: pokemons } = await supabase.from('pokemons').select('*').eq('pokemon_id', parseInt(value)));
+            ({ data: pokemons } = await supabase.from('pokemons').select(COLUMNAS_TARJETA).eq('pokemon_id', parseInt(value)));
         }
 
         if(toSearchModal) return pokemons || [];

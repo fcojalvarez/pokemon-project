@@ -138,11 +138,11 @@ onUnmounted(() => {
         >
         <template v-if="pokemons.length > 0">
             <div
-                v-for="{ name, pokemon_id, is_released, types, sprites, is_shiny_released, can_dynamax, can_gigantamax } in pokemons"
+                v-for="{ name, pokemon_id, is_released, types, sprite, is_shiny_released, can_dynamax, can_gigantamax } in pokemons"
                 class="min-w-0 flex justify-center"
                 :key="pokemon_id"
             >
-                <ItemPokemonList :id="pokemon_id" :image="sprites.male" :name="name" :is_released="is_released" :types="types" :is_shiny_released="is_shiny_released" :can_dynamax="can_dynamax" :can_gigantamax="can_gigantamax" class="w-full max-w-[8rem] md:max-w-[12rem]"/>
+                <ItemPokemonList :id="pokemon_id" :image="sprite" :name="name" :is_released="is_released" :types="types" :is_shiny_released="is_shiny_released" :can_dynamax="can_dynamax" :can_gigantamax="can_gigantamax" class="w-full max-w-[8rem] md:max-w-[12rem]"/>
             </div>
         </template>
 

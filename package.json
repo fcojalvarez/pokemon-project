@@ -26,6 +26,7 @@
     "sprites": "node scripts/build-sprites.mjs"
   },
   "dependencies": {
+    "@supabase/postgrest-js": "1.8.4",
     "@supabase/supabase-js": "^2.33.2",
     "pinia": "^2.1.6",
     "vue": "^3.3.4",

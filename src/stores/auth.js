@@ -1,6 +1,8 @@
 import { computed, ref } from 'vue'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { supabase } from '../lib/supabaseClient'
+import { supabaseCompleto } from '../lib/supabaseClient'
+// El cliente con sesión se descarga al usarlo por primera vez: el botón de
+// sugerencias está en el menú, y cargarlo al arrancar metía 32 KB en el bundle.
 
 /**
  * La sesión de Supabase, que solo usa el panel de sugerencias.
@@ -28,14 +30,14 @@ export const useAuthStore = defineStore('auth', () => {
   const init = async () => {
     if (isReady.value) return
 
-    const { data } = await supabase.auth.getSession()
+    const { data } = await (await supabaseCompleto()).auth.getSession()
     session.value = data.session ?? null
     isReady.value = true
 
     // Mantiene la vista al día cuando el token se renueva solo o cuando se
     // cierra sesión desde otra pestaña.
     if (!desuscribir) {
-      const { data: sub } = supabase.auth.onAuthStateChange((_evento, nueva) => {
+      const { data: sub } = (await supabaseCompleto()).auth.onAuthStateChange((_evento, nueva) => {
         session.value = nueva ?? null
       })
       desuscribir = () => sub.subscription.unsubscribe()
@@ -46,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
     isBusy.value = true
     error.value = null
     try {
-      const { data, error: fallo } = await supabase.auth.signInWithPassword({
+      const { data, error: fallo } = await (await supabaseCompleto()).auth.signInWithPassword({
         email: String(correo ?? '').trim(),
         password
       })
@@ -62,7 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const signOut = async () => {
-    await supabase.auth.signOut()
+    await (await supabaseCompleto()).auth.signOut()
     session.value = null
   }
 
