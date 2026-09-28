@@ -6,6 +6,11 @@
   "engines": {
     "node": ">=22"
   },
+  "pnpm": {
+    "overrides": {
+      "minimatch@9": "^9.0.9"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "dev-host": "vite --host",
