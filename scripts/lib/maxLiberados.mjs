@@ -14,6 +14,11 @@
  *   - Gigamax: los variocolores Gigamax de LeekDuck con fecha ya pasada (los
  *     anunciados vienen con fecha futura) y lo visto en los combates Max. El
  *     Gigamax es de una especie concreta: no se hereda.
+ *   - En los dos, además, la lista de Pokebattler (`dynamaxPokemon` de su
+ *     /raids, ya con ids del roster; ver scripts/lib/pokebattler.mjs): son los
+ *     atacantes que da por disponibles, y trae los que no salen en los nodos
+ *     ni tienen variocolor Gigamax (Eternatus, Zacian Espada Suprema, Inteleon
+ *     y Cinderace Gigamax…). Solo suma: lo que no esté no se quita.
  */
 import { normalizeName } from '../../src/utils/gameText.js'
 import { parseMaxBattle, splitPokemonList } from '../../src/utils/eventName.js'
@@ -30,10 +35,11 @@ const familiaLeekDuck = (familia) => `FAMILY_${String(familia ?? '').replace(/_\
 /**
  * @param {object[]} roster con `dynamax`/`gigantamax` tal como los da el juego
  * @param {{semilla?: object, vistos?: {dinamax?: object, gigamax?: object},
- *          shinyLeekDuck?: object[], hoy?: Date}} fuentes
+ *          shinyLeekDuck?: object[], hoy?: Date,
+ *          pokebattler?: {dinamax?: Iterable<string>, gigamax?: Iterable<string>}}} fuentes
  * @returns {{dinamax: Set<string>, gigamax: Set<string>}} ids del roster
  */
-export function maxLiberados(roster, { semilla = {}, vistos = {}, shinyLeekDuck = [], hoy = new Date() } = {}) {
+export function maxLiberados(roster, { semilla = {}, vistos = {}, shinyLeekDuck = [], hoy = new Date(), pokebattler = {} } = {}) {
   const base = roster.filter(esFormaBase)
   const porId = new Map(roster.map((p) => [p.id, p]))
 
@@ -43,6 +49,10 @@ export function maxLiberados(roster, { semilla = {}, vistos = {}, shinyLeekDuck 
   const pendientes = base
     .filter((p) => !p.regional && (nombresSemilla.has(especie(p.name)) || dexVistosD.has(p.dex)))
     .map((p) => p.id)
+  // Los de Pokebattler van por id, no por especie: Zacian Espada Suprema sí,
+  // Zacian a secas no. Una forma regional cuenta si es la que dice.
+  const deBase = new Set(base.map((p) => p.id))
+  for (const id of pokebattler.dinamax ?? []) if (deBase.has(id)) pendientes.push(id)
 
   const dinamax = new Set()
   while (pendientes.length) {
@@ -72,6 +82,7 @@ export function maxLiberados(roster, { semilla = {}, vistos = {}, shinyLeekDuck 
       .filter((p) => p.gigantamax && (familias.has(familiaDe(p)) || dexVistosG.has(p.dex)))
       .map((p) => p.id)
   )
+  for (const id of pokebattler.gigamax ?? []) if (deBase.has(id) && porId.get(id)?.gigantamax) gigamax.add(id)
 
   return { dinamax, gigamax }
 }

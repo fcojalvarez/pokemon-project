@@ -17,6 +17,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import sharp from 'sharp'
+import { GIGAMAX_SPRITE } from '../src/utils/gigamax.js'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SALIDA = path.join(ROOT, 'public', 'sprites')
@@ -35,6 +36,8 @@ async function main() {
   const roster = JSON.parse(await fs.readFile(path.join(ROOT, 'public', 'data', 'roster.json'), 'utf8'))
   const ids = new Set(roster.map((p) => p.spriteId).filter(Number.isInteger))
   for (let dex = 1; dex <= ULTIMA_ESPECIE; dex++) ids.add(dex)
+  // Las formas Gigamax no están en el roster: el Top Max y los combates Max las piden igual.
+  for (const id of Object.values(GIGAMAX_SPRITE)) ids.add(id)
 
   const trabajos = []
   for (const id of [...ids].sort((a, b) => a - b)) {

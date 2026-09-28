@@ -171,7 +171,7 @@
          del botón plegado y queda en el mismo sitio al abrirse. -->
     <section
         ref="cajaRef"
-        class="buscador relative flex items-center gap-2 transition-colors w-full md:px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300"
+        class="buscador relative flex items-center gap-2 transition-colors w-full md:px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-1 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300"
         :class="{ 'buscador-abierto pr-1': abierto, 'overflow-hidden !border-transparent !bg-transparent !shadow-none': plegado }"
         @focusout="alSalir"
         @transitionend="alPlegarse"

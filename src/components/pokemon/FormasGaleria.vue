@@ -10,6 +10,10 @@
  *
  * Los datos se piden al abrir la ficha (no al arrancar la app) y el botón solo
  * sale si el Pokémon tiene más de una variante.
+ *
+ * Las formas regionales (y la normal) ya tienen sus píldoras en la cabecera de
+ * la ficha, que llevan a la ficha de cada una: con `sin-regionales` aquí no se
+ * repiten. Si solo quedan disfraces, el botón y el modal se llaman así.
  */
 import { computed, onMounted, ref, watch } from 'vue'
 import { cargarFormas } from '../../stores/gameData'
@@ -21,7 +25,8 @@ import ShinyMark from './ShinyMark.vue'
 
 const props = defineProps({
   dex: { type: Number, required: true },
-  name: { type: String, required: true }
+  name: { type: String, required: true },
+  sinRegionales: Boolean
 })
 
 const { locale } = useTranslate()
@@ -42,8 +47,23 @@ watch(abierta, (valor) => {
   if (!valor) ampliada.value = null
 })
 
-const variantes = computed(() => todas.value?.[props.dex] ?? null)
+/** La normal («pm89») y las regionales («pm89.fALOLA», «pm128.fPALDEA_AQUA»). */
+const REGIONAL = /^pm\d+(\.f(ALOLA|GALARIAN|HISUIAN|PALDEA)\w*)?$/
+/**
+ * Las megas y las primigenias tampoco: ya salen en la línea evolutiva, con su
+ * enlace a la ficha de cada una.
+ */
+const MEGA = /\.f(MEGA|PRIMAL)/
+const variantes = computed(() => {
+  const v = todas.value?.[props.dex]
+  if (!v) return null
+  const formas = v.formas.filter((uno) => !MEGA.test(uno.f) && !(props.sinRegionales && REGIONAL.test(uno.f)))
+  return { ...v, formas }
+})
 const total = computed(() => (variantes.value ? variantes.value.formas.length + variantes.value.disfraces.length : 0))
+/** Sin las regionales puede quedar un solo disfraz, y también vale la pena verlo. */
+const minimo = computed(() => (props.sinRegionales ? 1 : 2))
+const soloDisfraces = computed(() => Boolean(variantes.value) && !variantes.value.formas.length)
 
 const grupos = computed(() => {
   const v = variantes.value
@@ -74,16 +94,19 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(locale() === 'en' ? 
 
 <template>
   <button
-    v-if="total > 1"
+    v-if="total >= minimo"
     type="button"
     class="shrink-0 border border-gray-400 dark:border-gray-600 rounded-xl py-1 px-2 text-xs text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
     @click="abierta = true"
   >
-    <span class="sm:hidden">{{ $t('forms.buttonShort', { n: total }) }}</span>
-    <span class="hidden sm:inline">{{ $t('forms.button', { n: total }) }}</span>
+    <template v-if="soloDisfraces">{{ $t('forms.costumesButton', { n: total }) }}</template>
+    <template v-else>
+      <span class="sm:hidden">{{ $t('forms.buttonShort', { n: total }) }}</span>
+      <span class="hidden sm:inline">{{ $t('forms.button', { n: total }) }}</span>
+    </template>
   </button>
 
-  <base-modal :open="abierta" :title="$t('forms.title', { pokemon: name })" size="sm:max-w-3xl" @close="abierta = false">
+  <base-modal :open="abierta" :title="$t(soloDisfraces ? 'forms.costumesTitle' : 'forms.title', { pokemon: name })" size="sm:max-w-3xl" @close="abierta = false">
     <div class="p-4">
       <div class="flex flex-wrap items-center gap-2 mb-3">
         <base-pill-button :active="!shiny" @click="shiny = false">{{ $t('forms.normal') }}</base-pill-button>

@@ -52,6 +52,29 @@ const hero = computed(() => {
 });
 
 /**
+ * Las formas regionales de la especie (Muk y Muk de Alola, los tres Tauros de
+ * Paldea…), para cambiar entre ellas desde la cabecera. Cada una tiene su
+ * ficha (?form=muk_alolan) con sus tipos, ataques y puestos, pero no había
+ * cómo llegar: solo se veía su dibujo en la galería de formas. Sin formas
+ * regionales, no sale nada.
+ */
+const formasRegionales = computed(() => {
+    const p = pokemon.value;
+    if(!p || !gameData.isReady) return [];
+    const base = gameData.fichaBase(p.pokemon_id, p.name);
+    const regionales = (gameData.formsByDex.get(p.pokemon_id) ?? [])
+        .filter((entry) => entry.regional && !entry.shadow && !entry.mega);
+    if(!base || !regionales.length) return [];
+    const actual = formId.value ?? base.id;
+    return [base, ...regionales].map((entry) => ({
+        id: entry.id,
+        entry,
+        to: entry.id === base.id ? `/pokemon/${p.pokemon_id}` : `/pokemon/${p.pokemon_id}?form=${entry.id}`,
+        activa: entry.id === actual
+    }));
+});
+
+/**
  * Legendario, singular o ultraente: lo marca el propio juego, y cambia mucho
  * cómo se consigue (casi siempre en incursiones de nivel 5 o misiones).
  */
@@ -155,6 +178,27 @@ watch(() => route.params.id, async(newId) => {
                         v-if="categoria"
                         class="inline-block mt-2 px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-amber-500 text-amber-700 dark:text-amber-400"
                     >{{ $t(`pokemon.category.${categoria}`) }}</span>
+                    <!--
+                        Una píldora por forma regional, con su sprite y su
+                        nombre; la que se ve, rellena. replace: cambiar de forma
+                        no apila entradas, y «atrás» sale de la ficha.
+                    -->
+                    <nav v-if="formasRegionales.length" :aria-label="$t('pokemon.regionalForms')" class="mt-2.5 flex flex-wrap gap-1.5">
+                        <router-link
+                            v-for="forma in formasRegionales"
+                            :key="forma.id"
+                            :to="forma.to"
+                            replace
+                            :aria-current="forma.activa ? 'page' : undefined"
+                            class="flex items-center gap-1 pl-1 pr-2.5 py-0.5 rounded-full border text-xs transition-colors"
+                            :class="forma.activa
+                                ? 'border-gray-700 dark:border-gray-200 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold'
+                                : 'border-gray-400 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'"
+                        >
+                            <base-sprite :src="spriteUrl(forma.entry.spriteId)" :lazy="false" class="w-6 h-6 shrink-0" />
+                            {{ localName(forma.entry) }}
+                        </router-link>
+                    </nav>
                 </div>
             </header>
 
@@ -191,7 +235,7 @@ watch(() => route.params.id, async(newId) => {
                 <!-- Los botones a su ancho, a la derecha, y bajan de línea si no caben
                      junto a la leyenda: antes «Ver shiny» se salía de la tarjeta. -->
                 <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
-                <formas-galeria :dex="pokemon.pokemon_id" :name="hero.name" />
+                <formas-galeria :dex="pokemon.pokemon_id" :name="hero.name" :sin-regionales="formasRegionales.length > 0" />
 
                 <!--
                     Es un interruptor, así que es un <button> con aria-pressed.

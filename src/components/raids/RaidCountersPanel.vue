@@ -53,7 +53,7 @@ const { localName } = useTranslate()
           class="flex items-center gap-2 p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-150 hover:dark:bg-gray-700"
         >
           <span v-if="single" class="w-5 shrink-0 text-right text-mini text-gray-600 dark:text-gray-300 tabular-nums">{{ index + 1 }}</span>
-          <base-sprite :src="spriteUrl(counter.spriteId)" class="w-8 h-8 shrink-0" img-class="drop-shadow-contorno dark:drop-shadow-none" />
+          <base-sprite :src="spriteUrl(counter.spriteId)" :oscuro="counter.shadow" class="w-8 h-8 shrink-0" img-class="drop-shadow-contorno dark:drop-shadow-none" />
           <div class="flex-1 min-w-0">
             <div class="text-xs font-semibold truncate">{{ localName(counter) }}</div>
             <div class="flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-300">

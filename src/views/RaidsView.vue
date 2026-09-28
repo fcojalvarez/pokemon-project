@@ -13,8 +13,9 @@ import {
 import MaxMark from '../components/pokemon/MaxMark.vue'
 import RaidCountersPanel from '../components/raids/RaidCountersPanel.vue'
 import MaxTeamPanel from '../components/raids/MaxTeamPanel.vue'
+import CountersToggle from '../components/raids/CountersToggle.vue'
+import { gigamaxSpriteId } from '../utils/gigamax'
 import { useMedia } from '../composables/useMedia'
-import BaseChevron from '../components/base/BaseChevron.vue'
 import MarkLegend from '../components/pokemon/MarkLegend.vue'
 import LiveMonCard from '../components/pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../utils/sprites'
@@ -188,7 +189,8 @@ const equipoMax = computed(() => {
 
   return maxCounters(jefe, gameData.roster, gameData.chart, {
     limit: 6,
-    available: disponibles
+    available: disponibles,
+    ...gameData.datosMax()
   })
 })
 
@@ -212,13 +214,14 @@ const maxPorNivel = computed(() => {
       // Sin entrada en el roster, el nombre de la fuente (en inglés) para los dos.
       name: entry?.name ?? uno.name,
       nameEs: entry?.nameEs ?? uno.name,
-      image: entry ? spriteUrl(entry.spriteId) : null
+      // Un jefe Gigamax sale gigamaxizado, que es como se ve en el combate.
+      image: entry ? spriteUrl(uno.gigantamax ? gigamaxSpriteId(entry.spriteId) : entry.spriteId) : null
     })
   }
 
-  // De mayor a menor: los de nivel 5 son los que se buscan.
+  // De menor a mayor, como las incursiones de arriba: si no, cada sección se leía al revés.
   return [...grupos.entries()]
-    .sort((a, b) => b[0] - a[0])
+    .sort((a, b) => a[0] - b[0])
     .map(([tier, list]) => ({
       tier,
       list: list.sort((a, b) => (b.cp?.max ?? 0) - (a.cp?.max ?? 0))
@@ -368,11 +371,6 @@ onMounted(() => {
           </base-pill-button>
         </div>
 
-        <!-- Una vez por pestaña: repetirla en cada nivel era más ruido que ayuda. -->
-        <p v-if="tab === 'raids'" class="mb-3 text-mini text-gray-600 dark:text-gray-300">
-          {{ $t('raids.tapForCounters') }}
-        </p>
-
         <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
           <section v-for="grupo in 2" :key="grupo" class="mb-5">
             <span class="esqueleto block h-4 w-20 mb-2 rounded-full"></span>
@@ -380,14 +378,14 @@ onMounted(() => {
               <div
                 v-for="n in 4"
                 :key="n"
-                class="flex items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
+                class="flex flex-wrap items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
               >
                 <span class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
                 <span class="flex-1 flex flex-col gap-1.5">
                   <span class="esqueleto h-3 w-3/4 rounded-full"></span>
                   <span class="esqueleto h-2.5 w-1/2 rounded-full"></span>
                 </span>
-                <span class="esqueleto w-8 h-8 shrink-0 rounded-xl"></span>
+                <span class="esqueleto basis-full h-8 rounded-xl"></span>
               </div>
             </div>
           </section>
@@ -434,16 +432,13 @@ onMounted(() => {
                   :shadow="group.shadow"
                   :badge="group.shadow ? tierLabel(boss.tier) : null"
                 >
-                  <button
-                    type="button"
-                    class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
-                    :aria-expanded="openBoss === boss.name"
-                    :aria-label="`${$t('raids.counters')}: ${gameData.nombreEs(boss.name)}`"
-                    @click.prevent.stop="toggleBoss(boss)"
-                  >
-                    <!-- Con panel lateral la flecha apunta hacia él; si no, abre hacia abajo. -->
-                    <base-chevron :open="openBoss === boss.name" size="w-3.5 h-3.5" />
-                  </button>
+                  <template #pie>
+                    <counters-toggle
+                      :open="openBoss === boss.name"
+                      :boss-name="gameData.nombreEs(boss.name)"
+                      @toggle="toggleBoss(boss)"
+                    />
+                  </template>
                 </live-mon-card>
 
                 <raid-counters-panel
@@ -466,7 +461,7 @@ onMounted(() => {
           <template v-if="maxVisibles.length">
             <h2 class="mt-6 text-sm font-bold">{{ $t('max.battlesTitle') }}</h2>
             <data-freshness :age-ms="edadMax" :stale="gameData.maxLiveCaducado(live.now)" class="mb-2" />
-            <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">{{ $t('max.tapForTeam') }}</p>
+            <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">{{ $t('max.globalPool') }}</p>
 
             <section
             v-for="grupo in maxVisibles"
@@ -498,15 +493,13 @@ onMounted(() => {
                       :size="15"
                       class="shrink-0 text-gray-600 dark:text-gray-300"
                     />
-                    <button
-                      type="button"
-                      class="shrink-0 w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl border border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
-                      :aria-expanded="openMax === uno.dex"
-                      :aria-label="`${$t('max.team')}: ${localName(uno)}`"
-                      @click.prevent.stop="openMax = openMax === uno.dex ? null : uno.dex"
-                    >
-                      <base-chevron :open="openMax === uno.dex" size="w-3.5 h-3.5" />
-                    </button>
+                    <template #pie>
+                      <counters-toggle
+                        :open="openMax === uno.dex"
+                        :boss-name="localName(uno)"
+                        @toggle="openMax = openMax === uno.dex ? null : uno.dex"
+                      />
+                    </template>
                   </live-mon-card>
 
                   <!--

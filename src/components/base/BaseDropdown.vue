@@ -163,7 +163,7 @@ useDetectOutsideClick(root, () => close())
       ref="boton"
       type="button"
       :class="compacto ? 'lg:h-9 lg:text-xs' : ''"
-      class="w-full h-11 flex items-center gap-2 pl-3 pr-3 cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:focus:ring-blue-300"
+      class="w-full h-11 flex items-center gap-2 pl-3 pr-3 cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-300"
       role="combobox"
       :aria-expanded="isOpen"
       :aria-controls="listId"
@@ -216,15 +216,35 @@ useDetectOutsideClick(root, () => close())
           :key="option.value"
           role="option"
           :aria-selected="option.value === modelValue"
-          class="px-3 py-2 text-sm cursor-pointer text-gray-800 dark:text-gray-200"
-          :class="[
-            index === activeIndex ? 'bg-gray-150 dark:bg-gray-800' : '',
-            option.value === modelValue ? 'font-bold' : ''
-          ]"
+          class="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer"
+          :class="
+            /*
+              La elegida lleva su propio fondo, más fuerte que el del ratón, y
+              un ✓. Solo con negrita no se distinguía en modo oscuro, y el fondo
+              de la activa se iba con el ratón. Si además es la activa, un
+              punto más, para que el teclado se note también al pasar por ella.
+            */
+            option.value === modelValue
+              ? ['font-bold text-gray-900 dark:text-gray-50', index === activeIndex ? 'bg-gray-400/60 dark:bg-gray-600' : 'bg-gray-300 dark:bg-gray-700']
+              : ['text-gray-800 dark:text-gray-200', index === activeIndex ? 'bg-gray-150 dark:bg-gray-800' : '']
+          "
           @click="pick(index)"
           @mousemove="activeIndex = index"
         >
-          {{ option.label }}
+          <span class="flex-1 min-w-0">{{ option.label }}</span>
+          <svg
+            v-if="option.value === modelValue"
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            class="w-4 h-4 shrink-0"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12l5 5L20 7" />
+          </svg>
         </li>
         <li v-if="!visibles.length" role="presentation" class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
           {{ $t('common.empty') }}

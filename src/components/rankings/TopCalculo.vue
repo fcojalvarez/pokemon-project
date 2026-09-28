@@ -1,12 +1,21 @@
 <script setup>
 /**
  * «¿Cómo se calcula?» del Top. Es un componente porque va en sitios distintos
- * según el ancho: al final de la lista o dentro de la barra lateral.
+ * según el ancho: al final de la lista o dentro de la barra lateral. Con
+ * `modo="max"`, el del top Max: va siempre debajo de la lista, encima de la
+ * leyenda, porque es algo que solo busca quien quiere el detalle.
  */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import BaseChevron from '../base/BaseChevron.vue'
 
+const props = defineProps({
+  modo: { type: String, default: 'pve' }
+})
+
 const abierto = ref(false)
+const textos = computed(() =>
+  props.modo === 'max' ? ['max.method1', 'max.method2', 'max.calcLegend'] : ['top.method1', 'top.method2', 'top.method3']
+)
 </script>
 
 <template>
@@ -19,9 +28,7 @@ const abierto = ref(false)
       <base-chevron :open="abierto" />
       {{ $t('top.howCalculated') }}
     </summary>
-    <p class="mt-2">{{ $t('top.method1') }}</p>
-    <p class="mt-2">{{ $t('top.method2') }}</p>
-    <p class="mt-2">{{ $t('top.method3') }}</p>
+    <p v-for="texto in textos" :key="texto" class="mt-2">{{ $t(texto) }}</p>
   </details>
 </template>
 

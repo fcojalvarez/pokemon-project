@@ -3,6 +3,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { leerFilas } from '../lib/filasDeDatos'
 import { computeCounters, computeTypeRankings, typeMatchups, evaluatePokemon } from '../utils/pve'
 import { calcCP } from '../utils/formulas'
+import { gigamaxDe, opcionesMax } from '../utils/maxBattle'
 import { normalizeName, translateGameText } from '../utils/gameText'
 import { stripFormPrefix, translatePokemonName } from '../utils/eventName'
 import { useTranslate } from '../composables/useTranslate'
@@ -169,20 +170,28 @@ export const useGameDataStore = defineStore('gameData', () => {
   /**
    * Lo que hace falta para pintar los combates Max de un Pokémon del roster.
    *
-   * El ataque Max sale del tipo principal: todos los Dinamax de un tipo
-   * comparten el mismo, así que no hay nada que elegir. El Gigamax sí es suyo
-   * y va indexado por especie.
+   * El Ataque Max de un Dinamax sale del tipo de su ataque rápido, así que hay
+   * uno por cada tipo de rápido (`opciones`, ver opcionesMax). El Gigamax es
+   * suyo, fijo, y va indexado por especie.
    *
    * Devuelve null si ese Pokémon no puede dinamaxizar, que es lo normal: las
    * megas y los oscuros no pueden, y de los demás solo unos 156.
    */
+  /** Lo que piden opcionesMax y maxCounters para saber los Ataques Max. */
+  const datosMax = () => ({
+    moves: moves.value,
+    maxPorTipo: maxBattles.value.byType,
+    gmaxPorEspecie: maxBattles.value.gmaxBySpecies,
+    exclusivoPorForma: maxBattles.value.exclusiveByForm
+  })
+
   const maxInfoFor = (entry) => {
     if (!entry?.dynamax && !entry?.gigantamax) return null
-    const especie = String(entry.id ?? '').split('_')[0].toUpperCase()
+    const datos = datosMax()
     return {
       gigantamax: !!entry.gigantamax,
-      maxMove: maxBattles.value.byType?.[entry.types?.[0]] ?? null,
-      gmaxMove: entry.gigantamax ? maxBattles.value.gmaxBySpecies?.[especie] ?? null : null,
+      opciones: opcionesMax(entry, datos),
+      gmaxMove: gigamaxDe(entry, datos.gmaxPorEspecie),
       costs: maxBattles.value.upgradeCosts?.[entry.maxCostGroup] ?? null
     }
   }
@@ -389,27 +398,32 @@ export const useGameDataStore = defineStore('gameData', () => {
   const perfectCP = (stats) => {
     const ivs = { atk: 15, def: 15, hp: 15 }
     const base = { atk: stats.base_attack, def: stats.base_defense, hp: stats.base_stamina }
-    return [20, 25, 30, 35, 40, 50].map((level) => ({ level, cp: calcCP(base, ivs, level) }))
+    return [15, 20, 25, 30, 35, 40, 50].map((level) => ({ level, cp: calcCP(base, ivs, level) }))
   }
 
   /**
-   * Puesto del Pokémon (y de sus formas) en los rankings PvE.
-   * Se mira sobre los 500 primeros de cada tipo: por debajo de ahí el dato ya
-   * no le dice nada a nadie.
+   * Puesto de cada forma del Pokémon (la normal, la oscura, las megas…) en los
+   * rankings PvE, con las opciones por defecto del Top. Se mira sobre los 500
+   * primeros de cada tipo: por debajo de ahí el dato ya no le dice nada a nadie.
+   *
+   * Devuelve una lista por forma, { id, entry, overall, byType }. Antes se
+   * quedaba con la primera fila de la especie en cada tipo, y la forma oscura,
+   * que en el Top sale aparte, no aparecía nunca en la ficha.
    */
   const pveRanksFor = (dex) =>
     cached(`pveRank:${dex}`, () => {
       const rankings = pveRankings({ limit: 500 })
-      const byType = []
+      const formas = new Map()
+      const deLaForma = (row) => {
+        if (!formas.has(row.id)) formas.set(row.id, { id: row.id, entry: row, overall: null, byType: [] })
+        return formas.get(row.id)
+      }
+      for (const row of rankings.overall) if (row.dex === dex) deLaForma(row).overall = row
       for (const [type, list] of Object.entries(rankings.byType)) {
-        const entry = list.find((row) => row.dex === dex)
-        if (entry) byType.push({ type, ...entry })
+        for (const row of list) if (row.dex === dex) deLaForma(row).byType.push({ type, ...row })
       }
-      byType.sort((a, b) => a.rank - b.rank)
-      return {
-        overall: rankings.overall.find((row) => row.dex === dex) ?? null,
-        byType
-      }
+      for (const forma of formas.values()) forma.byType.sort((a, b) => a.rank - b.rank)
+      return [...formas.values()]
     })
 
   /** Puesto del Pokémon en cada liga, si está entre los mejores. */
@@ -472,6 +486,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     maxLiveEdad,
     maxLiveCaducado,
     maxInfoFor,
+    datosMax,
     status,
     error,
     origen,

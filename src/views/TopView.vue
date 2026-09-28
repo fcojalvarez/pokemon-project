@@ -12,10 +12,14 @@ import AttackerList from '../components/rankings/AttackerList.vue'
 import AttackerTable from '../components/rankings/AttackerTable.vue'
 import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
+import StabBadge from '../components/base/StabBadge.vue'
+import MaxMark from '../components/pokemon/MaxMark.vue'
+import { POTENCIA_MAX, mejorRapido, pesoAtaqueMax } from '../utils/maxBattle'
 import BaseChevron from '../components/base/BaseChevron.vue'
 import { useMedia } from '../composables/useMedia'
 import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useTranslate } from '../composables/useTranslate'
+import { gigamaxSpriteId } from '../utils/gigamax'
 
 const gameData = useGameDataStore()
 const { t } = useTranslate()
@@ -37,6 +41,12 @@ const includeShadow = ref(true)
 const includeLegacy = ref(true)
 /** Los élite solo salen con MT Élite o en eventos: mismo trato que los legacy. */
 const includeElite = ref(true)
+/**
+ * En Dinamax, los legendarios (y míticos) solo salen en combates Max de
+ * cinco estrellas y en fechas contadas: apagándolo queda lo que se puede
+ * conseguir cualquier día en un nodo energético.
+ */
+const includeLegendary = ref(true)
 
 /**
  * La selección va en la URL (en inglés, como las rutas): al ir a una ficha y
@@ -48,13 +58,15 @@ const excluidos = computed({
     !includeMega.value && 'mega',
     !includeShadow.value && 'shadow',
     !includeLegacy.value && 'legacy',
-    !includeElite.value && 'elite'
+    !includeElite.value && 'elite',
+    !includeLegendary.value && 'legendary'
   ].filter(Boolean),
   set: (quitados) => {
     includeMega.value = !quitados.includes('mega')
     includeShadow.value = !quitados.includes('shadow')
     includeLegacy.value = !quitados.includes('legacy')
     includeElite.value = !quitados.includes('elite')
+    includeLegendary.value = !quitados.includes('legendary')
   }
 })
 useFiltrosEnUrl({
@@ -62,7 +74,7 @@ useFiltrosEnUrl({
   kind: { valor: type, defecto: 'all', leer: (texto) => (/^[a-z]+$/.test(texto) ? texto : undefined) },
   sort: { valor: sortBy, defecto: 'dps', leer: entre(['dps', 'tdo', 'er']) },
   league: { valor: league, defecto: 'great', leer: entre(['great', 'ultra', 'master']) },
-  without: { valor: excluidos, defecto: [], ...lista(['mega', 'shadow', 'legacy', 'elite']) }
+  without: { valor: excluidos, defecto: [], ...lista(['mega', 'shadow', 'legacy', 'elite', 'legendary']) }
 })
 
 // Dinamax va justo detrás de incursiones: las dos son PvE, y el PvP es lo
@@ -114,6 +126,8 @@ const resumenFiltros = computed(() => {
       !includeElite.value && t('moves.elite')
     ].filter(Boolean)
     if (quitados.length) partes.push(t('top.without', { list: quitados.join(', ') }))
+  } else if (mode.value === 'max') {
+    if (!includeLegendary.value) partes.push(t('top.without', { list: t('top.legendaries') }))
   } else if (mode.value === 'pvp') {
     partes.push(t(`top.${league.value}`))
   }
@@ -126,7 +140,8 @@ const filtrosCambiados = computed(
     (type.value !== 'all' ? 1 : 0) +
     (mode.value === 'pve' && sortBy.value !== 'dps' ? 1 : 0) +
     (mode.value === 'pvp' && league.value !== 'great' ? 1 : 0) +
-    (mode.value === 'pve' ? excluidos.value.length : 0)
+    (mode.value === 'pve' ? excluidos.value.filter((quitado) => quitado !== 'legendary').length : 0) +
+    (mode.value === 'max' && !includeLegendary.value ? 1 : 0)
 )
 
 /** Si la pestaña activa tiene algo que pintar; si no, sale el vacío. */
@@ -156,56 +171,103 @@ const pvpRows = computed(() => {
 })
 
 /**
- * Top de Dinamax por tipo, ordenado por ataque base.
+ * Top de Dinamax, ordenado por ataque base.
  *
  * Aquí no se puede calcular un DPS como en el PvE: los ataques Max no publican
  * potencia, el daño lo resuelve el cliente del juego a partir del nivel del
- * movimiento. Lo que sí es cierto es que todos los Dinamax de un mismo tipo
- * usan el MISMO Ataque Max, así que dentro de un tipo la variable del ataque
- * se cancela y solo queda el ataque base: por eso este orden sí es honesto
- * dentro de cada tipo, y por eso no se comparan tipos entre sí.
+ * movimiento. Lo que sí se sabe es el tipo: el Ataque Max de un Dinamax es del
+ * tipo de su ataque RÁPIDO, y todos los de un tipo son el mismo ataque. Así
+ * que dentro de un tipo la potencia se cancela y queda el ataque base, con el
+ * STAB (×1,2 si el Pokémon es de ese tipo).
  *
- * El filtro va por tipo PRINCIPAL, que es el que decide el Ataque Max: a
- * Charizard (fuego/volador) le toca Maxignición, no Maxiciclón, así que
- * listarlo entre los voladores mentiría.
+ * Con un tipo elegido salen todos los que pueden sacar ese Ataque Max, sean o
+ * no de ese tipo, con los rápidos que llevan a él. Con «Todos», por ataque
+ * base, con todos sus Ataques Max: sin tipo no se comparan ataques distintos.
+ *
+ * Dinamax y Gigamax van en filas distintas, cada una con su marca: son
+ * Pokémon distintos en el juego (hay especies que solo han salido en una de
+ * las dos, y otras en las dos), y el Gigamax pega con su ataque propio, fijo,
+ * sea cual sea su rápido. Por eso en su fila va el mejor rápido (el que antes
+ * llena el medidor).
+ *
+ * Cada fila lleva, bajo el nombre, su Ataque Max (o su ataque Gigamax) y
+ * debajo los rápidos con los que se saca. Con «Todos», una línea así por cada
+ * Ataque Max que tenga.
  */
+const chipRapido = (movimiento) => ({ id: movimiento.id, name: movimiento.name, nameEs: movimiento.nameEs, type: movimiento.type })
+
+/**
+ * Una línea de la fila: el Ataque Max y los rápidos que lo dan. Con un ataque
+ * fijo (Gigamax o exclusivo), el mejor rápido para llenar el medidor.
+ */
+const lineaMax = (opcion, entry) => ({
+  max: opcion.max,
+  gigamax: opcion.gigamax,
+  rapidos: opcion.gigamax || opcion.exclusivo
+    ? [mejorRapido(entry, gameData.moves)].filter(Boolean).map(chipRapido)
+    : opcion.rapidos.map(chipRapido)
+})
+
 const maxRows = computed(() => {
   if (!gameData.isReady || mode.value !== 'max') return []
 
   const vistos = new Set()
-  const candidatos = []
+  const filas = []
   for (const entry of gameData.roster) {
     if (!entry.dynamax && !entry.gigantamax) continue
-    if (type.value !== 'all' && entry.types?.[0] !== type.value) continue
-    // Los Pikachu con gorro comparten stats con el normal: una fila basta.
-    if (vistos.has(entry.dex)) continue
-    vistos.add(entry.dex)
-    candidatos.push(entry)
+    if (!includeLegendary.value && (entry.legendary || entry.mythical)) continue
+    const opciones = gameData.maxInfoFor(entry)?.opciones ?? []
+    for (const version of ['dynamax', 'gigantamax']) {
+      // Los Pikachu con gorro comparten stats con el normal: una fila basta.
+      const clave = `${entry.dex}-${version}`
+      if (vistos.has(clave)) continue
+      const suyas = opciones.filter((opcion) => opcion.gigamax === (version === 'gigantamax'))
+      const validas = type.value === 'all' ? suyas : suyas.filter((opcion) => opcion.max.type === type.value)
+      if (!validas.length) continue
+      // Su mejor Ataque Max: con «Todos», el que más pega de los suyos (el
+      // STAB y la potencia cuentan igual que en el juego, haya tipo o no).
+      const pesos = validas.map((opcion) => ({ opcion, peso: pesoAtaqueMax(entry, opcion) }))
+      const mejor = pesos.reduce((a, b) => (b.peso > a.peso ? b : a))
+      const stab = mejor.opcion.stab
+      vistos.add(clave)
+      filas.push({
+        entry,
+        version,
+        maxLines: validas.map((opcion) => lineaMax(opcion, entry)),
+        stab,
+        // Potencia × ataque × STAB, en la escala del ataque: el de un Dinamax
+        // sin STAB (base + 15 de IV). Un Gigamax pega 450 en vez de 350.
+        value: mejor.peso / POTENCIA_MAX
+      })
+    }
   }
 
-  return candidatos
-    .sort((a, b) => (b.stats?.atk ?? 0) - (a.stats?.atk ?? 0))
+  return filas
+    .sort((a, b) => b.value - a.value)
     .slice(0, 50)
-    .map((entry, indice) => {
-      const info = gameData.maxInfoFor(entry)
-      return {
-        id: entry.id,
-        rank: indice + 1,
-        dex: entry.dex,
-        spriteId: entry.spriteId,
-        name: entry.name,
-        nameEs: entry.nameEs,
-        types: entry.types,
-        moves: [info?.gmaxMove, info?.maxMove].filter(Boolean).map((movimiento) => ({
-          id: movimiento.id,
-          name: movimiento.name,
-          nameEs: movimiento.nameEs,
-          type: movimiento.type
-        })),
-        value: entry.stats?.atk ?? 0
-      }
-    })
+    .map(({ entry, version, maxLines, stab, value }, indice) => ({
+      id: version === 'gigantamax' ? `${entry.id}-gigamax` : entry.id,
+      version,
+      maxLines,
+      rank: indice + 1,
+      dex: entry.dex,
+      // La fila Gigamax, con su sprite gigamaxizado.
+      spriteId: version === 'gigantamax' ? gigamaxSpriteId(entry.spriteId) : entry.spriteId,
+      name: entry.name,
+      nameEs: entry.nameEs,
+      types: entry.types,
+      moves: [],
+      stab,
+      value
+    }))
 })
+
+/** Qué marcas explica la leyenda del pie: solo las que salen en la lista. */
+const leyendaMax = computed(() => ({
+  stab: maxRows.value.some((fila) => fila.stab),
+  dynamax: maxRows.value.some((fila) => fila.version === 'dynamax'),
+  gigantamax: maxRows.value.some((fila) => fila.version === 'gigantamax')
+}))
 
 const moveType = (id) => gameData.moves[id]?.type ?? 'normal'
 
@@ -225,6 +287,8 @@ const pvpAsRows = computed(() =>
       rank: row.rank,
       dex: entry?.dex ?? null,
       spriteId: entry?.spriteId ?? 0,
+      // Para el halo morado del oscuro, como en el PvE.
+      shadow: Boolean(entry?.shadow),
       name: row.name,
       nameEs: row.nameEs,
       types: row.types,
@@ -392,6 +456,29 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
             </base-pill-button>
           </div>
         </div>
+
+        <!-- En Dinamax solo hay un «Incluir»: los legendarios. -->
+        <div v-else-if="mode === 'max'" :class="ancho ? '' : 'mb-3'">
+          <span
+            id="incluir-top-max"
+            class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+          >{{ $t('top.include') }}</span>
+          <div
+            role="group"
+            aria-labelledby="incluir-top-max"
+            class="grid gap-2"
+            :class="ancho ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'"
+          >
+            <base-pill-button
+              :class="boton"
+              :active="includeLegendary"
+              :title="$t('top.legendaryHelp')"
+              @click="includeLegendary = !includeLegendary"
+            >
+              {{ $t('top.legendaries') }}
+            </base-pill-button>
+          </div>
+        </div>
         </div>
 
         <move-legend
@@ -450,14 +537,14 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
         <attacker-list v-else-if="mode === 'pve'" :rows="pveRows" :sort-by="sortBy" />
 
         <!--
-          Dinamax: la métrica es el ataque base y los movimientos que se enseñan
-          son el Ataque Max (y el Gigamax, si lo tiene).
+          Dinamax: la métrica es el ataque base (con el STAB, si hay tipo) y los
+          movimientos, los rápidos que dan el Ataque Max (o todos, con «Todos»).
         -->
         <attacker-list
           v-else-if="mode === 'max'"
           :rows="maxRows"
           sort-by="value"
-          :unit="$t('attack')"
+          :unit="$t('max.damageUnit')"
           :show-secondary="false"
         />
 
@@ -470,6 +557,32 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
           :show-bar="false"
           :show-secondary="false"
         />
+
+        <!-- Cómo se calcula el top Max: debajo de la lista, encima de la leyenda. -->
+        <top-calculo v-if="gameData.isReady && mode === 'max' && rowsShown" modo="max" class="mt-3" />
+
+        <!-- Leyenda del Max: solo lo que sale en la lista. -->
+        <div
+          v-if="gameData.isReady && mode === 'max' && rowsShown"
+          class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700 text-mini text-gray-600 dark:text-gray-300"
+        >
+        <p id="leyenda-max" class="mb-1.5 text-xs font-semibold text-gray-800 dark:text-gray-100">{{ $t('legend.title') }}:</p>
+        <!-- Un significado por fila. -->
+        <ul aria-labelledby="leyenda-max" class="flex flex-col gap-1.5">
+          <li v-if="leyendaMax.stab" class="flex items-center gap-1.5">
+            <stab-badge />
+            {{ $t('max.stabLegend') }}
+          </li>
+          <li v-if="leyendaMax.dynamax" class="flex items-center gap-1.5">
+            <max-mark variant="dynamax" :size="15" class="shrink-0" />
+            {{ $t('max.legendDynamax') }}
+          </li>
+          <li v-if="leyendaMax.gigantamax" class="flex items-center gap-1.5">
+            <max-mark variant="gigantamax" :size="15" class="shrink-0" />
+            {{ $t('max.legendGigantamax') }}
+          </li>
+        </ul>
+        </div>
 
         <base-empty-state
           v-if="gameData.isReady && !rowsShown"

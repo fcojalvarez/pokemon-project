@@ -11,6 +11,8 @@
  *   - pvpoke (su repo de GitHub) -> roster jugable + stats de movimientos en PvP
  *   - pvpoke (su repo de GitHub) -> rankings PvP de las tres ligas
  *   - leekduck.com/shiny       -> variocolores liberados, con fecha de estreno
+ *   - Pokebattler (su API)     -> segunda fuente: confirma ataques, Max ya
+ *                                 liberados y potencia de los Ataques Max
  *
  * Los eventos, incursiones, huevos e investigaciones NO se generan aquí:
  * la app los pide en vivo a ScrapedDuck en cada arranque.
@@ -29,6 +31,8 @@ import { normalizeText } from '../src/utils/gameText.js'
 import { loadEnv } from './lib/env.mjs'
 import { maxLiberados } from './lib/maxLiberados.mjs'
 import { buildFormas } from './lib/formas.mjs'
+import { ataquesDelJuego, completarAtaques, idDelJuego, idDelJuegoParaPvp, listaDelJuego } from './lib/ataques.mjs'
+import { POKEBATTLER, ataquesPorPokemon, maxDePokebattler, nivelesMax } from './lib/pokebattler.mjs'
 import { createRequire } from 'node:module'
 
 // La última lista de variocolores de pogoapi, congelada (ver especiesConVariocolor).
@@ -932,6 +936,12 @@ const SOURCES = {
   // Los textos del juego, al día (los de PokeMiners se pararon en agosto de
   // 2025). Solo para los nombres de ataque que faltan.
   pokemonGoApi: 'https://pokemon-go-api.github.io/pokemon-go-api/api/pokedex.json',
+  // Pokebattler, de segunda fuente (ver scripts/lib/pokebattler.mjs): confirma
+  // los ataques que el GAME_MASTER da y pvpoke no trae, suma los Dinamax y
+  // Gigamax que ya se pueden usar y da la potencia de los Ataques Max por nivel.
+  pokebattlerPokemon: POKEBATTLER.pokemon,
+  pokebattlerMoves: POKEBATTLER.moves,
+  pokebattlerRaids: POKEBATTLER.raids,
 }
 
 /** pvpoke nombra las formas distinto que PokeAPI. */
@@ -1280,7 +1290,9 @@ function buildMoves(gm, pvpGm, es, nombresPga = new Map()) {
 
   // Stats PvP y nombre en inglés desde pvpoke.
   for (const m of pvpGm.moves) {
-    let entry = moves[m.moveId]
+    // pvpoke escribe unos pocos distinto que el juego (FUTURE_SIGHT es
+    // FUTURESIGHT): sin traducirlos se quedaban sin datos PvP ni nombre.
+    let entry = moves[idDelJuegoParaPvp(m.moveId)]
     if (!entry) {
       // Los movimientos exclusivos de las supermegas (isMegaMove) solo existen
       // en pvpoke: el GAME_MASTER todavía no los publica. Se crean igualmente
@@ -1329,7 +1341,7 @@ function buildMoves(gm, pvpGm, es, nombresPga = new Map()) {
     // "Fell Stinger+" no está traducido en los textos del juego, pero sí lo
     // está "Aguijón Letal": se reutiliza el nombre del movimiento base.
     if (!entry.nameEs && entry.id.endsWith('_PLUS')) {
-      const base = moves[entry.id.slice(0, -5)]
+      const base = moves[idDelJuego(entry.id.slice(0, -5))]
       if (base?.nameEs) entry.nameEs = `${base.nameEs}+`
     }
     if (!entry.nameEs) entry.nameEs = entry.name
@@ -1449,10 +1461,16 @@ function buildMaxData(gm, en, es) {
   }
 
   const movimientos = {}
+  // Para casarlos con la potencia de Pokebattler (ver ponerNivelesMax).
+  const vfx = {}
   for (const t of gm) {
     if (!/^VN_BM_\d+$/.test(t.templateId ?? '')) continue
     const m = t.data.moveSettings
-    const clave = SIN_NUMERAR[m.vfxName] ?? porNombreIngles.get(norm(m.vfxName))
+    // Los Ataques Max exclusivos (max_behemoth_blade) se llaman como el ataque
+    // del que salen: Tajo Supremo, Embate Supremo, Cañón Dinamax.
+    const clave = SIN_NUMERAR[m.vfxName] ?? porNombreIngles.get(norm(m.vfxName)) ??
+      porNombreIngles.get(norm(String(m.vfxName ?? '').replace(/^max_/, '')))
+    vfx[t.templateId] = m.vfxName
     movimientos[t.templateId] = {
       id: t.templateId,
       type: (m.pokemonType ?? '').replace('POKEMON_TYPE_', '').toLowerCase(),
@@ -1505,13 +1523,41 @@ function buildMaxData(gm, en, es) {
     }
   }
 
+  // Ataques Max exclusivos de una forma. La tabla de los Gigamax
+  // (sourdoughMoveMappingSettings) trae además formas que NO están en
+  // `allowedSourdoughPokemon`, con su ataque y con la Maxibarrera y el
+  // Maxivigor sustituidos (optionalBMoveOverride / optionalCMoveOverride):
+  //   ZACIAN_CROWNED_SWORD      → VN_BM_060 (max_behemoth_blade), 054, 055
+  //   ZAMAZENTA_CROWNED_SHIELD  → VN_BM_061 (max_behemoth_bash), 056, 057
+  //   ETERNATUS_NORMAL/ETERNAMAX → VN_BM_062 (max_dynamax_cannon), 058, 059
+  // Se distinguen de un Gigamax aún sin permitir (DURALUDON → VN_BM_044,
+  // gmax_depletion, está en la misma tabla) por el nombre del efecto: los
+  // Gigamax son gmax_…, estos max_….
+  // No gigamaxizan: dinamaxizan con un Ataque Max propio. Su plantilla no trae
+  // `breadOverrides` con BREAD_MODE, pero el juego les da coste de mejora de
+  // ataques Max (breadTierGroup GROUP_Z y GROUP_8), así que pueden
+  // dinamaxizar; si ya se puede, lo dice soloMaxLiberados.
+  const exclusivos = []
+  for (const m of dato('sourdoughMoveMappingSettings')?.mappings ?? []) {
+    if (!m.form || gigamax.has(m.form) || gigamax.has(m.pokemonId)) continue
+    if (!String(vfx[m.move] ?? '').startsWith('max_')) continue
+    dinamax.add(m.form)
+    const sustituto = (o) => (o?.override && movimientos[o.move]) || null
+    exclusivos.push({
+      form: m.form,
+      attack: movimientos[m.move] ?? null,
+      guard: sustituto(m.optionalBMoveOverride),
+      spirit: sustituto(m.optionalCMoveOverride),
+    })
+  }
+
   const costes = {}
   for (const t of gm) {
     const bm = t.data?.breadMoveLevelSettings
     if (bm?.group) costes[bm.group] = { attack: bm.aSettings, guard: bm.bSettings, spirit: bm.cSettings }
   }
 
-  return { movimientos, porTipo, gmaxPorEspecie, gigamax, dinamax, grupoCoste, costes }
+  return { movimientos, vfx, porTipo, gmaxPorEspecie, gigamax, dinamax, grupoCoste, costes, exclusivos }
 }
 
 /**
@@ -1656,8 +1702,11 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny, en = n
   const out = []
   for (const p of pvpGm.pokemon) {
     const tags = p.tags ?? []
-    const fast = (p.fastMoves ?? []).filter((m) => moves[m])
-    const charged = (p.chargedMoves ?? []).filter((m) => moves[m])
+    // Con los nombres del juego (ver scripts/lib/ataques.mjs): los que pvpoke
+    // escribe distinto se perdían aquí, como la Pirobola de Cinderace.
+    const delJuego = (lista) => listaDelJuego(lista ?? []).filter((m) => moves[m])
+    const fast = delJuego(p.fastMoves)
+    const charged = delJuego(p.chargedMoves)
     if (!fast.length || !charged.length) continue
     const gmForms = gmFormNames(p.speciesId)
     out.push({
@@ -1681,13 +1730,13 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny, en = n
       // Las supermegas son megas con stats y movimientos propios.
       superMega: tags.includes('supermega'),
       // Movimiento cargado exclusivo de la supermega (el "+"). Va aparte de
-      // `charged` porque todavía no tiene stats de PvE y no puede entrar en los
-      // rankings de incursiones sin falsear los números.
-      megaMoves: (p.extraChargedMoves ?? []).filter((m) => moves[m]),
+      // `charged` porque el GAME_MASTER todavía no publica sus stats de PvE;
+      // los de incursión salen de Pokebattler (ver completarPve).
+      megaMoves: delJuego(p.extraChargedMoves),
       // Movimientos que ya no se aprenden normalmente. Los élite solo se
       // consiguen con MT Élite; los legacy vinieron de eventos y ni eso.
-      eliteMoves: (p.eliteMoves ?? []).filter((m) => moves[m]),
-      legacyMoves: (p.legacyMoves ?? []).filter((m) => moves[m]),
+      eliteMoves: delJuego(p.eliteMoves),
+      legacyMoves: delJuego(p.legacyMoves),
       // Combates Max. `maxMove` sale del tipo principal: todos los Dinamax de
       // un mismo tipo comparten el mismo ataque Max.
       shinyReleased: conShiny.has(p.dex),
@@ -1727,7 +1776,9 @@ function trimRankings(list, roster, limit) {
       nameEs: p?.nameEs ?? r.speciesName,
       types: p?.types ?? [],
       score: r.score,
-      moveset: r.moveset ?? [],
+      // Con los nombres de moves.json (FUTURE_SIGHT es FUTURESIGHT). Los Poder
+      // Oculto de cada tipo se quedan como los da pvpoke: en PvP el tipo cuenta.
+      moveset: (r.moveset ?? []).map(idDelJuegoParaPvp),
       stats: r.stats ?? null,
       counters: (r.counters ?? []).slice(0, 5).map((c) => ({
         id: c.opponent,
@@ -1784,19 +1835,32 @@ async function leerVistosMax() {
  * Si LeekDuck no ha respondido, los Gigamax se quedan como en la pasada
  * anterior en vez de quitarlos todos.
  */
-async function soloMaxLiberados(pokemon, leekRaw) {
+async function soloMaxLiberados(pokemon, leekRaw, pbRaids) {
   const vistos = await leerVistosMax()
+  const dePokebattler = maxDePokebattler(pbRaids?.dynamaxPokemon ?? [], new Set(pokemon.map((p) => p.id)))
+  if (dePokebattler.sinCasar.length) {
+    console.warn(`  ⚠ Max de Pokebattler sin casar con el roster: ${dePokebattler.sinCasar.join(', ')}`)
+  }
   const { dinamax, gigamax } = maxLiberados(pokemon, {
     semilla: DINAMAX_LIBERADOS.dinamax,
     vistos,
     shinyLeekDuck: leekRaw,
+    pokebattler: dePokebattler,
   })
 
-  if (!leekRaw.length) {
+  // Si una fuente no ha respondido, lo suyo se queda como en la pasada
+  // anterior en vez de apagarse: LeekDuck para los Gigamax, Pokebattler para
+  // los dos (Eternatus o Inteleon Gigamax solo los trae él).
+  const sinPokebattler = !pbRaids?.dynamaxPokemon?.length
+  if (!leekRaw.length || sinPokebattler) {
     try {
       const anterior = JSON.parse(await fs.readFile(path.join(OUT, 'roster.json'), 'utf8'))
-      for (const p of anterior) if (p.gigantamax) gigamax.add(p.id)
-      console.warn('  ⚠ sin LeekDuck: los Gigamax, como en la pasada anterior')
+      for (const p of anterior) {
+        if (p.gigantamax) gigamax.add(p.id)
+        if (sinPokebattler && p.dynamax) dinamax.add(p.id)
+      }
+      if (!leekRaw.length) console.warn('  ⚠ sin LeekDuck: los Gigamax, como en la pasada anterior')
+      if (sinPokebattler) console.warn('  ⚠ sin Pokebattler: los Dinamax y Gigamax, como en la pasada anterior')
     } catch {
       /* sin roster anterior: se queda lo visto en los combates Max */
     }
@@ -1809,6 +1873,116 @@ async function soloMaxLiberados(pokemon, leekRaw) {
   }
   const despues = { d: pokemon.filter((p) => p.dynamax).length, g: pokemon.filter((p) => p.gigantamax).length }
   console.log(`  Max liberados: ${despues.d} de ${antes.d} Dinamax, ${despues.g} de ${antes.g} Gigamax`)
+}
+
+/**
+ * Los datos de incursión de los ataques que el GAME_MASTER aún no publica:
+ * hoy, los 16 exclusivos de las supermegas (Premonición+, Ultrapuño+…), que
+ * llegaban con `pve: null` y la app no podía rankear. Pokebattler los tiene, y
+ * en los que sí están en el GAME_MASTER coincide con él en potencia, energía
+ * y duración (320 de 328; los otros son de relleno sin potencia, y Psicoataque,
+ * donde manda el GAME_MASTER). Van marcados con `pveSource: 'pokebattler'`;
+ * el día que el GAME_MASTER los publique, buildMoves los creará con los suyos
+ * y esto ya no los tocará.
+ */
+async function completarPve(moves, pbMoves) {
+  const suyos = new Map((pbMoves?.move ?? []).map((m) => [m.moveId, m]))
+  let anterior = {}
+  if (!suyos.size) {
+    try {
+      anterior = JSON.parse(await fs.readFile(path.join(OUT, 'moves.json'), 'utf8'))
+    } catch {
+      /* sin datos anteriores: se quedan sin datos de incursión */
+    }
+  }
+  const puestos = []
+  for (const m of Object.values(moves)) {
+    if (m.pve) continue
+    const pb = suyos.get(m.kind === 'fast' ? `${m.id}_FAST` : m.id)
+    if (pb?.power > 0 && pb.durationMs > 0) {
+      m.pve = {
+        power: pb.power,
+        energy: pb.energyDelta ?? 0,
+        duration: pb.durationMs / 1000,
+        damageWindow: (pb.damageWindowStartMs ?? 0) / 1000,
+      }
+      m.pveSource = 'pokebattler'
+      puestos.push(m.id)
+    } else if (anterior[m.id]?.pveSource === 'pokebattler') {
+      m.pve = anterior[m.id].pve
+      m.pveSource = 'pokebattler'
+      puestos.push(m.id)
+    }
+  }
+  console.log(`  ${puestos.length} ataques con datos de incursión de Pokebattler${puestos.length ? ': ' + puestos.join(', ') : ''}`)
+}
+
+/**
+ * Los ataques que el GAME_MASTER da y pvpoke no trae, confirmados con
+ * Pokebattler (ver scripts/lib/ataques.mjs). Si Pokebattler no ha respondido,
+ * se confirman con el roster de la pasada anterior: así lo ya añadido no
+ * desaparece un día que falle.
+ */
+async function completarConElJuego(pokemon, gm, moves, pbPokemon) {
+  const ids = new Set(pokemon.map((p) => p.id))
+  let confirmados
+  if (pbPokemon?.pokemon?.length) {
+    confirmados = ataquesPorPokemon(pbPokemon.pokemon, ids)
+  } else {
+    confirmados = new Map()
+    try {
+      const anterior = JSON.parse(await fs.readFile(path.join(OUT, 'roster.json'), 'utf8'))
+      for (const p of anterior) confirmados.set(p.id, new Set([...p.fast, ...p.charged]))
+      console.warn('  ⚠ sin Pokebattler: los ataques añadidos, como en la pasada anterior')
+    } catch {
+      /* sin roster anterior: se queda lo de pvpoke */
+    }
+  }
+  const anadidos = completarAtaques(pokemon, ataquesDelJuego(gm), gmFormNames, confirmados, moves)
+  const texto = anadidos.map((a) => `${a.id} ${a.move}${a.elite ? ' (élite)' : ''}`)
+  console.log(`  ${anadidos.length} ataques del juego que pvpoke no trae${texto.length ? ': ' + texto.join(', ') : ''}`)
+}
+
+/**
+ * Los Ataques Max exclusivos, por id del roster: Zacian Espada Suprema,
+ * Zamazenta Escudo Supremo y Eternatus. Ni megas ni oscuros, que no
+ * dinamaxizan.
+ */
+function exclusivosPorForma(exclusivos, pokemon) {
+  const salida = {}
+  for (const p of pokemon) {
+    if (p.mega || p.shadow) continue
+    const nombres = gmFormNames(p.id)
+    const uno = exclusivos.find((x) => nombres.includes(x.form))
+    if (uno) salida[p.id] = { attack: uno.attack, guard: uno.guard, spirit: uno.spirit }
+  }
+  return salida
+}
+
+/**
+ * La potencia de cada Ataque Max por nivel (`power`: [nivel 1, 2, 3, 4]), y
+ * el escudo y la curación de Maxibarrera y Maxivigor (`shield`, `heal`). El
+ * GAME_MASTER no la trae; sale de Pokebattler (ver nivelesMax). Si no ha
+ * respondido, la de la pasada anterior.
+ */
+async function ponerNivelesMax(maxData, pbMoves) {
+  const niveles = nivelesMax(pbMoves?.move ?? [])
+  let anterior = {}
+  if (!niveles.size) {
+    try {
+      anterior = JSON.parse(await fs.readFile(path.join(OUT, 'maxbattles.json'), 'utf8')).moves ?? {}
+      console.warn('  ⚠ sin Pokebattler: la potencia de los Ataques Max, como en la pasada anterior')
+    } catch {
+      /* sin datos anteriores: los ataques se quedan sin potencia */
+    }
+  }
+  let con = 0
+  for (const [id, mov] of Object.entries(maxData.movimientos)) {
+    const fila = niveles.get(maxData.vfx[id]) ?? anterior[id] ?? {}
+    for (const campo of ['power', 'shield', 'heal']) if (fila[campo]) mov[campo] = fila[campo]
+    if (mov.power || mov.shield || mov.heal) con++
+  }
+  console.log(`  ${con} de ${Object.keys(maxData.movimientos).length} ataques Max con su potencia por nivel`)
 }
 
 async function main() {
@@ -1834,6 +2008,17 @@ async function main() {
       return []
     }),
   ])
+  // Pokebattler es la segunda fuente: si no responde, cada cosa que aporta se
+  // queda como en la pasada anterior (ver más abajo) en vez de tirar la pasada.
+  const segunda = (name, url) => load(name, url).catch((err) => {
+    console.warn(`  ⚠ ${err.message}`)
+    return null
+  })
+  const [pbPokemon, pbMoves, pbRaids] = await Promise.all([
+    segunda('pokebattler-pokemon', SOURCES.pokebattlerPokemon),
+    segunda('pokebattler-moves', SOURCES.pokebattlerMoves),
+    segunda('pokebattler-raids', SOURCES.pokebattlerRaids),
+  ])
 
   const es = i18nMap(esRaw)
 
@@ -1848,6 +2033,7 @@ async function main() {
 
   const chart = buildTypeChart(gmRaw)
   const moves = buildMoves(gmRaw, pvpGm, es, nombresDeAtaques(pgaRaw))
+  await completarPve(moves, pbMoves)
   const forms = new Map(
     formsRaw.results.map((r) => [r.name, Number(r.url.split('/').filter(Boolean).pop())])
   )
@@ -1855,7 +2041,10 @@ async function main() {
   const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
   const conVariocolor = especiesConVariocolor(leekRaw)
   const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, conVariocolor, i18nMap(enRaw))
-  await soloMaxLiberados(pokemon, leekRaw)
+  await completarConElJuego(pokemon, gmRaw, moves, pbPokemon)
+  await soloMaxLiberados(pokemon, leekRaw, pbRaids)
+  const exclusivos = exclusivosPorForma(maxData.exclusivos, pokemon)
+  await ponerNivelesMax(maxData, pbMoves)
   const cadenasFormas = cadenasDeFormasRegionales(gmRaw, pokemon, es, i18nMap(enRaw))
   for (const p of pokemon) if (cadenasFormas.has(p.id)) p.cadena = cadenasFormas.get(p.id)
   console.log(`  ${cadenasFormas.size} formas regionales con cadena propia`)
@@ -1876,6 +2065,8 @@ async function main() {
       moves: maxData.movimientos,
       byType: maxData.porTipo,
       gmaxBySpecies: maxData.gmaxPorEspecie,
+      // Ataques Max propios de una forma, por id del roster (ver buildMaxData).
+      exclusiveByForm: exclusivos,
       upgradeCosts: maxData.costes,
     },
     'roster.json': pokemon,

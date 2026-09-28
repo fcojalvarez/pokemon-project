@@ -11,6 +11,8 @@
  */
 import { computed } from 'vue'
 import TypeIcons from '../base/TypeIcons.vue'
+import StabBadge from '../base/StabBadge.vue'
+import MaxMark from '../pokemon/MaxMark.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import { spriteUrl } from '../../utils/sprites'
@@ -37,7 +39,7 @@ const formato = (clave, v) => (clave === 'tdo' || props.mode === 'max' ? Math.ro
 const movesOf = (row) => row.moves ?? [row.fast, row.charged].filter(Boolean)
 const clave = (row) => [row.id, ...movesOf(row).map((m) => m?.id ?? m?.nameEs)].join('-')
 
-const tituloValor = computed(() => (props.mode === 'max' ? t('attack') : t('top.score')))
+const tituloValor = computed(() => (props.mode === 'max' ? t('max.damageUnit') : t('top.score')))
 const ordenar = (metrica) => {
   if (metrica !== props.sortBy) emit('update:sortBy', metrica)
 }
@@ -73,7 +75,7 @@ const ordenar = (metrica) => {
             </th>
           </template>
           <template v-else>
-            <th scope="col" class="px-3 py-2 font-semibold">{{ mode === 'max' ? $t('max.maxMove') : $t('top.moves') }}</th>
+            <th scope="col" class="px-3 py-2 font-semibold">{{ $t('top.moves') }}</th>
             <th scope="col" class="px-3 py-2 font-semibold text-right" aria-sort="descending">{{ tituloValor }}</th>
           </template>
         </tr>
@@ -85,11 +87,15 @@ const ordenar = (metrica) => {
           data-fila-top
           class="relative border-t border-gray-300 dark:border-gray-700 first:border-t-0 even:bg-gray-50 dark:even:bg-gray-800/40 hover:bg-gray-150 hover:dark:bg-gray-800"
         >
-          <td class="px-3 py-1.5 text-right text-xs text-gray-600 dark:text-gray-300 tabular-nums">{{ row.rank }}</td>
+          <td
+            class="px-3 py-1.5 text-right text-xs text-gray-600 dark:text-gray-300 tabular-nums"
+            :class="row.version === 'gigantamax' ? 'shadow-[inset_4px_0_0] shadow-fuchsia-500 dark:shadow-fuchsia-400' : ''"
+          >{{ row.rank }}</td>
           <td class="px-3 py-1.5">
             <div class="flex items-center gap-2 min-w-0">
               <base-sprite
                 :src="spriteUrl(row.spriteId)"
+                :oscuro="row.shadow"
                 class="w-9 h-9 shrink-0"
                 img-class="drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
               />
@@ -100,6 +106,7 @@ const ordenar = (metrica) => {
               >{{ localName(row) }}</router-link>
               <span v-else class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ localName(row) }}</span>
               <type-icons :types="row.types" size="12" class="shrink-0" />
+              <max-mark v-if="row.version" :variant="row.version" :size="20" class="shrink-0" />
             </div>
           </td>
           <template v-if="mode === 'pve'">
@@ -126,7 +133,34 @@ const ordenar = (metrica) => {
             </td>
           </template>
           <template v-else>
-            <td class="px-3 py-1.5 text-mini">
+            <td v-if="row.maxLines" class="px-3 py-1.5 text-mini">
+              <div class="flex flex-col gap-1.5">
+                <!--
+                  Max: bajo el nombre, su Ataque Max (el Gigamax, en fucsia) y debajo los
+                  rápidos que lo dan. Con «Todos», un bloque así por cada Ataque Max.
+                -->
+                <div v-for="linea in row.maxLines" :key="linea.max.id" class="min-w-0">
+                  <p
+                    class="flex items-center gap-1 pl-[9px] text-xs font-semibold"
+                    :class="linea.gigamax ? 'text-fuchsia-700 dark:text-fuchsia-300' : 'text-gray-800 dark:text-gray-100'"
+                    :title="linea.gigamax ? $t('moves.gigamaxHelp') : null"
+                  >
+                    <type-icons :types="[linea.max.type]" size="10" />
+                    {{ localName(linea.max) }}
+                  </p>
+                  <span class="mt-1 flex flex-wrap gap-1.5">
+                    <move-tag
+                      v-for="rapido in linea.rapidos"
+                      :key="rapido.id"
+                      chip
+                      :name="localName(rapido)"
+                      :type="rapido.type"
+                    />
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td v-else class="px-3 py-1.5 text-mini">
               <span class="flex flex-wrap gap-1.5">
                 <move-tag
                   v-for="move in movesOf(row)"
@@ -137,6 +171,7 @@ const ordenar = (metrica) => {
                   :elite="move.elite"
                   :legacy="move.legacy"
                   :mega="move.mega"
+                  :gigamax="move.gigamax"
                 />
               </span>
             </td>
@@ -145,6 +180,7 @@ const ordenar = (metrica) => {
                 <span v-if="mode === 'max'" class="w-14 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden" aria-hidden="true">
                   <span class="block h-full bg-gray-600 dark:bg-gray-300" :style="{ width: porcentaje(row) + '%' }"></span>
                 </span>
+                <stab-badge v-if="row.stab" />
                 {{ formato('value', row.value) }}
               </span>
             </td>

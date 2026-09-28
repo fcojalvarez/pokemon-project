@@ -28,7 +28,7 @@
     }
 
     .campo {
-        @apply block w-full rounded-xl px-3 py-2 text-sm bg-white text-gray-900 border border-gray-400 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600 dark:focus:ring-blue-300;
+        @apply block w-full rounded-xl px-3 py-2 text-sm bg-white text-gray-900 border border-gray-400 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600 dark:focus:ring-blue-300;
     }
 }
 @tailwind utilities;
@@ -41,12 +41,13 @@
 }
 
 /*
- * Foco de teclado. Un único anillo para toda la app: azul de 3 px, más claro
+ * Foco de teclado. Un único anillo para toda la app: azul de 1 px (con 3 se
+ * veía excesivo), más claro
  * en modo oscuro para que pase de 3:1 sobre gray-700 y gray-900. Solo con
  * :focus-visible, así que al tocar o hacer clic no aparece.
  */
 :focus-visible {
-    outline: 3px solid #2563eb;
+    outline: 1px solid #2563eb;
     outline-offset: 2px;
 }
 .dark :focus-visible {

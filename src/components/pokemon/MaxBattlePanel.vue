@@ -1,10 +1,10 @@
 <script setup>
 /**
- * Combates Max de este Pokémon: qué Ataque Max le toca, cuál es su ataque
- * Gigamax si lo tiene, y cuánto cuesta dejar los tres al máximo.
+ * Combates Max de este Pokémon: qué Ataque Max le da cada ataque rápido, cuál
+ * es su ataque Gigamax si lo tiene, y cuánto cuesta dejar los tres al máximo.
  *
- * El Ataque Max no se elige: lo decide el tipo principal, así que se enseña
- * como un dato y no como una lista de opciones. Del coste se da el total de
+ * El Ataque Max de un Dinamax es del tipo de su ataque rápido, así que se
+ * enseña uno por cada tipo de rápido que tenga. El Gigamax es fijo. Del coste se da el total de
  * los tres niveles y no el desglose, porque lo que se decide antes de empezar
  * es si merece la pena gastarse las partículas en este Pokémon.
  */
@@ -15,7 +15,9 @@ import FichaSeccion from './FichaSeccion.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MaxMark from './MaxMark.vue'
 import MaxTeamPanel from '../raids/MaxTeamPanel.vue'
+import StabBadge from '../base/StabBadge.vue'
 import { maxCounters } from '../../utils/maxBattle'
+import { calcCP } from '../../utils/formulas'
 
 const props = defineProps({
   /** Entrada del roster con la forma que se está viendo. */
@@ -71,7 +73,11 @@ const conXl = computed(() => upgradeRows.value.some((row) => row.total.xl))
 const equipo = computed(() => {
   if (!maxInfo.value || !gameData.isReady) return null
   const disponibles = new Set((gameData.maxLive?.pokemon ?? []).map((uno) => uno.dex))
-  const salida = maxCounters(props.entry, gameData.roster, gameData.chart, { limit: 6, available: disponibles })
+  const salida = maxCounters(props.entry, gameData.roster, gameData.chart, {
+    limit: 6,
+    available: disponibles,
+    ...gameData.datosMax()
+  })
   return salida.tanks.length || salida.attackers.length ? salida : null
 })
 
@@ -81,11 +87,32 @@ const comoConseguir = (quien) => {
   return null
 }
 
-/** Plegada: el ataque Max (y el Gigamax, si lo tiene). */
+/**
+ * El PC de un 100 % de lo que sale de un combate Max: siempre a nivel 20, sin
+ * potenciar por el clima. El Gigamax tiene las mismas estadísticas, así que es
+ * el mismo número. Es lo que se mira al atraparlo, por eso va también plegado.
+ */
+const pc100 = computed(() => {
+  const stats = props.entry?.stats
+  return stats?.atk ? calcCP(stats, { atk: 15, def: 15, hp: 15 }, 20) : null
+})
+
+/** Los Ataques Max de sus rápidos, sin el Gigamax ni el exclusivo (van aparte). */
+const deRapidos = computed(() => (maxInfo.value?.opciones ?? []).filter((opcion) => !opcion.gigamax && !opcion.exclusivo))
+/** Zacian y Zamazenta coronados y Eternatus: su Ataque Max propio, fijo. */
+const exclusivo = computed(() => (maxInfo.value?.opciones ?? []).find((opcion) => opcion.exclusivo) ?? null)
+const nombresRapidos = (opcion) => opcion.rapidos.map((rapido) => localName(rapido)).join(' / ')
+
+/** Plegada: el PC de un 100 %, los Ataques Max (y el Gigamax, si lo tiene). */
 const resumen = computed(() => {
   const info = maxInfo.value
   if (!info) return ''
-  return [info.maxMove && localName(info.maxMove), info.gmaxMove && localName(info.gmaxMove)].filter(Boolean).join(' · ')
+  return [
+    pc100.value && t('max.cp100Short', { cp: pc100.value }),
+    ...deRapidos.value.map((opcion) => localName(opcion.max)),
+    exclusivo.value && localName(exclusivo.value.max),
+    info.gmaxMove && localName(info.gmaxMove)
+  ].filter(Boolean).join(' · ')
 })
 </script>
 
@@ -103,21 +130,58 @@ const resumen = computed(() => {
       {{ $t('max.intro') }}
     </p>
 
-    <!--
-      El ataque Max no se elige: lo marca el tipo principal. Por eso se
-      enseña como un dato, no como una lista de opciones.
-    -->
     <dl class="mt-3 flex flex-col gap-2">
       <div
-        v-if="maxInfo.maxMove"
+        v-if="pc100"
         class="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
       >
-        <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.maxMove') }}</dt>
+        <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.cp100') }}</dt>
+        <dd class="text-sm font-semibold tabular-nums">{{ $t('max.cpValue', { cp: formatNumber(pc100) }) }}</dd>
+      </div>
+    </dl>
+
+    <!--
+      Un Ataque Max por cada tipo de ataque rápido: con qué rápido se saca cada
+      uno. El STAB, marcado, y explicado debajo.
+    -->
+    <template v-if="deRapidos.length">
+      <h3 class="mt-3 mb-1.5 text-xs font-bold text-gray-600 dark:text-gray-300">{{ $t('max.byFastMove') }}</h3>
+      <ul class="flex flex-col gap-1.5">
+        <li
+          v-for="opcion in deRapidos"
+          :key="opcion.max.id"
+          class="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+        >
+          <span class="flex items-center gap-1.5 min-w-0 text-gray-600 dark:text-gray-300">
+            <type-icons :types="[opcion.rapidos[0].type]" size="13" />
+            {{ nombresRapidos(opcion) }}
+          </span>
+          <span class="flex items-center gap-1.5 shrink-0 text-sm font-semibold">
+            <span aria-hidden="true" class="text-gray-500">→</span>
+            <type-icons :types="[opcion.max.type]" size="16" />
+            {{ localName(opcion.max) }}
+            <stab-badge v-if="opcion.stab" />
+          </span>
+        </li>
+      </ul>
+      <p v-if="deRapidos.some((opcion) => opcion.stab)" class="mt-1.5 flex items-start gap-1.5 text-mini text-gray-600 dark:text-gray-300">
+        <stab-badge class="mt-px" />
+        <span>{{ $t('max.stabHelp') }}</span>
+      </p>
+    </template>
+
+    <dl v-if="exclusivo" class="mt-3 flex flex-col gap-2">
+      <div class="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800">
+        <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.exclusiveMove') }}</dt>
         <dd class="flex items-center gap-2 text-sm font-semibold">
-          <type-icons :types="[maxInfo.maxMove.type]" size="16" />
-          {{ localName(maxInfo.maxMove) }}
+          <type-icons :types="[exclusivo.max.type]" size="16" />
+          {{ localName(exclusivo.max) }}
+          <stab-badge v-if="exclusivo.stab" />
         </dd>
       </div>
+    </dl>
+
+    <dl v-if="maxInfo.gmaxMove" class="mt-2 flex flex-col gap-2">
 
       <div
         v-if="maxInfo.gmaxMove"

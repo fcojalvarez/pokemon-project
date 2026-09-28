@@ -11,7 +11,7 @@ import LiveMonCard from '../pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../../utils/sprites'
 import { useTranslate } from '../../composables/useTranslate'
 
-defineProps({
+const props = defineProps({
   /** Nombre del jefe, ya traducido. */
   bossName: { type: String, required: true },
   /** { tanks, attackers } de maxCounters. */
@@ -23,6 +23,17 @@ defineProps({
 })
 
 const { localName } = useTranslate()
+
+/**
+ * A los que pegan, además, con qué llevarlos: el Ataque Max depende del
+ * ataque rápido, así que se dice cuál poner («Disparo Lodo → Maxitemblor»).
+ */
+const conAtaque = (quien) => {
+  const ataque = quien.maxMove
+    ? quien.fastMove ? `${localName(quien.fastMove)} → ${localName(quien.maxMove)}` : localName(quien.maxMove)
+    : null
+  return [ataque, props.howToGet(quien)].filter(Boolean).join(' · ') || null
+}
 </script>
 
 <template>
@@ -56,7 +67,7 @@ const { localName } = useTranslate()
             :name="localName(quien)"
             :image="spriteUrl(quien.spriteId)"
             :dex="quien.dex"
-            :badge="howToGet(quien)"
+            :badge="conAtaque(quien)"
           />
         </div>
       </div>

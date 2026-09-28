@@ -66,10 +66,15 @@ export function construirArbol(evolutionInfo, base = null) {
     }
     return {
       mon: grupo[0][i],
-      ramas: [...siguientes.values()].map((sub) => ({
-        req: requisitosDe(sub[0][i]),
-        destino: nodo(sub, i + 1)
-      }))
+      // Por número de Pokédex: cada ficha trae las ramas en su propio orden
+      // (en la de Froslass, primero Froslass), y al pasar de una a otra la
+      // cadena se recolocaba.
+      ramas: [...siguientes.values()]
+        .sort((a, b) => a[0][i + 1].pokemon_id - b[0][i + 1].pokemon_id)
+        .map((sub) => ({
+          req: requisitosDe(sub[0][i]),
+          destino: nodo(sub, i + 1)
+        }))
     }
   }
 

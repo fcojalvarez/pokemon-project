@@ -53,6 +53,8 @@
     },
     "forms": {
         "buttonShort": "Formas ({n})",
+        "costumesButton": "Disfraces ({n})",
+        "costumesTitle": "Disfraces de {pokemon}",
         "back": "Volver a la galería",
         "previous": "Anterior",
         "next": "Siguiente",
@@ -76,12 +78,6 @@
         "moveUp": "Subir {section}",
         "moveDown": "Bajar {section}",
         "cp100": "PC 100 %",
-        "cpLevel20": "Incursión o huevo",
-        "cpLevel25": "Con clima",
-        "cpLevel30": "Salvaje máx.",
-        "cpLevel35": "Salvaje con clima",
-        "cpLevel40": "Tope sin XL",
-        "cpLevel50": "Tope máximo",
         "weaknesses": "Debilidades",
         "resistances": "Resistencias",
         "bestMoves": "Mejores ataques",
@@ -109,6 +105,8 @@
         "megaMany": "Megaevoluciones",
         "pveRanks": "Puesto PvE",
         "noPveRank": "Fuera del top 500",
+        "regionalForms": "Formas regionales",
+        "shadowShort": "Oscuro",
         "superMega": "Supermega",
         "shinyLegend": "Shiny liberado",
         "released": "Liberado",
@@ -136,7 +134,19 @@
             "buddyCandy": "Km por caramelo",
             "buddyMega": "Km por megaenergía"
         },
-        "inMaxBattles": "En combates Max"
+        "inMaxBattles": "En combates Max",
+        "cpCatch": "Al atraparlo",
+        "cpPowerUp": "Al subirlo",
+        "cpOrigin": "Origen",
+        "cpNormal": "Normal",
+        "cpWeather": "Con clima",
+        "cpFromRaid": "Incursión",
+        "cpNoXl": "Sin caramelos XL",
+        "cpXl": "Con caramelos XL",
+        "cpFromEgg": "Huevo",
+        "cpFromEggMax": "Huevo o combate Max",
+        "cpFromResearch": "Misión",
+        "cpNoWeather": "No se potencia con el clima"
     },
     "top": {
         "pokemonColumn": "Pokémon",
@@ -175,7 +185,9 @@
         "include": "Incluir",
         "without": "sin {list}",
         "legacyHelp": "Apágalo para ver solo conjuntos que aún se pueden conseguir: hay Pokémon que suben mucho gracias a un ataque que ya no se aprende.",
-        "eliteHelp": "Apágalo para ver solo conjuntos que se aprenden con MT normales: los ataques élite necesitan una MT Élite o un evento concreto."
+        "eliteHelp": "Apágalo para ver solo conjuntos que se aprenden con MT normales: los ataques élite necesitan una MT Élite o un evento concreto.",
+        "legendaries": "Legendarios",
+        "legendaryHelp": "Legendarios y míticos: solo salen en combates Max de cinco estrellas y en fechas concretas."
     },
     "events": {
         "bonus": "Bonus",
@@ -304,7 +316,7 @@
             "training": "Entrenamiento",
             "rocket": "Team GO Rocket"
         },
-        "tapForCounters": "Toca la flecha de un jefe para ver con quién ganarle."
+        "countersButton": "Counters"
     },
     "filters": {
         "type": "Tipo",
@@ -415,7 +427,8 @@
                 "defense": "la defensa de los dos"
             }
         },
-        "chance": "{percent} % de probabilidad"
+        "chance": "{percent} % de probabilidad",
+        "gigamaxHelp": "Ataque Gigamax: es fijo, no depende del ataque rápido"
     },
     "suggestions": {
         "button": "Sugerencias",
@@ -475,6 +488,9 @@
         "canDynamax": "Puede dinamaxizar",
         "canGigantamax": "Puede gigamaxizar",
         "maxMove": "Ataque Max",
+        "cp100": "PC de un 100 % (nivel 20)",
+        "cp100Short": "100 %: PC {cp}",
+        "cpValue": "PC {cp}",
         "gmaxMove": "Ataque Gigamax",
         "slotAttack": "Maxiataque",
         "slotGuard": "Maxibarrera",
@@ -484,8 +500,8 @@
         "candy": "Caramelos",
         "candyXl": "Caramelos XL",
         "upgradeNote": "Total de los tres niveles, desbloqueo incluido.",
-        "tabTitle": "PvE · Dinamax",
-        "tabIntro": "Por ataque base: dentro de un tipo, todos usan el mismo Ataque Max.",
+        "tabTitle": "PvE · Max",
+        "tabIntro": "El Ataque Max es del tipo del ataque rápido. Por daño: potencia × ataque × STAB.",
         "noneOfType": "Todavía no hay ningún Dinamax de este tipo.",
         "battlesTitle": "Combates Max",
         "noBattles": "Ahora mismo no hay ningún combate Max anunciado.",
@@ -502,9 +518,18 @@
         "attackers": "Para pegar",
         "noAttackers": "Ningún Dinamax le saca ventaja de tipo.",
         "availableNow": "disponible ahora",
-        "teamNote": "Ordenado por ataque y ventaja de tipo, no por daño: los ataques Max no publican potencia. Como todos los de un tipo comparten Ataque Max, dentro de la comparación esa parte se cancela. Al evolucionar se conserva la forma Dinamax.",
+        "teamNote": "Ordenado por ataque, STAB y ventaja de tipo, no por daño: los ataques Max no publican potencia. El Ataque Max es del tipo del ataque rápido, así que a cada uno se le pone el que mejor le pega. Al evolucionar se conserva la forma Dinamax.",
         "availableVia": "evolucionando a {pokemon}",
-        "tapForTeam": "Toca la flecha de un jefe para ver el equipo recomendado."
+        "globalPool": "Cada nodo energético saca un jefe al azar de esta lista y va cambiando.",
+        "byFastMove": "Ataque Max según el ataque rápido",
+        "stabHelp": "Si el ataque es del mismo tipo que el Pokémon, hace un 20 % más de daño (×1,2).",
+        "stabTitle": "Mismo tipo que el Pokémon: un 20 % más de daño",
+        "stabLegend": "Mismo tipo que el Pokémon: ×1,2",
+        "damageUnit": "Daño",
+        "calcLegend": "Calculado con el Ataque Max al nivel 3 (el máximo) y todos los Pokémon al mismo nivel y con IV 15/15/15.",
+        "method1": "El Ataque Max de un Dinamax es del tipo de su ataque rápido; el de un Gigamax es su ataque propio, fijo.",
+        "method2": "Se ordena por el daño de ese ataque, con la fórmula del juego: potencia × ataque × STAB. Los ataques Gigamax y los exclusivos (Zacian y Zamazenta coronados, Eternatus) tienen 450 de potencia; los Ataques Max, 350.",
+        "exclusiveMove": "Ataque Max exclusivo"
     },
     "language": {
         "label": "Idioma",
@@ -518,7 +543,8 @@
         "title": "Leyenda",
         "shiny": "Shiny liberado",
         "dynamax": "Dinamax liberado",
-        "gigantamax": "Gigamax liberado"
+        "gigantamax": "Gigamax liberado",
+        "noLiberado": "No liberado"
     },
     "update": {
         "title": "Hay una nueva versión",

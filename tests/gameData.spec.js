@@ -260,10 +260,11 @@ describe('movimientos exclusivos de supermega', () => {
    * cálculo de DPS, así que ahí no puede colarse nada sin stats de PvE.
    */
   it('mantiene fuera de fast/charged los movimientos sin stats de PvE', () => {
+    // Hoy puede no quedar ninguno: los de las supermegas llevan los datos de
+    // incursión de Pokebattler (pveSource), a falta de los del GAME_MASTER.
     const sinPve = new Set(
       Object.values(moves).filter((m) => !m.pve).map((m) => m.id)
     )
-    expect(sinPve.size).toBeGreaterThan(0)
     const contaminados = roster.filter(
       (p) => [...p.fast, ...p.charged].some((id) => sinPve.has(id))
     )
@@ -273,9 +274,9 @@ describe('movimientos exclusivos de supermega', () => {
   it('no rankea el movimiento exclusivo mientras no haya datos de PvE', () => {
     const beedrill = roster.find((p) => p.id === 'beedrill_mega')
     expect(beedrill.megaMoves).toEqual(['FELL_STINGER_PLUS'])
-    expect(moves.FELL_STINGER_PLUS.pve).toBeNull()
+    const sinPve = { ...moves, FELL_STINGER_PLUS: { ...moves.FELL_STINGER_PLUS, pve: null } }
 
-    const sets = evaluatePokemon(beedrill, moves)
+    const sets = evaluatePokemon(beedrill, sinPve)
     expect(sets.length).toBeGreaterThan(0)
     expect(sets.some((s) => s.charged.id === 'FELL_STINGER_PLUS')).toBe(false)
   })
@@ -339,7 +340,7 @@ describe('combates Max', () => {
   it('reconoce a Charizard y lo separa de sus megas', () => {
     const base = roster.find((p) => p.id === 'charizard')
     expect(base).toMatchObject({ dynamax: true, gigantamax: true })
-    // El Ataque Max lo decide el tipo principal: fuego, no volador.
+    // Con un rápido de fuego (Giro Fuego, Ascuas), su Ataque Max es Maxignición.
     expect(base.types[0]).toBe('fire')
     expect(maxbattles.byType.fire.nameEs).toBe('Maxignición')
 

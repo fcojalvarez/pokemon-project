@@ -52,7 +52,9 @@ const ancho = computed(() => {
   // sitio, y más ancho y con más relleno el recuadro del Pokémon actual deja
   // de ir pegado a su contenido.
   if (!props.enGrupo) return 'w-[72px] min-[420px]:w-20 md:w-24 lg:w-32'
-  return props.pocos ? 'w-[132px] lg:w-[136px]' : 'w-full lg:w-[104px]'
+  // Con tope: sola en su fila (Froslass junto a Glalie y su mega), a lo ancho
+  // el recuadro del actual ocupaba todo el grupo.
+  return props.pocos ? 'w-[132px] lg:w-[136px]' : 'w-full max-w-[104px]'
 })
 // Igual que las tarjetas de la Pokédex: la tarjeta es el sprite, el nombre y
 // los tipos. El que se está viendo se marca con fondo y borde, y mide lo mismo

@@ -50,23 +50,18 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
   <component
     :is="to ? 'router-link' : 'div'"
     :to="to ?? undefined"
-    class="flex items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+    class="flex flex-wrap items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
     :class="[
       to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : '',
       highlight ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950' : ''
     ]"
   >
     <span class="relative shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center">
-      <!-- El aura del oscuro la ponemos nosotros: no hay sprite con ella. -->
-      <span
-        v-if="shadow"
-        class="absolute inset-0 rounded-full"
-        style="background: radial-gradient(circle, rgba(147,51,234,0.55) 0%, rgba(147,51,234,0) 70%)"
-        aria-hidden="true"
-      ></span>
+      <!-- El aura del oscuro la pone BaseSprite: no hay sprite con ella. -->
       <base-sprite
         v-if="image"
         :src="image"
+        :oscuro="shadow"
         class="w-9 h-9 sm:w-10 sm:h-10"
         img-class="drop-shadow-contorno dark:drop-shadow-none"
       />
@@ -101,5 +96,10 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
     </span>
 
     <slot />
+
+    <!-- Una fila más abajo, a todo el ancho de la tarjeta: deja la de arriba para el nombre. -->
+    <span v-if="$slots.pie" class="basis-full">
+      <slot name="pie" />
+    </span>
   </component>
 </template>

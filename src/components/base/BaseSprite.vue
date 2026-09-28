@@ -28,7 +28,13 @@ const props = defineProps({
    * colores, como si saliera: es la de la Pokédex. En el resto de la app,
    * 'suave': un fundido corto que apenas se nota.
    */
-  entrada: { type: String, default: 'suave' }
+  entrada: { type: String, default: 'suave' },
+  /**
+   * Pokémon oscuro: lleva detrás el halo morado. No hay sprite oscuro propio
+   * (PokeAPI y LeekDuck usan el normal), así que el halo es lo único que lo
+   * distingue en una lista.
+   */
+  oscuro: Boolean
 })
 
 /**
@@ -83,6 +89,7 @@ onMounted(comprobarCache)
       aria-hidden="true"
       class="esqueleto absolute inset-[12%] rounded-full"
     ></span>
+    <span v-if="oscuro" aria-hidden="true" class="aura-oscuro absolute -inset-[18%] rounded-full"></span>
     <img
       v-if="src"
       ref="img"
@@ -92,7 +99,7 @@ onMounted(comprobarCache)
       :loading="lazy ? 'lazy' : undefined"
       decoding="async"
       :class="[
-        'w-full h-full object-contain',
+        'relative w-full h-full object-contain',
         imgClass,
         estado === 'brillando' ? (entrada === 'salida' ? 'sprite-brilla' : 'sprite-suave') : null
       ]"
@@ -105,6 +112,21 @@ onMounted(comprobarCache)
 </template>
 
 <style scoped>
+/*
+ * El halo del oscuro: morado que se apaga hacia fuera, como el aura del juego,
+ * con el 50 % de opacidad como mucho, en el centro, y desvaneciéndose poco a
+ * poco hasta el borde, para que se note el degradado. Sobresale del sprite
+ * (-inset-[18%]): del mismo tamaño, el Pokémon lo tapaba casi entero. En modo
+ * claro, el morado 700; en modo oscuro, el 600: con el 800
+ * casi no se veía y con el 500 llamaba más la atención que el Pokémon.
+ */
+.aura-oscuro {
+  background: radial-gradient(circle, rgba(126, 34, 206, 0.5) 0%, rgba(126, 34, 206, 0.32) 32%, rgba(126, 34, 206, 0.12) 55%, rgba(126, 34, 206, 0) 72%);
+}
+:global(.dark .aura-oscuro) {
+  background: radial-gradient(circle, rgba(147, 51, 234, 0.5) 0%, rgba(147, 51, 234, 0.32) 32%, rgba(147, 51, 234, 0.12) 55%, rgba(147, 51, 234, 0) 72%);
+}
+
 /*
  * Sale de la nada: crece desde cero hasta su tamaño a la vez que pasa de
  * blanco y con halo a sus colores, como si estuviera saliendo. El

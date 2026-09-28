@@ -186,8 +186,8 @@ test('si game_data no responde, tira de los ficheros desplegados', async ({ page
 
 /**
  * El Top Dinamax es el único ranking que no sale de un cálculo de DPS: ordena
- * por ataque base porque dentro de un tipo el Ataque Max es el mismo para
- * todos. Si algún día eso deja de traerse del GAME_MASTER, la tabla saldría
+ * por ataque base porque todos los Ataques Max de un tipo son el mismo (el
+ * tipo lo da el ataque rápido). Si algún día eso deja de traerse del GAME_MASTER, la tabla saldría
  * vacía y nadie se enteraría.
  */
 test('el Top Dinamax ordena por ataque y enseña el Ataque Max', async ({ page }) => {
@@ -195,16 +195,18 @@ test('el Top Dinamax ordena por ataque y enseña el Ataque Max', async ({ page }
   await abrirFiltrosTop(page)
 
   await page.getByRole('combobox', { name: /modo/i }).click()
-  await page.getByRole('option', { name: /dinamax/i }).click()
+  await page.getByRole('option', { name: /· max$/i }).click()
 
   const filas = page.locator('[data-fila-top]')
   await expect(filas.first()).toBeVisible()
   expect(await filas.count()).toBeGreaterThan(10)
 
-  // La métrica es el ataque, no el DPS.
-  await expect(await etiquetaDeMetrica(page, filas, /^ataque$/i)).toBeVisible()
-  // Y cada fila lleva su Ataque Max, que en español siempre empieza por "Maxi".
-  await expect(filas.first().getByText(/^Maxi/)).toBeVisible()
+  // La métrica es el daño del Ataque Max, no el DPS.
+  await expect(await etiquetaDeMetrica(page, filas, /^daño$/i)).toBeVisible()
+  // Y cada fila lleva, bajo el nombre, su Ataque Max (o su Gigamax, que es
+  // fijo) y debajo los rápidos que lo dan.
+  // El párrafo lleva delante el icono del tipo, que se lee como «Fantasma».
+  await expect(filas.first().locator('p', { hasText: /\b(Maxi|Giga)/ }).first()).toBeVisible()
 })
 
 /**

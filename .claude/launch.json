@@ -18,6 +18,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev", "--host", "--port", "5180", "--strictPort"],
       "port": 5180
+    },
+    {
+      "name": "dev-red",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["dev", "--host", "--port", "5173", "--strictPort"],
+      "port": 5173
     }
   ]
 }

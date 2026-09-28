@@ -45,13 +45,13 @@ describe('tabla del Top', () => {
     expect(w.get('tbody a').attributes('href')).toBe('/pokemon/1')
   })
 
-  it('en Dinamax la columna es el Ataque Max y el valor, el ataque base', () => {
+  it('en Max la columna son los ataques y el valor, el daño', () => {
     const w = montar({
       mode: 'max',
       rows: [{ id: 'x', rank: 1, dex: 6, spriteId: 6, nameEs: 'Charizard', types: ['fire'], moves: [movimiento('Maxignición')], value: 223 }]
     })
     const cabeceras = w.findAll('th').map((th) => th.text())
-    expect(cabeceras).toEqual(['#', 'Pokémon', 'Ataque Max', 'Ataque'])
+    expect(cabeceras).toEqual(['#', 'Pokémon', 'Ataques', 'Daño'])
     expect(w.get('tbody tr').text()).toContain('Maxignición')
     expect(w.findAll('tbody td').at(-1).text()).toBe('223')
   })

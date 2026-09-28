@@ -63,6 +63,25 @@ describe('Gigamax liberados', () => {
   })
 })
 
+describe('la lista de Pokebattler', () => {
+  it('suma Dinamax por id, con herencia, y Gigamax solo si el juego lo permite', () => {
+    const { dinamax, gigamax } = maxLiberados(roster, {
+      pokebattler: { dinamax: ['charmeleon', 'charizard_mega_x'], gigamax: ['cinderace', 'flapple', 'lapras_mega'] },
+      hoy
+    })
+    // Las megas no dinamaxizan aunque Pokebattler las nombrara.
+    expect([...dinamax].sort()).toEqual(['charizard', 'charmeleon'])
+    // Con Gigamax permitido en el juego, entra aunque no tenga variocolor
+    // (Cinderace, Flapple); una mega, nunca.
+    expect([...gigamax].sort()).toEqual(['cinderace', 'flapple'])
+  })
+
+  it('no inventa: lo que el juego no permite se queda fuera', () => {
+    const { dinamax } = maxLiberados(roster, { pokebattler: { dinamax: ['applin'] }, hoy })
+    expect(dinamax.size).toBe(0)
+  })
+})
+
 describe('eventos de LeekDuck', () => {
   const nombres = dexPorNombre(roster)
 

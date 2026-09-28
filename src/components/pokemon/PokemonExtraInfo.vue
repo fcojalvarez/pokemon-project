@@ -12,6 +12,14 @@ import MaxBattlePanel from './MaxBattlePanel.vue'
 import { useTranslate } from '../../composables/useTranslate'
 import { describeMoveEffect, effectChanceLabel } from '../../utils/moveEffect'
 import { calcCP } from '../../utils/formulas'
+import MaxMark from './MaxMark.vue'
+import IconoMascara from '../base/IconoMascara.vue'
+import iconoClima from '../../assets/weather/partly_cloudy.png'
+import iconoCaramelo from '../../assets/icons/candy_icon.png'
+import iconoCarameloXl from '../../assets/icons/candy_xl.png'
+import iconoIncursion from '../../assets/icons/raid.png'
+import iconoHuevo from '../../assets/icons/egg.png'
+import iconoMision from '../../assets/icons/research.png'
 
 const props = defineProps({
   pokemon: { type: Object, required: true },
@@ -22,14 +30,11 @@ const props = defineProps({
 const gameData = useGameDataStore()
 const { t, tc, localName, intlLocale } = useTranslate()
 
-const CP_LABELS = {
-  20: 'pokemon.cpLevel20',
-  25: 'pokemon.cpLevel25',
-  30: 'pokemon.cpLevel30',
-  35: 'pokemon.cpLevel35',
-  40: 'pokemon.cpLevel40',
-  50: 'pokemon.cpLevel50'
-}
+/**
+ * Iconos de los orígenes del PC 100 %: los del juego (PokeMiners, pogo_assets),
+ * blancos, pintados con IconoMascara del color del texto.
+ */
+const ICONOS_PC = { raid: iconoIncursion, egg: iconoHuevo, research: iconoMision }
 
 const form = computed(() =>
   props.formId && gameData.isReady ? gameData.byId.get(props.formId) ?? null : null
@@ -62,12 +67,45 @@ const cpTable = computed(() => {
   const stats = form.value?.stats ?? (baseDelRoster.value?.stats?.atk ? baseDelRoster.value.stats : null)
   if (stats) {
     const ivs = { atk: 15, def: 15, hp: 15 }
-    return [20, 25, 30, 35, 40, 50].map((level) => ({
+    return [15, 20, 25, 30, 35, 40, 50].map((level) => ({
       level,
       cp: calcCP(stats, ivs, level)
     }))
   }
   return props.pokemon.stats?.base_attack ? gameData.perfectCP(props.pokemon.stats) : []
+})
+
+/** Si puede dinamaxizar, el nivel 20 es también el de lo que sale de un combate Max. */
+const esMax = computed(() => Boolean(asRosterEntry.value?.dynamax || asRosterEntry.value?.gigantamax))
+
+const nivelPc = (level) => cpTable.value.find((row) => row.level === level) ?? { level, cp: '—' }
+
+/**
+ * El PC 100 % en grupos. Al atraparlo, los niveles fijos del juego: incursión
+ * a 20 (25 con clima); huevo y combate Max a 20, y misión a 15, sin clima.
+ * Salvaje no va: sale a cualquier nivel del 1 al 30 (35 con clima), y un solo
+ * número engañaba. Al subirlo: el 40 sin caramelos XL y el 50 con ellos.
+ */
+const pcAtrapar = computed(() => {
+  if (!cpTable.value.length) return []
+  return [
+    { clave: 'raid', iconos: ['raid'], texto: t('pokemon.cpFromRaid'), normal: nivelPc(20), clima: nivelPc(25) },
+    {
+      clave: 'egg',
+      iconos: esMax.value ? ['egg', 'max'] : ['egg'],
+      texto: t(esMax.value ? 'pokemon.cpFromEggMax' : 'pokemon.cpFromEgg'),
+      normal: nivelPc(20),
+      clima: null
+    },
+    { clave: 'research', iconos: ['research'], texto: t('pokemon.cpFromResearch'), normal: nivelPc(15), clima: null }
+  ]
+})
+const pcSubir = computed(() => {
+  if (!cpTable.value.length) return []
+  return [
+    { ...nivelPc(40), xl: false, texto: t('pokemon.cpNoXl') },
+    { ...nivelPc(50), xl: true, texto: t('pokemon.cpXl') }
+  ]
 })
 
 const matchups = computed(() => {
@@ -272,16 +310,24 @@ const moveEffects = computed(() => {
     .filter(Boolean)
 })
 
+/**
+ * Puestos PvE por forma: la que se está viendo y, debajo, su versión oscura,
+ * que en el Top sale aparte y aquí no aparecía nunca. Sin forma concreta,
+ * todas las de la especie.
+ */
 const pveRanks = computed(() => {
-  if (!gameData.isReady) return { overall: null, byType: [] }
-  const ranks = gameData.pveRanksFor(props.pokemon.pokemon_id)
-  if (!form.value) return ranks
-  // Viendo una forma concreta solo interesan sus propios puestos.
-  return {
-    overall: ranks.overall?.id === form.value.id ? ranks.overall : null,
-    byType: ranks.byType.filter((entry) => entry.id === form.value.id)
-  }
+  if (!gameData.isReady) return []
+  const formas = gameData.pveRanksFor(props.pokemon.pokemon_id).filter((forma) => forma.byType.length)
+  const principal = form.value?.id ?? baseDelRoster.value?.id
+  const ids = [principal, `${principal}_shadow`]
+  const suyas = ids.map((id) => formas.find((forma) => forma.id === id)).filter(Boolean)
+  // Viendo una forma concreta, solo ella y su oscura. En la ficha de la
+  // especie, detrás, las demás (las megas), por puesto.
+  if (form.value) return suyas
+  return [...suyas, ...formas.filter((forma) => !ids.includes(forma.id))]
 })
+/** Con una sola forma y siendo la base, el nombre sobra. */
+const nombreEnPve = (forma) => pveRanks.value.length > 1 || !formaUnica.value || forma.id !== baseDelRoster.value?.id
 
 // Los rankings PvP se piden aparte, cuando ya está lo principal de la ficha.
 watch(() => gameData.isReady, (listo) => { if (listo) gameData.cargarPvp() }, { immediate: true })
@@ -323,13 +369,20 @@ const resumen = computed(() => {
   r.costes = [...avisos, primerCoste && `${t(`pokemon.costLabels.${primerCoste.key}`)}: ${costeTexto(primerCoste)}`]
     .filter(Boolean).join(' · ')
   if (cpTable.value.length) {
-    const primero = cpTable.value[0]
-    const ultimo = cpTable.value[cpTable.value.length - 1]
+    // El 20 (incursión, huevo) y el tope: el 15 de las misiones va dentro.
+    const primero = nivelPc(20)
+    const ultimo = nivelPc(50)
     r.pc = `${t('common.levelShort')} ${primero.level}: ${primero.cp} · ${t('common.levelShort')} ${ultimo.level}: ${ultimo.cp}`
   }
-  const pve = pveRanks.value
-  r.pve = pve.byType.length
-    ? [pve.overall && `${t('top.overall')}: #${pve.overall.rank}`, `${t(`types.${pve.byType[0].type}`)} #${pve.byType[0].rank}`].filter(Boolean).join(' · ')
+  // La forma principal como antes y, detrás, el mejor puesto de la oscura.
+  const [principal, ...otras] = pveRanks.value
+  r.pve = principal
+    ? [
+        principal.overall && `${t('top.overall')}: #${principal.overall.rank}`,
+        `${t(`types.${principal.byType[0].type}`)} #${principal.byType[0].rank}`,
+        // Solo la oscura: con las megas la línea no cabía.
+        ...otras.filter((forma) => forma.entry.shadow).map((forma) => `${forma.entry.shadow ? t('pokemon.shadowShort') : localName(forma.entry)}: ${t(`types.${forma.byType[0].type}`)} #${forma.byType[0].rank}`)
+      ].filter(Boolean).join(' · ')
     : t('pokemon.noPveRank')
   r.pvp = !gameData.pvpListo
     ? t('common.loading')
@@ -504,16 +557,72 @@ const moverVisible = (id, paso) => {
         <template v-else-if="id === 'pc'">
           <!-- ---------- PC de un 100 % ---------- -->
           <ficha-seccion v-if="cpTable.length" id="pc" :title="$t('pokemon.cp100')" :summary="resumen.pc">
-            <dl class="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2">
+            <!--
+              En dos grupos: lo que sale al atraparlo y lo que se saca subiéndolo.
+              Los orígenes van con iconos y no con texto (antes todo eran letras y
+              números del mismo color y grosor); sin clima y con clima, en
+              columnas, que es lo que se compara. Cada icono lleva su texto para
+              lectores de pantalla y en el title.
+            -->
+            <h3 class="mt-2 mb-1 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('pokemon.cpCatch') }}</h3>
+            <table class="w-full border-separate [border-spacing:0_6px] -my-1.5 tabular-nums">
+              <thead>
+                <tr class="text-mini text-gray-600 dark:text-gray-300">
+                  <th scope="col"><span class="sr-only">{{ $t('pokemon.cpOrigin') }}</span></th>
+                  <th scope="col" class="w-24 pr-2 font-normal text-right">{{ $t('pokemon.cpNormal') }}</th>
+                  <th scope="col" class="w-24 pr-2 font-normal">
+                    <span class="flex items-center justify-end gap-1">
+                      <icono-mascara :src="iconoClima" class="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                      {{ $t('pokemon.cpWeather') }}
+                    </span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="fila in pcAtrapar" :key="fila.clave">
+                  <th scope="row" class="text-left font-normal">
+                    <span class="sr-only">{{ fila.texto }}</span>
+                    <span class="flex items-center gap-1.5 text-gray-700 dark:text-gray-200" :title="fila.texto" aria-hidden="true">
+                      <template v-for="icono in fila.iconos" :key="icono">
+                        <max-mark v-if="icono === 'max'" variant="dynamax" :size="16" class="shrink-0" />
+                        <icono-mascara v-else :src="ICONOS_PC[icono]" class="w-5 h-5" />
+                      </template>
+                    </span>
+                  </th>
+                  <td class="p-0 pl-1.5">
+                    <span class="flex flex-col items-end px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800">
+                      <span class="text-base font-bold leading-tight">{{ fila.normal.cp }}</span>
+                      <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('common.levelShort') }} {{ fila.normal.level }}</span>
+                    </span>
+                  </td>
+                  <td class="p-0 pl-1.5">
+                    <span v-if="fila.clima" class="flex flex-col items-end px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800">
+                      <span class="text-base font-bold leading-tight">{{ fila.clima.cp }}</span>
+                      <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('common.levelShort') }} {{ fila.clima.level }}</span>
+                    </span>
+                    <!-- Huevos, combates Max y misiones no se potencian con el clima -->
+                    <span v-else class="block pr-2 text-right text-gray-500 dark:text-gray-400">
+                      <span aria-hidden="true">—</span>
+                      <span class="sr-only">{{ $t('pokemon.cpNoWeather') }}</span>
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h3 class="mt-3 mb-1.5 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('pokemon.cpPowerUp') }}</h3>
+            <dl class="grid grid-cols-2 gap-1.5 tabular-nums">
               <div
-                v-for="row in cpTable"
-                :key="row.level"
-                class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
+                v-for="fila in pcSubir"
+                :key="fila.level"
+                class="flex items-center justify-between gap-2 px-2 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800"
               >
-                <dt class="text-mini text-gray-600 dark:text-gray-300">
-                  {{ $t('common.levelShort') }} {{ row.level }} · {{ $t(CP_LABELS[row.level]) }}
+                <dt class="flex items-center gap-1.5 whitespace-nowrap text-mini text-gray-600 dark:text-gray-300" :title="fila.texto">
+                  <icono-mascara :src="fila.xl ? iconoCarameloXl : iconoCaramelo" class="w-4 h-4 text-gray-600 dark:text-gray-300" />
+                  <span class="sr-only">{{ fila.texto }},</span>
+                  {{ $t('common.levelShort') }} {{ fila.level }}
                 </dt>
-                <dd class="text-lg font-bold">{{ row.cp }}</dd>
+                <dd class="text-base font-bold">{{ fila.cp }}</dd>
               </div>
             </dl>
           </ficha-seccion>
@@ -523,36 +632,34 @@ const moverVisible = (id, paso) => {
           <!-- ---------- Puesto en PvE ---------- -->
           <ficha-seccion id="pve" :title="$t('pokemon.pveRanks')" :summary="resumen.pve">
             <p
-              v-if="!pveRanks.byType.length"
+              v-if="!pveRanks.length"
               class="mt-2 text-mini text-gray-600 dark:text-gray-300"
             >
               {{ $t('pokemon.noPveRank') }}
             </p>
+            <!-- Por forma, como el PvP: la que se ve y debajo la oscura. -->
             <template v-else>
-              <p v-if="pveRanks.overall" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
-                {{ $t('top.overall') }}: <strong>#{{ pveRanks.overall.rank }}</strong>
-              </p>
-              <ul class="mt-2 flex flex-col gap-1.5">
-                <!--
-                  En dos líneas: tipo y puesto arriba, la forma debajo a todo el
-                  ancho. En una sola, en la columna estrecha, «Pikachu 5.º
-                  aniversario» o «Mega Charizard Y» se partían a media palabra.
-                -->
-                <li
-                  v-for="entry in pveRanks.byType"
-                  :key="`${entry.type}-${entry.id}`"
-                  class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
-                >
-                  <span class="flex items-center gap-2">
-                    <type-icons :types="[entry.type]" size="13" />
-                    <span class="font-semibold">{{ $t(`types.${entry.type}`) }}</span>
-                    <span class="ml-auto shrink-0">
-                      #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
+              <div v-for="forma in pveRanks" :key="forma.id" class="mt-2">
+                <p v-if="nombreEnPve(forma)" class="text-xs font-semibold">{{ localName(forma.entry) }}</p>
+                <p v-if="forma.overall" class="mt-0.5 text-mini text-gray-600 dark:text-gray-300">
+                  {{ $t('top.overall') }}: <strong>#{{ forma.overall.rank }}</strong>
+                </p>
+                <ul class="mt-1.5 flex flex-col gap-1.5">
+                  <li
+                    v-for="entry in forma.byType"
+                    :key="`${entry.type}-${entry.id}`"
+                    class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+                  >
+                    <span class="flex items-center gap-2">
+                      <type-icons :types="[entry.type]" size="13" />
+                      <span class="font-semibold">{{ $t(`types.${entry.type}`) }}</span>
+                      <span class="ml-auto shrink-0">
+                        #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
+                      </span>
                     </span>
-                  </span>
-                  <span v-if="!formaUnica || entry.id !== baseDelRoster?.id" class="block mt-0.5 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
-                </li>
-              </ul>
+                  </li>
+                </ul>
+              </div>
             </template>
           </ficha-seccion>
         </template>

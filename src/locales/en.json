@@ -53,6 +53,8 @@
     },
     "forms": {
         "buttonShort": "Forms ({n})",
+        "costumesButton": "Costumes ({n})",
+        "costumesTitle": "{pokemon} costumes",
         "back": "Back to gallery",
         "previous": "Previous",
         "next": "Next",
@@ -76,12 +78,6 @@
         "moveUp": "Move {section} up",
         "moveDown": "Move {section} down",
         "cp100": "100 % CP",
-        "cpLevel20": "Raid or egg",
-        "cpLevel25": "Weather boost",
-        "cpLevel30": "Wild max",
-        "cpLevel35": "Wild boosted",
-        "cpLevel40": "Cap without XL",
-        "cpLevel50": "Max cap",
         "weaknesses": "Weaknesses",
         "resistances": "Resistances",
         "bestMoves": "Best moves",
@@ -109,6 +105,8 @@
         "megaMany": "Mega Evolutions",
         "pveRanks": "PvE rank",
         "noPveRank": "Outside the top 500",
+        "regionalForms": "Regional forms",
+        "shadowShort": "Shadow",
         "superMega": "Super Mega",
         "shinyLegend": "Shiny released",
         "released": "Released",
@@ -136,7 +134,19 @@
             "buddyCandy": "Km per candy",
             "buddyMega": "Km per Mega Energy"
         },
-        "inMaxBattles": "In Max Battles"
+        "inMaxBattles": "In Max Battles",
+        "cpCatch": "When caught",
+        "cpPowerUp": "Powered up",
+        "cpOrigin": "Source",
+        "cpNormal": "Normal",
+        "cpWeather": "Weather",
+        "cpFromRaid": "Raid",
+        "cpNoXl": "Without XL Candy",
+        "cpXl": "With XL Candy",
+        "cpFromEgg": "Egg",
+        "cpFromEggMax": "Egg or Max Battle",
+        "cpFromResearch": "Research",
+        "cpNoWeather": "Not weather boosted"
     },
     "top": {
         "pokemonColumn": "Pokémon",
@@ -175,7 +185,9 @@
         "include": "Include",
         "without": "without {list}",
         "legacyHelp": "Turn it off to see only movesets you can still get: some Pokémon rank high thanks to a move that is no longer learnable.",
-        "eliteHelp": "Turn it off to see only movesets you can get with regular TMs: Elite moves need an Elite TM or a specific event."
+        "eliteHelp": "Turn it off to see only movesets you can get with regular TMs: Elite moves need an Elite TM or a specific event.",
+        "legendaries": "Legendaries",
+        "legendaryHelp": "Legendary and Mythical Pokémon: only in five-star Max Battles on set dates."
     },
     "events": {
         "bonus": "Bonuses",
@@ -304,7 +316,7 @@
             "training": "Training",
             "rocket": "Team GO Rocket"
         },
-        "tapForCounters": "Tap the arrow on a boss to see the best counters."
+        "countersButton": "Counters"
     },
     "filters": {
         "type": "Type",
@@ -415,7 +427,8 @@
                 "defense": "both Defense stats"
             }
         },
-        "chance": "{percent}% chance"
+        "chance": "{percent}% chance",
+        "gigamaxHelp": "G-Max Move: fixed, it does not depend on the fast attack"
     },
     "suggestions": {
         "button": "Feedback",
@@ -475,6 +488,9 @@
         "canDynamax": "Can Dynamax",
         "canGigantamax": "Can Gigantamax",
         "maxMove": "Max Move",
+        "cp100": "100% CP (level 20)",
+        "cp100Short": "100%: {cp} CP",
+        "cpValue": "{cp} CP",
         "gmaxMove": "G-Max Move",
         "slotAttack": "Max Attack",
         "slotGuard": "Max Guard",
@@ -484,8 +500,8 @@
         "candy": "Candy",
         "candyXl": "XL Candy",
         "upgradeNote": "Total across all three levels, unlock included.",
-        "tabTitle": "PvE · Dynamax",
-        "tabIntro": "By base attack: within a type they all share the same Max Move.",
+        "tabTitle": "PvE · Max",
+        "tabIntro": "The Max Move takes the type of the fast attack. By damage: power × attack × STAB.",
         "noneOfType": "No Dynamax of this type yet.",
         "battlesTitle": "Max Battles",
         "noBattles": "No Max Battles announced right now.",
@@ -502,9 +518,18 @@
         "attackers": "To attack",
         "noAttackers": "No Dynamax has a type advantage here.",
         "availableNow": "available now",
-        "teamNote": "Ranked by attack and type advantage, not damage: Max Moves publish no power. Since every Pokémon of a type shares the same Max Move, that part cancels out within the comparison. Evolving keeps the Dynamax form.",
+        "teamNote": "Ranked by attack, STAB and type advantage, not by damage: Max Moves have no published power. The Max Move takes the type of the fast attack, so each one gets its best. Evolving keeps the Dynamax form.",
         "availableVia": "by evolving {pokemon}",
-        "tapForTeam": "Tap the arrow on a boss to see the suggested team."
+        "globalPool": "Each Power Spot picks a random boss from this list and rotates.",
+        "byFastMove": "Max Move by fast attack",
+        "stabHelp": "If the move matches one of the Pokémon’s types, it deals 20% more damage (×1.2).",
+        "stabTitle": "Same type as the Pokémon: 20% more damage",
+        "stabLegend": "Same type as the Pokémon: ×1.2",
+        "damageUnit": "Damage",
+        "calcLegend": "Calculated with the Max Move at level 3 (the maximum) and every Pokémon at the same level with 15/15/15 IVs.",
+        "method1": "A Dynamax Pokémon’s Max Move takes the type of its fast attack; a Gigantamax Pokémon uses its own fixed G-Max Move.",
+        "method2": "Ranked by the damage of that move, with the game formula: power × attack × STAB. G-Max Moves and the exclusive ones (Crowned Zacian and Zamazenta, Eternatus) have 450 power; Max Moves, 350.",
+        "exclusiveMove": "Exclusive Max Move"
     },
     "language": {
         "label": "Language",
@@ -518,7 +543,8 @@
         "title": "Legend",
         "shiny": "Shiny released",
         "dynamax": "Dynamax released",
-        "gigantamax": "Gigantamax released"
+        "gigantamax": "Gigantamax released",
+        "noLiberado": "Not released"
     },
     "update": {
         "title": "A new version is available",

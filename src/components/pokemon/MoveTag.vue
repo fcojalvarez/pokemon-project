@@ -8,7 +8,8 @@
  * se marca en todos a la vez.
  *
  * El color es la información: ámbar = élite, morado = legacy, fucsia =
- * exclusivo de supermega. Siempre acompañado de `title` y, en los contenedores
+ * exclusivo de supermega o ataque Gigamax (no salen nunca juntos: en los
+ * combates Max no entran megas). Siempre acompañado de `title` y, en los contenedores
  * que listan movimientos, de un <move-legend> que lo explica.
  */
 import { computed } from 'vue'
@@ -25,6 +26,8 @@ const props = defineProps({
   legacy: Boolean,
   // Exclusivo de la supermegaevolución.
   mega: Boolean,
+  // Ataque Gigamax: fijo, no depende del rápido.
+  gigamax: Boolean,
   // Píldora con borde completo. Es lo que se usa en toda la app: el subrayado
   // suelto se leía peor y costaba distinguir el ámbar del morado de un vistazo.
   chip: Boolean,
@@ -38,6 +41,7 @@ const { t } = useTranslate()
  * manda legacy: es la condición más restrictiva.
  */
 const origin = computed(() => {
+  if (props.gigamax) return 'gigamax'
   if (props.mega) return 'mega'
   if (props.legacy) return 'legacy'
   if (props.elite) return 'elite'
@@ -56,6 +60,10 @@ const origin = computed(() => {
  * lo dice con palabras.
  */
 const COLORS = {
+  gigamax: {
+    chip: 'border-fuchsia-600 dark:border-fuchsia-400 text-fuchsia-700 dark:text-fuchsia-300',
+    line: 'border-fuchsia-600 dark:border-fuchsia-400'
+  },
   mega: {
     chip: 'border-fuchsia-600 dark:border-fuchsia-400 text-fuchsia-700 dark:text-fuchsia-300',
     line: 'border-fuchsia-600 dark:border-fuchsia-400'
