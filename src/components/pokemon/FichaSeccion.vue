@@ -25,8 +25,8 @@ const panelId = computed(() => `seccion-${props.id}`)
 
 <template>
   <!--
-    El id y el tabindex son para poder saltar aquí desde la cabecera
-    (irA): el scroll-mt deja la sección por debajo de la cabecera fija.
+    El id y el tabindex dejan saltar aquí con un enlace a #ficha-…: el
+    scroll-mt deja la sección por debajo de la cabecera fija.
   -->
   <section
     :id="`ficha-${id}`"

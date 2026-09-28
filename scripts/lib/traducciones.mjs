@@ -91,7 +91,7 @@ const FIJOS = {
   'Master League': 'Liga Master Ball',
   'Little Cup': 'Copa Chica',
   // Temporadas: el nombre oficial, que no siempre es la traducción literal.
-  'Twilight Trails': 'Senderos Crepusculares',
+  'Twilight Trails': 'Caminos crepusculares',
   'Field Research': 'Investigación de campo',
   'Special Research': 'Investigación especial',
   'Timed Research': 'Investigación temporal',

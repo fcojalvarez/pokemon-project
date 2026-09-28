@@ -40,6 +40,8 @@ const liberado = (page) => page.locator('main p', { hasText: /^Liberado:/ })
 test('la cabecera dice qué tiene liberado cada Pokémon', async ({ page }) => {
   await page.goto('/pokemon/6')
   await expect(liberado(page)).toHaveText(/Shiny,\s*Dinamax,\s*Gigamax/, { useInnerText: true })
+  // Solo texto: ninguna de las tres lleva a otra sección.
+  await expect(liberado(page).getByRole('button')).toHaveCount(0)
 
   // Dinamax sí, Gigamax no.
   await page.goto('/pokemon/1')
@@ -51,19 +53,6 @@ test('la cabecera dice qué tiene liberado cada Pokémon', async ({ page }) => {
   await expect(liberado(page)).toHaveText(/Shiny/, { useInnerText: true })
   await expect(liberado(page)).not.toContainText('Dinamax', { useInnerText: true })
   await expect(liberado(page).getByRole('button')).toHaveCount(0)
-})
-
-test('Dinamax y Gigamax llevan a Combates Max, abierta y con el foco', async ({ page }) => {
-  await page.goto('/pokemon/6')
-  await liberado(page).getByRole('button', { name: /Dinamax.*Gigamax.*combates Max/ }).click()
-
-  const seccion = page.locator('#ficha-max')
-  await expect(seccion).toBeFocused()
-  await expect(seccion).toBeInViewport()
-  // En móvil y tablet estaba plegada: se abre sola.
-  const cabecera = seccion.getByRole('button', { name: /^Combates Max/ })
-  if (await cabecera.count()) await expect(cabecera).toHaveAttribute('aria-expanded', 'true')
-  await expect(seccion.getByText('Ataque Gigamax')).toBeVisible()
 })
 
 /** A 1024 px, el escritorio más estrecho, las megas X e Y se montaban. */

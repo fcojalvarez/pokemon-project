@@ -26,6 +26,17 @@
      * compartido) no hay a dónde volver dentro de la app, y entonces sí se va
      * a la Pokédex. El router guarda la página anterior en history.state.back.
      */
+    /**
+     * El logo lleva a la Pokédex como recién abierta. Llegar a «/» sin nada en
+     * la URL ya le quita filtros y búsqueda (PokemonsList); si ya se está ahí
+     * tal cual, lo único que falta es volver arriba.
+     */
+    const irAlInicio = () => {
+        if (route.path === '/' && !Object.keys(route.query).length) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    };
+
     const volver = () => {
         if (window.history.state?.back) router.back();
         else router.push('/');
@@ -42,8 +53,9 @@
         <button
             class="back-btn shrink-0 rounded-xl hover:bg-gray-200 hover:dark:bg-gray-800 md:border-gray-400 md:shadow-md md:bg-white md:dark:bg-gray-900 md:hover:bg-gray-150"
             :class="{ 'back-btn-visible': isPokemonView }"
-            :tabindex="isPokemonView ? 0 : -1"
-            :aria-hidden="!isPokemonView"
+            :tabindex="isPokemonView && !buscadorTapa ? 0 : -1"
+            :aria-hidden="!isPokemonView || buscadorTapa || undefined"
+            :inert="buscadorTapa || undefined"
             :aria-label="$t('back')"
             @click="volver"
         >
@@ -69,14 +81,25 @@
         -->
         <router-link
             to="/"
-            class="marca absolute inset-y-0 left-1/2 -translate-x-1/2 flex md:hidden lg:flex items-center gap-1.5 sm:gap-2 px-1 rounded-xl font-bold text-base sm:text-lg text-gray-800 dark:text-gray-100 transition-opacity"
+            class="marca absolute z-[5] inset-y-0 left-1/2 -translate-x-1/2 flex md:hidden lg:flex items-center gap-1.5 px-1 rounded-xl text-gray-800 dark:text-gray-100 transition-opacity"
             :class="buscadorTapa ? 'opacity-0 pointer-events-none' : ''"
             :tabindex="buscadorTapa ? -1 : undefined"
             :aria-hidden="buscadorTapa || undefined"
+            :aria-label="`PoGoDex, ${$t('appTagline')}`"
+            @click="irAlInicio"
         >
-            <img src="/icons/favicon.svg" alt="" width="28" height="28" class="w-6 h-6 sm:w-7 sm:h-7">
-            <!-- En la ficha de un móvil muy estrecho, con volver y la lupa a la izquierda, solo cabe el icono. -->
-            <span :class="isPokemonView ? 'max-[379px]:sr-only' : ''">PoGoDex</span>
+            <!--
+                El pin a la izquierda y, a su lado, el nombre y «para Pokémon GO»
+                debajo. El nombre accesible va entero en aria-label. font-black
+                explícito en el nombre: base.css pone font-weight normal a cada
+                elemento con *, y no se heredaba.
+            -->
+            <!-- Igual en todas las vistas; en móvil, algo más pequeño para que en la ficha quepa entre volver y la lupa. -->
+            <img src="/icons/favicon.svg" alt="" width="32" height="32" class="w-6 h-6 sm:w-8 sm:h-8 shrink-0">
+            <span class="flex flex-col">
+                <span class="font-['PoGoDex_Marca',monospace] font-black text-[15px] sm:text-lg leading-none tracking-tight">PoGoDex</span>
+                <span class="mt-0.5 text-[9px] sm:text-[10px] leading-none sm:tracking-wide text-gray-600 dark:text-gray-300">{{ $t('appTagline') }}</span>
+            </span>
         </router-link>
         <!--
             El buscador y el modo oscuro comparten hueco. En escritorio van en
@@ -84,6 +107,8 @@
             el modo oscuro a la derecha. En móvil el buscador es una lupa
             (absoluta, a la izquierda del hueco) que al abrirse lo llena entero
             y tapa el modo oscuro; ver SearchBar.
+            El hueco del buscador cruza el centro y va después: sin el z-[5] del
+            logo, le quitaba los clics. El buscador abierto (z-10) queda encima.
         -->
         <div class="relative flex-1 min-w-0 flex items-stretch gap-3">
             <!-- Desde lg, que no llegue al centro, donde va el nombre: la mitad del hueco, o menos con el botón de volver al lado. -->
@@ -91,7 +116,7 @@
                 v-if="!route.meta.sinNavegacion"
                 id="search-bar"
                 class="md:flex-1 min-w-0 md:max-w-lg"
-                :class="isPokemonView ? 'lg:max-w-[min(32rem,calc(50%-7rem))]' : 'lg:max-w-[min(32rem,calc(50%-2rem))]'"
+                :class="isPokemonView ? 'buscar-sobre-volver lg:max-w-[min(32rem,calc(50%-7rem))]' : 'lg:max-w-[min(32rem,calc(50%-2rem))]'"
                 @tapa="buscadorTapa = $event"
             />
 
@@ -125,16 +150,44 @@
     margin-right: -0.75rem;
     transition: max-width 0.3s ease, opacity 0.25s ease, padding 0.3s ease, margin 0.3s ease;
 }
-/* En móvil, solo la flecha en gris y sin caja, como la lupa y los ajustes. */
+/* En móvil, solo la flecha en gris y sin caja, como la lupa y los ajustes, y
+   con la lupa pegada: sin el gap-3 y los dos en 36 px (la lupa, abajo). Con
+   el ancho de siempre, entre los dos iconos quedaban 23 px de aire. */
 .back-btn-visible {
-    margin-right: 0;
-    max-width: 44px;
-    width: 44px;
+    margin-right: -0.75rem;
+    max-width: 36px;
+    width: 36px;
     opacity: 1;
 }
 /* Desde md lleva el texto «Volver», y ahí sí con su caja. */
+/*
+ * En la ficha, en móvil, el buscador abierto se come también el botón de
+ * volver: crece hacia la izquierda lo que mide el botón (36 px, sin hueco). .buscador-abierto lo pone SearchBar en su raíz; el estilo con scope
+ * de aquí le llega porque la raíz de un hijo lleva también el del padre.
+ */
+@media (max-width: 767px) {
+    .buscar-sobre-volver.buscador-abierto {
+        left: -36px;
+        width: calc(100% + 36px);
+        transition: width 0.25s ease, left 0.25s ease, background-color 0.15s, color 0.15s;
+    }
+}
+/*
+ * La lupa de SearchBar, en la ficha, en un hueco de 36 px como el de volver y
+ * con el icono centrado. Arrimarla a la izquierda dentro del de 50 dejaba el
+ * anillo de foco descentrado respecto al icono.
+ */
+@media (max-width: 767px) {
+    .buscar-sobre-volver:not(.buscador-abierto) {
+        width: 36px;
+    }
+    .buscar-sobre-volver:not(.buscador-abierto) :deep(> button:first-child) {
+        width: 100%;
+    }
+}
 @media (min-width: 768px) {
     .back-btn-visible {
+        margin-right: 0;
         width: auto;
         max-width: 150px;
         padding: 8px 16px;

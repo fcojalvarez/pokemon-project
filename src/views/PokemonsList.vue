@@ -121,7 +121,8 @@ onUnmounted(() => {
             al fondo.
         -->
         <pokedex-filters class="pt-3">
-            <mark-legend v-if="pokemons.length > 0" />
+            <!-- En móvil, plegada en un botón de una línea: abierta ocupaba media pantalla. -->
+            <mark-legend v-if="pokemons.length > 0" plegable />
         </pokedex-filters>
 
         <!--

@@ -1,4 +1,4 @@
-import { nextTick, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 
 /**
  * Qué secciones de la ficha están abiertas.
@@ -53,23 +53,5 @@ export function useFichaSecciones() {
     guardar()
   }
 
-  /**
-   * Abre la sección y la trae a la vista, con el foco dentro: es a donde se
-   * salta desde la cabecera de la ficha («Gigamax» → Combates Max).
-   */
-  const irA = async (id) => {
-    if (!estaAbierta(id)) {
-      abiertas[id] = true
-      guardar()
-      await nextTick()
-    }
-    const seccion = document.getElementById(`ficha-${id}`)
-    if (!seccion) return
-    // El foco antes: en Chrome, un focus() a mitad del scroll suave lo corta.
-    seccion.focus({ preventScroll: true })
-    const sinMovimiento = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
-    seccion.scrollIntoView({ behavior: sinMovimiento ? 'auto' : 'smooth', block: 'start' })
-  }
-
-  return { estaAbierta, alternar, irA, esEscritorio }
+  return { estaAbierta, alternar, esEscritorio }
 }

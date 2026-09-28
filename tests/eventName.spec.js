@@ -173,7 +173,7 @@ describe('formas regionales en los nombres', () => {
 describe('quitarTipo', () => {
   it('quita el tipo del principio cuando la etiqueta ya lo dice', () => {
     expect(quitarTipo('Lunes MAX: Sobble Dinamax', 'Lunes MAX')).toBe('Sobble Dinamax')
-    expect(quitarTipo('Elige tu camino: Senderos Crepusculares', 'ELIGE TU CAMINO')).toBe('Senderos Crepusculares')
+    expect(quitarTipo('Elige tu camino: Caminos crepusculares', 'ELIGE TU CAMINO')).toBe('Caminos crepusculares')
   })
 
   it('no distingue tildes ni mayúsculas', () => {
