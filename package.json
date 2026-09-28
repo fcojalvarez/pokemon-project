@@ -1,6 +1,6 @@
 {
   "name": "pokemon-project",
-  "version": "0.0.55",
+  "version": "0.0.56",
   "packageManager": "pnpm@8.10.3",
   "private": true,
   "engines": {
