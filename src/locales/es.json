@@ -450,7 +450,9 @@
             "done": "Hechas",
             "discarded": "Descartadas"
         },
+        "status": "Estado",
         "notes": "Notas",
+        "addNote": "Añadir nota",
         "notesPlaceholder": "Para ti: qué hacer con esto.",
         "delete": "Borrar",
         "confirmDelete": "¿Seguro? Pulsa otra vez",

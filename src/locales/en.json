@@ -450,7 +450,9 @@
             "done": "Done",
             "discarded": "Discarded"
         },
+        "status": "Status",
         "notes": "Notes",
+        "addNote": "Add note",
         "notesPlaceholder": "For you: what to do about this.",
         "delete": "Delete",
         "confirmDelete": "Sure? Click again",

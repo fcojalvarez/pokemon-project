@@ -8,7 +8,7 @@
  * cualquiera puede preguntarle a Supabase por esta tabla: sin la sesión del
  * administrador, la respuesta viene vacía.
  */
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { STATUSES, useSuggestionsStore } from '../stores/suggestions'
@@ -16,16 +16,17 @@ import { formatDateTime } from '../utils/time'
 import { useTranslate } from '../composables/useTranslate'
 import {
   BaseCard,
+  BaseDropdown,
   BaseEmptyState,
   BaseErrorMessage,
-  BasePillButton,
+  BaseIcon,
   SpinnerComponent
 } from '../components/index'
 
 const auth = useAuthStore()
 const suggestions = useSuggestionsStore()
 const { isReady, isSignedIn, isBusy, email } = storeToRefs(auth)
-const { items, isLoading, error, countsByStatus } = storeToRefs(suggestions)
+const { items, isLoading, error, countsByStatus, pendingCount } = storeToRefs(suggestions)
 const { t, intlLocale } = useTranslate()
 
 const formEmail = ref('')
@@ -33,6 +34,8 @@ const formPassword = ref('')
 const filter = ref('all')
 /** Id de la sugerencia cuyo borrado está esperando confirmación. */
 const confirming = ref(null)
+/** Las sugerencias sin notas a las que se les ha abierto el campo. */
+const notasAbiertas = ref(new Set())
 
 const list = computed(() =>
   filter.value === 'all'
@@ -40,7 +43,12 @@ const list = computed(() =>
     : items.value.filter((item) => item.status === filter.value)
 )
 
-const filters = computed(() => [
+/**
+ * El filtro y el estado de cada tarjeta son desplegables y no filas de
+ * botones: con cinco filtros y cuatro estados por tarjeta, la vista era un
+ * mar de botones y lo que importa, el mensaje, se perdía.
+ */
+const filterOptions = computed(() => [
   { value: 'all', label: `${t('common.all')} (${items.value.length})` },
   ...STATUSES.map((status) => ({
     value: status,
@@ -48,13 +56,35 @@ const filters = computed(() => [
   }))
 ])
 
-/** Colores por estado, para distinguirlos de un vistazo en una lista larga. */
-const statusStyle = {
-  new: 'border-blue-400 text-blue-700 dark:text-blue-300',
-  doing: 'border-amber-400 text-amber-700 dark:text-amber-400',
-  done: 'border-green-500 text-green-700 dark:text-green-400',
-  discarded: 'border-gray-400 text-gray-600 dark:text-gray-300'
+const statusOptions = computed(() =>
+  STATUSES.map((status) => ({ value: status, label: t(`suggestions.statuses.${status}`) }))
+)
+
+/**
+ * Una franja de color por estado, para distinguirlos de un vistazo. Con `!`:
+ * sin él manda el `dark:border-gray-700` de BaseCard y la franja sale gris.
+ */
+const statusAccent = {
+  new: '!border-l-blue-500',
+  doing: '!border-l-amber-400',
+  done: '!border-l-green-500',
+  discarded: '!border-l-gray-400 dark:!border-l-gray-500'
 }
+
+const conNotas = (item) => Boolean(item.notes) || notasAbiertas.value.has(item.id)
+const abrirNotas = async (id) => {
+  notasAbiertas.value = new Set(notasAbiertas.value).add(id)
+  // El botón desaparece al abrirse: el foco va al campo, no se pierde.
+  await nextTick()
+  document.getElementById(`notas-${id}`)?.focus()
+}
+
+const ICONO_ACTUALIZAR =
+  'M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99'
+const ICONO_SALIR =
+  'M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H21'
+const ICONO_BORRAR =
+  'm14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0'
 
 const fecha = (value) =>
   formatDateTime(value ? new Date(value) : null, intlLocale())
@@ -94,6 +124,18 @@ onMounted(async () => {
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
+    <!-- Salir, arriba a la izquierda: donde en la ficha está «Volver», que
+         aquí queda libre. -->
+    <button
+      v-if="isSignedIn"
+      type="button"
+      class="mb-3 h-9 px-3 flex items-center gap-1.5 rounded-xl border border-gray-400 dark:border-gray-600 shadow-md bg-white dark:bg-gray-900 text-xs text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+      @click="signOut"
+    >
+      <base-icon :d="ICONO_SALIR" width="16" height="16" color="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+      {{ $t('suggestions.signOut') }}
+    </button>
+
     <h1 class="text-xl font-bold mb-4">{{ $t('suggestions.panel') }}</h1>
 
     <spinner-component v-if="!isReady" />
@@ -139,24 +181,35 @@ onMounted(async () => {
     </base-card>
 
     <template v-else>
-      <div class="flex flex-wrap items-center gap-3 mb-4">
-        <span class="text-mini text-gray-600 dark:text-gray-300">{{ email }}</span>
-        <base-pill-button class="ml-auto" @click="suggestions.load()">
-          {{ $t('common.update') }}
-        </base-pill-button>
-        <base-pill-button @click="signOut">{{ $t('suggestions.signOut') }}</base-pill-button>
+      <!-- Quién está dentro y cuántas quedan por mirar; las acciones de la
+           sesión, discretas a un lado. -->
+      <div class="flex items-start gap-3 -mt-2 mb-5">
+        <p class="flex-1 min-w-0 text-mini text-gray-600 dark:text-gray-300 truncate">
+          {{ email }}
+          <template v-if="pendingCount">
+            · <strong class="font-semibold text-blue-700 dark:text-blue-300">
+              {{ pendingCount }} {{ $t('suggestions.statuses.new').toLowerCase() }}
+            </strong>
+          </template>
+        </p>
+        <button
+          type="button"
+          class="shrink-0 -my-1.5 p-1.5 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-800 disabled:opacity-50"
+          :aria-label="$t('common.update')"
+          :title="$t('common.update')"
+          :disabled="isLoading"
+          @click="suggestions.load()"
+        >
+          <base-icon :d="ICONO_ACTUALIZAR" width="18" height="18" color="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+        </button>
       </div>
 
-      <div class="flex flex-wrap gap-2 mb-4">
-        <base-pill-button
-          v-for="option in filters"
-          :key="option.value"
-          :active="filter === option.value"
-          @click="filter = option.value"
-        >
-          {{ option.label }}
-        </base-pill-button>
-      </div>
+      <base-dropdown
+        v-model="filter"
+        :label="$t('suggestions.status')"
+        :options="filterOptions"
+        class="w-full max-w-[14rem] mb-4"
+      />
 
       <spinner-component v-if="isLoading" />
       <base-error-message v-else-if="error" :message="$t('common.error')" :detail="error" />
@@ -164,76 +217,84 @@ onMounted(async () => {
 
       <ul v-else class="grid gap-3">
         <li v-for="item in list" :key="item.id">
-          <base-card>
-            <div class="flex flex-wrap items-center gap-2 mb-2">
-              <span class="px-2 py-0.5 text-mini rounded-xl border border-gray-400">
-                {{ $t(`suggestions.categories.${item.category}`) }}
-              </span>
-              <span
-                class="px-2 py-0.5 text-mini rounded-xl border font-semibold"
-                :class="statusStyle[item.status]"
-              >
-                {{ $t(`suggestions.statuses.${item.status}`) }}
-              </span>
-              <span class="text-mini text-gray-600 dark:text-gray-300 ml-auto">
-                {{ fecha(item.created_at) }}
-              </span>
-            </div>
+          <base-card
+            class="border-l-4"
+            :class="[statusAccent[item.status], item.status === 'discarded' ? 'opacity-75' : '']"
+          >
+            <div class="flex items-start gap-2 mb-2">
+              <p class="flex-1 min-w-0 pt-1 text-mini text-gray-600 dark:text-gray-300">
+                <span class="font-semibold text-gray-800 dark:text-gray-200">
+                  {{ $t(`suggestions.categories.${item.category}`) }}
+                </span>
+                · {{ fecha(item.created_at) }}
+              </p>
 
-            <!-- whitespace-pre-line: la gente separa en párrafos y esos saltos
-                 son parte de lo que ha escrito. -->
-            <p class="text-sm whitespace-pre-line break-words mb-3">{{ item.message }}</p>
-
-            <p class="text-mini text-gray-600 dark:text-gray-300 mb-3">
-              <a
-                v-if="item.contact"
-                :href="`mailto:${item.contact}`"
-                class="underline break-all mr-3"
-              >
-                {{ item.contact }}
-              </a>
-              <span v-if="item.page" class="mr-3">{{ item.page }}</span>
-              <span v-if="item.app_version">v{{ item.app_version }}</span>
-            </p>
-
-            <label :for="`notas-${item.id}`" class="block text-mini font-medium mb-1">
-              {{ $t('suggestions.notes') }}
-            </label>
-            <textarea
-              :id="`notas-${item.id}`"
-              :value="item.notes ?? ''"
-              rows="2"
-              class="campo mb-3"
-              :placeholder="$t('suggestions.notesPlaceholder')"
-              @blur="saveNotes(item, $event.target.value)"
-            ></textarea>
-
-            <div class="flex flex-wrap gap-2">
-              <base-pill-button
-                v-for="status in STATUSES"
-                :key="status"
-                :active="item.status === status"
-                @click="suggestions.setStatus(item.id, status)"
-              >
-                {{ $t(`suggestions.statuses.${status}`) }}
-              </base-pill-button>
+              <base-dropdown
+                :model-value="item.status"
+                :aria-label="$t('suggestions.status')"
+                :options="statusOptions"
+                compacto
+                class="w-36 shrink-0"
+                @update:model-value="suggestions.setStatus(item.id, $event)"
+              />
 
               <!-- Borrar pide confirmación en el propio botón: no hay papelera
                    donde recuperarlo. -->
               <button
                 type="button"
-                class="ml-auto px-3 py-1.5 text-xs rounded-xl border shadow-md transition-colors"
+                class="shrink-0 h-11 lg:h-9 flex items-center gap-1.5 rounded-xl text-xs transition-colors"
                 :class="
                   confirming === item.id
-                    ? 'bg-red-600 border-red-600 text-white'
-                    : 'bg-white dark:bg-gray-900 border-red-400 text-red-700 dark:text-red-400 hover:bg-red-50 hover:dark:bg-red-900/30'
+                    ? 'px-3 bg-red-600 text-white'
+                    : 'w-11 lg:w-9 justify-center text-gray-500 dark:text-gray-400 hover:text-red-700 hover:bg-red-50 hover:dark:text-red-400 hover:dark:bg-red-900/30'
                 "
+                :aria-label="$t(confirming === item.id ? 'suggestions.confirmDelete' : 'suggestions.delete')"
                 @click="confirming === item.id ? remove(item.id) : (confirming = item.id)"
                 @blur="confirming === item.id ? (confirming = null) : null"
               >
-                {{ $t(confirming === item.id ? 'suggestions.confirmDelete' : 'suggestions.delete') }}
+                <base-icon :d="ICONO_BORRAR" width="18" height="18" color="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                <span v-if="confirming === item.id">{{ $t('suggestions.confirmDelete') }}</span>
               </button>
             </div>
+
+            <!-- whitespace-pre-line: la gente separa en párrafos y esos saltos
+                 son parte de lo que ha escrito. -->
+            <p class="text-sm whitespace-pre-line break-words">{{ item.message }}</p>
+
+            <p
+              v-if="item.contact || item.page || item.app_version"
+              class="mt-2 text-mini text-gray-600 dark:text-gray-300 break-all"
+            >
+              <a v-if="item.contact" :href="`mailto:${item.contact}`" class="underline">{{ item.contact }}</a>
+              <template v-if="item.contact && (item.page || item.app_version)"> · </template>
+              <span v-if="item.page">{{ item.page }}</span>
+              <template v-if="item.page && item.app_version"> · </template>
+              <span v-if="item.app_version">v{{ item.app_version }}</span>
+            </p>
+
+            <!-- Las notas, solo si hay o se piden: vacías eran un campo más en
+                 cada tarjeta. -->
+            <div v-if="conNotas(item)" class="mt-3">
+              <label :for="`notas-${item.id}`" class="block text-mini font-medium mb-1">
+                {{ $t('suggestions.notes') }}
+              </label>
+              <textarea
+                :id="`notas-${item.id}`"
+                :value="item.notes ?? ''"
+                rows="2"
+                class="campo"
+                :placeholder="$t('suggestions.notesPlaceholder')"
+                @blur="saveNotes(item, $event.target.value)"
+              ></textarea>
+            </div>
+            <button
+              v-else
+              type="button"
+              class="mt-2 text-mini text-gray-600 dark:text-gray-300 underline underline-offset-2 hover:text-gray-900 hover:dark:text-white"
+              @click="abrirNotas(item.id)"
+            >
+              + {{ $t('suggestions.addNote') }}
+            </button>
           </base-card>
         </li>
       </ul>

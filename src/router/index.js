@@ -47,7 +47,9 @@ const router = createRouter({
             // protege es la RLS de Supabase, no que la URL esté escondida.
             path: '/suggestions',
             name: 'SuggestionsPage',
-            meta: { titleKey: 'suggestions.panel' },
+            // Sin barra de secciones ni buscador: es una herramienta de gestión,
+            // no una página de la Pokédex, y ahí solo estorban.
+            meta: { titleKey: 'suggestions.panel', sinNavegacion: true },
             component: () => import('@/views/SuggestionsView.vue')
         },
         {

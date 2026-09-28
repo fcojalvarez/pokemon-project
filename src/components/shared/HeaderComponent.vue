@@ -55,7 +55,7 @@
             </span>
         </button>
 
-        <search-bar id="search-bar" class="flex-1 min-w-0 md:max-w-lg" />
+        <search-bar v-if="!route.meta.sinNavegacion" id="search-bar" class="flex-1 min-w-0 md:max-w-lg" />
 
         <!-- ml-auto: en escritorio el buscador topa en max-w-lg y el hueco
              que sobra empuja estos dos botones a la derecha. -->
