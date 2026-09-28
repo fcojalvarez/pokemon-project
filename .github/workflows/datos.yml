@@ -1,8 +1,9 @@
 # Mantiene al día los datos del juego.
 #
-# `pnpm data` los baja de PokeMiners y pvpoke y los sube a la tabla `game_data`
-# de Supabase, que es de donde los lee la app. Por eso NO hace falta
-# redesplegar ni commitear nada: en cuanto la tabla cambia, la app lo ve.
+# `pnpm data` los baja de PokeMiners, pvpoke, LeekDuck, PokeAPI y
+# pokemon-go-api y los sube a la tabla `game_data` de Supabase, que es de
+# donde los lee la app. Por eso NO hace falta redesplegar ni commitear nada:
+# en cuanto la tabla cambia, la app lo ve.
 #
 # Los JSON de public/data siguen viajando con el despliegue como respaldo por
 # si Supabase no responde; quedan en la foto del último despliegue, que para
@@ -31,11 +32,14 @@ jobs:
     timeout-minutes: 10
 
     steps:
+      # Sin dejar el token en .git/config: aquí nadie hace push, y así los
+      # scripts de las dependencias no lo tienen a mano.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # Sin `version`: la lee de `packageManager` en package.json, para que
-      # CI y local no puedan irse cada uno por su lado. El lockfile es de
-      # pnpm 8 y una de las dos workflows pedía la 9.
+      # CI y local no puedan irse cada uno por su lado.
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
