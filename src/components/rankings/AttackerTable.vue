@@ -12,7 +12,6 @@
 import { computed } from 'vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import StabBadge from '../base/StabBadge.vue'
-import MaxMark from '../pokemon/MaxMark.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import { spriteUrl } from '../../utils/sprites'
@@ -106,7 +105,6 @@ const ordenar = (metrica) => {
               >{{ localName(row) }}</router-link>
               <span v-else class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ localName(row) }}</span>
               <type-icons :types="row.types" size="12" class="shrink-0" />
-              <max-mark v-if="row.version" :variant="row.version" :size="20" class="shrink-0" />
             </div>
           </td>
           <template v-if="mode === 'pve'">

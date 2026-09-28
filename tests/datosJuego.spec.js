@@ -99,10 +99,16 @@ describe('Ataques Max exclusivos', () => {
 })
 
 describe('potencia de los Ataques Max por nivel', () => {
-  it('Ataque Max 250/300/350, Gigamax y exclusivos 350/400/450; el 4.º nivel es el del Cañón Dinamax', () => {
+  it('Ataque Max 250/300/350, Gigamax y Cañón Dinamax 350/400/450; el 4.º nivel es el del Cañón Dinamax', () => {
     expect(max.byType.fire.power).toEqual([250, 300, 350, 450])
     expect(max.gmaxBySpecies.CHARIZARD.power).toEqual([350, 400, 450, 550])
-    expect(max.exclusiveByForm.zacian_crowned_sword.attack.power).toEqual([350, 400, 450, 550])
+    expect(max.exclusiveByForm.eternatus.attack.power).toEqual([350, 400, 450, 550])
+  })
+
+  it('Tajo Supremo y Embate Supremo pegan como un Ataque Max, no como un Gigamax', () => {
+    // Pokebattler los pone como Gigamax; PokéBase, la wiki y DittoBase, no.
+    expect(max.exclusiveByForm.zacian_crowned_sword.attack.power).toEqual([250, 300, 350, 450])
+    expect(max.exclusiveByForm.zamazenta_crowned_shield.attack.power).toEqual([250, 300, 350, 450])
   })
 
   it('Maxibarrera da escudo y Maxivigor cura, por nivel', () => {

@@ -13,7 +13,6 @@ import AttackerTable from '../components/rankings/AttackerTable.vue'
 import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
 import StabBadge from '../components/base/StabBadge.vue'
-import MaxMark from '../components/pokemon/MaxMark.vue'
 import { POTENCIA_MAX, mejorRapido, pesoAtaqueMax } from '../utils/maxBattle'
 import BaseChevron from '../components/base/BaseChevron.vue'
 import { useMedia } from '../composables/useMedia'
@@ -217,27 +216,25 @@ const maxRows = computed(() => {
     if (!entry.dynamax && !entry.gigantamax) continue
     if (!includeLegendary.value && (entry.legendary || entry.mythical)) continue
     const opciones = gameData.maxInfoFor(entry)?.opciones ?? []
-    for (const version of ['dynamax', 'gigantamax']) {
+    // Una fila por cada Ataque Max que pueda usar: cada uno pega distinto (el
+    // STAB y la potencia cambian), así que con «Todos» se ve de verdad en qué
+    // puesto queda Alakazam con Maxionda y en cuál con Maxipuño.
+    for (const opcion of opciones) {
+      if (type.value !== 'all' && opcion.max.type !== type.value) continue
+      const version = opcion.gigamax ? 'gigantamax' : 'dynamax'
       // Los Pikachu con gorro comparten stats con el normal: una fila basta.
-      const clave = `${entry.dex}-${version}`
+      const clave = `${entry.dex}-${version}-${opcion.max.id}`
       if (vistos.has(clave)) continue
-      const suyas = opciones.filter((opcion) => opcion.gigamax === (version === 'gigantamax'))
-      const validas = type.value === 'all' ? suyas : suyas.filter((opcion) => opcion.max.type === type.value)
-      if (!validas.length) continue
-      // Su mejor Ataque Max: con «Todos», el que más pega de los suyos (el
-      // STAB y la potencia cuentan igual que en el juego, haya tipo o no).
-      const pesos = validas.map((opcion) => ({ opcion, peso: pesoAtaqueMax(entry, opcion) }))
-      const mejor = pesos.reduce((a, b) => (b.peso > a.peso ? b : a))
-      const stab = mejor.opcion.stab
       vistos.add(clave)
       filas.push({
         entry,
         version,
-        maxLines: validas.map((opcion) => lineaMax(opcion, entry)),
-        stab,
+        maxId: opcion.max.id,
+        maxLines: [lineaMax(opcion, entry)],
+        stab: opcion.stab,
         // Potencia × ataque × STAB, en la escala del ataque: el de un Dinamax
         // sin STAB (base + 15 de IV). Un Gigamax pega 450 en vez de 350.
-        value: mejor.peso / POTENCIA_MAX
+        value: pesoAtaqueMax(entry, opcion) / POTENCIA_MAX
       })
     }
   }
@@ -245,8 +242,8 @@ const maxRows = computed(() => {
   return filas
     .sort((a, b) => b.value - a.value)
     .slice(0, 50)
-    .map(({ entry, version, maxLines, stab, value }, indice) => ({
-      id: version === 'gigantamax' ? `${entry.id}-gigamax` : entry.id,
+    .map(({ entry, version, maxId, maxLines, stab, value }, indice) => ({
+      id: `${entry.id}-${maxId}`,
       version,
       maxLines,
       rank: indice + 1,
@@ -265,7 +262,6 @@ const maxRows = computed(() => {
 /** Qué marcas explica la leyenda del pie: solo las que salen en la lista. */
 const leyendaMax = computed(() => ({
   stab: maxRows.value.some((fila) => fila.stab),
-  dynamax: maxRows.value.some((fila) => fila.version === 'dynamax'),
   gigantamax: maxRows.value.some((fila) => fila.version === 'gigantamax')
 }))
 
@@ -573,13 +569,10 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
             <stab-badge />
             {{ $t('max.stabLegend') }}
           </li>
-          <li v-if="leyendaMax.dynamax" class="flex items-center gap-1.5">
-            <max-mark variant="dynamax" :size="15" class="shrink-0" />
-            {{ $t('max.legendDynamax') }}
-          </li>
+          <!-- Sin marca junto al nombre: el Gigamax se reconoce por su borde, su ataque y su sprite. -->
           <li v-if="leyendaMax.gigantamax" class="flex items-center gap-1.5">
-            <max-mark variant="gigantamax" :size="15" class="shrink-0" />
-            {{ $t('max.legendGigantamax') }}
+            <span class="w-5 h-3.5 shrink-0 rounded border-2 border-fuchsia-500 dark:border-fuchsia-400" aria-hidden="true"></span>
+            {{ $t('max.gmaxBorderLegend') }}
           </li>
         </ul>
         </div>

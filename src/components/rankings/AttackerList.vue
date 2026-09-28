@@ -19,7 +19,6 @@ import { spriteUrl } from '../../utils/sprites'
 import BaseSprite from '../base/BaseSprite.vue'
 import { localName } from '../../composables/useTranslate'
 import StabBadge from '../base/StabBadge.vue'
-import MaxMark from '../pokemon/MaxMark.vue'
 
 const props = defineProps({
   rows: { type: Array, required: true },
@@ -96,7 +95,6 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
               {{ localName(row) }}
             </span>
             <type-icons :types="row.types" size="12" class="shrink-0" />
-            <max-mark v-if="row.version" :variant="row.version" :size="20" class="shrink-0" />
           </div>
 
           <!--

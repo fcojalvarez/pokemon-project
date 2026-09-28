@@ -144,9 +144,10 @@ test('la supermega enseña su ataque exclusivo', async ({ page }) => {
   await page.waitForLoadState('networkidle')
   await abrirSecciones(page, 'Mejores ataques', 'Efectos en combate')
 
-  // Sale dos veces a propósito: en el repertorio y en los efectos de combate.
+  // Sale en el repertorio y en los efectos de combate, y desde que tiene datos
+  // de incursión (de Pokebattler) también en las mejores combinaciones.
   await expect(page.getByText('Aguijón Letal+').first()).toBeVisible()
-  await expect(page.getByText('Aguijón Letal+')).toHaveCount(2)
+  expect(await page.getByText('Aguijón Letal+').count()).toBeGreaterThanOrEqual(2)
 })
 
 test('los eventos se listan con el título en español', async ({ page }) => {
@@ -205,8 +206,8 @@ test('el Top Dinamax ordena por ataque y enseña el Ataque Max', async ({ page }
   await expect(await etiquetaDeMetrica(page, filas, /^daño$/i)).toBeVisible()
   // Y cada fila lleva, bajo el nombre, su Ataque Max (o su Gigamax, que es
   // fijo) y debajo los rápidos que lo dan.
-  // El párrafo lleva delante el icono del tipo, que se lee como «Fantasma».
-  await expect(filas.first().locator('p', { hasText: /\b(Maxi|Giga)/ }).first()).toBeVisible()
+  // Es un párrafo con su nombre: Maxi…, Giga… o un exclusivo («Cañón Dinamax»).
+  await expect(filas.first().locator('p').first()).toHaveText(/\S{4,}/)
 })
 
 /**

@@ -1982,6 +1982,20 @@ async function ponerNivelesMax(maxData, pbMoves) {
     for (const campo of ['power', 'shield', 'heal']) if (fila[campo]) mov[campo] = fila[campo]
     if (mov.power || mov.shield || mov.heal) con++
   }
+
+  // Tajo Supremo y Embate Supremo pegan como un Ataque Max normal, no como un
+  // Gigamax: Pokebattler les da 350/400/450/550, pero PokéBase y la wiki de
+  // Pokémon GO dicen que tienen la potencia de un Ataque Max, y el ranking de
+  // DittoBase solo cuadra así (con 450, Zacian salía un 26 % por encima de
+  // Gengar Gigamax; DittoBase lo pone un 9 % por debajo). El Cañón Dinamax sí
+  // cuadra como Gigamax y se queda. El GAME_MASTER no publica estas potencias.
+  const COMO_ATAQUE_MAX = new Set(['max_behemoth_blade', 'max_behemoth_bash'])
+  const normal = Object.values(maxData.movimientos).find((mov) => maxData.vfx[mov.id] === 'max_steelspike')?.power
+  if (normal) {
+    for (const [id, mov] of Object.entries(maxData.movimientos)) {
+      if (COMO_ATAQUE_MAX.has(maxData.vfx[id]) && mov.power) mov.power = [...normal]
+    }
+  }
   console.log(`  ${con} de ${Object.keys(maxData.movimientos).length} ataques Max con su potencia por nivel`)
 }
 

@@ -529,7 +529,8 @@
         "calcLegend": "Calculated with the Max Move at level 3 (the maximum) and every Pokémon at the same level with 15/15/15 IVs.",
         "method1": "A Dynamax Pokémon’s Max Move takes the type of its fast attack; a Gigantamax Pokémon uses its own fixed G-Max Move.",
         "method2": "Ranked by the damage of that move, with the game formula: power × attack × STAB. G-Max Moves and the exclusive ones (Crowned Zacian and Zamazenta, Eternatus) have 450 power; Max Moves, 350.",
-        "exclusiveMove": "Exclusive Max Move"
+        "exclusiveMove": "Exclusive Max Move",
+        "gmaxBorderLegend": "Fuchsia border: Gigantamax, with its own move"
     },
     "language": {
         "label": "Language",

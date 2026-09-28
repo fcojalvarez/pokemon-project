@@ -61,12 +61,12 @@ describe('Ataques Max según el ataque rápido', () => {
     expect(mejorRapido(porId('blastoise'), datos.moves)?.id).toBe('WATER_GUN')
   })
 
-  it('Zacian coronado usa su Ataque Max exclusivo, fijo y a 450', () => {
+  it('Zacian coronado usa su Ataque Max exclusivo, fijo y a 350 (como un Ataque Max)', () => {
     const conExclusivos = { ...datos, exclusivoPorForma: maxbattles.exclusiveByForm }
     const opciones = opcionesMax(porId('zacian_crowned_sword'), conExclusivos)
     const exclusivo = opciones.find((o) => o.exclusivo)
     expect(exclusivo?.max.nameEs).toBe('Tajo Supremo')
-    expect(potenciaMax(exclusivo.max)).toBe(450)
+    expect(potenciaMax(exclusivo.max)).toBe(350)
     // Sustituye a los de sus rápidos: no le queda ningún otro de Dinamax.
     expect(opciones.filter((o) => !o.gigamax && !o.exclusivo)).toEqual([])
   })

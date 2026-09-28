@@ -529,7 +529,8 @@
         "calcLegend": "Calculado con el Ataque Max al nivel 3 (el máximo) y todos los Pokémon al mismo nivel y con IV 15/15/15.",
         "method1": "El Ataque Max de un Dinamax es del tipo de su ataque rápido; el de un Gigamax es su ataque propio, fijo.",
         "method2": "Se ordena por el daño de ese ataque, con la fórmula del juego: potencia × ataque × STAB. Los ataques Gigamax y los exclusivos (Zacian y Zamazenta coronados, Eternatus) tienen 450 de potencia; los Ataques Max, 350.",
-        "exclusiveMove": "Ataque Max exclusivo"
+        "exclusiveMove": "Ataque Max exclusivo",
+        "gmaxBorderLegend": "Borde fucsia: Gigamax, con su ataque propio"
     },
     "language": {
         "label": "Idioma",
