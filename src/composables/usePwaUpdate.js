@@ -5,7 +5,7 @@
  * vite.config.js, registerType 'prompt' y skipWaiting false): antes recargaba
  * la página sin preguntar, a mitad de lo que se estuviera haciendo. Ahora sale
  * un aviso (UpdatePrompt) con «Actualizar», que le da paso y recarga; cerrarlo
- * lo calla 24 horas. Si se cierra la app del todo, la próxima vez
+ * calla el aviso de esa versión 24 horas. Si se cierra la app del todo, la próxima vez
  * ya arranca con la nueva.
  *
  * Cuándo se entera de que la hay:
@@ -21,25 +21,39 @@ import { computed, ref } from 'vue'
 
 const CADA = 60 * 60 * 1000
 const APLAZAR = 24 * 60 * 60 * 1000
-const CLAVE = 'aviso-version-hasta'
+const CLAVE = 'aviso-version-aplazado'
+/** La de antes, solo con la fecha: ya no vale y se borra. */
+const CLAVE_VIEJA = 'aviso-version-hasta'
 const CANAL = 'pogodex-version'
 
+/**
+ * Qué versión se aplazó y hasta cuándo: { version, hasta }. Callar el aviso
+ * vale solo para esa versión; si sale otra, se avisa aunque no hayan pasado
+ * las 24 horas. Antes solo se guardaba la fecha, y cerrar el aviso de una
+ * versión callaba también el de las siguientes.
+ */
 const leerAplazado = () => {
   try {
-    return Number(localStorage.getItem(CLAVE)) || 0
+    localStorage.removeItem(CLAVE_VIEJA)
+    const guardado = JSON.parse(localStorage.getItem(CLAVE))
+    return guardado && typeof guardado.hasta === 'number' ? guardado : null
   } catch {
-    return 0
+    return null
   }
 }
 
 const hayNueva = ref(false)
-const aplazadoHasta = ref(leerAplazado())
+const aplazado = ref(leerAplazado())
 const ahora = ref(Date.now())
 /** La versión a la que se actualizaría, para decirla en el aviso. */
 export const versionNueva = ref(null)
 
-/** El aviso se ve si hay una versión esperando y no se ha aplazado. */
-export const avisoVisible = computed(() => hayNueva.value && ahora.value >= aplazadoHasta.value)
+/** El aviso se ve si hay una versión esperando y no se ha aplazado esa misma. */
+export const avisoVisible = computed(() => {
+  if (!hayNueva.value) return false
+  const callado = aplazado.value
+  return !(callado && callado.version === versionNueva.value && ahora.value < callado.hasta)
+})
 
 let actualizarSW = null
 
@@ -48,12 +62,11 @@ export function actualizarAhora() {
   actualizarSW?.(true)
 }
 
-/** Al cerrar el aviso: no se vuelve a avisar en 24 horas. */
+/** Al cerrar el aviso: no se vuelve a avisar de esta versión en 24 horas. */
 export function aplazarAviso() {
-  const hasta = Date.now() + APLAZAR
-  aplazadoHasta.value = hasta
+  aplazado.value = { version: versionNueva.value, hasta: Date.now() + APLAZAR }
   try {
-    localStorage.setItem(CLAVE, String(hasta))
+    localStorage.setItem(CLAVE, JSON.stringify(aplazado.value))
   } catch {
     /* sin almacenamiento, se calla solo mientras dure esta visita */
   }
