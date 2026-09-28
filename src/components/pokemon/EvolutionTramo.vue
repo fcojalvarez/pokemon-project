@@ -150,8 +150,13 @@ const monProps = (nodo, extra = {}) => ({
           aria-hidden="true"
         >{{ tramo.final.etiqueta }}</span>
 
+        <!--
+          En escritorio la columna no baja de lo que mide su tarjeta: con
+          minmax(0, …), a 1024 px la fila apretaba el grupo y las megas X e Y
+          se montaban una sobre otra. En móvil sí puede, que ahí va a lo ancho.
+        -->
         <div
-          class="grid gap-x-1 gap-y-3 grid-cols-[repeat(var(--cols-m),minmax(0,1fr))] lg:grid-cols-[repeat(var(--cols-d),minmax(0,1fr))]"
+          class="grid gap-x-1 gap-y-3 grid-cols-[repeat(var(--cols-m),minmax(0,1fr))] lg:grid-cols-[repeat(var(--cols-d),minmax(min-content,1fr))]"
           :style="{ '--cols-m': tramo.final.colsMovil, '--cols-d': tramo.final.colsEscritorio }"
         >
           <div

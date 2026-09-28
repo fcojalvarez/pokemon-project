@@ -42,17 +42,11 @@ const form = computed(() =>
  * especies les faltaban ataques nuevos, y las más recientes tenían las
  * estadísticas a cero). La tabla queda de respaldo por si el roster no la trae.
  *
- * Se busca la forma que se llama como la especie (charizard, no charizard_x);
- * si no hay, la primera que no sea mega, oscura ni regional.
+ * Cuál de sus formas es lo decide `fichaBase`, la misma que usa la cabecera.
  */
-const baseDelRoster = computed(() => {
-  if (!gameData.isReady) return null
-  const formas = (gameData.formsByDex.get(props.pokemon.pokemon_id) ?? []).filter(
-    (entry) => !entry.mega && !entry.shadow && !entry.regional
-  )
-  const nombre = String(props.pokemon.name ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '_')
-  return formas.find((entry) => entry.id === nombre) ?? formas[0] ?? null
-})
+const baseDelRoster = computed(() =>
+  gameData.isReady ? gameData.fichaBase(props.pokemon.pokemon_id, props.pokemon.name) : null
+)
 
 /**
  * La especie tiene una sola forma (sin contar megas, oscuros ni regionales):

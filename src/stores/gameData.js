@@ -220,6 +220,20 @@ export const useGameDataStore = defineStore('gameData', () => {
   const baseByDex = (dex) => bases.value.porDex.get(dex) ?? null
 
   /**
+   * La forma que enseña la ficha cuando la URL no pide otra: la que se llama
+   * como la especie (charizard, no charizard_x) y, si no hay, la primera que
+   * no sea mega, oscura ni regional. Está aquí y no en la ficha porque la
+   * cabecera y las secciones tienen que hablar del mismo Pokémon.
+   */
+  const fichaBase = (dex, name) => {
+    const formas = (formsByDex.value.get(dex) ?? []).filter(
+      (entry) => !entry.mega && !entry.shadow && !entry.regional
+    )
+    const nombre = String(name ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '_')
+    return formas.find((entry) => entry.id === nombre) ?? formas[0] ?? null
+  }
+
+  /**
    * La forma base a partir de un nombre como lo publica LeekDuck, en inglés y
    * con el prefijo de forma delante («Mega Malamar», «Hisuian Samurott»).
    */
@@ -431,6 +445,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     namesEs,
     baseByDex,
     baseByName,
+    fichaBase,
     shinyReleased,
     nombreEs,
     formsByDex,

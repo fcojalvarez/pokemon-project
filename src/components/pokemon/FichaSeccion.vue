@@ -24,7 +24,15 @@ const panelId = computed(() => `seccion-${props.id}`)
 </script>
 
 <template>
-  <section class="border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900">
+  <!--
+    El id y el tabindex son para poder saltar aquí desde la cabecera
+    (irA): el scroll-mt deja la sección por debajo de la cabecera fija.
+  -->
+  <section
+    :id="`ficha-${id}`"
+    tabindex="-1"
+    class="scroll-mt-28 focus:outline-none border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+  >
     <h2 class="text-sm font-bold">
       <span v-if="esEscritorio" class="flex items-center gap-2 px-4 pt-4">
         {{ title }}<slot name="titulo" />

@@ -108,6 +108,8 @@
         "noPveRank": "Outside the top 500",
         "superMega": "Super Mega",
         "shinyLegend": "Shiny released",
+        "released": "Released",
+        "releasedShiny": "Shiny",
         "category": {
             "legendary": "Legendary",
             "mythical": "Mythical",
@@ -482,6 +484,7 @@
         "noBattles": "No Max Battles announced right now.",
         "legendDynamax": "Dynamax",
         "legendGigantamax": "Gigantamax",
+        "goToSection": "see its Max Battles",
         "battlesNote": "Announced Max Battles show up here. Which Pokémon each Power Spot currently hosts is not published anywhere: it rotates by area and is only visible in-game.",
         "tier": "Tier {n}",
         "liveSource": "The higher CP is a 100 % IV catch. Data from Snacknap, which publishes the Power Spot roster.",

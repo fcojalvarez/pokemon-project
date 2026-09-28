@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router';
 import { supabase } from '../lib/supabaseClient';
 import PokemonExtraInfo from './pokemon/PokemonExtraInfo.vue';
 import EvolutionChain from './pokemon/EvolutionChain.vue';
-import ShinyLegend from './pokemon/ShinyLegend.vue';
+import ShinyMark from './pokemon/ShinyMark.vue';
 import { useGameDataStore } from '../stores/gameData';
 import { useLiveStore } from '../stores/live';
 import BaseCard from './base/BaseCard.vue';
@@ -15,6 +15,8 @@ import SkeletonLoader from './base/SkeletonLoader.vue';
 import { localName } from '../composables/useTranslate';
 import NotFoundView from '../views/NotFoundView.vue';
 import FormasGaleria from './pokemon/FormasGaleria.vue';
+import MaxMark from './pokemon/MaxMark.vue';
+import { useFichaSecciones } from '../composables/useFichaSecciones';
 
 const pokemon = ref(null);
 // La consulta acabó y no hay ningún Pokémon con ese número (/pokemon/99999):
@@ -63,6 +65,22 @@ const categoria = computed(() => {
     if(entrada?.legendary) return 'legendary';
     return null;
 });
+
+/**
+ * Las marcas Max que tiene liberadas, para la línea «Liberado:» de la
+ * cabecera: la sección Combates Max está abajo y plegada, y es de lo primero
+ * que se mira. Sale de la misma forma que esa sección (la de la URL o
+ * `fichaBase`): el Gigamax va por forma.
+ */
+const maxLiberado = computed(() => {
+    const p = pokemon.value;
+    if(!p || !gameData.isReady) return [];
+    const info = gameData.maxInfoFor(form.value || gameData.fichaBase(p.pokemon_id, p.name));
+    if(!info) return [];
+    return info.gigantamax ? ['dynamax', 'gigantamax'] : ['dynamax'];
+});
+const MAX_TEXTO = { dynamax: 'max.legendDynamax', gigantamax: 'max.legendGigantamax' };
+const { irA } = useFichaSecciones();
 
 // El título de la pestaña lo pone el router para las páginas fijas; aquí
 // depende de qué Pokémon se cargue.
@@ -142,9 +160,44 @@ watch(() => route.params.id, async(newId) => {
                 </div>
             </header>
 
-            <!-- La leyenda a la izquierda y los botones a la derecha, misma línea. -->
-            <div class="mt-3 lg:mt-0 flex flex-wrap items-center justify-between gap-3 lg:justify-end lg:gap-4">
-                <shiny-legend v-if="pokemon.is_shiny_released" variant="evolution" />
+            <!--
+                En móvil, la leyenda a la izquierda y los botones a la derecha,
+                misma línea. Desde lg, la leyenda encima de los botones: al lado
+                ocupaba tanto que se montaba sobre el nombre del Pokémon.
+            -->
+            <div class="mt-3 lg:mt-0 lg:shrink-0 flex flex-wrap items-center justify-between gap-3 lg:flex-col lg:items-end lg:gap-2">
+                <!--
+                    «Liberado: ✦ Shiny, ✕ Dinamax, ✕ Gigamax», cada uno con la
+                    misma marca que lleva en la cadena y en la rejilla, así que
+                    además sirve de leyenda de la estrella de la cadena.
+                -->
+                <p
+                    v-if="pokemon.is_shiny_released || maxLiberado.length"
+                    class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-mini text-gray-600 dark:text-gray-300"
+                >
+                    <span>{{ $t('pokemon.released') }}:</span>
+                    <span v-if="pokemon.is_shiny_released" class="flex items-center gap-1">
+                        <shiny-mark variant="evolution" size="text-mini" inline :scale="0.65" />
+                        {{ $t('pokemon.releasedShiny') }}<template v-if="maxLiberado.length">,</template>
+                    </span>
+                    <!--
+                        Lleva a Combates Max, que tiene el detalle. El texto
+                        oculto va detrás del visible para que el nombre
+                        accesible empiece por lo que se lee en pantalla.
+                    -->
+                    <button
+                        v-if="maxLiberado.length"
+                        type="button"
+                        class="min-h-[24px] flex items-center gap-1.5 hover:underline cursor-pointer"
+                        @click="irA('max')"
+                    >
+                        <span v-for="(marca, i) in maxLiberado" :key="marca" class="flex items-center gap-1">
+                            <max-mark :variant="marca" :size="15" class="shrink-0" aria-hidden="true" />
+                            {{ $t(MAX_TEXTO[marca]) }}<template v-if="i < maxLiberado.length - 1">,</template>
+                        </span>
+                        <span class="sr-only">, {{ $t('max.goToSection') }}</span>
+                    </button>
+                </p>
                 <!-- Los botones a su ancho, a la derecha, y bajan de línea si no caben
                      junto a la leyenda: antes «Ver shiny» se salía de la tarjeta. -->
                 <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
