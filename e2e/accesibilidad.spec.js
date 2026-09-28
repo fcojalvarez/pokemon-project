@@ -11,7 +11,7 @@ test('cada página tiene su título, su h1 y el idioma en español', async ({ pa
     ['/', 'PogoDex', 'Pokédex'],
     ['/top', 'Top · PogoDex', 'Top'],
     ['/events', 'Eventos · PogoDex', 'Eventos'],
-    ['/live', 'Ahora en juego · PogoDex', 'Ahora en juego'],
+    ['/live', 'Ahora en el juego · PogoDex', 'Ahora en el juego'],
     ['/pokemon/6', 'Charizard · PogoDex', 'Charizard']
   ]
   for (const [ruta, titulo, h1] of paginas) {
@@ -50,6 +50,7 @@ test('el primer Tab lleva a «Saltar al contenido», y este al contenido', async
 })
 
 test('con el menú abierto la página queda inerte, y al cerrarlo vuelve el foco', async ({ page }) => {
+  test.skip(page.viewportSize().width < 640, 'en móvil no hay menú: van Ajustes y la barra de abajo')
   await page.goto('/top')
   const abrir = page.getByRole('button', { name: 'Abrir menú' })
   await abrir.click()
@@ -64,11 +65,46 @@ test('con el menú abierto la página queda inerte, y al cerrarlo vuelve el foco
 })
 
 /**
- * En móvil el botón va dentro del menú y en la cabecera no; desde 768 px, al
- * revés. Se rompió una vez y salía en los dos sitios a la vez.
+ * En móvil, Ajustes sustituye al menú: el panel sale del engranaje, deja la
+ * página inerte, cambia tema e idioma al momento y al cerrarlo devuelve el
+ * foco al engranaje.
+ */
+test('en móvil los ajustes cambian tema e idioma y devuelven el foco', async ({ page }) => {
+  test.skip(page.viewportSize().width >= 640, 'solo en móvil')
+  await page.goto('/top')
+  await expect(page.getByRole('button', { name: 'Abrir menú' })).toBeHidden()
+  await page.getByRole('button', { name: 'Abrir ajustes' }).click()
+
+  // Por id: al cambiar a inglés el diálogo pasa a llamarse «Settings».
+  const ajustes = page.locator('#ajustes')
+  await expect(page.getByRole('dialog', { name: 'Ajustes' })).toBeVisible()
+  await expect(page.locator('#app')).toHaveAttribute('inert', '')
+
+  await ajustes.getByRole('radio', { name: 'Oscuro' }).click()
+  await expect(page.locator('html')).toHaveClass(/dark/)
+  await ajustes.getByRole('radio', { name: 'English' }).click()
+  await expect(ajustes.getByRole('radio', { name: 'Light' })).toBeVisible()
+  await ajustes.getByRole('radio', { name: 'Español' }).click()
+
+  await page.keyboard.press('Escape')
+  await expect(ajustes).toBeHidden()
+  await expect(page.locator('#app')).not.toHaveAttribute('inert', '')
+  await expect(page.getByRole('button', { name: 'Abrir ajustes' })).toBeFocused()
+})
+
+/**
+ * Desde sm va en la cabecera y no se repite en el menú: se rompió una vez y
+ * salía en los dos sitios a la vez. En móvil, en la cabecera no está: vive en
+ * Ajustes.
  */
 test('el botón de modo oscuro está en un solo sitio', async ({ page }) => {
   await page.goto('/pokemon/6')
+  if (page.viewportSize().width < 640) {
+    await expect(page.locator('header button[aria-label="Modo oscuro"]')).toBeHidden()
+    await page.getByRole('button', { name: 'Abrir ajustes' }).click()
+    await expect(page.getByRole('dialog', { name: 'Ajustes' }).getByRole('radio', { name: 'Oscuro' })).toBeVisible()
+    return
+  }
   await page.getByRole('button', { name: 'Abrir menú' }).click()
   await expect(page.getByRole('dialog', { name: 'Menú' })).toBeVisible()
 
@@ -77,12 +113,36 @@ test('el botón de modo oscuro está en un solo sitio', async ({ page }) => {
       .filter((b) => b.offsetWidth > 0 && getComputedStyle(b).visibility !== 'hidden')
       .map((b) => (b.closest('#menu-lateral') ? 'menú' : 'cabecera'))
   )
-  const ancho = page.viewportSize().width
-  expect(visibles).toEqual([ancho < 768 ? 'menú' : 'cabecera'])
+  expect(visibles).toEqual(['cabecera'])
+})
+
+/**
+ * En móvil el buscador es una lupa: al tocarla se abre con el foco dentro y
+ * tapa el modo oscuro, que sale del tabulador. La ✕ lo vacía, lo pliega y
+ * devuelve el foco a la lupa.
+ */
+test('en móvil el buscador se abre desde la lupa y se pliega con la ✕', async ({ page }) => {
+  test.skip(page.viewportSize().width >= 768, 'solo en móvil')
+  await page.goto('/')
+  const lupa = page.getByRole('button', { name: 'Abrir el buscador' })
+  const oscuro = page.locator('button[aria-label="Modo oscuro"]')
+  await expect(oscuro).not.toHaveAttribute('inert', '')
+
+  await lupa.click()
+  await expect(page.locator('#input-search')).toBeFocused()
+  await expect(oscuro).toHaveAttribute('inert', '')
+
+  await page.locator('#input-search').fill('bulba')
+  await expect(page).toHaveURL(/q=bulba/)
+  await page.getByRole('button', { name: 'Cerrar el buscador' }).click()
+  await expect(page).not.toHaveURL(/q=/)
+  await expect(lupa).toBeFocused()
+  await expect(oscuro).not.toHaveAttribute('inert', '')
 })
 
 test('los resultados del buscador se recorren con las flechas y se abren con Enter', async ({ page }) => {
   await page.goto('/top')
+  if (page.viewportSize().width < 768) await page.getByRole('button', { name: 'Abrir el buscador' }).click()
   const campo = page.getByRole('combobox', { name: 'Buscar un Pokémon por nombre' })
   await campo.fill('charm')
   await expect(page.getByRole('listbox', { name: 'Resultados de la búsqueda' })).toBeVisible()

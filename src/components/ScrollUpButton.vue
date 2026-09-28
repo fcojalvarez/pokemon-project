@@ -36,13 +36,19 @@ onUnmounted(() => document.removeEventListener('scroll', scrollHandler))
 </script>
 
 <template>
+    <!--
+        40 px y pegado al borde: con 64 en móvil y a 40 px del borde tapaba
+        media tarjeta. En móvil va alineado con el borde derecho de la barra
+        de secciones (inset-x-3) y justo encima de ella (8 + 66 + 10 px); en
+        escritorio, en la esquina.
+    -->
     <button
         type="button"
         :aria-label="$t('a11y.backToTop')"
         :tabindex="isShowButton ? 0 : -1"
         :aria-hidden="!isShowButton"
-        class="rebote-caja fixed z-30 bg-white dark:bg-gray-900 shadow-xl rounded-full h-16 md:h-12 w-16 md:w-12 flex justify-center items-center cursor-pointer right-10 border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-800 transition-[bottom] duration-300 ease-out"
-        :class="[isShowButton ? 'bottom-8' : '-bottom-20', rebota ? 'rebota' : '']"
+        class="rebote-caja fixed z-30 bg-white dark:bg-gray-900 shadow-lg rounded-full h-10 w-10 flex justify-center items-center cursor-pointer right-3 sm:right-6 border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-800 transition-[bottom] duration-300 ease-out"
+        :class="[isShowButton ? 'bottom-[calc(84px+env(safe-area-inset-bottom))] sm:bottom-6' : '-bottom-20', rebota ? 'rebota' : '']"
         @animationend="rebota = false"
         @click="scrollToUp"
     >
@@ -52,8 +58,8 @@ onUnmounted(() => document.removeEventListener('scroll', scrollHandler))
             cabeza es un único trazo continuo y el vértice es una unión.
         -->
         <base-icon
-            width="24px" height="24px"
-            :stroke-width="3"
+            width="18px" height="18px"
+            :stroke-width="2.5"
             d="M12 21V4 M3.6 12.4 12 4l8.4 8.4"
             stroke-linecap="round"
             stroke-linejoin="round"

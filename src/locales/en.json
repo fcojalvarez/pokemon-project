@@ -31,7 +31,9 @@
         "pokedex": "Pokédex",
         "top": "Top",
         "events": "Events",
-        "raids": "Live now"
+        "raids": "Now",
+        "raidsTitle": "Live in the game",
+        "sections": "Sections"
     },
     "common": {
         "loading": "Loading…",
@@ -297,21 +299,23 @@
             "snapshot": "Snapshots",
             "trade": "Trades",
             "gift": "Gifts",
-            "ar mapping": "AR mapping"
+            "ar mapping": "AR mapping",
+            "training": "Training",
+            "rocket": "Team GO Rocket"
         },
         "tapForCounters": "Tap the arrow on a boss to see the best counters."
     },
     "filters": {
         "type": "Type",
         "generation": "Generation",
-        "allGenerations": "All generations",
+        "allGenerations": "All",
         "onlyShiny": "Shiny only",
         "onlyReleased": "Released only",
         "title": "Filters",
         "clear": "Clear",
         "results": "{count} results",
         "rarity": "Rarity",
-        "allRarities": "Any rarity",
+        "allRarities": "Any",
         "generationNumber": "Generation {number}",
         "onlyShadow": "Shadow only",
         "onlyDynamax": "Dynamax only",
@@ -510,11 +514,21 @@
             "en": "English"
         }
     },
+    "settings": {
+        "title": "Settings",
+        "open": "Open settings",
+        "close": "Close settings",
+        "theme": "Theme",
+        "light": "Light",
+        "dark": "Dark"
+    },
     "a11y": {
         "skipToContent": "Skip to content",
         "backToTop": "Back to top",
         "search": "Search a Pokémon by name",
         "searchResults": "Search results",
+        "openSearch": "Open search",
+        "closeSearch": "Close search",
         "darkModeToggle": "Dark mode",
         "pokemonCount": "No Pokémon | 1 Pokémon | {n} Pokémon",
         "love": "love",

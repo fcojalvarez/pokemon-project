@@ -292,6 +292,19 @@ const pvpRanks = computed(() => {
   return form.value ? ranks.filter((entry) => entry.id === form.value.id) : ranks
 })
 
+/**
+ * Los puestos PvP por liga, de la Súper a la Master, y dentro de cada una del
+ * mejor al peor. Antes iban todos mezclados por puesto y el resumen decía
+ * «Hiper #103 · Hiper #125» sin aclarar que el segundo era el oscuro.
+ */
+const LIGAS = ['great', 'ultra', 'master']
+const pvpPorLiga = computed(() =>
+  LIGAS.map((league) => ({ league, entries: pvpRanks.value.filter((entry) => entry.league === league) }))
+    .filter((liga) => liga.entries.length)
+)
+/** Con una sola forma en la liga y siendo la base, el nombre sobra. */
+const nombreEnLiga = (liga, entry) => liga.entries.length > 1 || !formaUnica.value || entry.id !== baseDelRoster.value?.id
+
 
 /**
  * La línea que enseña cada sección plegada: lo que más se viene a buscar, para
@@ -321,7 +334,11 @@ const resumen = computed(() => {
   r.pvp = !gameData.pvpListo
     ? t('common.loading')
     : pvpRanks.value.length
-    ? pvpRanks.value.slice(0, 2).map((entry) => `${t(`top.${entry.league}`)} #${entry.rank}`).join(' · ')
+    ? pvpPorLiga.value
+        .map((liga) => liga.entries[0])
+        .sort((a, b) => a.rank - b.rank)
+        .map((entry) => `${t(`top.${entry.league}`)} #${entry.rank}`)
+        .join(' · ')
     : t('pokemon.noPvpRank')
   const mejor = bestMovesets.value[0]
   if (mejor) r.ataques = `${localName(mejor.fast)} + ${localName(mejor.charged)} · ${mejor.dps.toFixed(1)} DPS`
@@ -552,17 +569,21 @@ const moverVisible = (id, paso) => {
             </p>
             <ul v-else class="mt-2 flex flex-col gap-1.5">
               <li
-                v-for="entry in pvpRanks"
-                :key="`${entry.league}-${entry.id}`"
+                v-for="liga in pvpPorLiga"
+                :key="liga.league"
                 class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
               >
-                <span class="flex items-center gap-2">
-                  <span class="font-semibold">{{ $t(`top.${entry.league}`) }}</span>
+                <span class="block font-semibold">{{ $t(`top.${liga.league}`) }}</span>
+                <span
+                  v-for="entry in liga.entries"
+                  :key="entry.id"
+                  class="flex items-center gap-2 mt-0.5"
+                >
+                  <span v-if="nombreEnLiga(liga, entry)" class="min-w-0 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
                   <span class="ml-auto shrink-0">
                     #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
                   </span>
                 </span>
-                <span v-if="!formaUnica || entry.id !== baseDelRoster?.id" class="block mt-0.5 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
               </li>
             </ul>
           </ficha-seccion>

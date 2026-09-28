@@ -10,7 +10,7 @@
  */
 import { computed } from 'vue'
 import { useGameDataStore } from '../../stores/gameData'
-import { useTranslate } from '../../composables/useTranslate'
+import { intlLocale, useTranslate } from '../../composables/useTranslate'
 import FichaSeccion from './FichaSeccion.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MaxMark from './MaxMark.vue'
@@ -24,6 +24,7 @@ const props = defineProps({
 
 const gameData = useGameDataStore()
 const { t, localName } = useTranslate()
+const formatNumber = (value) => new Intl.NumberFormat(intlLocale()).format(value)
 
 const maxInfo = computed(() =>
   gameData.isReady && props.entry ? gameData.maxInfoFor(props.entry) : null
@@ -57,6 +58,10 @@ const upgradeRows = computed(() => {
     }
   }).filter((fila) => fila.levels > 0)
 })
+
+/** Las columnas de caramelos solo si algún movimiento los pide. */
+const conCaramelos = computed(() => upgradeRows.value.some((row) => row.total.candy))
+const conXl = computed(() => upgradeRows.value.some((row) => row.total.xl))
 
 /**
  * Con quién ganarle si sale de jefe en un combate Max: el mismo equipo que
@@ -135,20 +140,29 @@ const resumen = computed(() => {
       <h3 class="text-xs font-bold text-gray-600 dark:text-gray-300">
         {{ $t('max.upgradeTitle') }}
       </h3>
-      <ul class="mt-2 flex flex-col gap-1.5">
-        <li
-          v-for="row in upgradeRows"
-          :key="row.key"
-          class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-xs"
-        >
-          <span class="font-semibold">{{ row.label }}</span>
-          <span class="ml-auto text-gray-600 dark:text-gray-300 text-right">
-            {{ row.total.mp }} {{ $t('max.particles') }}
-            <template v-if="row.total.candy"> · {{ row.total.candy }} {{ $t('max.candy') }}</template>
-            <template v-if="row.total.xl"> · {{ row.total.xl }} {{ $t('max.candyXl') }}</template>
-          </span>
-        </li>
-      </ul>
+      <!--
+        Una tabla y no una frase por movimiento: en móvil la frase
+        («1800 Partículas Max · 150 Caramelos · 40 Caramelos XL») se partía en
+        dos líneas en cada fila, y así los números quedan alineados.
+      -->
+      <table class="mt-2 w-full text-xs tabular-nums">
+        <thead>
+          <tr class="text-mini text-gray-600 dark:text-gray-300 align-bottom">
+            <th scope="col" class="sr-only">{{ $t('max.upgradeTitle') }}</th>
+            <th scope="col" class="pb-1 pl-2 font-normal text-right">{{ $t('max.particles') }}</th>
+            <th v-if="conCaramelos" scope="col" class="pb-1 pl-2 font-normal text-right">{{ $t('max.candy') }}</th>
+            <th v-if="conXl" scope="col" class="pb-1 pl-2 font-normal text-right">{{ $t('max.candyXl') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in upgradeRows" :key="row.key" class="border-t border-gray-200 dark:border-gray-800">
+            <th scope="row" class="py-1 text-left font-semibold">{{ row.label }}</th>
+            <td class="py-1 pl-2 text-right">{{ formatNumber(row.total.mp) }}</td>
+            <td v-if="conCaramelos" class="py-1 pl-2 text-right">{{ row.total.candy ? formatNumber(row.total.candy) : '—' }}</td>
+            <td v-if="conXl" class="py-1 pl-2 text-right">{{ row.total.xl ? formatNumber(row.total.xl) : '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
       <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">
         {{ $t('max.upgradeNote') }}
       </p>

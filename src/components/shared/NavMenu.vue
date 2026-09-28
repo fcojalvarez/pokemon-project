@@ -5,9 +5,9 @@ import { useMainStore } from '../../stores/main'
 import { storeToRefs } from 'pinia'
 import BaseIcon from '../base/BaseIcon.vue'
 import SuggestionButton from './SuggestionButton.vue'
-import ToggleDarkMode from '../ToggleDarkMode.vue'
 import LanguageSelector from './LanguageSelector.vue'
 import { useInertApp } from '../../composables/useInertApp'
+import { NAV_LINKS as links, esSeccionActiva } from './navLinks'
 
 const mainStore = useMainStore()
 const { isDarkMode } = storeToRefs(mainStore)
@@ -29,12 +29,6 @@ const version = import.meta.env.VITE_APP_VERSION
 // Con los dos se sabe exactamente qué hay instalado.
 const build = import.meta.env.VITE_APP_BUILD
 
-const links = [
-  { to: '/', key: 'pokedex', icon: 'M4 6h16M4 12h16M4 18h16' },
-  { to: '/top', key: 'top', icon: 'm12 3 2.6 6.3 6.9.5-5.3 4.4 1.7 6.7L12 17.3 6.1 20.9l1.7-6.7-5.3-4.4 6.9-.5L12 3z' },
-  { to: '/events', key: 'events', icon: 'M8 2v4m8-4v4M3 10h18M5 6h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z' },
-  { to: '/live', key: 'raids', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zm0 6a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM3 12h6m6 0h6' }
-]
 
 const open = async () => {
   isOpen.value = true
@@ -57,7 +51,7 @@ const close = ({ restoreFocus = true } = {}) => {
  * router fuera del alcance del `<style scoped>`, así que la variante oscura no
  * llegaba a aplicarse y el botón activo quedaba claro con texto claro.
  */
-const isActive = (to) => (to === '/' ? route.path === '/' : route.path.startsWith(to))
+const isActive = (to) => esSeccionActiva(route.path, to)
 
 const onKeydown = (event) => {
   if (event.key === 'Escape') close()
@@ -147,6 +141,8 @@ watch(
             width="20"
             height="20"
             :color="isDarkMode ? '#e5e7eb' : '#374151'"
+            stroke-linecap="round"
+            stroke-linejoin="round"
             :d="link.icon"
           />
           <span class="text-sm">{{ $t(`nav.${link.key}`) }}</span>
@@ -155,15 +151,13 @@ watch(
 
       <div class="flex flex-col items-end gap-2 px-4 py-3 border-t border-gray-300 dark:border-gray-600">
         <!--
-          Una fila al pie del cajón: idioma y modo oscuro, solo con el icono,
-          y Sugerencias con el ancho que sobra. En móvil el modo oscuro vive
-          aquí: en la cabecera le quitaba al buscador el sitio que necesita.
-          En escritorio sigue en la cabecera, así que aquí no sale. items-
-          stretch: los tres botones, de la misma altura.
+          Una fila al pie del cajón: idioma, solo con el icono, y Sugerencias
+          con el ancho que sobra. El modo oscuro va en la cabecera, también en
+          móvil (con el buscador plegado en una lupa ya cabe). items-stretch:
+          los dos botones, de la misma altura.
         -->
         <div class="w-full flex items-stretch gap-2">
           <language-selector />
-          <toggle-dark-mode en-menu class="md:hidden" />
           <suggestion-button
             class="flex-1 justify-center"
             @open="close({ restoreFocus: false })"

@@ -137,6 +137,13 @@ const maxVisibles = computed(() => maxPorNivel.value.filter((grupo) => seVe(idMa
 const huevosVisibles = computed(() => live.eggsByType.filter((grupo) => seVe(idHuevo(grupo))))
 const tareasVisibles = computed(() => researchGroups.value.filter((grupo) => seVe(idTarea(grupo))))
 
+/**
+ * En móvil no hay barra lateral y las misiones son una lista muy larga: una
+ * fila de chips fija arriba lleva a cada categoría. Solo salta, no filtra,
+ * para que siga viéndose todo al bajar.
+ */
+const irACategoria = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
 const jefeAbierto = computed(() => live.raids.find((raid) => raid.name === openBoss.value) ?? null)
 const climaAbierto = computed(() => (jefeAbierto.value?.boostedWeather ?? []).map((w) => weatherLabel(w.name)))
 
@@ -258,7 +265,11 @@ const researchGroups = computed(() => {
   return [...groups.entries()]
     .map(([type, list]) => ({
       type,
-      label: te(`raids.researchTypes.${type}`) ? t(`raids.researchTypes.${type}`) : type,
+      // Un tipo que aún no está traducido sale tal cual, pero con mayúscula:
+      // «rocket» y «training» se colaron así en la lista.
+      label: te(`raids.researchTypes.${type}`)
+        ? t(`raids.researchTypes.${type}`)
+        : type.charAt(0).toUpperCase() + type.slice(1),
       list
     }))
     .sort((a, b) => a.label.localeCompare(b.label, locale()))
@@ -293,7 +304,7 @@ onMounted(() => {
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
-    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.raids') }}</h1>
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.raidsTitle') }}</h1>
 
     <div class="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
       <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{{ $t('raids.intro') }}</p>
@@ -472,7 +483,11 @@ onMounted(() => {
                 {{ $t('max.tier', { n: grupo.tier }) }}
                 <span class="font-normal text-gray-600 dark:text-gray-300">({{ grupo.list.length }})</span>
               </h3>
-              <div class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
+              <!--
+                A una columna en móvil estrecho: con la marca Max y el botón al
+                lado, a dos no cabían ni el nombre («Arti-cuno») ni el PC.
+              -->
+              <div class="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
                 <template v-for="uno in grupo.list" :key="`${grupo.tier}-${uno.dex}`">
                   <live-mon-card
                     :id="`mon-${uno.dex}`"
@@ -482,6 +497,7 @@ onMounted(() => {
                     :dex="uno.dex"
                     :combat-power="uno.cp"
                     :can-be-shiny="uno.canBeShiny"
+                    ancha
                   >
                     <max-mark
                       :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
@@ -550,10 +566,30 @@ onMounted(() => {
         <template v-else>
           <base-empty-state v-if="researchGroups.length === 0" :message="$t('raids.noResearch')" />
 
+          <!-- top-16 / sm:top-14: justo debajo de la cabecera fija (64 px en móvil, 56 desde sm). -->
+          <nav
+            v-if="!ancho && researchGroups.length > 1"
+            :aria-label="tabLabel('research')"
+            class="sticky top-16 sm:top-14 z-10 -mx-4 px-4 py-2 mb-3 flex gap-2 overflow-x-auto bg-gray-100 dark:bg-gray-700 [scrollbar-width:none]"
+          >
+            <button
+              v-for="group in researchGroups"
+              :key="group.type"
+              type="button"
+              class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+              @click="irACategoria(idTarea(group))"
+            >
+              {{ group.label }}
+              <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums">{{ group.list.length }}</span>
+            </button>
+          </nav>
+
+          <!-- scroll-mt: al saltar desde los chips, que el título no quede debajo de la cabecera y de ellos. -->
           <section
             v-for="group in tareasVisibles"
+            :id="idTarea(group)"
             :key="group.type"
-            class="mb-5"
+            class="mb-5 scroll-mt-36"
           >
             <h2 class="text-sm font-bold mb-2">{{ group.label }}</h2>
             <div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 items-start">

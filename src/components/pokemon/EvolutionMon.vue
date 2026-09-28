@@ -46,11 +46,12 @@ const sprite = computed(() => (props.shiny ? props.mon.sprites?.male_shiny : pro
 
 // El ancho incluye el relleno de la tarjeta (p-1.5 / lg:p-2).
 const ancho = computed(() => {
-  // 68 px en los móviles más estrechos: con 72, tres fases y sus dos flechas se
-  // pasaban un píxel de la tarjeta y la última bajaba sola a otra fila. Desde
-  // 420 px sobra sitio, y más ancho y con más relleno el recuadro del Pokémon
-  // actual deja de ir pegado a su contenido.
-  if (!props.enGrupo) return 'w-[68px] min-[420px]:w-20 md:w-24 lg:w-32'
+  // 72 px en los móviles más estrechos, con el nombre algo más pequeño (ver
+  // abajo): con 68 y a 12 px, «Charmander» no cabía y se partía con guion.
+  // Tres fases y sus dos flechas caben justas en 390 px. Desde 420 px sobra
+  // sitio, y más ancho y con más relleno el recuadro del Pokémon actual deja
+  // de ir pegado a su contenido.
+  if (!props.enGrupo) return 'w-[72px] min-[420px]:w-20 md:w-24 lg:w-32'
   return props.pocos ? 'w-[132px] lg:w-[136px]' : 'w-full lg:w-[104px]'
 })
 // Igual que las tarjetas de la Pokédex: la tarjeta es el sprite, el nombre y
@@ -89,7 +90,9 @@ const caja = computed(() =>
       />
     </span>
     <span class="flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 text-center leading-tight">
-      <span class="font-semibold text-mini lg:text-xs break-words hyphens-auto min-w-0">{{ nombre }}</span>
+      <!-- En móvil estrecho, a 11 px y un pelo más juntas: así un nombre de diez
+           letras entra entero en vez de partirse («Charman-der»). -->
+      <span class="font-semibold text-[11px] tracking-tight min-[420px]:text-mini min-[420px]:tracking-normal lg:text-xs break-words min-w-0">{{ nombre }}</span>
       <type-icons v-if="mon.types?.length" :types="mon.types" size="11" class="!gap-0.5" />
     </span>
     <span

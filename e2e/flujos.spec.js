@@ -2,6 +2,9 @@ import { expect, test } from '@playwright/test'
 
 /** En móvil los filtros del Top van plegados: se abren antes de tocarlos. */
 async function abrirFiltrosTop(page) {
+  // isVisible no espera: si la vista aún no estaba pintada no se abrían los
+  // filtros y el test se quedaba esperando un desplegable que no llegaba.
+  await page.getByRole('heading', { level: 1, name: 'Top' }).waitFor()
   const boton = page.locator('button[aria-controls="filtros-top"]')
   if (await boton.isVisible()) await boton.click()
 }

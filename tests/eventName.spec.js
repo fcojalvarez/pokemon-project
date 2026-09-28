@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   parseEventName,
   parseMaxBattle,
+  quitarTipo,
   splitPokemonList,
   translatePokemonName
 } from '../src/utils/eventName'
@@ -166,5 +167,23 @@ describe('formas regionales en los nombres', () => {
 
   it('sigue tratando los oscuros como antes', () => {
     expect(translatePokemonName('Shadow Machop', nombres, forma)).toBe('Machop Oscuro')
+  })
+})
+
+describe('quitarTipo', () => {
+  it('quita el tipo del principio cuando la etiqueta ya lo dice', () => {
+    expect(quitarTipo('Lunes MAX: Sobble Dinamax', 'Lunes MAX')).toBe('Sobble Dinamax')
+    expect(quitarTipo('Elige tu camino: Senderos Crepusculares', 'ELIGE TU CAMINO')).toBe('Senderos Crepusculares')
+  })
+
+  it('no distingue tildes ni mayúsculas', () => {
+    expect(quitarTipo('Sesión de raids: Mega Malamar', 'Sesion de Raids')).toBe('Mega Malamar')
+  })
+
+  it('deja el título entero si no empieza por el tipo o no queda nada detrás', () => {
+    expect(quitarTipo('Liga Ultra Ball: Edición Mega', 'Liga Combates GO')).toBe('Liga Ultra Ball: Edición Mega')
+    expect(quitarTipo('Mega Malamar en megaincursiones', 'Incursiones')).toBe('Mega Malamar en megaincursiones')
+    expect(quitarTipo('Lunes MAX:', 'Lunes MAX')).toBe('Lunes MAX:')
+    expect(quitarTipo('Lunes MAX: Sobble', null)).toBe('Lunes MAX: Sobble')
   })
 })

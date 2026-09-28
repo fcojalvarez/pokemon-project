@@ -39,7 +39,7 @@ const router = createRouter({
         {
             path: '/live',
             name: 'LivePage',
-            meta: { titleKey: 'nav.raids' },
+            meta: { titleKey: 'nav.raidsTitle' },
             component: () => import('@/views/RaidsView.vue')
         },
         {

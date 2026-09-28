@@ -98,6 +98,15 @@ describe('BaseSprite', () => {
     expect(w.find('.esqueleto').exists()).toBe(false)
   })
 
+  it('los iconos de LeekDuck, recortados; si falta el recorte, el de siempre', async () => {
+    imagen({ complete: false })
+    const icono = 'https://cdn.leekduck.com/assets/img/pokemon_icons/pm687.fMEGA.icon.png'
+    const w = montar({ src: icono })
+    expect(w.get('img').attributes('src')).toBe('https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pm687.fMEGA.icon.png')
+    await w.get('img').trigger('error')
+    expect(w.get('img').attributes('src')).toBe(icono)
+  })
+
   it('cualquier otra imagen se pide tal cual', () => {
     imagen({ complete: false })
     expect(montar().get('img').attributes('src')).toBe('https://ejemplo.test/6.png')

@@ -29,7 +29,12 @@ const props = defineProps({
   /** Texto corto extra (el nivel de la incursión, por ejemplo). */
   badge: { type: String, default: null },
   /** Señalado al llegar desde la ficha de ese Pokémon. */
-  highlight: Boolean
+  highlight: Boolean,
+  /**
+   * Va a todo el ancho también en móvil (los combates Max, a una columna):
+   * hay sitio para «PC» delante del rango y el nombre no hace falta partirlo.
+   */
+  ancha: Boolean
 })
 
 const cpLabel = computed(() => {
@@ -69,7 +74,7 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
         v-if="canBeShiny"
         variant="dex"
         size="text-mini"
-        class="absolute -top-1 -right-1 z-10 scale-[0.7] origin-top-right"
+        class="absolute -top-1 -right-1 z-10 scale-[0.6] origin-top-right"
         :title="$t('pokemon.shinyLegend')"
         :label="$t('pokemon.shinyLegend')"
       />
@@ -77,7 +82,7 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
 
     <span class="flex-1 min-w-0">
       <!-- Hasta dos líneas antes de recortar: «Typhlosion de Hisui» salía cortado con media pantalla libre. -->
-      <span class="text-xs font-semibold line-clamp-2 break-words hyphens-auto" :title="name">{{ name }}</span>
+      <span class="text-xs font-semibold line-clamp-2 break-words" :class="ancha ? '' : 'hyphens-auto'" :title="name">{{ name }}</span>
       <!--
         En móvil, a dos columnas, no caben etiqueta y rango: el texto se salía
         por debajo del botón de desplegar. Se queda el rango, que junto a un
@@ -90,7 +95,7 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
         :title="`${$t('raids.cpRange')} ${cpLabel}`"
       >
         <!-- &nbsp;: el espacio normal al final del span se perdía («PC529–574»). -->
-        <span class="hidden sm:inline">{{ $t('raids.cpRange') }}&nbsp;</span>{{ cpLabel }}
+        <span :class="ancha ? 'min-[420px]:hidden sm:inline' : 'hidden sm:inline'">{{ $t('raids.cpRange') }}&nbsp;</span>{{ cpLabel }}
       </span>
       <span v-if="badge" class="block text-mini text-gray-600 dark:text-gray-300">{{ badge }}</span>
     </span>

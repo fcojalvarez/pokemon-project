@@ -7,6 +7,7 @@ import { useTranslate } from '../../composables/useTranslate'
 import {
   parseEventName,
   parseMaxBattle,
+  quitarTipo,
   splitPokemonList
 } from '../../utils/eventName'
 import { spriteUrl } from '../../utils/sprites'
@@ -87,6 +88,14 @@ const displayName = computed(() => {
 
   return t(key, { pokemon, tier: parts.tier })
 })
+
+/**
+ * El título sin el tipo delante cuando lo repite: la etiqueta ya dice «Lunes
+ * MAX» encima, y «Lunes MAX: Sobble Dinamax» debajo era decirlo dos veces.
+ * Solo si empieza exactamente por el tipo seguido de dos puntos; si no, el
+ * título se deja entero.
+ */
+const titulo = computed(() => quitarTipo(displayName.value, typeLabel.value))
 
 /**
  * Combate Max: qué Pokémon sale y si es Dinamax o Gigamax.
@@ -214,6 +223,10 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
     @click="abrirEvento"
   >
     <!--
+      En móvil el `sizes` se queda corto a propósito (66vw): un teléfono de
+      densidad 3 pedía la de 1200 px para un cartel de 96 px de alto y
+      recortado. Así se queda en la de 800, que no se distingue y pesa menos.
+
       El cartel del evento, de cabecera a todo lo ancho. Si LeekDuck no publica
       imagen, o la que publica no existe, la tarjeta empieza por la fecha.
     -->
@@ -223,7 +236,7 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       :src="cartel.src"
       :srcset="cartel.srcset ?? undefined"
       crossorigin="anonymous"
-      :sizes="detalle ? '(min-width: 768px) 768px, 100vw' : '(min-width: 1536px) 30vw, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, 100vw'"
+      :sizes="detalle ? '(min-width: 768px) 768px, 100vw' : '(min-width: 1536px) 30vw, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, (min-width: 640px) 100vw, 66vw'"
       alt=""
       class="max-w-none object-cover bg-gray-100 dark:bg-gray-800"
       :class="detalle
@@ -245,15 +258,19 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
 
       <div class="min-w-0 flex-1 flex flex-col">
         <div class="flex flex-col items-start gap-1">
-          <span
-            class="px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
-          >
-            {{ typeLabel }}
+          <!-- La flecha dice que la tarjeta entera abre el detalle: antes no había nada que lo indicara. -->
+          <span class="self-stretch flex items-center justify-between gap-2">
+            <span
+              class="px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
+            >
+              {{ typeLabel }}
+            </span>
+            <span v-if="!detalle" class="shrink-0 text-lg leading-none text-gray-500 dark:text-gray-400" aria-hidden="true">›</span>
           </span>
           <!-- Siempre un h2 (la página lleva su h1), con el enlace dentro si lo hay. -->
           <h2 class="font-bold leading-snug" :class="detalle ? 'text-lg' : 'text-sm sm:text-base'">
-            <template v-if="detalle">{{ displayName }}</template>
-            <button v-else type="button" class="text-left hover:underline" @click="emit('abrir', event)">{{ displayName }}</button>
+            <template v-if="detalle">{{ titulo }}</template>
+            <button v-else type="button" class="text-left hover:underline" @click="emit('abrir', event)">{{ titulo }}</button>
           </h2>
         </div>
 

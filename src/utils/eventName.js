@@ -142,3 +142,21 @@ export function parseMaxBattle(name) {
     pokemon: pokemon || null
   }
 }
+
+/** Para comparar sin mayúsculas ni tildes: «Lunes MAX» y «lunes max» son lo mismo. */
+const plano = (texto) => String(texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+
+/**
+ * El título de un evento sin el tipo delante, si lo repite: con «Lunes MAX»
+ * en la etiqueta, «Lunes MAX: Sobble Dinamax» se queda en «Sobble Dinamax».
+ * Solo cuando empieza por el tipo seguido de dos puntos y queda algo detrás;
+ * en cualquier otro caso se devuelve tal cual.
+ */
+export function quitarTipo(titulo, tipo) {
+  if (!titulo || !tipo) return titulo
+  const dosPuntos = titulo.indexOf(':')
+  if (dosPuntos <= 0) return titulo
+  if (plano(titulo.slice(0, dosPuntos)) !== plano(tipo)) return titulo
+  const resto = titulo.slice(dosPuntos + 1).trim()
+  return resto || titulo
+}

@@ -31,7 +31,9 @@
         "pokedex": "Pokédex",
         "top": "Top",
         "events": "Eventos",
-        "raids": "Ahora en juego"
+        "raids": "Ahora",
+        "raidsTitle": "Ahora en el juego",
+        "sections": "Secciones"
     },
     "common": {
         "loading": "Cargando…",
@@ -54,14 +56,14 @@
         "previous": "Anterior",
         "next": "Siguiente",
         "enlarge": "Ver {name} en grande",
-        "shinySince": "Variocolor liberado desde el {date}",
+        "shinySince": "Shiny liberado desde el {date}",
         "button": "Formas y disfraces ({n})",
         "title": "Formas y disfraces de {pokemon}",
         "formas": "Formas",
         "disfraces": "Disfraces",
         "normal": "Normal",
-        "shiny": "Variocolor",
-        "note": "Todas las que trae el juego, también las que aún no han salido. La estrella marca las que tienen el variocolor liberado."
+        "shiny": "Shiny",
+        "note": "Todas las que trae el juego, también las que aún no han salido. La estrella marca las que tienen el shiny liberado."
     },
     "pokemon": {
         "evolutionLine": "Línea evolutiva",
@@ -107,7 +109,7 @@
         "pveRanks": "Puesto PvE",
         "noPveRank": "Fuera del top 500",
         "superMega": "Supermega",
-        "shinyLegend": "Variocolor liberado",
+        "shinyLegend": "Shiny liberado",
         "released": "Liberado",
         "releasedShiny": "Shiny",
         "category": {
@@ -297,21 +299,23 @@
             "snapshot": "Fotos",
             "trade": "Intercambios",
             "gift": "Regalos",
-            "ar mapping": "Mapeo RA"
+            "ar mapping": "Mapeo RA",
+            "training": "Entrenamiento",
+            "rocket": "Team GO Rocket"
         },
         "tapForCounters": "Toca la flecha de un jefe para ver con quién ganarle."
     },
     "filters": {
         "type": "Tipo",
         "generation": "Generación",
-        "allGenerations": "Todas las generaciones",
+        "allGenerations": "Todas",
         "onlyShiny": "Solo shiny",
         "onlyReleased": "Solo disponibles",
         "title": "Filtros",
         "clear": "Limpiar",
         "results": "{count} resultados",
         "rarity": "Rareza",
-        "allRarities": "Cualquier rareza",
+        "allRarities": "Cualquiera",
         "generationNumber": "Generación {number}",
         "onlyShadow": "Solo oscuro",
         "onlyDynamax": "Solo Dinamax",
@@ -510,11 +514,21 @@
             "en": "English"
         }
     },
+    "settings": {
+        "title": "Ajustes",
+        "open": "Abrir ajustes",
+        "close": "Cerrar ajustes",
+        "theme": "Tema",
+        "light": "Claro",
+        "dark": "Oscuro"
+    },
     "a11y": {
         "skipToContent": "Saltar al contenido",
         "backToTop": "Volver arriba",
         "search": "Buscar un Pokémon por nombre",
         "searchResults": "Resultados de la búsqueda",
+        "openSearch": "Abrir el buscador",
+        "closeSearch": "Cerrar el buscador",
         "darkModeToggle": "Modo oscuro",
         "pokemonCount": "Ningún Pokémon | 1 Pokémon | {n} Pokémon",
         "love": "amor",
