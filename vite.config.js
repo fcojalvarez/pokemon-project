@@ -115,6 +115,18 @@ export default defineConfig({
             }
           },
           {
+            // La fuente (src/assets/fonts). Lleva el hash en el nombre, así que
+            // una versión nueva es otra URL y nunca se sirve una vieja. No va
+            // en la precaché: latin-ext solo lo necesita quien lo usa.
+            urlPattern: /\/assets\/source-code-pro-.*\.woff2$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'fuentes-v1',
+              expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [200] }
+            }
+          },
+          {
             // Sprites de PokeAPI (el PNG original, si falta la miniatura).
             urlPattern: /^https:\/\/raw\.githubusercontent\.com\/PokeAPI\/sprites\/.*/i,
             handler: 'CacheFirst',

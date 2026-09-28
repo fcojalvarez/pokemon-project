@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { mount } from '@vue/test-utils'
-import i18n, { setLocale } from '../src/plugins/i18n'
+import { flushPromises, mount } from '@vue/test-utils'
+import i18n, { cargarIdioma, setLocale } from '../src/plugins/i18n'
 import LanguageSelector from '../src/components/shared/LanguageSelector.vue'
 
 /**
@@ -12,8 +12,8 @@ import LanguageSelector from '../src/components/shared/LanguageSelector.vue'
 const montar = () => mount(LanguageSelector, { global: { plugins: [i18n] }, attachTo: document.body })
 
 describe('selector de idioma', () => {
-  afterEach(() => {
-    setLocale('es')
+  afterEach(async () => {
+    await setLocale('es')
     localStorage.clear()
     document.body.innerHTML = ''
   })
@@ -33,7 +33,10 @@ describe('selector de idioma', () => {
     expect(opciones.map((o) => o.text())).toEqual(['Español', 'English'])
     expect(opciones[0].attributes('aria-checked')).toBe('true')
 
+    // La descarga del inglés se prueba en locales.spec.js; aquí ya está.
+    await cargarIdioma('en')
     await opciones[1].trigger('click')
+    await flushPromises()
     expect(i18n.global.locale).toBe('en')
     expect(document.documentElement.lang).toBe('en')
     expect(localStorage.getItem('locale')).toBe('en')

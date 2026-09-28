@@ -1,8 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import i18n from '../src/plugins/i18n'
+import i18n, { cargarIdioma } from '../src/plugins/i18n'
 import { intlLocale, localName } from '../src/composables/useTranslate'
 import { useGameDataStore } from '../src/stores/gameData'
 import AttackerTable from '../src/components/rankings/AttackerTable.vue'
@@ -14,6 +14,9 @@ vi.mock('../src/lib/supabaseClient', () => ({ supabase: {} }))
  * El idioma se puede cambiar en caliente desde el menú: lo que depende de él
  * tiene que leerlo en cada llamada, no quedarse con el del arranque.
  */
+// El inglés se descarga al elegirlo: aquí se deja cargado de antemano.
+beforeAll(() => cargarIdioma('en'))
+
 afterEach(() => {
   i18n.global.locale = 'es'
 })

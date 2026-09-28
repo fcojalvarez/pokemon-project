@@ -4,7 +4,7 @@ import { createPinia } from 'pinia';
 import App from './App.vue';
 import router from './router';
 
-import i18n from './plugins/i18n';
+import i18n, { idiomaInicial } from './plugins/i18n';
 
 import './assets/main.css';
 import './index.css';
@@ -17,9 +17,6 @@ app.use(createPinia());
 app.use(router);
 app.use(i18n);
 
-// El idioma del documento sigue al de la app: con lang="en" los lectores de
-// pantalla leían el español con pronunciación inglesa.
-document.documentElement.lang = i18n.global.locale;
 
 // Título de pestaña por página. La ficha lo pone ella misma cuando sabe qué
 // Pokémon es, así que aquí se deja en paz.
@@ -33,7 +30,14 @@ router.afterEach(ponerTitulo);
 // Al cambiar de idioma desde el menú, el título de la pestaña también.
 watch(() => i18n.global.locale, () => ponerTitulo(router.currentRoute.value));
 
-app.mount('#app');
+// Con el inglés elegido, se espera a su fichero (va en la precaché, así que
+// es inmediato salvo la primera vez) para no pintar la app en español.
+idiomaInicial().finally(() => {
+    // El idioma del documento sigue al de la app: con lang="en" los lectores
+    // de pantalla leían el español con pronunciación inglesa.
+    document.documentElement.lang = i18n.global.locale;
+    app.mount('#app');
+});
 
 /**
  * Tras un despliegue, una pestaña abierta con la versión anterior pide trozos
