@@ -216,25 +216,33 @@ const maxRows = computed(() => {
     if (!entry.dynamax && !entry.gigantamax) continue
     if (!includeLegendary.value && (entry.legendary || entry.mythical)) continue
     const opciones = gameData.maxInfoFor(entry)?.opciones ?? []
-    // Una fila por cada Ataque Max que pueda usar: cada uno pega distinto (el
-    // STAB y la potencia cambian), así que con «Todos» se ve de verdad en qué
-    // puesto queda Alakazam con Maxionda y en cuál con Maxipuño.
+    // Una fila por cada puntuación distinta: los Ataques Max de su tipo pegan
+    // igual (misma potencia, con STAB) y van juntos; los ajenos a su tipo,
+    // sin STAB, pegan menos y salen en otra fila más abajo. Así Alakazam
+    // queda arriba con Maxionda y más abajo con Maxipuño, y Excadrill sale
+    // una sola vez con Maxitemblor y Maximetal, que son de sus dos tipos.
+    const grupos = new Map()
     for (const opcion of opciones) {
       if (type.value !== 'all' && opcion.max.type !== type.value) continue
       const version = opcion.gigamax ? 'gigantamax' : 'dynamax'
+      const peso = pesoAtaqueMax(entry, opcion)
+      const clave = `${entry.dex}-${version}-${Math.round(peso)}`
+      if (!grupos.has(clave)) grupos.set(clave, { version, peso, stab: opcion.stab, opciones: [] })
+      grupos.get(clave).opciones.push(opcion)
+    }
+    for (const [clave, grupo] of grupos) {
       // Los Pikachu con gorro comparten stats con el normal: una fila basta.
-      const clave = `${entry.dex}-${version}-${opcion.max.id}`
       if (vistos.has(clave)) continue
       vistos.add(clave)
       filas.push({
         entry,
-        version,
-        maxId: opcion.max.id,
-        maxLines: [lineaMax(opcion, entry)],
-        stab: opcion.stab,
+        version: grupo.version,
+        maxId: grupo.opciones.map((opcion) => opcion.max.id).join('+'),
+        maxLines: grupo.opciones.map((opcion) => lineaMax(opcion, entry)),
+        stab: grupo.stab,
         // Potencia × ataque × STAB, en la escala del ataque: el de un Dinamax
         // sin STAB (base + 15 de IV). Un Gigamax pega 450 en vez de 350.
-        value: pesoAtaqueMax(entry, opcion) / POTENCIA_MAX
+        value: grupo.peso / POTENCIA_MAX
       })
     }
   }
