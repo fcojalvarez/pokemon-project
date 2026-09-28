@@ -1,8 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { ItemPokemonList, ScrollUpButton } from '../components/index';
-import ShinyLegend from '../components/pokemon/ShinyLegend.vue';
-import MaxLegend from '../components/pokemon/MaxLegend.vue';
+import ReleasedLegend from '../components/pokemon/ReleasedLegend.vue';
 import PokedexFilters from '../components/pokemon/PokedexFilters.vue';
 import { storeToRefs } from 'pinia';
 import { usePokemonsStore } from '@/stores/pokemons';
@@ -118,12 +117,9 @@ onUnmounted(() => {
 
         <!-- La leyenda va dentro de los filtros: comparten la primera línea. -->
         <pokedex-filters class="pt-3">
-            <!-- Las leyendas comparten el hueco de la izquierda y bajan de
-                 línea solas cuando no caben. -->
-            <span v-if="pokemons.length > 0" class="flex flex-wrap items-center gap-x-4 gap-y-1">
-                <shiny-legend variant="dex" />
-                <max-legend />
-            </span>
+            <!-- La leyenda ocupa el hueco de la izquierda y baja de línea sola
+                 cuando no cabe. -->
+            <released-legend v-if="pokemons.length > 0" variant="dex" />
         </pokedex-filters>
 
         <!--

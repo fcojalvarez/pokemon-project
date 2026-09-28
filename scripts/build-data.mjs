@@ -1130,6 +1130,14 @@ function i18nMap(es) {
  * inglés. Se acota a frases con pinta de tarea o de bonus: el fichero completo
  * son casi 29.000 entradas y no hace falta ninguna más.
  */
+/**
+ * La app dice «shiny», no «variocolor» como el juego en español: se cambia en
+ * las frases del juego para que no salgan las dos palabras mezcladas.
+ */
+function aShiny(texto) {
+  return texto?.replace(/\b(v)ariocolor(es)?\b/gi, (_, v) => (v === 'V' ? 'Shiny' : 'shiny'))
+}
+
 function buildTextDictionary(enRaw, esRaw) {
   const en = i18nMap(enRaw)
   const es = i18nMap(esRaw)
@@ -1149,7 +1157,7 @@ function buildTextDictionary(enRaw, esRaw) {
 
   const dictionary = {}
   for (const [key, english] of en) {
-    const spanish = es.get(key)
+    const spanish = aShiny(es.get(key))
     if (!spanish || !english || english.length > 90) continue
 
     const normalized = normalizeText(english)

@@ -58,15 +58,12 @@ describe('botón de modo oscuro', () => {
     expect(w.get('button').attributes('aria-pressed')).toBe('false')
   })
 
-  it('en el menú va solo el icono; en la cabecera, las clases que le pasen', () => {
+  it('las clases y atributos de la cabecera llegan al botón', () => {
     sistema(false)
-    const enMenu = montar({ enMenu: true })
-    expect(enMenu.text()).toBe('')
-    expect(enMenu.get('button').attributes('aria-label')).toBe('Modo oscuro')
-    // La cabecera lo oculta en móvil con clases: tienen que llegar al botón.
-    // Se rompió una vez por dejar comentarios HTML junto a v-if/v-else.
+    // La cabecera lo saca del tabulador (inert) cuando el buscador lo tapa.
     const pinia = createPinia()
-    const w = mount(ToggleDarkMode, { attrs: { class: 'hidden md:flex' }, global: { plugins: [pinia, i18n] } })
-    expect(w.get('button').classes()).toEqual(expect.arrayContaining(['hidden', 'md:flex']))
+    const w = mount(ToggleDarkMode, { attrs: { class: 'ml-auto', inert: true }, global: { plugins: [pinia, i18n] } })
+    expect(w.get('button').classes()).toContain('ml-auto')
+    expect(w.get('button').attributes('inert')).toBeDefined()
   })
 })

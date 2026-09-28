@@ -3,6 +3,7 @@
     import { BaseIcon, SpinnerComponent } from '.';
     import { useRoute, useRouter } from 'vue-router';
     import useDetectOutsideClick from '../composables/useDetectOutsideClick';
+    import { useMedia } from '../composables/useMedia';
     import { usePokemonsStore } from '@/stores/pokemons';
     import { useMainStore } from '../stores/main';
     import { storeToRefs } from 'pinia';
@@ -22,6 +23,45 @@
     // de resultados y desde ahí se salta a la ficha.
     const isListView = computed(() => route.name === 'PokemonList');
     const searchBarRef = ref();
+
+    /**
+     * En móvil el buscador se queda plegado en una lupa: abierto ocupaba media
+     * cabecera todo el rato. Al tocarla crece hacia la derecha hasta el menú,
+     * tapando el modo oscuro, y se vuelve a plegar al salir si está vacío. Con
+     * algo escrito sigue abierto: en la Pokédex eso es lo que filtra la rejilla.
+     * En escritorio sobra sitio y está siempre abierto.
+     */
+    const emit = defineEmits(['tapa']);
+    const esMovil = useMedia('(max-width: 767px)');
+    const abierto = ref(false);
+    const plegado = computed(() => esMovil.value && !abierto.value);
+    watch(() => esMovil.value && abierto.value, (tapa) => emit('tapa', tapa), { immediate: true });
+
+    const inputRef = ref();
+    const lupaRef = ref();
+    // El foco, en el mismo toque: si se deja para después del repintado, el
+    // Safari del iPhone no saca el teclado.
+    const abrir = () => {
+        abierto.value = true;
+        inputRef.value?.focus();
+    }
+    const cerrar = ({ devolverFoco = false } = {}) => {
+        abierto.value = false;
+        isShowModalSearch.value = false;
+        if (devolverFoco) lupaRef.value?.focus();
+    }
+    // La ✕ vacía y pliega. En la Pokédex además deja la rejilla sin filtro.
+    const vaciarYCerrar = () => {
+        const habiaTexto = Boolean(inputValue.value);
+        inputValue.value = null;
+        if (habiaTexto && isListView.value) inputSearch();
+        cerrar({ devolverFoco: true });
+    }
+    const alSalir = (event) => {
+        if (!esMovil.value || inputValue.value) return;
+        if (event.currentTarget.contains(event.relatedTarget)) return;
+        cerrar();
+    }
 
     const scrollbarBackground = computed(() => isDarkMode.value? '#111827' : '#fff');
     const scrollbarThumbBorder = computed(() => isDarkMode.value? '#33333350' : '#33333350');
@@ -51,7 +91,7 @@
     const goToPokemonPage = (pokemonId) => {
         pokemonId && router.push(`/pokemon/${pokemonId}`);
         inputValue.value = null;
-        isShowModalSearch.value = false;
+        cerrar();
     }
 
     /**
@@ -66,11 +106,13 @@
     watch(pokemonsNamesArrFiltered, () => { activeIndex.value = -1; });
 
     const onKeydown = (event) => {
-        if (isListView.value) return;
         if (event.key === 'Escape') {
-            isShowModalSearch.value = false;
+            // Primero cierra los resultados; con ellos ya cerrados, pliega.
+            if (!isListView.value && isShowModalSearch.value) isShowModalSearch.value = false;
+            else if (esMovil.value && !inputValue.value) cerrar({ devolverFoco: true });
             return;
         }
+        if (isListView.value) return;
         if (!hasResults.value) return;
         const last = pokemonsNamesArrFiltered.value.length - 1;
         if (event.key === 'ArrowDown') {
@@ -100,6 +142,7 @@
     watch(() => route.path, () => {
         if(isListView.value) isShowModalSearch.value = false;
         inputValue.value = isListView.value && route.query.q ? String(route.query.q) : null;
+        abierto.value = Boolean(inputValue.value);
     }, { immediate: true })
 </script>
 
@@ -108,9 +151,34 @@
          metido dentro del borde y se veía como un segundo recuadro. -->
     <!-- Menos relleno en móvil: con 28 px por lado, en la ficha a 320 px solo
          cabía la «B» de «Buscar». -->
-    <section class="relative flex items-center gap-2 transition-colors w-full px-2 md:px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300">
+    <!-- En móvil, sin relleno a la izquierda: la lupa ocupa el cuadrado entero
+         del botón plegado y queda en el mismo sitio al abrirse. -->
+    <section
+        class="buscador relative flex items-center gap-2 transition-colors w-full md:px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300"
+        :class="{ 'buscador-abierto pr-1': abierto, 'overflow-hidden': plegado }"
+        @focusout="alSalir"
+    >
+        <button
+            ref="lupaRef"
+            type="button"
+            class="md:hidden shrink-0 self-stretch w-12 flex items-center justify-center"
+            :class="abierto ? 'pointer-events-none' : 'cursor-pointer'"
+            :tabindex="abierto ? -1 : 0"
+            :aria-hidden="abierto || undefined"
+            :aria-label="$t('a11y.openSearch')"
+            :aria-expanded="abierto"
+            @click="abrir"
+        >
+            <base-icon
+                :stroke-width="1.5"
+                icon-class="w-6"
+                class-path="stroke-gray-600 dark:stroke-gray-100"
+                d="m17 17 4 4M3 11a8 8 0 1 0 16 0 8 8 0 0 0-16 0z"
+            />
+        </button>
         <input
             id="input-search"
+            ref="inputRef"
             type="text"
             v-model="inputValue"
             autocomplete="off"
@@ -122,12 +190,23 @@
             :aria-controls="isListView ? undefined : 'search-results'"
             :aria-autocomplete="isListView ? undefined : 'list'"
             :aria-activedescendant="activeId"
+            :tabindex="plegado ? -1 : undefined"
+            :aria-hidden="plegado || undefined"
             @input="isListView? inputSearch() : inputSearchModal()"
             @keydown="onKeydown"
         >
+        <button
+            v-if="esMovil && abierto"
+            type="button"
+            class="zona-tactil shrink-0 w-9 h-9 rounded-lg text-gray-600 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+            :aria-label="$t('a11y.closeSearch')"
+            @click="vaciarYCerrar"
+        >
+            <span aria-hidden="true">✕</span>
+        </button>
         <base-icon
             :stroke-width="1.5"
-            icon-class="hidden sm:block shrink-0 w-6"
+            icon-class="hidden md:block shrink-0 w-6"
             class-path="stroke-gray-600 dark:stroke-gray-100"
             d="m17 17 4 4M3 11a8 8 0 1 0 16 0 8 8 0 0 0-16 0z"
         />
@@ -156,6 +235,31 @@
 </template>
 
 <style scoped>
+/* Plegado mide lo mismo que los botones de modo oscuro y menú. Va encima del
+   de modo oscuro (HeaderComponent) y al abrirse lo tapa. */
+@media (max-width: 767px) {
+    .buscador {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 10;
+        width: 50px;
+        transition: width 0.25s ease, background-color 0.15s, color 0.15s;
+    }
+    .buscador-abierto {
+        width: 100%;
+    }
+    .buscador input {
+        transition: opacity 0.2s ease;
+    }
+    .buscador:not(.buscador-abierto) input {
+        opacity: 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .buscador, .buscador input { transition: none; }
+}
 [placeholder]:focus::-webkit-input-placeholder {
     transition: text-indent 0.4s 0.4s ease; 
     text-indent: -100%;

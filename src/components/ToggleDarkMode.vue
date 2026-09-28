@@ -9,18 +9,8 @@ const mainStore = useMainStore();
 const { isDarkMode } = storeToRefs(mainStore);
 const { setDarkMode } = mainStore;
 
-// En el menú lateral, en móvil, el botón va solo con el icono, en la fila del
-// selector de idioma y de Sugerencias y con su mismo aspecto. En la cabecera,
-// el texto solo cabe en escritorio. Los dos llevan nombre fijo y el estado en
-// aria-pressed.
-//
-// Sin comentarios HTML en la plantilla: junto a v-if/v-else, en desarrollo
-// Vue los cuenta como raíces y deja de aplicar las clases que llegan de
-// fuera (el `hidden md:flex` de la cabecera), y el botón salía dos veces.
-defineProps({
-    enMenu: { type: Boolean, default: false }
-});
-
+// El texto solo cabe en escritorio; en móvil, solo el icono. Nombre fijo y el
+// estado en aria-pressed.
 const icon = computed({
     get() {
         return isDarkMode.value? lightIcon : darkIcon;
@@ -47,25 +37,6 @@ onBeforeMount(() => {
 
 <template>
     <button
-        v-if="enMenu"
-        type="button"
-        :aria-pressed="isDarkMode"
-        :aria-label="$t('a11y.darkModeToggle')"
-        :title="isDarkMode? $t('lightMode') : $t('darkMode')"
-        class="flex items-center justify-center px-2.5 py-2 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 shadow-md transition-colors hover:bg-gray-150 hover:dark:bg-gray-700"
-        @click="toggleDarkMode"
-    >
-        <base-icon
-            :stroke-width="1.5"
-            height="20"
-            width="20"
-            class-path="stroke-gray-600 dark:stroke-gray-100"
-            :d="icon"
-        />
-    </button>
-
-    <button
-        v-else
         type="button"
         :aria-pressed="isDarkMode"
         :aria-label="$t('a11y.darkModeToggle')"

@@ -103,7 +103,7 @@ const FIJOS = {
   'Lure Module': 'Módulo Cebo',
   Incense: 'Incienso',
   'Poké Ball': 'Poké Ball',
-  Shiny: 'variocolor',
+  Shiny: 'shiny',
   Shadow: 'oscuro',
   Dynamax: 'Dinamax',
   Gigantamax: 'Gigamax',
@@ -140,6 +140,7 @@ const INSTRUCCIONES = `Traduces al español de España textos de Pokémon GO pub
 
 Reglas:
 - Usa la terminología oficial de Pokémon GO en español. Cuando un término esté en el glosario, usa exactamente esa traducción.
+- «Shiny» se queda como «shiny» (en minúscula salvo a principio de frase), nunca «variocolor».
 - No traduzcas nombres de Pokémon, de movimientos, de ciudades o países, de marcas (LEGO, Pokémon GO) ni de eventos con nombre propio que el juego no traduce («City Safari», «GO Fest», «GO Tour»).
 - Conserva números, fechas, símbolos (×, *, |, :) y el orden de las partes del título.
 - Frases cortas y naturales, como las del juego. Sin comillas ni explicaciones.
