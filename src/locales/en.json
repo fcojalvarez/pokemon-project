@@ -514,6 +514,12 @@
             "en": "English"
         }
     },
+    "legend": {
+        "title": "Legend",
+        "shiny": "Shiny released",
+        "dynamax": "Dynamax released",
+        "gigantamax": "Gigantamax released"
+    },
     "settings": {
         "title": "Settings",
         "open": "Open settings",

@@ -59,8 +59,8 @@ const rarityOptions = computed(() => [
   <section class="w-full">
     <div class="flex items-center gap-3">
       <!--
-        Hueco para lo que vaya a la izquierda de la fila (hoy, la leyenda del
-        variocolor). Así comparten línea sin que el panel desplegado se quede
+        Hueco para lo que vaya a la izquierda de la fila (hoy, la leyenda de
+        las marcas). Así comparten línea sin que el panel desplegado se quede
         encajonado en la mitad derecha.
       -->
       <slot />

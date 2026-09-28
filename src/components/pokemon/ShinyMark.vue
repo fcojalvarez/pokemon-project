@@ -6,7 +6,7 @@ import { computed } from 'vue'
  * Hay dos, y son las que ya había: la tarjeta de la Pokédex pinta una estrella
  * sobre dos, y la cadena evolutiva dos sobre una, con otro tamaño y otro gris.
  * Se conservan tal cual estaban; lo único que hace este componente es tenerlas
- * en un sitio para que <shiny-legend> pueda usar exactamente la misma que haya
+ * en un sitio para que <mark-legend> pueda usar exactamente la misma que haya
  * en la vista donde se enseña la leyenda.
  *
  * (Que difieran entre sí es anterior a esto. Unificarlas sería un cambio

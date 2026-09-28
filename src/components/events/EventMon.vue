@@ -64,7 +64,7 @@ const markScale = computed(() => {
     />
     <span class="truncate">{{ nombreEs }}</span>
     <!--
-      Misma escala y mismo ajuste vertical que <shiny-legend>: la marca se sale
+      Misma escala y mismo ajuste vertical que <mark-legend>: la marca se sale
       de su caja porque una de sus dos filas tiene alto de línea cero, así que
       su centro visual no es el de la caja y `items-center` la deja alta.
     -->

@@ -514,6 +514,12 @@
             "en": "English"
         }
     },
+    "legend": {
+        "title": "Leyenda",
+        "shiny": "Shiny liberado",
+        "dynamax": "Dinamax liberado",
+        "gigantamax": "Gigamax liberado"
+    },
     "settings": {
         "title": "Ajustes",
         "open": "Abrir ajustes",

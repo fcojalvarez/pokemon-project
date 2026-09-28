@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { ItemPokemonList, ScrollUpButton } from '../components/index';
-import ReleasedLegend from '../components/pokemon/ReleasedLegend.vue';
+import MarkLegend from '../components/pokemon/MarkLegend.vue';
 import PokedexFilters from '../components/pokemon/PokedexFilters.vue';
 import { storeToRefs } from 'pinia';
 import { usePokemonsStore } from '@/stores/pokemons';
@@ -115,11 +115,13 @@ onUnmounted(() => {
             <template v-if="searchTerm && !isLoading">{{ $tc('a11y.pokemonCount', pokemons.length, { n: pokemons.length }) }}</template>
         </p>
 
-        <!-- La leyenda va dentro de los filtros: comparten la primera línea. -->
+        <!--
+            La leyenda, arriba y a la izquierda de Filtros. Al final no la veía
+            nadie: con el scroll infinito, a la Pokédex casi nunca se le llega
+            al fondo.
+        -->
         <pokedex-filters class="pt-3">
-            <!-- La leyenda ocupa el hueco de la izquierda y baja de línea sola
-                 cuando no cabe. -->
-            <released-legend v-if="pokemons.length > 0" variant="dex" />
+            <mark-legend v-if="pokemons.length > 0" />
         </pokedex-filters>
 
         <!--

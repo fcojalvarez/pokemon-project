@@ -14,9 +14,8 @@ import MaxMark from '../components/pokemon/MaxMark.vue'
 import RaidCountersPanel from '../components/raids/RaidCountersPanel.vue'
 import MaxTeamPanel from '../components/raids/MaxTeamPanel.vue'
 import { useMedia } from '../composables/useMedia'
-import MaxLegend from '../components/pokemon/MaxLegend.vue'
 import BaseChevron from '../components/base/BaseChevron.vue'
-import ShinyLegend from '../components/pokemon/ShinyLegend.vue'
+import MarkLegend from '../components/pokemon/MarkLegend.vue'
 import LiveMonCard from '../components/pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../utils/sprites'
 import { maxCounters } from '../utils/maxBattle'
@@ -136,6 +135,11 @@ const incursionesVisibles = computed(() => live.raidsByTier.filter((grupo) => se
 const maxVisibles = computed(() => maxPorNivel.value.filter((grupo) => seVe(idMax(grupo))))
 const huevosVisibles = computed(() => live.eggsByType.filter((grupo) => seVe(idHuevo(grupo))))
 const tareasVisibles = computed(() => researchGroups.value.filter((grupo) => seVe(idTarea(grupo))))
+
+/** La leyenda del final: las marcas Max solo en la pestaña que tiene combates Max. */
+const marcasLeyenda = computed(() =>
+  tab.value === 'raids' && maxVisibles.value.length ? ['shiny', 'dynamax', 'gigantamax'] : ['shiny']
+)
 
 /**
  * En móvil no hay barra lateral y las misiones son una lista muy larga: una
@@ -364,17 +368,10 @@ onMounted(() => {
           </base-pill-button>
         </div>
 
-        <!--
-          La estrella que llevan las tarjetas solo tenía `title`, que en móvil no
-          existe. Aquí se dice con palabras.
-        -->
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mb-3">
-          <shiny-legend variant="dex" />
-          <!-- Una vez por pestaña: repetirla en cada nivel era más ruido que ayuda. -->
-          <p v-if="tab === 'raids'" class="text-mini text-gray-600 dark:text-gray-300">
-            {{ $t('raids.tapForCounters') }}
-          </p>
-        </div>
+        <!-- Una vez por pestaña: repetirla en cada nivel era más ruido que ayuda. -->
+        <p v-if="tab === 'raids'" class="mb-3 text-mini text-gray-600 dark:text-gray-300">
+          {{ $t('raids.tapForCounters') }}
+        </p>
 
         <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
           <section v-for="grupo in 2" :key="grupo" class="mb-5">
@@ -467,10 +464,7 @@ onMounted(() => {
             distinto: tres Pokémon, uno aguantando y dos pegando.
           -->
           <template v-if="maxVisibles.length">
-            <div class="flex flex-wrap items-center gap-x-4 gap-y-1 mt-6">
-              <h2 class="text-sm font-bold">{{ $t('max.battlesTitle') }}</h2>
-              <max-legend />
-            </div>
+            <h2 class="mt-6 text-sm font-bold">{{ $t('max.battlesTitle') }}</h2>
             <data-freshness :age-ms="edadMax" :stale="gameData.maxLiveCaducado(live.now)" class="mb-2" />
             <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">{{ $t('max.tapForTeam') }}</p>
 
@@ -616,6 +610,9 @@ onMounted(() => {
             </div>
           </section>
         </template>
+
+        <!-- Qué significan las marcas de las tarjetas: al final, para no quitar sitio arriba. -->
+        <mark-legend v-if="live.status === 'ready'" :marcas="marcasLeyenda" class="mt-8" />
       </div>
     </div>
   </section>
