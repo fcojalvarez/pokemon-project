@@ -11,7 +11,7 @@ import { actualizarAhora, aplazarAviso, avisoVisible, versionNueva } from '../..
 <template>
   <base-modal :open="avisoVisible" :title="$t('update.title')" size="sm:max-w-sm" @close="aplazarAviso">
     <div class="p-4 flex flex-col gap-4">
-      <p class="text-sm">
+      <p class="text-xs">
         {{ versionNueva ? $t('update.textVersion', { version: versionNueva }) : $t('update.text') }}
       </p>
       <div class="flex sm:justify-end">

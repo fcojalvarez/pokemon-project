@@ -522,8 +522,8 @@
     },
     "update": {
         "title": "A new version is available",
-        "text": "A new version of PoGoDex is available, with improvements and fixes.",
-        "textVersion": "PoGoDex {version} is available, with improvements and fixes.",
+        "text": "A new version of PoGoDex is available. Update to enjoy the latest improvements and fixes.",
+        "textVersion": "PoGoDex {version} is now available. Update to enjoy the latest improvements and fixes.",
         "now": "Update"
     },
     "settings": {

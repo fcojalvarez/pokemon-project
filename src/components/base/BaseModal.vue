@@ -90,9 +90,10 @@ const onKeydown = (event) => {
       >
         <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-300 dark:border-gray-600">
           <h2 :id="titulo" class="min-w-0 font-bold leading-snug">{{ title }}</h2>
+          <!-- La ✕ sin caja, como la lupa y los ajustes de la cabecera. -->
           <button
             type="button"
-            class="zona-tactil ml-auto shrink-0 w-9 h-9 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-700 text-gray-600 dark:text-gray-200"
+            class="zona-tactil ml-auto shrink-0 w-9 h-9 rounded-xl text-gray-500 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-700"
             :aria-label="$t('common.close')"
             @click="emit('close')"
           >

@@ -521,9 +521,9 @@
         "gigantamax": "Gigamax liberado"
     },
     "update": {
-        "title": "Hay una versión nueva",
-        "text": "Hay una versión nueva de PoGoDex con mejoras y correcciones.",
-        "textVersion": "La versión {version} de PoGoDex ya está disponible, con mejoras y correcciones.",
+        "title": "Hay una nueva versión",
+        "text": "Hay una nueva versión de PoGoDex disponible. Actualiza para disfrutar de las nuevas mejoras y correcciones.",
+        "textVersion": "La versión {version} de PoGoDex ya está disponible. Actualiza para disfrutar de las nuevas mejoras y correcciones.",
         "now": "Actualizar"
     },
     "settings": {

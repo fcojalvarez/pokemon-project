@@ -93,9 +93,17 @@ export async function usePwaUpdate() {
   const { registerSW } = await import('virtual:pwa-register')
   actualizarSW = registerSW({
     immediate: true,
-    onNeedRefresh() {
+    /**
+     * Cada push despliega dos veces: el commit, que aún lleva el número de
+     * versión de antes, y luego el que lo sube. El primero no se anuncia:
+     * actualizar a él dejaba la app en «la misma» versión y enseguida salía
+     * otro aviso. Cuando llega el segundo, el service worker lo instala en su
+     * lugar y esto vuelve a saltar, ya con el número nuevo.
+     */
+    async onNeedRefresh() {
+      await leerVersion()
+      if (versionNueva.value && versionNueva.value === import.meta.env.VITE_APP_VERSION) return
       hayNueva.value = true
-      leerVersion()
     },
     onRegisteredSW(_url, registro) {
       if (!registro) return
