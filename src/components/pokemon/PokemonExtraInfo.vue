@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useGameDataStore } from '../../stores/gameData'
 import { useLiveStore } from '../../stores/live'
 import { useOrdenFicha } from '../../composables/useOrdenFicha'
@@ -283,6 +283,9 @@ const pveRanks = computed(() => {
   }
 })
 
+// Los rankings PvP se piden aparte, cuando ya está lo principal de la ficha.
+watch(() => gameData.isReady, (listo) => { if (listo) gameData.cargarPvp() }, { immediate: true })
+
 const pvpRanks = computed(() => {
   if (!gameData.isReady) return []
   const ranks = gameData.pvpRanksFor(props.pokemon.pokemon_id)
@@ -315,7 +318,9 @@ const resumen = computed(() => {
   r.pve = pve.byType.length
     ? [pve.overall && `${t('top.overall')}: #${pve.overall.rank}`, `${t(`types.${pve.byType[0].type}`)} #${pve.byType[0].rank}`].filter(Boolean).join(' · ')
     : t('pokemon.noPveRank')
-  r.pvp = pvpRanks.value.length
+  r.pvp = !gameData.pvpListo
+    ? t('common.loading')
+    : pvpRanks.value.length
     ? pvpRanks.value.slice(0, 2).map((entry) => `${t(`top.${entry.league}`)} #${entry.rank}`).join(' · ')
     : t('pokemon.noPvpRank')
   const mejor = bestMovesets.value[0]
@@ -538,7 +543,11 @@ const moverVisible = (id, paso) => {
         <template v-else-if="id === 'pvp'">
           <!-- ---------- Puesto en PvP ---------- -->
           <ficha-seccion id="pvp" :title="$t('pokemon.pvpRanks')" :summary="resumen.pvp">
-            <p v-if="!pvpRanks.length" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
+            <!-- Los rankings PvP se piden aparte: hasta que llegan, no se sabe si está. -->
+            <p v-if="!gameData.pvpListo" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
+              {{ $t('common.loading') }}
+            </p>
+            <p v-else-if="!pvpRanks.length" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
               {{ $t('pokemon.noPvpRank') }}
             </p>
             <ul v-else class="mt-2 flex flex-col gap-1.5">

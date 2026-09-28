@@ -1,6 +1,6 @@
 import { computed, ref, shallowRef } from 'vue'
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { supabase } from '../lib/supabaseClient'
+import { leerFilas } from '../lib/filasDeDatos'
 import { computeCounters, computeTypeRankings, typeMatchups, evaluatePokemon } from '../utils/pve'
 import { calcCP } from '../utils/formulas'
 import { normalizeName, translateGameText } from '../utils/gameText'
@@ -9,9 +9,16 @@ import { useTranslate } from '../composables/useTranslate'
 
 const BASE = import.meta.env.BASE_URL
 
-const FICHEROS = ['roster', 'moves', 'typechart', 'pvp', 'texts', 'meta', 'maxbattles']
+const FICHEROS = ['roster', 'moves', 'typechart', 'meta', 'maxbattles']
 /** Las escriben workflows aparte: si faltan, la app sigue sin ellas. */
 const OPCIONALES = ['maxlive', 'traducciones']
+/**
+ * Se piden solo cuando hacen falta: los rankings PvP (1,1 MB) los usan la
+ * sección PvP de la ficha y el Top en modo PvP, y las frases del juego
+ * (360 KB), traducir tareas y bonificaciones. Juntas eran la mitad de lo que
+ * se bajaba al abrir una ficha.
+ */
+const APARTE = ['pvp', 'texts']
 
 /**
  * Formas y disfraces de cada Pokémon (Vivillon, Zygarde, Pikachu…). Pesan más
@@ -25,15 +32,8 @@ const OPCIONALES = ['maxlive', 'traducciones']
  */
 let noticiasPendientes = null
 export function cargarNoticias() {
-  noticiasPendientes ??= supabase
-    .from('game_data')
-    .select('payload')
-    .eq('name', 'noticias')
-    .maybeSingle()
-    .then(({ data, error }) => {
-      if (error) throw new Error(error.message)
-      return data?.payload ?? { eventos: {}, noticias: {} }
-    })
+  noticiasPendientes ??= leerFilas(['noticias'])
+    .then((filas) => filas.noticias ?? { eventos: {}, noticias: {} })
     .catch((err) => {
       console.warn('noticias no disponibles:', err.message)
       noticiasPendientes = null
@@ -46,9 +46,8 @@ let formasPendientes = null
 export function cargarFormas() {
   formasPendientes ??= (async () => {
     try {
-      const { data, error } = await supabase.from('game_data').select('payload').eq('name', 'formas').maybeSingle()
-      if (error) throw new Error(error.message)
-      if (data?.payload) return data.payload
+      const { formas } = await leerFilas(['formas'])
+      if (formas) return formas
     } catch (err) {
       console.warn('formas no disponibles en game_data, se usa el fichero:', err.message)
     }
@@ -64,20 +63,15 @@ export function cargarFormas() {
 /**
  * Los datos de juego, desde la tabla `game_data` de Supabase.
  *
- * Se piden las seis filas de una vez: cada una es uno de los ficheros que
- * genera `pnpm data`. Leer de la base de datos y no de public/data es lo que
- * permite que actualizar los datos no obligue a redesplegar la app.
+ * Se piden las filas de una vez: cada una es uno de los ficheros que genera
+ * `pnpm data`. Leer de la base de datos y no de public/data es lo que permite
+ * que actualizar los datos no obligue a redesplegar la app. Las que no han
+ * cambiado desde la última visita salen del dispositivo (ver filasDeDatos.js).
  */
 async function desdeSupabase() {
   // Solo las filas que se usan al arrancar: en la tabla hay más (las formas y
   // disfraces, la memoria de Max liberados) y no hace falta bajarlas siempre.
-  const { data, error } = await supabase
-    .from('game_data')
-    .select('name,payload')
-    .in('name', [...FICHEROS, ...OPCIONALES])
-  if (error) throw new Error(error.message)
-
-  const porNombre = Object.fromEntries((data ?? []).map((fila) => [fila.name, fila.payload]))
+  const porNombre = await leerFilas([...FICHEROS, ...OPCIONALES])
   const faltan = FICHEROS.filter((nombre) => !porNombre[nombre])
   if (faltan.length) throw new Error(`faltan en game_data: ${faltan.join(', ')}`)
 
@@ -91,9 +85,9 @@ async function desdeSupabase() {
  * de datos, pero permiten que la app siga funcionando si Supabase no responde
  * o si la tabla todavía está vacía.
  */
-async function desdeFicheros() {
+async function desdeFicheros(nombres = FICHEROS) {
   const contenidos = await Promise.all(
-    FICHEROS.map(async (nombre) => {
+    nombres.map(async (nombre) => {
       const res = await fetch(`${BASE}data/${nombre}.json`)
       if (!res.ok) throw new Error(`No se ha podido cargar ${nombre}.json (HTTP ${res.status})`)
       return [nombre, await res.json()]
@@ -313,14 +307,53 @@ export const useGameDataStore = defineStore('gameData', () => {
     roster.value = datos.roster
     moves.value = datos.moves
     typeChart.value = datos.typechart
-    pvp.value = datos.pvp
-    texts.value = datos.texts
     maxBattles.value = datos.maxbattles
     maxLive.value = datos.maxlive ?? null
     traducciones.value = datos.traducciones?.es ?? {}
     meta.value = datos.meta
     status.value = 'ready'
   }
+
+  /**
+   * Las filas que se piden aparte (APARTE), cada una una vez por sesión. Van
+   * a la misma fuente que el resto: si los datos salieron de los ficheros de
+   * respaldo, estas también.
+   */
+  const aparte = { pvp, texts }
+  const estadoAparte = ref(Object.fromEntries(APARTE.map((nombre) => [nombre, 'idle'])))
+  const pendientes = {}
+  const cargarAparte = (nombre) => {
+    pendientes[nombre] ??= (async () => {
+      // Se llama desde computeds (pvpRanksFor, translateText): el estado se
+      // toca después de un tic, no mientras Vue está evaluando uno.
+      await null
+      estadoAparte.value = { ...estadoAparte.value, [nombre]: 'loading' }
+      let fila = null
+      if (origen.value !== 'ficheros') {
+        try {
+          fila = (await leerFilas([nombre]))[nombre] ?? null
+        } catch (err) {
+          console.warn(`${nombre} no disponible en game_data, se usa el fichero:`, err.message)
+        }
+      }
+      try {
+        fila ??= (await desdeFicheros([nombre]))[nombre]
+      } catch (err) {
+        // Se podrá volver a intentar: sin esto, un fallo de red dejaba la
+        // sección sin datos hasta recargar.
+        pendientes[nombre] = null
+        estadoAparte.value = { ...estadoAparte.value, [nombre]: 'error' }
+        return
+      }
+      aparte[nombre].value = fila
+      estadoAparte.value = { ...estadoAparte.value, [nombre]: 'ready' }
+    })()
+    return pendientes[nombre]
+  }
+  /** Pide los rankings PvP. Se puede llamar las veces que haga falta. */
+  const cargarPvp = () => cargarAparte('pvp')
+  const pvpListo = computed(() => estadoAparte.value.pvp === 'ready')
+  const cargarTextos = () => cargarAparte('texts')
 
   /** Rankings PvE por tipo. Admite includeMega, includeShadow y sortBy. */
   const pveRankings = (options = {}) =>
@@ -405,6 +438,10 @@ export const useGameDataStore = defineStore('gameData', () => {
    */
   const translateText = (text) => {
     if (locale() === 'en') return text
+    // Las frases del juego se piden la primera vez que hacen falta. Mientras
+    // llegan se enseña la traducción automática, si la hay; al llegar, el
+    // texto se vuelve a pintar solo.
+    if (estadoAparte.value.texts === 'idle' && status.value === 'ready') cargarTextos()
     const delJuego = translateGameText(text, texts.value)
     return delJuego !== text ? delJuego : autoTranslate(text)
   }
@@ -457,6 +494,10 @@ export const useGameDataStore = defineStore('gameData', () => {
     perfectCP,
     pveRanksFor,
     pvpRanksFor,
+    cargarPvp,
+    estadoAparte,
+    pvpListo,
+    cargarTextos,
     traducciones,
     autoTranslate,
     translateText,

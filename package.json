@@ -42,6 +42,7 @@
     "autoprefixer": "^10.4.15",
     "eslint": "^8.49.0",
     "eslint-plugin-vue": "^9.17.0",
+    "fake-indexeddb": "^6.2.5",
     "jsdom": "^21.1.2",
     "pg": "^8.23.0",
     "postcss": "^8.4.30",

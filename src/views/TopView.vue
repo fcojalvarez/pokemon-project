@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useGameDataStore } from '../stores/gameData'
 import {
   BaseEmptyState,
@@ -267,6 +267,10 @@ const origenes = computed(() => {
 })
 
 onMounted(() => gameData.load())
+
+// Los rankings PvP se piden aparte, la primera vez que se entra en ese modo.
+const esperandoPvp = computed(() => mode.value === 'pvp' && gameData.isReady && !gameData.pvpListo)
+watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { immediate: true })
 </script>
 
 <template>
@@ -403,7 +407,7 @@ onMounted(() => gameData.load())
 
       <div class="min-w-0">
         <!-- Filas con la forma de las de verdad: sprite, nombre, ataques y métrica. -->
-        <skeleton-loader v-if="gameData.status === 'loading' || gameData.status === 'idle'">
+        <skeleton-loader v-if="gameData.status === 'loading' || gameData.status === 'idle' || (esperandoPvp && gameData.estadoAparte.pvp !== 'error')">
           <div class="flex flex-col gap-2">
             <div
               v-for="n in 8"
@@ -429,7 +433,7 @@ onMounted(() => gameData.load())
         </skeleton-loader>
 
         <base-error-message
-          v-else-if="gameData.status === 'error'"
+          v-else-if="gameData.status === 'error' || (esperandoPvp && gameData.estadoAparte.pvp === 'error')"
           :message="$t('common.error')"
           :detail="gameData.error"
         />
