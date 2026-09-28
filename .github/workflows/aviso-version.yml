@@ -1,0 +1,80 @@
+# Avisa a las apps abiertas de que hay una versión nueva.
+#
+# Salta cuando Vercel termina un despliegue a producción (Vercel le pasa a
+# GitHub el estado de cada despliegue). No al hacer push: entonces la versión
+# todavía no se sirve, y quien pulsara «Actualizar» recargaría la vieja.
+#
+# Solo avisa del despliegue del commit que sube la versión (version.yml): cada
+# push despliega dos veces, el commit y ese, y avisar de los dos sacaba el aviso
+# dos veces seguidas.
+#
+# El aviso es un mensaje de Supabase Realtime (Broadcast) al canal
+# «pogodex-version»; la app lo escucha en usePwaUpdate. Solo le hace buscar la
+# versión nueva, así que un mensaje falso no hace nada: el aviso sale si de
+# verdad hay un service worker nuevo esperando.
+name: Aviso de versión
+
+on: deployment_status
+
+permissions:
+  contents: read
+
+jobs:
+  avisar:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: ¿Es el commit de la versión?
+        id: commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          mensaje=$(gh api "repos/${{ github.repository }}/commits/$SHA" --jq '.commit.message' | head -n 1)
+          echo "Commit $SHA: $mensaje"
+          case "$mensaje" in
+            "chore(version):"*) echo "avisar=1" >> "$GITHUB_OUTPUT" ;;
+            *) echo "No es el de la versión: no se avisa." ;;
+          esac
+
+      - name: Esperar a que se sirva la versión nueva
+        id: servida
+        if: steps.commit.outputs.avisar == '1'
+        env:
+          SHA: ${{ github.event.deployment.sha }}
+        run: |
+          corto="${SHA:0:7}"
+          for intento in $(seq 1 20); do
+            respuesta=$(curl -fsS "https://pogodex.vercel.app/version.json?t=$(date +%s)" || true)
+            build=$(echo "$respuesta" | jq -r '.build // empty' 2>/dev/null || true)
+            if [ "$build" = "$corto" ]; then
+              echo "version=$(echo "$respuesta" | jq -r '.version')" >> "$GITHUB_OUTPUT"
+              echo "Se sirve $corto."
+              exit 0
+            fi
+            echo "Intento $intento: se sirve «$build», se espera «$corto»."
+            sleep 15
+          done
+          echo "::error::Pasados 5 minutos, la web no sirve $corto."
+          exit 1
+
+      - name: Avisar a las apps abiertas
+        if: steps.commit.outputs.avisar == '1'
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          VERSION: ${{ steps.servida.outputs.version }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::Faltan los secretos SUPABASE_URL y SUPABASE_ANON_KEY."
+            exit 1
+          fi
+          cuerpo=$(jq -nc --arg v "$VERSION" '{messages: [{topic: "pogodex-version", event: "nueva-version", payload: {version: $v}}]}')
+          curl -fsS -X POST "$SUPABASE_URL/realtime/v1/api/broadcast" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$cuerpo"
+          echo "Aviso enviado: versión $VERSION."

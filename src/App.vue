@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { HeaderComponent, FooterComponent } from './components/index';
 import BottomNav from './components/shared/BottomNav.vue';
+import UpdatePrompt from './components/shared/UpdatePrompt.vue';
 import { useRoute } from 'vue-router';
 
 // El panel de sugerencias va sin barra de secciones (meta.sinNavegacion).
@@ -60,5 +61,8 @@ const saltarAlContenido = (event) => {
     </footer>
 
     <BottomNav v-if="!route.meta.sinNavegacion" />
+
+    <!-- El aviso de versión nueva (usePwaUpdate). -->
+    <UpdatePrompt />
   </div>
 </template>

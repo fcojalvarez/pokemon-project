@@ -520,6 +520,12 @@
         "dynamax": "Dinamax liberado",
         "gigantamax": "Gigamax liberado"
     },
+    "update": {
+        "title": "Hay una versión nueva",
+        "text": "Hay una versión nueva de PoGoDex con mejoras y correcciones.",
+        "textVersion": "La versión {version} de PoGoDex ya está disponible, con mejoras y correcciones.",
+        "now": "Actualizar"
+    },
     "settings": {
         "title": "Ajustes",
         "open": "Abrir ajustes",

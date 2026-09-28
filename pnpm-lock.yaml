@@ -82,6 +82,9 @@ devDependencies:
   vitest:
     specifier: ^3.2.7
     version: 3.2.7(jsdom@30.1.1)
+  workbox-window:
+    specifier: 7.4.1
+    version: 7.4.1
 
 packages:
 

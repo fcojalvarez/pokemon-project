@@ -1,49 +1,120 @@
 /**
- * Mantiene la app al día cuando hay un despliegue nuevo.
+ * Avisa de que hay una versión nueva y la pone cuando se pide.
  *
- * El problema que resuelve: instalada como app, la ventana no se cierra nunca,
- * así que el service worker nuevo se quedaba esperando su turno para siempre y
- * había que desinstalarla para ver los cambios.
+ * El service worker nuevo se descarga solo, pero ya no entra solo (en
+ * vite.config.js, registerType 'prompt' y skipWaiting false): antes recargaba
+ * la página sin preguntar, a mitad de lo que se estuviera haciendo. Ahora sale
+ * un aviso (UpdatePrompt) con «Actualizar», que le da paso y recarga; cerrarlo
+ * lo calla 24 horas. Si se cierra la app del todo, la próxima vez
+ * ya arranca con la nueva.
  *
- * Con `clientsClaim` y `skipWaiting` el nuevo toma el control en cuanto se
- * activa, pero la pestaña que ya está abierta sigue con los ficheros viejos en
- * memoria. Por eso aquí se recarga cuando eso pasa.
- *
- * Además se pregunta por actualizaciones al arrancar y cada vez que se vuelve
- * a la app, que en móvil es lo normal: se deja abierta días entre usos.
+ * Cuándo se entera de que la hay:
+ *   - Al instante, por websocket: tras cada despliegue a producción, un
+ *     workflow (aviso-version.yml) manda un mensaje por Supabase Realtime a
+ *     las apps abiertas. El mensaje no se cree tal cual (lo podría mandar
+ *     cualquiera con la clave pública): solo hace que se busque ya. Si no hay
+ *     nada nuevo, no pasa nada.
+ *   - Y como siempre: al arrancar, al volver a la app y cada hora, por si el
+ *     websocket no estaba (sin red, en segundo plano…).
  */
-const CADA = 60 * 60 * 1000
+import { computed, ref } from 'vue'
 
-export function usePwaUpdate() {
+const CADA = 60 * 60 * 1000
+const APLAZAR = 24 * 60 * 60 * 1000
+const CLAVE = 'aviso-version-hasta'
+const CANAL = 'pogodex-version'
+
+const leerAplazado = () => {
+  try {
+    return Number(localStorage.getItem(CLAVE)) || 0
+  } catch {
+    return 0
+  }
+}
+
+const hayNueva = ref(false)
+const aplazadoHasta = ref(leerAplazado())
+const ahora = ref(Date.now())
+/** La versión a la que se actualizaría, para decirla en el aviso. */
+export const versionNueva = ref(null)
+
+/** El aviso se ve si hay una versión esperando y no se ha aplazado. */
+export const avisoVisible = computed(() => hayNueva.value && ahora.value >= aplazadoHasta.value)
+
+let actualizarSW = null
+
+/** Da paso a la versión nueva y recarga la página con ella. */
+export function actualizarAhora() {
+  actualizarSW?.(true)
+}
+
+/** Al cerrar el aviso: no se vuelve a avisar en 24 horas. */
+export function aplazarAviso() {
+  const hasta = Date.now() + APLAZAR
+  aplazadoHasta.value = hasta
+  try {
+    localStorage.setItem(CLAVE, String(hasta))
+  } catch {
+    /* sin almacenamiento, se calla solo mientras dure esta visita */
+  }
+}
+
+const leerVersion = async () => {
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}version.json`, { cache: 'no-store' })
+    if (res.ok) versionNueva.value = (await res.json()).version ?? null
+  } catch {
+    /* el aviso sale igual, sin el número */
+  }
+}
+
+/**
+ * El canal por el que llega el aviso de despliegue. El cliente completo de
+ * Supabase (con Realtime) va en su propio fichero: se pide cuando la app ya
+ * está pintada, para no quitarle nada al arranque.
+ */
+const escucharDespliegues = (buscar) => {
+  const empezar = async () => {
+    try {
+      const { supabaseCompleto } = await import('../lib/supabaseClient')
+      const supabase = await supabaseCompleto()
+      supabase.channel(CANAL).on('broadcast', { event: 'nueva-version' }, buscar).subscribe()
+    } catch {
+      /* sin websocket quedan las comprobaciones de siempre */
+    }
+  }
+  if ('requestIdleCallback' in window) window.requestIdleCallback(empezar, { timeout: 5000 })
+  else setTimeout(empezar, 3000)
+}
+
+export async function usePwaUpdate() {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return
 
-  // Recarga una sola vez: si el navegador cambia de controlador otra vez
-  // mientras se recarga, no hay que entrar en bucle.
-  let recargando = false
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    // Sin controlador previo es la primera instalación, no una actualización:
-    // ahí no hay nada viejo que refrescar.
-    if (recargando || !sessionStorage.getItem('sw-activo')) return
-    recargando = true
-    window.location.reload()
-  })
-
-  navigator.serviceWorker.ready.then((registro) => {
-    try {
-      sessionStorage.setItem('sw-activo', '1')
-    } catch {
-      /* modo privado: sin esto solo se pierde la protección del primer arranque */
+  const { registerSW } = await import('virtual:pwa-register')
+  actualizarSW = registerSW({
+    immediate: true,
+    onNeedRefresh() {
+      hayNueva.value = true
+      leerVersion()
+    },
+    onRegisteredSW(_url, registro) {
+      if (!registro) return
+      const buscar = () => {
+        registro.update().catch(() => {
+          /* sin conexión: ya se mirará en la siguiente */
+        })
+      }
+      const alVolver = () => {
+        if (document.hidden) return
+        // Al volver también cuenta el tiempo: si pasaron las 24 horas, el
+        // aviso aplazado vuelve a salir.
+        ahora.value = Date.now()
+        buscar()
+      }
+      buscar()
+      setInterval(alVolver, CADA)
+      document.addEventListener('visibilitychange', alVolver)
+      escucharDespliegues(buscar)
     }
-
-    const mirar = () => {
-      if (document.hidden) return
-      registro.update().catch(() => {
-        /* sin conexión: ya se mirará en la siguiente */
-      })
-    }
-
-    mirar()
-    setInterval(mirar, CADA)
-    document.addEventListener('visibilitychange', mirar)
   })
 }

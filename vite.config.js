@@ -43,6 +43,22 @@ function cabecerasDeVercel() {
   return Object.fromEntries(todas.map(({ key, value }) => [key, value]));
 }
 
+/**
+ * dist/version.json: la versión y el build desplegados. Lo lee el workflow que
+ * avisa a las apps abiertas (para no avisar antes de que Vercel sirva la
+ * nueva) y el aviso de actualización, para decir a cuál se actualiza. Va fuera
+ * de la precaché y sin caché en Vercel: tiene que ser siempre el de ahora.
+ */
+function versionJson() {
+  return {
+    name: 'pogodex-version-json',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: JSON.stringify({ version, build }) });
+    }
+  };
+}
+
 export default defineConfig({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(version),
@@ -54,8 +70,12 @@ export default defineConfig({
   },
   plugins: [
     vue(),
+    versionJson(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt': la versión nueva se descarga sola, pero no entra hasta que se
+      // pulsa «Actualizar» en el aviso (UpdatePrompt). Con 'autoUpdate' la
+      // página se recargaba sin preguntar, a mitad de lo que se estuviera haciendo.
+      registerType: 'prompt',
       includeAssets: ['favicon.ico', 'icons/favicon.svg', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'PoGoDex',
@@ -80,13 +100,15 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Con un `workbox` propio hay que pedir estos dos a mano: sin ellos el
-        // service worker nuevo se queda esperando a que se cierren todas las
-        // pestañas, y en una app instalada eso no pasa nunca. Era el motivo de
-        // tener que desinstalarla para ver los cambios.
+        // El service worker nuevo espera: entra cuando se pulsa «Actualizar»
+        // (usePwaUpdate le manda SKIP_WAITING) o al cerrar la app del todo. Antes
+        // entraba solo y recargaba la página sin preguntar. clientsClaim, para
+        // que en cuanto entre tome el control de la pestaña sin otra recarga.
         clientsClaim: true,
-        skipWaiting: true,
+        skipWaiting: false,
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json}'],
+        // El de la versión se pide siempre a la red: es la que manda.
+        globIgnores: ['version.json'],
         // roster.json y pvp.json pasan de 800 KB: sin esto quedan fuera del precache.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
