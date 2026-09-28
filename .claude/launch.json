@@ -8,10 +8,10 @@
       "port": 5173
     },
     {
-      "name": "preview",
+      "name": "movil",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["preview", "--port", "4173", "--strictPort"],
-      "port": 4173
+      "runtimeArgs": ["dev", "--host", "--port", "5180", "--strictPort"],
+      "port": 5180
     }
   ]
 }
