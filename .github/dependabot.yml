@@ -1,0 +1,13 @@
+# Las actions de los workflows van fijadas por SHA, no por etiqueta: una
+# etiqueta se puede mover y colar otro código en los jobs que tienen los
+# secretos de Supabase y Gemini. A cambio ya no se actualizan solas; esto abre
+# un PR cuando sale una versión nueva, con el SHA y la versión en el comentario.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']

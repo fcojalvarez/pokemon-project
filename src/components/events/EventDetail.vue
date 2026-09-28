@@ -11,6 +11,7 @@
 import { computed, ref, watch } from 'vue'
 import { cargarNoticias } from '../../stores/gameData'
 import { useTranslate } from '../../composables/useTranslate'
+import { enlaceSeguro } from '../../utils/safeUrl'
 import BaseModal from '../base/BaseModal.vue'
 import EventCard from './EventCard.vue'
 
@@ -42,9 +43,12 @@ const noticia = computed(() => {
   const idioma = locale() === 'en' && entrada.en ? 'en' : 'es'
   return {
     ...entrada[idioma],
-    url: idioma === 'en' ? entrada.url.replace('/es/news/', '/en/news/') : entrada.url
+    url: enlaceSeguro(idioma === 'en' ? entrada.url?.replace('/es/news/', '/en/news/') : entrada.url)
   }
 })
+
+/** La página del evento en LeekDuck; llega de ScrapedDuck, así que se filtra. */
+const enlaceLeekDuck = computed(() => enlaceSeguro(props.event?.link))
 
 /** Los bonus de la noticia: con ellos, la tarjeta no los repite. */
 const bonusOficial = computed(() => {
@@ -99,15 +103,15 @@ const agrupar = (bloques) => {
 
         <div class="mt-4 flex flex-wrap gap-2">
           <a
-            v-if="noticia"
+            v-if="noticia?.url"
             :href="noticia.url"
             target="_blank"
             rel="noopener"
             class="px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
           >{{ $t('events.openOfficial') }}</a>
           <a
-            v-if="event.link"
-            :href="event.link"
+            v-if="enlaceLeekDuck"
+            :href="enlaceLeekDuck"
             target="_blank"
             rel="noopener"
             class="px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"

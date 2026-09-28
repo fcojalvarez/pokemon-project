@@ -30,10 +30,27 @@ function buildId() {
 
 const build = buildId();
 
+/**
+ * Las cabeceras de seguridad que pone Vercel (CSP incluida), para `pnpm preview`.
+ *
+ * Así una CSP que rompa algo se ve en local antes de desplegar. En `pnpm dev`
+ * no se aplican: el recargado en caliente de Vite necesita cosas que la CSP
+ * de producción no deja.
+ */
+function cabecerasDeVercel() {
+  const { headers = [] } = JSON.parse(readFileSync(new URL('./vercel.json', import.meta.url), 'utf8'));
+  const todas = headers.find((regla) => regla.source === '/(.*)')?.headers ?? [];
+  return Object.fromEntries(todas.map(({ key, value }) => [key, value]));
+}
+
 export default defineConfig({
   define: {
     'import.meta.env.VITE_APP_VERSION': JSON.stringify(version),
-    'import.meta.env.VITE_APP_BUILD': JSON.stringify(build)
+    'import.meta.env.VITE_APP_BUILD': JSON.stringify(build),
+    // vue-i18n compila cada traducción con `new Function` si no se le dice lo
+    // contrario, y la CSP (vercel.json) no deja evaluar código: la app se
+    // quedaba en blanco. Con esto interpreta los mensajes sin generar código.
+    __INTLIFY_JIT_COMPILATION__: true
   },
   plugins: [
     vue(),
@@ -164,6 +181,9 @@ export default defineConfig({
   server: {
     // No vigilar la salida del build: evita reinicios/crashes (EBUSY) al ejecutar `pnpm build` con el dev server abierto
     watch: { ignored: ['**/dist/**'] }
+  },
+  preview: {
+    headers: cabecerasDeVercel()
   },
   resolve: {
     alias: {

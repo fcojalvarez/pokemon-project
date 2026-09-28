@@ -176,7 +176,9 @@ falle en vez de acabar en verde sin haber subido nada.
 
 La subida va en una transacción: entran los seis ficheros o no entra ninguno,
 para que nadie lea un roster nuevo con unos movimientos viejos. La tabla tiene
-RLS con lectura pública y escritura solo para `service_role`.
+RLS con lectura pública y escritura solo para el rol `pogodex_pipeline`, que es
+el que usan los workflows y no puede tocar nada más (ver
+`supabase/migrations/20260928_rls_datos_y_rol_pipeline.sql`).
 
 Necesita `SUPABASE_DB_URL` en `.env` (ver `.env.example`). Sin esa variable el
 script genera los ficheros igual y avisa de que no ha subido nada, así que
