@@ -34,6 +34,52 @@ test('las megas X e Y de Charizard van juntas en su grupo', async ({ page }) => 
   await expect(cadena(page).locator('[aria-current="page"]')).toContainText('Mega Charizard Y')
 })
 
+/** La línea de la cabecera que dice qué tiene liberado. */
+const liberado = (page) => page.locator('main p', { hasText: /^Liberado:/ })
+
+test('la cabecera dice qué tiene liberado cada Pokémon', async ({ page }) => {
+  await page.goto('/pokemon/6')
+  await expect(liberado(page)).toHaveText(/Shiny,\s*Dinamax,\s*Gigamax/, { useInnerText: true })
+
+  // Dinamax sí, Gigamax no.
+  await page.goto('/pokemon/1')
+  await expect(liberado(page)).toHaveText(/Shiny,\s*Dinamax/, { useInnerText: true })
+  await expect(liberado(page)).not.toContainText('Gigamax', { useInnerText: true })
+
+  // Sin combates Max: solo el shiny, y nada que lleve a una sección que no hay.
+  await page.goto('/pokemon/151')
+  await expect(liberado(page)).toHaveText(/Shiny/, { useInnerText: true })
+  await expect(liberado(page)).not.toContainText('Dinamax', { useInnerText: true })
+  await expect(liberado(page).getByRole('button')).toHaveCount(0)
+})
+
+test('Dinamax y Gigamax llevan a Combates Max, abierta y con el foco', async ({ page }) => {
+  await page.goto('/pokemon/6')
+  await liberado(page).getByRole('button', { name: /Dinamax.*Gigamax.*combates Max/ }).click()
+
+  const seccion = page.locator('#ficha-max')
+  await expect(seccion).toBeFocused()
+  await expect(seccion).toBeInViewport()
+  // En móvil y tablet estaba plegada: se abre sola.
+  const cabecera = seccion.getByRole('button', { name: /^Combates Max/ })
+  if (await cabecera.count()) await expect(cabecera).toHaveAttribute('aria-expanded', 'true')
+  await expect(seccion.getByText('Ataque Gigamax')).toBeVisible()
+})
+
+/** A 1024 px, el escritorio más estrecho, las megas X e Y se montaban. */
+test.describe('escritorio estrecho', () => {
+  test.use({ viewport: { width: 1024, height: 768 } })
+  test.skip(({ isMobile }) => isMobile, 'el ancho de escritorio no aplica a un móvil')
+
+  test('las megas de Charizard no se montan una sobre otra', async ({ page }) => {
+    await page.goto('/pokemon/6')
+    const enlaces = cadena(page).getByRole('group', { name: 'Megaevoluciones' }).getByRole('link')
+    await expect(enlaces).toHaveCount(2)
+    const [x, y] = [await enlaces.nth(0).boundingBox(), await enlaces.nth(1).boundingBox()]
+    expect(x.x + x.width).toBeLessThanOrEqual(y.x)
+  })
+})
+
 test.describe('secciones plegables (móvil y tablet)', () => {
   test.skip(({ viewport }) => viewport.width >= 1024, 'en escritorio van siempre abiertas')
 
