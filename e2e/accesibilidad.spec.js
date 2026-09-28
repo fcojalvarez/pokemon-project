@@ -156,5 +156,6 @@ test('los resultados del buscador se recorren con las flechas y se abren con Ent
 
   await campo.press('Enter')
   await expect(page).toHaveURL(/\/pokemon\/\d+$/)
-  await expect(page.locator('h1')).toHaveText(elegido.trim())
+  // La opción lleva debajo del nombre el número y las marcas: vale la primera línea.
+  await expect(page.locator('h1')).toHaveText(elegido.split('\n')[0].trim())
 })

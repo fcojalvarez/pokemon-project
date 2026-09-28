@@ -8,6 +8,13 @@ import { NEXT_LOAD_LENGTH_ITEMS } from '../utils/Settings';
  * sus evoluciones, encuentros, ataques… (unos 2,7 KB): una página de 100
  * pesaba 270 KB para usar un 5 %. La ficha pide su fila entera aparte.
  */
+/**
+ * Lo que pinta cada resultado del buscador: número (y con él el sprite),
+ * nombre y las marcas de liberado. Van en la lista de nombres que se baja una
+ * vez por sesión; con las tres banderas son unos pocos bytes por Pokémon.
+ */
+const COLUMNAS_BUSCADOR = 'pokemon_id,name,is_shiny_released,can_dynamax,can_gigantamax';
+
 const COLUMNAS_TARJETA = 'pokemon_id,name,types,is_released,is_shiny_released,can_dynamax,can_gigantamax,sprite:sprites->>male';
 
 export const usePokemonsStore = defineStore('pokemon', () => {
@@ -104,7 +111,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     const cargarNombres = async() => {
         if(!nombres) {
             // Sin .range, Supabase corta en 1000 filas y faltarían los últimos.
-            const { data } = await supabase.from('pokemons').select('pokemon_id,name').order('pokemon_id').range(0, 1999);
+            const { data } = await supabase.from('pokemons').select(COLUMNAS_BUSCADOR).order('pokemon_id').range(0, 1999);
             if(data?.length) nombres = data;
         }
         return nombres ?? [];
@@ -129,7 +136,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         if(!value) {
             if(toSearchModal) {
                 if(allPokemons.value.length === 0) {
-                    const { data: pokemons } = await supabase.from('pokemons').select('pokemon_id,name');
+                    const { data: pokemons } = await supabase.from('pokemons').select(COLUMNAS_BUSCADOR);
                     return pokemons || [];
                 }
                 return pokemonList.value;

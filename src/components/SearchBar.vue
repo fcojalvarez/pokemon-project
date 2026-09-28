@@ -1,6 +1,10 @@
 <script setup>
-    import { ref, watch, computed } from 'vue';
+    import { ref, watch, computed, nextTick } from 'vue';
     import { BaseIcon, SpinnerComponent } from '.';
+    import BaseSprite from './base/BaseSprite.vue';
+    import ShinyMark from './pokemon/ShinyMark.vue';
+    import MaxMark from './pokemon/MaxMark.vue';
+    import { spriteUrl } from '../utils/sprites';
     import { useRoute, useRouter } from 'vue-router';
     import useDetectOutsideClick from '../composables/useDetectOutsideClick';
     import { useMedia } from '../composables/useMedia';
@@ -39,16 +43,28 @@
 
     const inputRef = ref();
     const lupaRef = ref();
+    const cajaRef = ref();
     // El foco, en el mismo toque: si se deja para después del repintado, el
     // Safari del iPhone no saca el teclado.
     const abrir = () => {
         abierto.value = true;
         inputRef.value?.focus();
     }
+    /**
+     * Al plegarse, el contenido tiene que volver a su sitio. La caja oculta lo
+     * que sobresale (overflow-hidden) pero guarda el desplazamiento: si el
+     * foco volvía a la lupa mientras aún se estaba encogiendo, el navegador
+     * corría el contenido para enseñarla y, ya plegada, la lupa quedaba
+     * cortada por la izquierda. Pasaba al cerrar con la ✕.
+     */
+    const alPlegarse = () => {
+        if (cajaRef.value && !abierto.value) cajaRef.value.scrollLeft = 0;
+    }
     const cerrar = ({ devolverFoco = false } = {}) => {
         abierto.value = false;
         isShowModalSearch.value = false;
-        if (devolverFoco) lupaRef.value?.focus();
+        if (devolverFoco) lupaRef.value?.focus({ preventScroll: true });
+        nextTick(alPlegarse);
     }
     // La ✕ vacía y pliega. En la Pokédex además deja la rejilla sin filtro.
     const vaciarYCerrar = () => {
@@ -154,9 +170,11 @@
     <!-- En móvil, sin relleno a la izquierda: la lupa ocupa el cuadrado entero
          del botón plegado y queda en el mismo sitio al abrirse. -->
     <section
+        ref="cajaRef"
         class="buscador relative flex items-center gap-2 transition-colors w-full md:px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300"
         :class="{ 'buscador-abierto pr-1': abierto, 'overflow-hidden !border-transparent !bg-transparent !shadow-none': plegado }"
         @focusout="alSalir"
+        @transitionend="alPlegarse"
     >
         <button
             ref="lupaRef"
@@ -184,6 +202,9 @@
             type="text"
             v-model="inputValue"
             autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            enterkeyhint="search"
             class="flex-1 min-w-0 bg-transparent py-2 px-1.5 md:px-3 outline-none focus-visible:outline-none text-black dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400"
             :placeholder="$t('searchPokemon')"
             :aria-label="$t('a11y.search')"
@@ -218,17 +239,34 @@
                 <SpinnerComponent v-if="isLoadingPokemonNames"/>
 
                 <ul v-else id="search-results" role="listbox" :aria-label="$t('a11y.searchResults')">
+                    <!--
+                        Cada resultado, con su sprite, su número y las marcas de
+                        liberado, como en la Pokédex: con el nombre solo, las
+                        formas y los nombres parecidos costaba reconocerlos.
+                    -->
                     <li
-                        v-for="({name, pokemon_id}, index) in pokemonsNamesArrFiltered"
+                        v-for="(pokemon, index) in pokemonsNamesArrFiltered"
                         :id="`search-option-${index}`"
-                        :key="pokemon_id"
+                        :key="pokemon.pokemon_id"
                         role="option"
                         :aria-selected="index === activeIndex"
-                        class="px-4 block py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                        class="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         :class="index === activeIndex ? 'bg-gray-100 dark:bg-gray-700' : ''"
-                        @click="goToPokemonPage(pokemon_id)"
+                        @click="goToPokemonPage(pokemon.pokemon_id)"
                     >
-                        {{ name }}
+                        <!-- El sprite y, al lado, dos líneas: el nombre, que es lo que se busca, y debajo el número con las marcas. -->
+                        <base-sprite :src="spriteUrl(pokemon.pokemon_id)" class="w-9 h-9 shrink-0" />
+                        <span class="flex-1 min-w-0 flex flex-col leading-tight">
+                            <span class="truncate">{{ pokemon.name }}</span>
+                            <span class="flex items-center gap-2">
+                                <span class="text-mini tabular-nums text-gray-600 dark:text-gray-300">#{{ String(pokemon.pokemon_id).padStart(3, '0') }}</span>
+                                <span class="flex items-center gap-1.5">
+                                    <shiny-mark v-if="pokemon.is_shiny_released" variant="dex" size="text-mini" inline :scale="0.65" :label="$t('legend.shiny')" />
+                                    <max-mark v-if="pokemon.can_dynamax" variant="dynamax" :size="14" class="shrink-0" />
+                                    <max-mark v-if="pokemon.can_gigantamax" variant="gigantamax" :size="14" class="shrink-0" />
+                                </span>
+                            </span>
+                        </span>
                     </li>
                 </ul>
            </div>
