@@ -1,4 +1,4 @@
-module.exports = {
+export default {
     // En pantallas táctiles el navegador simula el hover al tocar y el estilo
     // se queda pegado hasta que tocas otra cosa. Con esto, las variantes
     // hover: solo se aplican donde hay puntero de verdad.
