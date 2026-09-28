@@ -7,6 +7,7 @@ import BaseIcon from '../base/BaseIcon.vue'
 import SuggestionButton from './SuggestionButton.vue'
 import LanguageSelector from './LanguageSelector.vue'
 import { useInertApp } from '../../composables/useInertApp'
+import { useCerrarConAtras } from '../../composables/useCerrarConAtras'
 import { NAV_LINKS as links, esSeccionActiva } from './navLinks'
 
 const mainStore = useMainStore()
@@ -30,16 +31,27 @@ const version = import.meta.env.VITE_APP_VERSION
 const build = import.meta.env.VITE_APP_BUILD
 
 
+// El «atrás» del navegador cierra el menú en vez de salir de la página.
+const atras = useCerrarConAtras(() => close())
+
 const open = async () => {
   isOpen.value = true
+  atras.alAbrir()
   bloquear()
   document.body.style.overflow = 'hidden'
   await nextTick()
   panel.value?.querySelector('a')?.focus()
 }
 
-const close = ({ restoreFocus = true } = {}) => {
+/**
+ * `navegando`: se cierra porque se va a otra página (una sección del menú).
+ * Entonces no se retira la entrada del historial: hacerlo desharía la
+ * navegación que se acaba de pedir.
+ */
+const close = ({ restoreFocus = true, navegando = false } = {}) => {
   isOpen.value = false
+  if (navegando) atras.alNavegar()
+  else atras.alCerrar()
   // Antes de devolver el foco: sobre una app inerte no se puede enfocar nada.
   liberar()
   document.body.style.overflow = ''
@@ -63,7 +75,7 @@ onUnmounted(liberar)
 watch(
   () => route.path,
   () => {
-    if (isOpen.value) close({ restoreFocus: false })
+    if (isOpen.value) close({ restoreFocus: false, navegando: true })
   }
 )
 </script>
@@ -134,7 +146,7 @@ watch(
               ? 'bg-gray-200 dark:bg-gray-700 border-gray-400 dark:border-gray-600 font-semibold'
               : 'bg-white dark:bg-gray-900 border-gray-400 hover:bg-gray-150 hover:dark:bg-gray-700'
           "
-          @click="close({ restoreFocus: false })"
+          @click="close({ restoreFocus: false, navegando: true })"
         >
           <base-icon
             :stroke-width="1.5"

@@ -10,6 +10,7 @@ import { useRoute } from 'vue-router'
 import { CATEGORIES, MAX_MESSAGE, useSuggestionsStore } from '../../stores/suggestions'
 import { useTranslate } from '../../composables/useTranslate'
 import { useInertApp } from '../../composables/useInertApp'
+import { useCerrarConAtras } from '../../composables/useCerrarConAtras'
 import BaseIcon from '../base/BaseIcon.vue'
 import BasePillButton from '../base/BasePillButton.vue'
 
@@ -48,8 +49,12 @@ const errorText = computed(() => {
     : t(`suggestions.errors.${errorKey.value}`)
 })
 
+// El «atrás» del navegador cierra el diálogo en vez de salir de la página.
+const atras = useCerrarConAtras(() => close())
+
 const open = async () => {
   isOpen.value = true
+  atras.alAbrir()
   bloquear()
   isSent.value = false
   errorKey.value = null
@@ -59,8 +64,10 @@ const open = async () => {
   campoMensaje.value?.focus()
 }
 
-const close = ({ restoreFocus = true } = {}) => {
+const close = ({ restoreFocus = true, navegando = false } = {}) => {
   isOpen.value = false
+  if (navegando) atras.alNavegar()
+  else atras.alCerrar()
   liberar()
   document.body.style.overflow = ''
   if (!restoreFocus) return
@@ -109,7 +116,7 @@ const onKeydown = (event) => {
 watch(
   () => route.path,
   () => {
-    if (isOpen.value) close({ restoreFocus: false })
+    if (isOpen.value) close({ restoreFocus: false, navegando: true })
   }
 )
 </script>

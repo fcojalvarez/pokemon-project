@@ -17,6 +17,7 @@ import { storeToRefs } from 'pinia'
 import { useMainStore } from '../../stores/main'
 import i18n, { LOCALES, setLocale } from '../../plugins/i18n'
 import { useInertApp } from '../../composables/useInertApp'
+import { useCerrarConAtras } from '../../composables/useCerrarConAtras'
 import BaseIcon from '../base/BaseIcon.vue'
 import SuggestionButton from './SuggestionButton.vue'
 
@@ -39,6 +40,8 @@ const panel = ref(null)
 /** Dónde va el panel: justo debajo del botón, con el pico en su centro. */
 const posicion = ref({ top: 0, right: 0, pico: 0 })
 const { bloquear, liberar } = useInertApp()
+// El «atrás» del navegador cierra el panel en vez de salir de la página.
+const atras = useCerrarConAtras(() => close())
 
 const open = async () => {
   // clientWidth y no innerWidth: este cuenta la barra de scroll, y el panel
@@ -48,6 +51,7 @@ const open = async () => {
   const right = Math.max(8, ancho - caja.right)
   posicion.value = { top: caja.bottom + 10, right, pico: ancho - right - (caja.left + caja.width / 2) }
   isOpen.value = true
+  atras.alAbrir()
   bloquear()
   await nextTick()
   panel.value?.querySelector('[aria-checked="true"]')?.focus()
@@ -56,6 +60,7 @@ const open = async () => {
 const close = ({ restoreFocus = true } = {}) => {
   if (!isOpen.value) return
   isOpen.value = false
+  atras.alCerrar()
   liberar()
   if (restoreFocus) trigger.value?.focus()
 }
@@ -127,9 +132,14 @@ const opcion = (elegida) => [
       <div v-if="isOpen" class="fixed inset-0 z-40 bg-gray-900/40" @click="close()"></div>
     </Transition>
 
+    <!--
+      v-show y no v-if: el botón de Sugerencias está dentro, y al abrir su
+      diálogo el panel se cierra. Con v-if se desmontaba con él y el diálogo
+      no llegaba a salir.
+    -->
     <Transition name="ajustes">
       <div
-        v-if="isOpen"
+        v-show="isOpen"
         id="ajustes"
         ref="panel"
         role="dialog"

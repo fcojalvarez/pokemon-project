@@ -5,11 +5,14 @@
  * Mismo trato que el de sugerencias: va en `Teleport` fuera de #app, deja la
  * app inerte mientras está abierto (el tabulador no se escapa a la página de
  * detrás), se cierra con Escape, pulsando fuera o al navegar, y devuelve el
- * foco a quien lo abrió. En móvil sale desde abajo, a todo lo ancho.
+ * foco a quien lo abrió. En móvil sale desde abajo, a todo lo ancho. El
+ * «atrás» del navegador lo cierra en vez de salir de la página
+ * (useCerrarConAtras).
  */
 import { nextTick, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useInertApp } from '../../composables/useInertApp'
+import { useCerrarConAtras } from '../../composables/useCerrarConAtras'
 
 const props = defineProps({
   open: Boolean,
@@ -24,6 +27,9 @@ const { bloquear, liberar } = useInertApp()
 const panel = ref(null)
 let origen = null
 const titulo = `modal-${Math.random().toString(36).slice(2, 9)}`
+const atras = useCerrarConAtras(() => emit('close'))
+/** Se cierra porque se ha cambiado de página: el historial ya no se toca. */
+let porNavegacion = false
 
 watch(
   () => props.open,
@@ -32,9 +38,13 @@ watch(
       origen = document.activeElement
       bloquear()
       document.body.style.overflow = 'hidden'
+      atras.alAbrir()
       await nextTick()
       panel.value?.focus()
     } else {
+      if (porNavegacion) atras.alNavegar()
+      else atras.alCerrar()
+      porNavegacion = false
       liberar()
       document.body.style.overflow = ''
       if (origen && !origen.closest?.('[inert]')) origen.focus?.()
@@ -44,9 +54,14 @@ watch(
   { immediate: true }
 )
 
-watch(() => route.fullPath, () => props.open && emit('close'))
+watch(() => route.fullPath, () => {
+  if (!props.open) return
+  porNavegacion = true
+  emit('close')
+})
 
 onUnmounted(() => {
+  atras.alNavegar()
   liberar()
   document.body.style.overflow = ''
 })
