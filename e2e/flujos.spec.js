@@ -64,10 +64,10 @@ test('el buscador filtra contra la base de datos', async ({ page }) => {
       decodeURIComponent(res.url()).includes('pokemon_id=in.(150)') &&
       res.status() === 200
   )
-  // En móvil el buscador empieza plegado en una lupa: se abre como lo abriría
-  // una persona. Rellenarlo plegado a veces no llegaba a lanzar la búsqueda.
-  const lupa = page.getByRole('button', { name: 'Abrir el buscador' })
-  if (await lupa.isVisible()) await lupa.click()
+  // El buscador empieza plegado en una lupa (en todos los anchos): se abre
+  // como lo abriría una persona. Rellenarlo plegado a veces no llegaba a
+  // lanzar la búsqueda.
+  await page.getByRole('button', { name: 'Abrir el buscador' }).click()
   await page.getByPlaceholder(/buscar pok/i).fill('mewtwo')
   await consulta
 

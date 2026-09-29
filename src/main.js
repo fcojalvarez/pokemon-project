@@ -36,7 +36,13 @@ watch(() => i18n.global.locale, () => ponerTitulo(router.currentRoute.value));
 
 // Con el inglés elegido, se espera a su fichero (va en la precaché, así que
 // es inmediato salvo la primera vez) para no pintar la app en español.
-idiomaInicial().finally(() => {
+//
+// Y a que el router acabe la primera navegación (la vista va en un chunk
+// aparte): montada antes, la app arrancaba con la ruta vacía de inicio y, al
+// llegar la de verdad, lo que se hubiera tocado mientras tanto se deshacía
+// (el buscador se vaciaba y el menú se cerraba solo). allSettled: si esa
+// navegación falla, se monta igual y la recarga de abajo se ocupa.
+Promise.allSettled([idiomaInicial(), router.isReady()]).then(() => {
     // El idioma del documento sigue al de la app: con lang="en" los lectores
     // de pantalla leían el español con pronunciación inglesa.
     document.documentElement.lang = i18n.global.locale;

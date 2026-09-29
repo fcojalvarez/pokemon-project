@@ -1,0 +1,167 @@
+import { expect, test } from '@playwright/test'
+
+/**
+ * Recorridos que no tenían test: el scroll infinito de la Pokédex, ordenar
+ * la ficha, la galería de formas, el detalle de un evento, las sugerencias y
+ * el idioma que se queda al recargar.
+ */
+
+/**
+ * El botón de Ajustes (móvil) o el del menú (desde sm), ya pintado: la app se
+ * monta cuando el router llega a la vista, y un isVisible de antes daba false.
+ */
+async function botonDeLaCabecera(page) {
+  const ajustes = page.getByRole('button', { name: /^(Abrir ajustes|Open settings)$/ })
+  const menu = page.getByRole('button', { name: /^(Abrir menú|Open menu)$/ })
+  await expect(ajustes.or(menu)).toBeVisible()
+  return (await ajustes.isVisible()) ? { ajustes } : { menu }
+}
+
+/** Sugerencias está en Ajustes en móvil y en el menú lateral desde sm. */
+async function abrirSugerencias(page) {
+  const { ajustes } = await botonDeLaCabecera(page)
+  if (ajustes) await ajustes.click()
+  else await page.getByRole('button', { name: 'Abrir menú' }).click()
+  await page.getByRole('button', { name: 'Sugerencias' }).click()
+  await expect(page.getByRole('dialog', { name: 'Enviar una sugerencia' })).toBeVisible()
+}
+
+test('la Pokédex carga más al bajar, también después de buscar y borrar la búsqueda', async ({ page }) => {
+  await page.goto('/')
+  const tarjetas = page.locator('[data-dex-tile]')
+  await expect(tarjetas).toHaveCount(100)
+
+  // Hasta el fondo y vuelta a mirar: la página siguiente llega por el scroll.
+  const bajarHastaQueHaya = async (cuantas) => {
+    await expect(async () => {
+      await page.evaluate(() => window.scrollTo(0, document.scrollingElement.scrollHeight))
+      expect(await tarjetas.count()).toBeGreaterThan(cuantas)
+    }).toPass({ timeout: 20_000 })
+  }
+  await bajarHastaQueHaya(100)
+  // La segunda página empieza justo donde acabó la primera: sin repetir el 100.
+  await expect(page.locator('[data-dex-tile][href="/pokemon/100"]')).toHaveCount(1)
+  await expect(page.locator('[data-dex-tile][href="/pokemon/101"]')).toHaveCount(1)
+
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.getByRole('button', { name: 'Abrir el buscador' }).click()
+  await page.locator('#input-search').fill('pikachu')
+  await expect(tarjetas.first()).toContainText('Pikachu')
+  await page.getByRole('button', { name: 'Cerrar el buscador' }).click()
+  await expect(tarjetas).toHaveCount(100)
+  // Si la carga se quedaba encendida tras la búsqueda, aquí ya no bajaba más.
+  await bajarHastaQueHaya(100)
+})
+
+test('el orden de las secciones de la ficha se guarda y se puede restablecer', async ({ page }) => {
+  await page.goto('/pokemon/6')
+  await expect(page.getByRole('heading', { level: 1, name: 'Charizard' })).toBeVisible()
+  // El orden en la página (en escritorio van en dos columnas, así que lo
+  // que cuenta es el del DOM y no la posición en pantalla).
+  const orden = () => page.locator('section[id^="ficha-"]').evaluateAll((els) => els.map((el) => el.id))
+  const antes = async (a, b) => {
+    const ids = await orden()
+    return ids.indexOf(`ficha-${a}`) < ids.indexOf(`ficha-${b}`)
+  }
+  await expect(page.locator('#ficha-debilidades')).toBeAttached()
+
+  await page.getByRole('button', { name: 'Ordenar secciones' }).click()
+  // Debilidades va la última de fábrica: se sube por encima de Efectos.
+  expect(await antes('efectos', 'debilidades')).toBe(true)
+  await page.getByRole('button', { name: 'Subir Debilidades' }).click()
+  await page.getByRole('button', { name: 'Listo' }).click()
+
+  await page.reload()
+  await expect(page.locator('#ficha-debilidades')).toBeAttached()
+  expect(await antes('debilidades', 'efectos')).toBe(true)
+
+  await page.getByRole('button', { name: 'Ordenar secciones' }).click()
+  await page.getByRole('button', { name: 'Orden de siempre' }).click()
+  expect(await antes('efectos', 'debilidades')).toBe(true)
+})
+
+test('la galería de formas se recorre con las flechas y se cierra con Escape', async ({ page }) => {
+  await page.goto('/pokemon/25')
+  const boton = page.getByRole('button', { name: /^(Formas|Disfraces)/ })
+  await boton.click()
+  const galeria = page.getByRole('dialog', { name: /Pikachu/ })
+  await expect(galeria).toBeVisible()
+
+  await galeria.getByRole('button', { name: /^Ver .* en grande$/ }).first().click()
+  // En grande: la imagen lleva el nombre de la forma y debajo va «1 / N».
+  await expect(galeria.getByText(/^1 \/ \d+$/)).toBeVisible()
+  const nombre = () => galeria.getByRole('img').first().getAttribute('alt')
+  const antes = await nombre()
+  await galeria.getByRole('button', { name: 'Siguiente' }).click()
+  await expect(galeria.getByText(/^2 \/ \d+$/)).toBeVisible()
+  await expect.poll(nombre).not.toBe(antes)
+  await galeria.getByRole('button', { name: 'Volver a la galería' }).click()
+  await expect(galeria.getByRole('button', { name: /^Ver .* en grande$/ }).first()).toBeVisible()
+
+  await page.keyboard.press('Escape')
+  await expect(galeria).toBeHidden()
+  await expect(boton).toBeFocused()
+})
+
+test('el detalle de un evento se cierra con Escape y con «atrás», sin salir de Eventos', async ({ page }) => {
+  await page.goto('/events')
+  const detalle = page.getByRole('dialog', { name: 'Detalle del evento' })
+  const abrir = () => page.locator('article').first().click({ position: { x: 20, y: 20 } })
+
+  await expect(page.locator('article').first()).toBeVisible()
+  await abrir()
+  await expect(detalle).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(detalle).toBeHidden()
+
+  await abrir()
+  await expect(detalle).toBeVisible()
+  await page.goBack()
+  await expect(detalle).toBeHidden()
+  await expect(page).toHaveURL(/\/events/)
+})
+
+test('una sugerencia demasiado corta no sale; una buena, sí', async ({ page }) => {
+  // Nunca se escribe en la tabla de verdad: el insert se contesta aquí.
+  const enviadas = []
+  await page.route('**/rest/v1/suggestions**', async (route) => {
+    enviadas.push(route.request().postDataJSON())
+    await route.fulfill({ status: 201, body: '' })
+  })
+
+  await page.goto('/top')
+  await abrirSugerencias(page)
+  const dialogo = page.getByRole('dialog', { name: 'Enviar una sugerencia' })
+
+  await dialogo.getByLabel('Tu sugerencia').fill('corto')
+  await dialogo.getByRole('button', { name: 'Enviar' }).click()
+  await expect(dialogo.getByRole('alert')).toContainText('menos de 10 caracteres')
+  expect(enviadas).toHaveLength(0)
+
+  await dialogo.getByLabel('Tu sugerencia').fill('Estaría bien poder filtrar la Pokédex por región')
+  await dialogo.getByRole('button', { name: 'Enviar' }).click()
+  await expect(dialogo.getByText('¡Gracias! Sugerencia enviada.')).toBeVisible()
+  expect(enviadas).toHaveLength(1)
+  expect(enviadas[0]).toMatchObject({ category: 'idea', page: '/top', contact: null })
+})
+
+test('el idioma elegido se queda al recargar', async ({ page }) => {
+  await page.goto('/top')
+  const { ajustes } = await botonDeLaCabecera(page)
+  if (ajustes) {
+    await ajustes.click()
+    await page.locator('#ajustes').getByRole('radio', { name: 'English' }).click()
+    await page.keyboard.press('Escape')
+  } else {
+    await page.getByRole('button', { name: 'Abrir menú' }).click()
+    await page.getByRole('button', { name: /^Cambiar idioma/ }).click()
+    await page.getByRole('menuitemradio', { name: 'English' }).click()
+  }
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+
+  await page.reload()
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en')
+  await expect(page).toHaveTitle(/Top · PoGoDex/)
+  // Una etiqueta de la app, ya en inglés (en móvil, el botón de los filtros).
+  await expect(page.getByRole('button', { name: /^(Open menu|Open settings)$/ })).toBeVisible()
+})

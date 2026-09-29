@@ -41,6 +41,8 @@ test('con el teclado se llega a los Pokémon de la Pokédex y se abren con Enter
 
 test('el primer Tab lleva a «Saltar al contenido», y este al contenido', async ({ page }) => {
   await page.goto('/top')
+  // La app se monta cuando el router ha llegado a la vista: antes no hay enlace.
+  await expect(page.getByRole('heading', { level: 1, name: 'Top' })).toBeVisible()
   await page.keyboard.press('Tab')
   await expect(page.locator(':focus')).toHaveText('Saltar al contenido')
   await page.keyboard.press('Enter')

@@ -150,6 +150,10 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             // Antes pedía la tabla sin .range, y Supabase cortaba en 1000.
             if(toSearchModal) return pokemonList.value.length ? pokemonList.value : cargarNombres();
             pokemonsFiltered.value = pokemonList.value.slice(0, NEXT_LOAD_LENGTH_ITEMS);
+            // Sin búsqueda ya no se está buscando: el buscador lo encendía al
+            // escribir y nadie lo apagaba al vaciarlo, y con eso el scroll
+            // infinito dejaba de cargar páginas.
+            searchingPokemon.value = false;
             return;
         }
 

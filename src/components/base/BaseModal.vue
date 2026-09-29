@@ -9,7 +9,7 @@
  * «atrás» del navegador lo cierra en vez de salir de la página
  * (useCerrarConAtras).
  */
-import { nextTick, ref, useId, watch } from 'vue'
+import { nextTick, onUnmounted, ref, useId, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useCapa } from '../../composables/useCapa'
 
@@ -37,9 +37,24 @@ const capa = useCapa(
   { vigilar: () => route.fullPath }
 )
 
+/**
+ * Escape cierra el diálogo con el foco dentro o perdido en el <body>. Pasa
+ * cuando el botón pulsado desaparece al pulsarlo (en la galería de formas,
+ * una forma o «Volver a la galería»): escuchando solo en el panel, Escape ya
+ * no hacía nada.
+ */
+const alTeclear = (event) => {
+  if (event.key !== 'Escape') return
+  const foco = document.activeElement
+  if (foco && foco !== document.body && !panel.value?.contains(foco)) return
+  emit('close')
+}
+const escuchar = (si) => (si ? document.addEventListener : document.removeEventListener).call(document, 'keydown', alTeclear)
+
 watch(
   () => props.open,
   async (abierto) => {
+    escuchar(abierto)
     if (abierto) {
       origen = document.activeElement
       capa.alAbrir()
@@ -55,9 +70,7 @@ watch(
   { immediate: true }
 )
 
-const onKeydown = (event) => {
-  if (event.key === 'Escape') emit('close')
-}
+onUnmounted(() => escuchar(false))
 </script>
 
 <template>
@@ -75,7 +88,6 @@ const onKeydown = (event) => {
         tabindex="-1"
         class="w-full max-h-[90vh] flex flex-col bg-gray-100 dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-t-xl sm:rounded-xl shadow-md outline-none text-gray-800 dark:text-gray-200"
         :class="size"
-        @keydown="onKeydown"
       >
         <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-300 dark:border-gray-600">
           <h2 :id="titulo" class="min-w-0 font-bold leading-snug">{{ title }}</h2>
