@@ -30,6 +30,8 @@ const isOpen = ref(false)
 const TYPES = Object.keys(typesSVG)
 const GENERATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 const RARITIES = ['standard', 'legendary', 'mythic', 'ultra_beast']
+/** Los interruptores «Solo…», por su clave en los filtros (y en filters.* de los idiomas). */
+const SOLO = ['onlyShiny', 'onlyShadow', 'onlyDynamax', 'onlyGigantamax']
 
 const panelId = 'filtros-pokedex'
 
@@ -173,32 +175,13 @@ const rarityOptions = computed(() => [
       -->
       <div class="grid grid-cols-2 gap-3 pt-4 mt-1 border-t border-gray-300 dark:border-gray-700 lg:flex lg:gap-2 lg:pt-0 lg:mt-0 lg:border-t-0 lg:border-l lg:pl-4">
         <base-pill-button
+          v-for="clave in SOLO"
+          :key="clave"
           class="h-11 w-full text-sm lg:h-9 lg:w-auto lg:text-xs lg:px-4"
-          :active="filters.onlyShiny"
-          @click="setFilters({ onlyShiny: !filters.onlyShiny })"
+          :active="filters[clave]"
+          @click="setFilters({ [clave]: !filters[clave] })"
         >
-          {{ $t('filters.onlyShiny') }}
-        </base-pill-button>
-        <base-pill-button
-          class="h-11 w-full text-sm lg:h-9 lg:w-auto lg:text-xs lg:px-4"
-          :active="filters.onlyShadow"
-          @click="setFilters({ onlyShadow: !filters.onlyShadow })"
-        >
-          {{ $t('filters.onlyShadow') }}
-        </base-pill-button>
-        <base-pill-button
-          class="h-11 w-full text-sm lg:h-9 lg:w-auto lg:text-xs lg:px-4"
-          :active="filters.onlyDynamax"
-          @click="setFilters({ onlyDynamax: !filters.onlyDynamax })"
-        >
-          {{ $t('filters.onlyDynamax') }}
-        </base-pill-button>
-        <base-pill-button
-          class="h-11 w-full text-sm lg:h-9 lg:w-auto lg:text-xs lg:px-4"
-          :active="filters.onlyGigantamax"
-          @click="setFilters({ onlyGigantamax: !filters.onlyGigantamax })"
-        >
-          {{ $t('filters.onlyGigantamax') }}
+          {{ $t(`filters.${clave}`) }}
         </base-pill-button>
       </div>
       </div>
@@ -210,8 +193,7 @@ const rarityOptions = computed(() => [
 <style scoped>
 /*
  * El panel aparecía de golpe mientras el resto de la app va con transiciones.
- * Se despliega desde arriba: la altura la anima el navegador con grid-rows,
- * que no exige saber cuánto mide el contenido.
+ * Se despliega desde arriba.
  */
 .desplegar-enter-active,
 .desplegar-leave-active {

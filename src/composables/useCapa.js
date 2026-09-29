@@ -51,8 +51,15 @@ export function useCapa(cerrar, { bloquearScroll = true, vigilar } = {}) {
     if (bloquearScroll) document.body.style.overflow = ''
   }
 
+  // La app se monta antes de que el router acabe la primera navegación (la
+  // vista va en un chunk aparte): hasta entonces la ruta es la de arranque, sin
+  // vista. Ese primer cambio no es «irse a otra página»: si se abría el menú
+  // en ese hueco, se cerraba solo al llegar la vista.
+  let enRuta = route.matched.length > 0
   watch(vigilar ?? (() => route.path), () => {
-    if (abierta) cerrar({ restoreFocus: false, navegando: true })
+    const eraElArranque = !enRuta
+    enRuta = route.matched.length > 0
+    if (abierta && !eraElArranque) cerrar({ restoreFocus: false, navegando: true })
   })
 
   onUnmounted(() => alCerrar({ navegando: true }))

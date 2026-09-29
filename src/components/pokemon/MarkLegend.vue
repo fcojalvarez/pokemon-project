@@ -33,7 +33,6 @@ import useDetectOutsideClick from '../../composables/useDetectOutsideClick'
 
 defineProps({
   marcas: { type: Array, default: () => ['shiny', 'dynamax', 'gigantamax', 'noLiberado'] },
-  variant: { type: String, default: 'dex' },
   plegable: Boolean
 })
 
@@ -61,7 +60,7 @@ const onKeydown = (event) => {
     >
       <span class="flex items-center gap-1.5" aria-hidden="true">
         <template v-for="marca in marcas" :key="marca">
-          <shiny-mark v-if="marca === 'shiny'" :variant="variant" size="text-mini" inline :scale="0.65" />
+          <shiny-mark v-if="marca === 'shiny'" variant="dex" size="text-mini" inline :scale="0.65" />
           <no-liberado-mark v-else-if="marca === 'noLiberado'" />
           <max-mark v-else :variant="marca" :size="14" class="shrink-0" />
         </template>
@@ -84,7 +83,7 @@ const onKeydown = (event) => {
         <li v-for="marca in marcas" :key="marca" class="flex items-center gap-2">
           <!-- Todas en una caja del mismo ancho: así los textos quedan alineados. -->
           <span class="w-4 shrink-0 flex justify-center" aria-hidden="true">
-            <shiny-mark v-if="marca === 'shiny'" :variant="variant" size="text-mini" inline :scale="0.65" />
+            <shiny-mark v-if="marca === 'shiny'" variant="dex" size="text-mini" inline :scale="0.65" />
             <no-liberado-mark v-else-if="marca === 'noLiberado'" />
             <max-mark v-else :variant="marca" :size="15" class="shrink-0" />
           </span>
