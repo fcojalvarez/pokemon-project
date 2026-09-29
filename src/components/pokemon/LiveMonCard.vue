@@ -44,6 +44,14 @@ const cpLabel = computed(() => {
 })
 
 const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
+
+/**
+ * Los iconos de LeekDuck vienen recortados al contorno: el Pokémon llena el
+ * 96 % de la imagen. Los sprites HOME de PokeAPI (los combates Max) llevan
+ * margen y se queda en un 77 %, así que en la misma caja salía una quinta
+ * parte más pequeño que el jefe de al lado. Se amplía lo que falta (96/77).
+ */
+const conMargen = computed(() => Boolean(props.image) && !props.image.includes('leekduck.com'))
 </script>
 
 <template>
@@ -68,7 +76,7 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
         :src="image"
         :oscuro="shadow"
         class="w-9 h-9 sm:w-10 sm:h-10"
-        img-class="drop-shadow-contorno dark:drop-shadow-none"
+        :img-class="['drop-shadow-contorno dark:drop-shadow-none', conMargen ? 'scale-125' : '']"
       />
       <shiny-mark
         v-if="canBeShiny"
