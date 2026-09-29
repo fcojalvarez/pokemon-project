@@ -5,7 +5,7 @@ import MarkLegend from '../components/pokemon/MarkLegend.vue';
 import PokedexFilters from '../components/pokemon/PokedexFilters.vue';
 import { storeToRefs } from 'pinia';
 import { usePokemonsStore } from '@/stores/pokemons';
-import { MAX_LENGH_POKEMONS,NEXT_LOAD_LENGTH_ITEMS, DISTANCE_TO_BOTTOM_PAGE, typesSVG } from '../utils/Settings';
+import { MAX_LENGTH_POKEMONS,NEXT_LOAD_LENGTH_ITEMS, DISTANCE_TO_BOTTOM_PAGE, typesSVG } from '../utils/Settings';
 import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl';
 import { useRoute } from 'vue-router';
 
@@ -56,11 +56,11 @@ const isAllPokemonsLoaded = ref(false);
 const scrollHandler = async({target: {scrollingElement: {scrollTop, scrollHeight}}}) => {
     if(scrollTop > (scrollHeight - DISTANCE_TO_BOTTOM_PAGE) && !isAllPokemonsLoaded.value ) {
         if(!isLoading.value && !isSearching.value){
-            const end = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGH_POKEMONS
-                ? MAX_LENGH_POKEMONS 
+            const end = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGTH_POKEMONS
+                ? MAX_LENGTH_POKEMONS 
                 : currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS;
 
-            isAllPokemonsLoaded.value = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGH_POKEMONS;
+            isAllPokemonsLoaded.value = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGTH_POKEMONS;
 
             await addPokemons({
                 start: currentPokemonsLength.value,

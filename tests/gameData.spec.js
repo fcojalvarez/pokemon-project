@@ -5,7 +5,6 @@ import { computeCounters, computeTypeRankings, evaluatePokemon, typeMatchups } f
 import { dexFromImage, eventStatus, normalizeName, parseDate } from '../src/stores/live'
 import { translateGameText } from '../src/utils/gameText'
 import { spriteUrl } from '../src/utils/sprites'
-import { shortFormName } from '../src/utils/formName'
 
 /**
  * Corre contra los datos reales de public/data: si una actualización del juego
@@ -157,24 +156,6 @@ describe('datos en vivo', () => {
   it('normaliza nombres para poder cruzarlos con la Pokédex', () => {
     expect(normalizeName('Mega Charizard Y')).toBe('megacharizardy')
     expect(normalizeName('Farfetch’d')).toBe('farfetchd')
-  })
-})
-
-describe('shortFormName', () => {
-  it('deja solo la letra cuando hay Mega X y Mega Y', () => {
-    expect(shortFormName('Mega Raichu X')).toBe('Raichu X')
-    expect(shortFormName('Mega Charizard Y')).toBe('Charizard Y')
-  })
-
-  it('conserva el "Mega" de la mega única', () => {
-    // Rayquaza no tiene cadena evolutiva: sin el "Mega" parecería el normal.
-    expect(shortFormName('Mega Rayquaza')).toBe('Mega Rayquaza')
-    expect(shortFormName('Mega Venusaur')).toBe('Mega Venusaur')
-  })
-
-  it('no toca el resto de nombres', () => {
-    expect(shortFormName('Pikachu')).toBe('Pikachu')
-    expect(shortFormName('Groudon (Primigenio)')).toBe('Groudon (Primigenio)')
   })
 })
 

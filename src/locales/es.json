@@ -41,14 +41,11 @@
         "error": "No se han podido cargar los datos.",
         "empty": "No hay nada que mostrar.",
         "update": "Actualizar",
-        "offline": "sin conexión",
         "all": "Todos",
         "close": "Cerrar",
         "results": "resultados",
         "level": "Nivel",
         "levelShort": "Nv.",
-        "yes": "Sí",
-        "no": "No",
         "staleData": "Datos de hace {age}: puede que ya no sean los de ahora"
     },
     "forms": {
@@ -81,10 +78,8 @@
         "weaknesses": "Debilidades",
         "resistances": "Resistencias",
         "bestMoves": "Mejores ataques",
-        "movepool": "Repertorio",
         "fastMoves": "Ataques rápidos",
         "chargedMoves": "Ataques cargados",
-        "eliteMoves": "Ataques exclusivos",
         "whereToFind": "Dónde conseguirlo",
         "notAvailableNow": "Ahora mismo no está en incursiones, huevos, misiones ni eventos",
         "dittoWild": "Siempre en estado salvaje, disfrazado de otro Pokémon",
@@ -95,14 +90,6 @@
         "pvpRanks": "Puesto PvP",
         "noPvpRank": "Fuera del top 400",
         "notReleased": "Todavía no está en Pokémon GO",
-        "shadowAvailable": "Tiene versión oscura",
-        "rarity": {
-            "legendary": "Legendario",
-            "mythic": "Singular",
-            "standard": "Normal"
-        },
-        "megaOne": "Megaevolución",
-        "megaMany": "Megaevoluciones",
         "pveRanks": "Puesto PvE",
         "noPveRank": "Fuera del top 500",
         "regionalForms": "Formas regionales",
@@ -262,19 +249,12 @@
             "research": "Todas"
         },
         "counters": "Mejores counters",
-        "countersHelp": "Nivel 40, IVs 15/15/15, con la efectividad real contra este jefe.",
         "weakTo": "Débil a",
         "boostedBy": "Potenciado con",
         "cpRange": "PC",
-        "cpBoosted": "con clima",
         "noRaids": "No hay jefes de incursión publicados.",
         "noEggs": "No hay datos de huevos publicados.",
         "noResearch": "No hay misiones publicadas.",
-        "hatchCp": "PC al eclosionar",
-        "rewards": "Recompensas",
-        "regional": "Regional",
-        "adventureSync": "Sync de aventuras",
-        "giftExchange": "Regalo",
         "tiers": {
             "1-Star Raids": "Nivel 1",
             "3-Star Raids": "Nivel 3",
@@ -323,7 +303,6 @@
         "generation": "Generación",
         "allGenerations": "Todas",
         "onlyShiny": "Solo shiny",
-        "onlyReleased": "Solo disponibles",
         "title": "Filtros",
         "clear": "Limpiar",
         "results": "{count} resultados",
@@ -487,7 +466,6 @@
         "intro": "Se usan en los nodos energéticos contra Pokémon Dinamax y Gigamax.",
         "canDynamax": "Puede dinamaxizar",
         "canGigantamax": "Puede gigamaxizar",
-        "maxMove": "Ataque Max",
         "cp100": "PC de un 100 % (nivel 20)",
         "cp100Short": "100 %: PC {cp}",
         "cpValue": "PC {cp}",
@@ -504,7 +482,6 @@
         "tabIntro": "El Ataque Max es del tipo del ataque rápido. Por daño: potencia × ataque × STAB.",
         "noneOfType": "Todavía no hay ningún Dinamax de este tipo.",
         "battlesTitle": "Combates Max",
-        "noBattles": "Ahora mismo no hay ningún combate Max anunciado.",
         "legendDynamax": "Dinamax",
         "legendGigantamax": "Gigamax",
         "battlesNote": "Los combates Max anunciados salen aquí. Qué Pokémon hay ahora en cada nodo energético no lo publica ninguna fuente: rota por zona y solo se ve en el juego.",
@@ -570,7 +547,6 @@
         "closeSearch": "Cerrar el buscador",
         "darkModeToggle": "Modo oscuro",
         "pokemonCount": "Ningún Pokémon | 1 Pokémon | {n} Pokémon",
-        "love": "amor",
-        "evolutionRequirements": "Requisitos para evolucionar"
+        "love": "amor"
     }
 }

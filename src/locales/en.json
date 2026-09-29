@@ -41,14 +41,11 @@
         "error": "Could not load the data.",
         "empty": "Nothing to show.",
         "update": "Refresh",
-        "offline": "offline",
         "all": "All",
         "close": "Close",
         "results": "results",
         "level": "Level",
         "levelShort": "Lv.",
-        "yes": "Yes",
-        "no": "No",
         "staleData": "Data is {age} old: it may no longer be current"
     },
     "forms": {
@@ -81,10 +78,8 @@
         "weaknesses": "Weaknesses",
         "resistances": "Resistances",
         "bestMoves": "Best moves",
-        "movepool": "Movepool",
         "fastMoves": "Fast moves",
         "chargedMoves": "Charged moves",
-        "eliteMoves": "Elite moves",
         "whereToFind": "Where to get it",
         "notAvailableNow": "Not in raids, eggs, research or events right now",
         "dittoWild": "Always in the wild, disguised as another Pokémon",
@@ -95,14 +90,6 @@
         "pvpRanks": "PvP rank",
         "noPvpRank": "Outside the top 400",
         "notReleased": "Not in Pokémon GO yet",
-        "shadowAvailable": "Has a shadow form",
-        "rarity": {
-            "legendary": "Legendary",
-            "mythic": "Mythical",
-            "standard": "Standard"
-        },
-        "megaOne": "Mega Evolution",
-        "megaMany": "Mega Evolutions",
         "pveRanks": "PvE rank",
         "noPveRank": "Outside the top 500",
         "regionalForms": "Regional forms",
@@ -262,19 +249,12 @@
             "research": "All"
         },
         "counters": "Best counters",
-        "countersHelp": "Level 40, 15/15/15 IVs, with the real effectiveness against this boss.",
         "weakTo": "Weak to",
         "boostedBy": "Boosted by",
         "cpRange": "CP",
-        "cpBoosted": "boosted",
         "noRaids": "No raid bosses published.",
         "noEggs": "No egg data published.",
         "noResearch": "No tasks published.",
-        "hatchCp": "Hatch CP",
-        "rewards": "Rewards",
-        "regional": "Regional",
-        "adventureSync": "Adventure Sync",
-        "giftExchange": "Gift",
         "tiers": {
             "1-Star Raids": "Tier 1",
             "3-Star Raids": "Tier 3",
@@ -323,7 +303,6 @@
         "generation": "Generation",
         "allGenerations": "All",
         "onlyShiny": "Shiny only",
-        "onlyReleased": "Released only",
         "title": "Filters",
         "clear": "Clear",
         "results": "{count} results",
@@ -487,7 +466,6 @@
         "intro": "Fought at Power Spots against Dynamax and Gigantamax Pokémon.",
         "canDynamax": "Can Dynamax",
         "canGigantamax": "Can Gigantamax",
-        "maxMove": "Max Move",
         "cp100": "100% CP (level 20)",
         "cp100Short": "100%: {cp} CP",
         "cpValue": "{cp} CP",
@@ -504,7 +482,6 @@
         "tabIntro": "The Max Move takes the type of the fast attack. By damage: power × attack × STAB.",
         "noneOfType": "No Dynamax of this type yet.",
         "battlesTitle": "Max Battles",
-        "noBattles": "No Max Battles announced right now.",
         "legendDynamax": "Dynamax",
         "legendGigantamax": "Gigantamax",
         "battlesNote": "Announced Max Battles show up here. Which Pokémon each Power Spot currently hosts is not published anywhere: it rotates by area and is only visible in-game.",
@@ -570,7 +547,6 @@
         "closeSearch": "Close search",
         "darkModeToggle": "Dark mode",
         "pokemonCount": "No Pokémon | 1 Pokémon | {n} Pokémon",
-        "love": "love",
-        "evolutionRequirements": "Evolution requirements"
+        "love": "love"
     }
 }
