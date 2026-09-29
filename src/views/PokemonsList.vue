@@ -12,7 +12,7 @@ import { useRoute } from 'vue-router';
 
 const pokemonStore = usePokemonsStore();
 const route = useRoute();
-const { pokemons, isLoading, isSearching, filters, searchTerm } = storeToRefs(pokemonStore);
+const { pokemons, isLoading, isSearching, filters, searchTerm, activeFilterCount } = storeToRefs(pokemonStore);
 const { getPokemons, addPokemons, setFilters, clearFilters, filterPokemons, setIsSearching } = pokemonStore;
 
 /**
@@ -54,21 +54,16 @@ const { habiaFiltros } = useFiltrosEnUrl({
 const currentPokemonsLength = computed(() => pokemons.value.length );
 const isAllPokemonsLoaded = ref(false);
 
-const scrollHandler = async({target: {scrollingElement: {scrollTop, scrollHeight}}}) => {
-    if(scrollTop > (scrollHeight - DISTANCE_TO_BOTTOM_PAGE) && !isAllPokemonsLoaded.value ) {
-        if(!isLoading.value && !isSearching.value){
-            const end = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGTH_POKEMONS
-                ? MAX_LENGTH_POKEMONS 
-                : currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS;
+const scrollHandler = async() => {
+    const { scrollTop, scrollHeight } = document.scrollingElement;
+    if(scrollTop <= scrollHeight - DISTANCE_TO_BOTTOM_PAGE || isAllPokemonsLoaded.value) return;
+    if(isLoading.value || isSearching.value) return;
 
-            isAllPokemonsLoaded.value = currentPokemonsLength.value + NEXT_LOAD_LENGTH_ITEMS > MAX_LENGTH_POKEMONS;
-
-            await addPokemons({
-                start: currentPokemonsLength.value,
-                end: end
-            });
-        }
-    }
+    // `range` de PostgREST incluye los dos extremos: de 100 en 100 es 0-99, 100-199…
+    const start = currentPokemonsLength.value;
+    const siguiente = start + NEXT_LOAD_LENGTH_ITEMS;
+    isAllPokemonsLoaded.value = siguiente >= MAX_LENGTH_POKEMONS;
+    await addPokemons({ start, end: Math.min(siguiente, MAX_LENGTH_POKEMONS) - 1 });
 }
 
 /**
@@ -77,10 +72,7 @@ const scrollHandler = async({target: {scrollingElement: {scrollTop, scrollHeight
  * entrar desde el menú llega sin nada: entonces se limpian también en la
  * store, que si no seguía aplicando lo de la visita anterior.
  */
-const hayAlgoAplicado = () =>
-    Boolean(searchTerm.value) || JSON.stringify(filters.value) !== JSON.stringify({
-        types: [], generation: null, rarity: null, onlyShiny: false, onlyShadow: false, onlyDynamax: false, onlyGigantamax: false
-    });
+const hayAlgoAplicado = () => Boolean(searchTerm.value) || activeFilterCount.value > 0;
 const limpiar = () => {
     if (searchTerm.value) { setIsSearching(false); filterPokemons(''); }
     if (hayAlgoAplicado()) clearFilters();
@@ -138,11 +130,11 @@ onUnmounted(() => {
         >
         <template v-if="pokemons.length > 0">
             <div
-                v-for="{ name, pokemon_id, is_released, types, sprite, is_shiny_released, can_dynamax, can_gigantamax } in pokemons"
+                v-for="pokemon in pokemons"
+                :key="pokemon.pokemon_id"
                 class="min-w-0 flex justify-center"
-                :key="pokemon_id"
             >
-                <ItemPokemonList :id="pokemon_id" :image="sprite" :name="name" :is_released="is_released" :types="types" :is_shiny_released="is_shiny_released" :can_dynamax="can_dynamax" :can_gigantamax="can_gigantamax" class="w-full max-w-[8rem] md:max-w-[12rem]"/>
+                <item-pokemon-list :pokemon="pokemon" class="w-full max-w-[8rem] md:max-w-[12rem]" />
             </div>
         </template>
 
@@ -178,5 +170,5 @@ onUnmounted(() => {
         </div>
 
         <scroll-up-button />
-    </section>   
+    </section>
 </template>

@@ -5,26 +5,23 @@
     import MaxMark from './pokemon/MaxMark.vue';
     import BaseSprite from './base/BaseSprite.vue';
     import { typesSVG } from '../utils/Settings';
+    import { formatDex } from '../utils/dex';
     import { usePokemonsStore } from '../stores/pokemons';
 
     const { setIsSearching } = usePokemonsStore();
 
     const props = defineProps({
-        id: Number,
-        image: String,
-        is_released: Boolean,
-        name: String,
-        types: Array,
-        is_shiny_released: Boolean,
-        can_dynamax: Boolean,
-        can_gigantamax: Boolean,
-        // PC del encuentro, para reutilizar la tarjeta en huevos e incursiones.
-        combat_power: { type: Object, default: null },
-        // Tamaño del sprite. Por defecto el de la Pokédex; en listados largos
-        // como el de huevos se pasa uno más pequeño para no comer pantalla.
-        image_size: { type: String, default: 'w-24 h-24' }
+        /**
+         * Una fila de la Pokédex (COLUMNAS_TARJETA en stores/pokemons.js):
+         * pokemon_id, name, types, sprite y las marcas is_released,
+         * is_shiny_released, can_dynamax y can_gigantamax.
+         */
+        pokemon: { type: Object, required: true }
     })
-    const pokemonId = computed(() => props.id?.toString().padStart(3, '0'));
+    const numero = computed(() => formatDex(props.pokemon.pokemon_id));
+    const liberado = computed(() => Boolean(props.pokemon.is_released));
+    /** Los tipos que tienen icono (se ignora cualquiera desconocido). */
+    const tipos = computed(() => (props.pokemon.types ?? []).filter((type) => typesSVG[type]));
 </script>
 
 <template>
@@ -34,84 +31,65 @@
         aún no han salido no llevan a ninguna parte y se quedan en un div.
     -->
     <component
-        :is="props.is_released ? 'router-link' : 'div'"
-        :to="props.is_released ? `/pokemon/${props.id}` : undefined"
+        :is="liberado ? 'router-link' : 'div'"
+        :to="liberado ? `/pokemon/${pokemon.pokemon_id}` : undefined"
         data-dex-tile
-        :class="[props.is_released? 'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600' : '', 'block p-2 rounded-xl']"
-        @click="props.is_released && setIsSearching(false)"
+        :class="[liberado ? 'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600' : '', 'block p-2 rounded-xl']"
+        @click="liberado && setIsSearching(false)"
     >
-        <div class="relative mx-auto" :class="image_size">
+        <div class="relative mx-auto w-24 h-24">
             <!-- alt vacío: el nombre ya va escrito debajo, dentro del mismo enlace. -->
             <base-sprite
-                :src="image"
+                :src="pokemon.sprite"
                 entrada="salida"
                 class="w-full h-full"
-                :img-class="[props.is_released? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark': 'grayscale opacity-40', 'z-10']"
+                :img-class="[liberado ? 'drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark' : 'grayscale opacity-40', 'z-10']"
             />
             <!-- Escalada, no con otro font-size: así la marca no se descuadra. -->
-            <shiny-mark v-if="props.is_shiny_released" variant="dex" :label="$t('pokemon.shinyLegend')" class="absolute top-0 right-0 z-10 scale-[0.8] origin-top-right" />
+            <shiny-mark v-if="pokemon.is_shiny_released" variant="dex" :label="$t('pokemon.shinyLegend')" class="absolute top-0 right-0 z-10 scale-[0.8] origin-top-right" />
             <!--
                 Abajo, una en cada esquina, para no pelearse con la marca de
-                variocolor (que va arriba a la derecha) ni tapar al Pokémon.
+                shiny (que va arriba a la derecha) ni tapar al Pokémon.
                 Se pintan las dos: gigamaxizar y dinamaxizar son cosas
                 distintas y hay 31 que pueden las dos.
             -->
             <max-mark
-                v-if="props.can_dynamax"
+                v-if="pokemon.can_dynamax"
                 variant="dynamax"
                 :size="18"
                 class="absolute bottom-0 left-0 z-10 text-gray-800 dark:text-gray-200"
             />
             <max-mark
-                v-if="props.can_gigantamax"
+                v-if="pokemon.can_gigantamax"
                 variant="gigantamax"
                 :size="18"
                 class="absolute bottom-0 right-0 z-10 text-gray-800 dark:text-gray-200"
             />
         </div>
         <!--
-            Los tipos iban en la misma línea que el nombre y se lo comían: con
-            un nombre largo el truncado se activaba enseguida. Ahora el nombre
-            tiene la fila entera y los tipos van debajo.
-        -->
-        <!--
+            El nombre tiene la fila entera y los tipos van debajo: en la misma
+            línea se lo comían y con un nombre largo se truncaba enseguida.
             En móvil van tres por fila y «#001 Bulbasaur» no cabe en una línea:
             el número pasa encima, pequeño, y el nombre se queda la fila entera.
         -->
         <div class="mt-2 sm:mt-3 flex flex-col sm:flex-row items-center justify-center sm:gap-1 text-gray-800 dark:text-gray-300">
-            <span v-if="pokemonId" class="text-mini sm:text-xs font-semibold shrink-0 leading-tight">#{{ pokemonId }}</span>
-            <span :class="[props.is_released? '' : 'line-through', 'max-w-full font-semibold text-xs sm:text-sm truncate']">
-                {{ props.name }}
+            <span v-if="numero" class="text-mini sm:text-xs font-semibold shrink-0 leading-tight">#{{ numero }}</span>
+            <span :class="[liberado ? '' : 'line-through', 'max-w-full font-semibold text-xs sm:text-sm truncate']">
+                {{ pokemon.name }}
             </span>
         </div>
 
-        <div v-if="props.is_released && types" class="mt-1 flex items-center justify-center gap-1">
+        <div v-if="liberado && tipos.length" class="mt-1 flex items-center justify-center gap-1">
             <base-icon
+                v-for="tipo in tipos"
+                :key="tipo"
                 view-box="0 0 512 512"
                 width="14"
                 height="14"
                 icon-class="drop-shadow-svg"
-                :fill-path="typesSVG[types[0]].color"
-                :d="typesSVG[types[0]].icon"
+                :fill-path="typesSVG[tipo].color"
+                :d="typesSVG[tipo].icon"
             />
-            <base-icon
-                v-if="types[1]"
-                view-box="0 0 512 512"
-                width="14"
-                height="14"
-                icon-class="drop-shadow-svg"
-                :fill-path="typesSVG[types[1]].color"
-                :d="typesSVG[types[1]].icon"
-            />
-        </div>
-
-        <div
-            v-if="combat_power"
-            class="mt-1 text-center text-mini text-gray-600 dark:text-gray-300"
-        >
-            {{ $t('raids.cpRange') }} {{ combat_power.min }}<template
-                v-if="combat_power.max && combat_power.max !== combat_power.min"
-            >–{{ combat_power.max }}</template>
         </div>
     </component>
 </template>

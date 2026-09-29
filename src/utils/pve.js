@@ -8,9 +8,9 @@
 import { effectiveStats, movesetPerformance, effectivenessAgainst } from './formulas.js'
 
 /** Jefe genérico: defensa típica de una incursión, sin ventaja de tipo. */
-export const DEFAULT_TARGET = { def: 180 }
-export const DEFAULT_LEVEL = 40
-export const PERFECT_IVS = { atk: 15, def: 15, hp: 15 }
+const DEFAULT_TARGET = { def: 180 }
+const DEFAULT_LEVEL = 40
+const PERFECT_IVS = { atk: 15, def: 15, hp: 15 }
 
 /** Movimientos que no son una opción real para un atacante optimizado. */
 const EXCLUDED_MOVES = new Set(['FRUSTRATION', 'RETURN', 'STRUGGLE'])

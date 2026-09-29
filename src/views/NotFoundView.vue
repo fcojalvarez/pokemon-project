@@ -9,6 +9,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useTranslate } from '../composables/useTranslate'
+import { NAV_LINKS } from '../components/shared/navLinks'
 
 const route = useRoute()
 const { t } = useTranslate()
@@ -16,12 +17,8 @@ const { t } = useTranslate()
 onMounted(() => { document.title = `${t('notFound.title')} · PoGoDex` })
 const ruta = computed(() => route.fullPath)
 
-const SECCIONES = [
-  { to: '/', key: 'nav.pokedex' },
-  { to: '/top', key: 'nav.top' },
-  { to: '/events', key: 'nav.events' },
-  { to: '/live', key: 'nav.raids' }
-]
+// Las mismas secciones que el menú.
+const SECCIONES = NAV_LINKS.map(({ to, key }) => ({ to, key: `nav.${key}` }))
 </script>
 
 <template>

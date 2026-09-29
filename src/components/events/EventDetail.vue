@@ -11,6 +11,7 @@
 import { computed, ref, watch } from 'vue'
 import { cargarNoticias } from '../../stores/gameData'
 import { useTranslate } from '../../composables/useTranslate'
+import { useEventos } from '../../composables/useEventos'
 import { enlaceSeguro } from '../../utils/safeUrl'
 import BaseModal from '../base/BaseModal.vue'
 import EventCard from './EventCard.vue'
@@ -22,6 +23,7 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const { locale } = useTranslate()
+const { bonusDeEvento } = useEventos()
 const datos = ref(null)
 const cargando = ref(false)
 
@@ -51,10 +53,7 @@ const noticia = computed(() => {
 const enlaceLeekDuck = computed(() => enlaceSeguro(props.event?.link))
 
 /** Los bonus de la noticia: con ellos, la tarjeta no los repite. */
-const bonusOficial = computed(() => {
-  const b = datos.value?.bonus?.[props.event?.eventID]
-  return (locale() === 'en' && b?.en?.length ? b.en : b?.es) ?? []
-})
+const bonusOficial = computed(() => bonusDeEvento(datos.value, props.event))
 
 /**
  * Los bloques de una sección, con los elementos de lista seguidos juntos en

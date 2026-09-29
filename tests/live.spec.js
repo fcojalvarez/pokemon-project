@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { eventStatus, isCacheExpired, parseDate } from '../src/stores/live'
+import { eventStatus, isCacheExpired, parseDate } from '../src/utils/liveFeed'
 import { formatDuration } from '../src/utils/time'
 
 /**

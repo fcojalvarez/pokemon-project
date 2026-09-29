@@ -1,11 +1,14 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { dexFromImage, useLiveStore } from '../stores/live'
+import { useLiveStore } from '../stores/live'
+import { dexFromImage } from '../utils/liveFeed'
 import { useGameDataStore } from '../stores/gameData'
 import BaseEmptyState from '../components/base/BaseEmptyState.vue'
 import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
 import BasePillButton from '../components/base/BasePillButton.vue'
+import BaseSidebar from '../components/base/BaseSidebar.vue'
+import BaseFilterList from '../components/base/BaseFilterList.vue'
 import DataFreshness from '../components/shared/DataFreshness.vue'
 import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import MaxMark from '../components/pokemon/MaxMark.vue'
@@ -108,24 +111,24 @@ const filtros = computed(() => {
   if (tab.value === 'raids') {
     grupos = [
       ...live.raidsByTier.map((grupo) => ({
-        id: idIncursion(grupo),
+        value: idIncursion(grupo),
         label: grupo.shadow ? t('raids.tiers.shadow') : tierLabel(grupo.name),
         count: grupo.list.length
       })),
       ...maxPorNivel.value.map((grupo) => ({
-        id: idMax(grupo),
+        value: idMax(grupo),
         label: `Max · ${t('max.tier', { n: grupo.tier })}`,
         count: grupo.list.length
       }))
     ]
   } else if (tab.value === 'eggs') {
-    grupos = live.eggsByType.map((grupo) => ({ id: idHuevo(grupo), label: grupo.name, count: grupo.list.length }))
+    grupos = live.eggsByType.map((grupo) => ({ value: idHuevo(grupo), label: grupo.name, count: grupo.list.length }))
   } else {
-    grupos = researchGroups.value.map((grupo) => ({ id: idTarea(grupo), label: grupo.label, count: grupo.list.length }))
+    grupos = researchGroups.value.map((grupo) => ({ value: idTarea(grupo), label: grupo.label, count: grupo.list.length }))
   }
   if (!grupos.length) return []
   const total = grupos.reduce((suma, grupo) => suma + grupo.count, 0)
-  return [{ id: 'all', label: t(`raids.all.${tab.value}`), count: total }, ...grupos]
+  return [{ value: 'all', label: t(`raids.all.${tab.value}`), count: total }, ...grupos]
 })
 
 /** Sin barra lateral no hay filtro que tocar: se ve todo. */
@@ -291,10 +294,7 @@ onMounted(() => {
 
     <div :class="ancho ? 'grid grid-cols-[240px_minmax(0,1fr)] gap-6 items-start' : ''">
       <!-- En escritorio ancho, barra lateral con las pestañas y los grupos de la pestaña -->
-      <aside
-        v-if="ancho"
-        class="[@media(min-height:720px)]:sticky top-[104px] flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
-      >
+      <base-sidebar v-if="ancho">
         <div class="flex flex-col gap-2">
           <base-pill-button
             v-for="name in TABS"
@@ -306,27 +306,14 @@ onMounted(() => {
           </base-pill-button>
         </div>
         <!-- Como el tipo en Eventos: un clic, con cuántos hay de cada uno. -->
-        <ul v-if="filtros.length" role="group" :aria-label="tabLabel(tab)" class="flex flex-col gap-0.5">
-          <li v-for="opcion in filtros" :key="opcion.id">
-            <button
-              type="button"
-              class="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-sm text-left rounded-lg transition-colors"
-              :class="filtro === opcion.id
-                ? 'bg-gray-500 dark:bg-gray-600 text-white'
-                : 'text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800'"
-              :aria-label="`${opcion.label} (${opcion.count})`"
-              :aria-pressed="filtro === opcion.id"
-              @click="filtro = opcion.id"
-            >
-              <span class="min-w-0">{{ opcion.label }}</span>
-              <span
-                class="shrink-0 text-mini tabular-nums"
-                :class="filtro === opcion.id ? 'text-white' : 'text-gray-600 dark:text-gray-300'"
-              >{{ opcion.count }}</span>
-            </button>
-          </li>
-        </ul>
-      </aside>
+        <base-filter-list
+          v-if="filtros.length"
+          v-model="filtro"
+          role="group"
+          :aria-label="tabLabel(tab)"
+          :options="filtros"
+        />
+      </base-sidebar>
 
       <div class="min-w-0">
         <div v-if="!ancho" class="flex flex-wrap gap-2 mb-4">

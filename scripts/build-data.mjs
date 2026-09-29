@@ -28,6 +28,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CPM_BY_LEVEL } from '../src/utils/formulas.js'
 import { normalizeText } from '../src/utils/gameText.js'
+import { spriteUrl } from '../src/utils/sprites.js'
 import { loadEnv } from './lib/env.mjs'
 import { maxLiberados } from './lib/maxLiberados.mjs'
 import { buildFormas } from './lib/formas.mjs'
@@ -242,8 +243,7 @@ async function addMissingSpecies(client, roster) {
   const conOscuro = new Set(roster.filter((p) => p.shadow && p.released).map((p) => p.dex))
   const nuevas = [...base.values()].filter((p) => !existentes.has(p.dex)).map((p) => {
     const elite = new Set(p.eliteMoves ?? [])
-    const sprite = (shiny) =>
-      `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${shiny ? 'shiny/' : ''}${p.dex}.png`
+    const sprite = (shiny) => spriteUrl(p.dex, { shiny })
     return {
       pokemon_id: p.dex,
       name: p.name,
@@ -353,6 +353,13 @@ const REQUISITOS_DEL_JUEGO = {
 const FORMAS_REGIONALES = /_(ALOLA|GALARIAN|HISUIAN|PALDEA)/
 
 const sinVacios = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v != null))
+
+/** Los requisitos de una rama de evolución, con su misión si la tiene, sin los vacíos. */
+function requisitosDeRama(rama, misiones) {
+  const mision = misiones.get(rama.questDisplay?.[0]?.questRequirementTemplateId)
+  const b = mision ? { ...rama, _mision: mision } : rama
+  return sinVacios(Object.fromEntries(Object.entries(REQUISITOS_DEL_JUEGO).map(([campo, leer]) => [campo, leer(b)])))
+}
 // JSON con las claves ordenadas: Postgres guarda las de un jsonb en su propio
 // orden y, comparando el texto tal cual, las misiones ({es, en}) salían
 // distintas en cada pasada aunque no hubieran cambiado.
@@ -766,13 +773,8 @@ async function syncCadenasRegionales(client, roster, gm, es, en) {
        FROM public.pokemons WHERE pokemon_id = ANY($1::int[])`, [dexes])
   const fila = new Map(rows.map((r) => [r.pokemon_id, r]))
   const rosterPorId = new Map(roster.map((p) => [p.id, p]))
-  const requisitosDe = (rama) => {
-    const mision = misiones.get(rama.questDisplay?.[0]?.questRequirementTemplateId)
-    const b = mision ? { ...rama, _mision: mision } : rama
-    return sinVacios(Object.fromEntries(Object.entries(REQUISITOS_DEL_JUEGO).map(([campo, leer]) => [campo, leer(b)])))
-  }
-  const sprite = (id, shiny) =>
-    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${shiny ? 'shiny/' : ''}${id}.png`
+  const requisitosDe = (rama) => requisitosDeRama(rama, misiones)
+  const sprite = (id, shiny) => spriteUrl(id, { shiny })
   const pasoRegional = (clave, rama) => {
     const forma = formas.get(clave)
     const region = REGIONES[forma.region]
@@ -1621,13 +1623,8 @@ function cadenasDeFormasRegionales(gm, roster, es, en) {
     }
   }
 
-  const requisitosDe = (rama) => {
-    const mision = misiones.get(rama.questDisplay?.[0]?.questRequirementTemplateId)
-    const b = mision ? { ...rama, _mision: mision } : rama
-    return sinVacios(Object.fromEntries(Object.entries(REQUISITOS_DEL_JUEGO).map(([campo, leer]) => [campo, leer(b)])))
-  }
-  const sprite = (id, shiny) =>
-    `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/${shiny ? 'shiny/' : ''}${id}.png`
+  const requisitosDe = (rama) => requisitosDeRama(rama, misiones)
+  const sprite = (id, shiny) => spriteUrl(id, { shiny })
   const paso = (nodo) => {
     if (nodo.startsWith('p:')) {
       const p = basePorDex.get(Number(nodo.slice(2)))

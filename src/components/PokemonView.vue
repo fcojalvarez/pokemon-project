@@ -10,6 +10,7 @@ import { useLiveStore } from '../stores/live';
 import BaseCard from './base/BaseCard.vue';
 import TypeIcons from './base/TypeIcons.vue';
 import { spriteUrl } from '../utils/sprites';
+import { formatDex } from '../utils/dex';
 import BaseSprite from './base/BaseSprite.vue';
 import SkeletonLoader from './base/SkeletonLoader.vue';
 import { localName } from '../composables/useTranslate';
@@ -40,7 +41,7 @@ const hero = computed(() => {
     if(!p) return null;
     const f = form.value;
     return {
-        number: String(p.pokemon_id).padStart(3, '0'),
+        number: formatDex(p.pokemon_id),
         // El `name` de la tabla `pokemons` es el inglés, que para las especies
         // coincide con el español; las formas sí cambian («Mega Venusaur»).
         name: f ? localName(f) : p.name,
@@ -109,41 +110,49 @@ watch(() => hero.value?.name, (name) => {
     if(name) document.title = `${name} · PoGoDex`;
 }, { immediate: true });
 
+/**
+ * `pokemon_id` es smallint: un número fuera de rango (22003) o que no es
+ * número (22P02) tampoco existe, aunque la base lo diga como error.
+ */
+const NO_EXISTE = ['22003', '22P02'];
+
 const getPokemon = async(pokemonId) => {
     const { data, error } = await supabase.from('pokemons').select('*').eq('pokemon_id', pokemonId).limit(1);
 
-    if(error && !['22003', '22P02'].includes(error.code)) console.error(error);
+    const noHay = !error || NO_EXISTE.includes(error.code);
+    if(!noHay) console.error(error);
 
     const [ pokemonFinded ] = data || [];
-    // `pokemon_id` es smallint: un número fuera de rango (22003) o que no es
-    // número (22P02) tampoco existe, aunque la base lo diga como error.
-    const noHay = !error || ['22003', '22P02'].includes(error.code);
     if(pokemonFinded) pokemon.value = {...pokemonFinded};
     else if(noHay) { pokemon.value = null; noExiste.value = true; }
 }
 
-onMounted(async() => {
-    const pokemonId = Number(route.params.id);
-
+onMounted(() => {
     // Los rankings, la tabla de tipos y los datos en vivo se cargan una sola
     // vez por sesión: las stores ignoran las llamadas repetidas.
     gameData.load();
     live.load();
-
-    // El scroll arriba lo hace el router (scrollBehavior). Aquí había un
-    // scrollTo suave que, si se volvía atrás antes de que acabara, seguía
-    // subiendo y pisaba el scroll recuperado de la página anterior.
-    if(pokemonId) await getPokemon(pokemonId);
-    else noExiste.value = true;
 })
 
-watch(() => route.params.id, async(newId) => {
-    const pokemonIdFromRoute = Number(newId);
+/**
+ * El Pokémon de la URL, al entrar y al cambiar de ficha sin salir (desde la
+ * cadena evolutiva o el buscador). Antes eran dos caminos, y al cambiar a una
+ * dirección que no es un número (/pokemon/abc) se quedaba el Pokémon anterior.
+ *
+ * El scroll arriba lo hace el router (scrollBehavior). Aquí había un scrollTo
+ * suave que, si se volvía atrás antes de que acabara, seguía subiendo y pisaba
+ * el scroll recuperado de la página anterior.
+ */
+watch(() => route.params.id, async(id) => {
+    const pokemonId = Number(id);
     noExiste.value = false;
-    if(pokemonIdFromRoute && pokemon.value?.pokemon_id !== pokemonIdFromRoute) {
-        await getPokemon(pokemonIdFromRoute);
+    if(!pokemonId) {
+        pokemon.value = null;
+        noExiste.value = true;
+        return;
     }
-})
+    if(pokemon.value?.pokemon_id !== pokemonId) await getPokemon(pokemonId);
+}, { immediate: true })
 </script>
 
 <template>

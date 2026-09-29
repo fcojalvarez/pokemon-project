@@ -16,6 +16,8 @@ import MoveTag from '../pokemon/MoveTag.vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import { spriteUrl } from '../../utils/sprites'
 import { useTranslate } from '../../composables/useTranslate'
+import MaxMoveLines from './MaxMoveLines.vue'
+import { movesOf, rowKey } from '../../utils/rankingRows'
 
 const props = defineProps({
   rows: { type: Array, required: true },
@@ -34,9 +36,6 @@ const valor = (row, clave) => row[clave] ?? row.value ?? 0
 const tope = computed(() => (props.rows.length ? valor(props.rows[0], principal.value) || 1 : 1))
 const porcentaje = (row) => Math.round((valor(row, principal.value) / tope.value) * 100)
 const formato = (clave, v) => (clave === 'tdo' || props.mode === 'max' ? Math.round(v) : Number(v).toFixed(1))
-
-const movesOf = (row) => row.moves ?? [row.fast, row.charged].filter(Boolean)
-const clave = (row) => [row.id, ...movesOf(row).map((m) => m?.id ?? m?.nameEs)].join('-')
 
 const tituloValor = computed(() => (props.mode === 'max' ? t('max.damageUnit') : t('top.score')))
 const ordenar = (metrica) => {
@@ -82,7 +81,7 @@ const ordenar = (metrica) => {
       <tbody>
         <tr
           v-for="row in rows"
-          :key="clave(row)"
+          :key="rowKey(row)"
           data-fila-top
           class="relative border-t border-gray-300 dark:border-gray-700 first:border-t-0 even:bg-gray-50 dark:even:bg-gray-800/40 hover:bg-gray-150 hover:dark:bg-gray-800"
         >
@@ -133,29 +132,7 @@ const ordenar = (metrica) => {
           <template v-else>
             <td v-if="row.maxLines" class="px-3 py-1.5 text-mini">
               <div class="flex flex-col gap-1.5">
-                <!--
-                  Max: bajo el nombre, su Ataque Max (el Gigamax, en fucsia) y debajo los
-                  rápidos que lo dan. Con «Todos», un bloque así por cada Ataque Max.
-                -->
-                <div v-for="linea in row.maxLines" :key="linea.max.id" class="min-w-0">
-                  <p
-                    class="flex items-center gap-1 pl-[9px] text-xs font-semibold"
-                    :class="linea.gigamax ? 'text-fuchsia-700 dark:text-fuchsia-300' : 'text-gray-800 dark:text-gray-100'"
-                    :title="linea.gigamax ? $t('moves.gigamaxHelp') : null"
-                  >
-                    <type-icons :types="[linea.max.type]" size="10" />
-                    {{ localName(linea.max) }}
-                  </p>
-                  <span class="mt-1 flex flex-wrap gap-1.5">
-                    <move-tag
-                      v-for="rapido in linea.rapidos"
-                      :key="rapido.id"
-                      chip
-                      :name="localName(rapido)"
-                      :type="rapido.type"
-                    />
-                  </span>
-                </div>
+                <max-move-lines :lines="row.maxLines" />
               </div>
             </td>
             <td v-else class="px-3 py-1.5 text-mini">
@@ -169,7 +146,6 @@ const ordenar = (metrica) => {
                   :elite="move.elite"
                   :legacy="move.legacy"
                   :mega="move.mega"
-                  :gigamax="move.gigamax"
                 />
               </span>
             </td>

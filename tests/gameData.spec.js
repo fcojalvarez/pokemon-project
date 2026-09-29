@@ -2,8 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { computeCounters, computeTypeRankings, evaluatePokemon, typeMatchups } from '../src/utils/pve'
-import { dexFromImage, eventStatus, normalizeName, parseDate } from '../src/stores/live'
-import { translateGameText } from '../src/utils/gameText'
+import { dexFromImage, eventStatus, parseDate } from '../src/utils/liveFeed'
+import { normalizeName, translateGameText } from '../src/utils/gameText'
 import { spriteUrl } from '../src/utils/sprites'
 
 /**

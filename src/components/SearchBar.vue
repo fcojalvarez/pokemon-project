@@ -6,6 +6,7 @@
     import ShinyMark from './pokemon/ShinyMark.vue';
     import MaxMark from './pokemon/MaxMark.vue';
     import { spriteUrl } from '../utils/sprites';
+    import { formatDex } from '../utils/dex';
     import { useRoute, useRouter } from 'vue-router';
     import useDetectOutsideClick from '../composables/useDetectOutsideClick';
     import { useMedia } from '../composables/useMedia';
@@ -80,9 +81,10 @@
         cerrar();
     }
 
+    // La lupa: la plegada en móvil y la del campo en escritorio.
+    const ICONO_LUPA = 'm17 17 4 4M3 11a8 8 0 1 0 16 0 8 8 0 0 0-16 0z';
+
     const scrollbarBackground = computed(() => isDarkMode.value? '#111827' : '#fff');
-    const scrollbarThumbBorder = computed(() => isDarkMode.value? '#33333350' : '#33333350');
-    const scrollbarThumbBackground = computed(() => isDarkMode.value? '#cccccc80' : '#cccccc80');
 
     const inputSearch = () => {
         setIsSearching(true);
@@ -146,9 +148,9 @@
 
     useDetectOutsideClick(searchBarRef, (e) => {
         const isClickInSearch = e.target.id === 'input-search';
-        
+
         if(!isShowModalSearch.value || isClickInSearch ) return;
-        
+
         isShowModalSearch.value = false;
     })
 
@@ -194,7 +196,7 @@
                 :stroke-width="1.5"
                 icon-class="w-6"
                 class-path="stroke-gray-500 dark:stroke-gray-300"
-                d="m17 17 4 4M3 11a8 8 0 1 0 16 0 8 8 0 0 0-16 0z"
+                :d="ICONO_LUPA"
             />
         </button>
         <input
@@ -232,7 +234,7 @@
             :stroke-width="1.5"
             icon-class="hidden md:block shrink-0 w-6"
             class-path="stroke-gray-600 dark:stroke-gray-100"
-            d="m17 17 4 4M3 11a8 8 0 1 0 16 0 8 8 0 0 0-16 0z"
+            :d="ICONO_LUPA"
         />
 
         <section ref="searchBarRef" v-if="isShowModalSearch" class="absolute left-0 top-full z-40 mt-2 w-full py-2 border border-gray-400 bg-white dark:bg-gray-900 dark:text-white rounded-xl shadow-md">
@@ -260,7 +262,7 @@
                         <span class="flex-1 min-w-0 flex flex-col leading-tight">
                             <span class="truncate">{{ pokemon.name }}</span>
                             <span class="flex items-center gap-2">
-                                <span class="text-mini tabular-nums text-gray-600 dark:text-gray-300">#{{ String(pokemon.pokemon_id).padStart(3, '0') }}</span>
+                                <span class="text-mini tabular-nums text-gray-600 dark:text-gray-300">#{{ formatDex(pokemon.pokemon_id) }}</span>
                                 <span class="flex items-center gap-1.5">
                                     <shiny-mark v-if="pokemon.is_shiny_released" variant="dex" size="text-mini" inline :scale="0.65" :label="$t('legend.shiny')" />
                                     <max-mark v-if="pokemon.can_dynamax" variant="dynamax" :size="14" class="shrink-0" />
@@ -302,7 +304,7 @@
     .buscador, .buscador input { transition: none; }
 }
 [placeholder]:focus::-webkit-input-placeholder {
-    transition: text-indent 0.4s 0.4s ease; 
+    transition: text-indent 0.4s 0.4s ease;
     text-indent: -100%;
     opacity: 1;
 }
@@ -315,8 +317,8 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    border: 1px solid v-bind(scrollbarThumbBorder);
-    background: v-bind(scrollbarThumbBackground);
+    border: 1px solid #33333350;
+    background: #cccccc80;
     border-radius: 20px;
 }
 </style>

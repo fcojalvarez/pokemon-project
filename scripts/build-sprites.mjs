@@ -24,7 +24,7 @@ const SALIDA = path.join(ROOT, 'public', 'sprites')
 const ORIGEN = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home'
 const SECO = process.argv.includes('--dry-run')
 
-export const LADO = 256
+const LADO = 256
 const CALIDAD = 78
 const A_LA_VEZ = 8
 /** Última especie de la Pokédex nacional: la tabla de la Pokédex llega hasta aquí. */

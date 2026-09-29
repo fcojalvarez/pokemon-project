@@ -19,10 +19,11 @@ import fs from 'node:fs/promises'
 import { loadEnv } from './lib/env.mjs'
 import { asociarEventos, bonusDe, depurar, leerNoticia, slugsDePortada } from './lib/noticias.mjs'
 import { normalizeName } from '../src/utils/gameText.js'
+import { FEEDS } from '../src/utils/liveFeed.js'
 
 const SECO = process.argv.includes('--dry-run')
 const WEB = 'https://pokemongo.com'
-const EVENTOS = 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/events.json'
+const EVENTOS = FEEDS.events
 const RELEER_DIAS = 21
 
 const CABECERAS = {

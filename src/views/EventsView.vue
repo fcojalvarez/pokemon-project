@@ -6,6 +6,8 @@ import BaseEmptyState from '../components/base/BaseEmptyState.vue'
 import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
 import BaseDropdown from '../components/base/BaseDropdown.vue'
 import BasePillButton from '../components/base/BasePillButton.vue'
+import BaseSidebar from '../components/base/BaseSidebar.vue'
+import BaseFilterList from '../components/base/BaseFilterList.vue'
 import DataFreshness from '../components/shared/DataFreshness.vue'
 import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import EventCard from '../components/events/EventCard.vue'
@@ -14,10 +16,12 @@ import { cargarNoticias } from '../stores/gameData'
 import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useMedia } from '../composables/useMedia'
+import { useEventos } from '../composables/useEventos'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
-const { t, te, locale } = useTranslate()
+const { t, locale } = useTranslate()
+const { tipoDeEvento, bonusDeEvento } = useEventos()
 
 // Mismo corte que el Top: en escritorio ancho, filtros en una barra lateral.
 const ancho = useMedia('(min-width: 1280px)')
@@ -29,10 +33,6 @@ const abierto = ref(null)
 
 /** Bonus de la noticia oficial de cada evento, para enseñarlos en su tarjeta. */
 const noticias = ref(null)
-const bonusDe = (evento) => {
-  const b = noticias.value?.bonus?.[evento.eventID]
-  return (locale() === 'en' && b?.en?.length ? b.en : b?.es) ?? []
-}
 
 // Ni pasados ni sin fecha: uno que ya terminó no sirve para nada, y los que
 // LeekDuck publica sin fechas no se pueden ni situar en el tiempo.
@@ -48,27 +48,28 @@ useFiltrosEnUrl({
 
 const source = computed(() => live[tab.value] ?? [])
 
-const typeLabel = (eventType, heading) => {
-  const key = `events.types.${eventType}`
-  return te(key) ? t(key) : gameData.autoTranslate(heading) || t('events.types.event')
-}
-
+/** Los tipos de la pestaña, con cuántos hay de cada uno, y «Todos» delante. */
 const typeOptions = computed(() => {
   const seen = new Map()
   for (const event of source.value) {
     const previo = seen.get(event.eventType)
     seen.set(event.eventType, {
-      label: previo?.label ?? typeLabel(event.eventType, event.heading),
+      label: previo?.label ?? tipoDeEvento(event),
       count: (previo?.count ?? 0) + 1
     })
   }
   return [
-    { value: 'all', label: `${t('common.all')} (${source.value.length})`, name: t('common.all'), count: source.value.length },
+    { value: 'all', label: t('common.all'), count: source.value.length },
     ...[...seen.entries()]
-      .map(([value, { label, count }]) => ({ value, label, name: label, count }))
+      .map(([value, { label, count }]) => ({ value, label, count }))
       .sort((a, b) => a.label.localeCompare(b.label, locale()))
   ]
 })
+
+/** En el desplegable, la cuenta solo en «Todos»: al lado de cada tipo sobraba. */
+const typeDropdown = computed(() =>
+  typeOptions.value.map((option) => (option.value === 'all' ? { ...option, label: `${option.label} (${option.count})` } : option))
+)
 
 // Al cambiar de pestaña el tipo elegido puede no existir ahí.
 watch(tab, () => {
@@ -109,11 +110,7 @@ onMounted(async () => {
       derecha. Por debajo, pestañas y desplegable encima de la lista.
     -->
     <div :class="ancho ? 'grid grid-cols-[240px_minmax(0,1fr)] gap-6 items-start' : ''">
-      <aside
-        :class="ancho
-          ? '[@media(min-height:720px)]:sticky top-[104px] flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
-          : ''"
-      >
+      <base-sidebar :activa="ancho">
         <div :class="ancho ? 'grid grid-cols-2 gap-2' : 'flex flex-wrap gap-2 mb-3'">
           <base-pill-button
             v-for="name in TABS"
@@ -132,37 +129,18 @@ onMounted(async () => {
           >
             {{ $t('events.filterType') }}
           </span>
-          <ul class="flex flex-col gap-0.5">
-            <li v-for="option in typeOptions" :key="option.value">
-              <button
-                type="button"
-                class="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-sm text-left rounded-lg transition-colors"
-                :class="typeFilter === option.value
-                  ? 'bg-gray-500 dark:bg-gray-600 text-white'
-                  : 'text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800'"
-                :aria-label="option.label"
-                :aria-pressed="typeFilter === option.value"
-                @click="typeFilter = option.value"
-              >
-                <span class="min-w-0">{{ option.name }}</span>
-                <span
-                  class="shrink-0 text-mini tabular-nums"
-                  :class="typeFilter === option.value ? 'text-white' : 'text-gray-600 dark:text-gray-300'"
-                >{{ option.count }}</span>
-              </button>
-            </li>
-          </ul>
+          <base-filter-list v-model="typeFilter" :options="typeOptions" />
         </div>
 
         <div v-else class="flex flex-wrap items-end gap-3 mb-4">
           <base-dropdown
             v-model="typeFilter"
             :label="$t('events.filterType')"
-            :options="typeOptions"
+            :options="typeDropdown"
             class="flex-1 min-w-[180px] max-w-xs"
           />
         </div>
-      </aside>
+      </base-sidebar>
 
       <div class="min-w-0">
         <!-- Solo salta si los datos se han quedado viejos. -->
@@ -206,7 +184,7 @@ onMounted(async () => {
         <base-empty-state v-else-if="list.length === 0" :message="$t('common.empty')" />
 
         <div v-else :class="rejilla">
-          <event-card v-for="event in list" :key="event.eventID" :event="event" :bonus="bonusDe(event)" @abrir="abierto = $event" />
+          <event-card v-for="event in list" :key="event.eventID" :event="event" :bonus="bonusDeEvento(noticias, event)" @abrir="abierto = $event" />
         </div>
       </div>
     </div>

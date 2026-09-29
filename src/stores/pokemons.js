@@ -1,13 +1,8 @@
 import { ref, computed } from 'vue';
-import { defineStore } from 'pinia';
+import { defineStore, acceptHMRUpdate } from 'pinia';
 import { supabase } from '../lib/supabaseClient';
 import { NEXT_LOAD_LENGTH_ITEMS } from '../utils/Settings';
 
-/**
- * Lo que pinta la tarjeta de la Pokédex. Con `*` cada Pokémon traía también
- * sus evoluciones, encuentros, ataques… (unos 2,7 KB): una página de 100
- * pesaba 270 KB para usar un 5 %. La ficha pide su fila entera aparte.
- */
 /**
  * Lo que pinta cada resultado del buscador: número (y con él el sprite),
  * nombre y las marcas de liberado. Van en la lista de nombres que se baja una
@@ -15,7 +10,26 @@ import { NEXT_LOAD_LENGTH_ITEMS } from '../utils/Settings';
  */
 const COLUMNAS_BUSCADOR = 'pokemon_id,name,is_shiny_released,can_dynamax,can_gigantamax';
 
+/**
+ * Lo que pinta la tarjeta de la Pokédex. Con `*` cada Pokémon traía también
+ * sus evoluciones, encuentros, ataques… (unos 2,7 KB): una página de 100
+ * pesaba 270 KB para usar un 5 %. La ficha pide su fila entera aparte.
+ */
 const COLUMNAS_TARJETA = 'pokemon_id,name,types,is_released,is_shiny_released,can_dynamax,can_gigantamax,sprite:sprites->>male';
+
+/** Los filtros sin nada puesto. */
+export const FILTROS_VACIOS = Object.freeze({
+    types: [],
+    generation: null,
+    rarity: null,
+    onlyShiny: false,
+    onlyShadow: false,
+    onlyDynamax: false,
+    onlyGigantamax: false
+});
+
+/** La primera página del listado. `range` de PostgREST incluye los dos extremos. */
+const PRIMERA_PAGINA = { start: 0, end: NEXT_LOAD_LENGTH_ITEMS - 1 };
 
 export const usePokemonsStore = defineStore('pokemon', () => {
     const pokemonList = ref([]);
@@ -24,15 +38,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
      * cliente: el listado se carga por páginas, así que filtrar lo ya traído
      * solo escondería resultados en vez de buscarlos.
      */
-    const filters = ref({
-        types: [],
-        generation: null,
-        rarity: null,
-        onlyShiny: false,
-        onlyShadow: false,
-        onlyDynamax: false,
-        onlyGigantamax: false
-    });
+    const filters = ref({ ...FILTROS_VACIOS });
     const totalCount = ref(null);
 
     /**
@@ -56,7 +62,6 @@ export const usePokemonsStore = defineStore('pokemon', () => {
 
     const pokemons = computed(() => pokemonsFiltered.value);
     const isLoading = computed(() => isLoadingPokemons.value);
-    const allPokemons = computed(() => pokemonList.value);
     const isSearching = computed(() => searchingPokemon.value)
 
     /** Traduce el estado de los filtros a condiciones de PostgREST. */
@@ -104,17 +109,25 @@ export const usePokemonsStore = defineStore('pokemon', () => {
      * (1025, poca cosa) se pide una vez y se busca en ella; primero los que
      * empiezan por lo escrito y luego los que lo contienen.
      */
-    let nombres = null;
     const normalizar = (texto) => String(texto ?? '')
         .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .toLowerCase().replace(/[^a-z0-9]/g, '');
-    const cargarNombres = async() => {
-        if(!nombres) {
+    // La promesa y no la lista: mientras llegaba la primera respuesta, cada
+    // tecla pedía otra vez las 1025 filas.
+    let nombres = null;
+    const cargarNombres = () => {
+        nombres ??= supabase.from('pokemons').select(COLUMNAS_BUSCADOR).order('pokemon_id')
             // Sin .range, Supabase corta en 1000 filas y faltarían los últimos.
-            const { data } = await supabase.from('pokemons').select(COLUMNAS_BUSCADOR).order('pokemon_id').range(0, 1999);
-            if(data?.length) nombres = data;
-        }
-        return nombres ?? [];
+            .range(0, 1999)
+            .then(({ data }) => {
+                // Vacía (sin red, por ejemplo): se vuelve a pedir la próxima vez.
+                if(!data?.length) nombres = null;
+                return data ?? [];
+            }, () => {
+                nombres = null;
+                return [];
+            });
+        return nombres;
     };
     const buscarPorNombre = async(texto) => {
         const q = normalizar(texto);
@@ -134,13 +147,8 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         if(!toSearchModal) searchTerm.value = value;
 
         if(!value) {
-            if(toSearchModal) {
-                if(allPokemons.value.length === 0) {
-                    const { data: pokemons } = await supabase.from('pokemons').select(COLUMNAS_BUSCADOR);
-                    return pokemons || [];
-                }
-                return pokemonList.value;
-            }
+            // Antes pedía la tabla sin .range, y Supabase cortaba en 1000.
+            if(toSearchModal) return pokemonList.value.length ? pokemonList.value : cargarNombres();
             pokemonsFiltered.value = pokemonList.value.slice(0, NEXT_LOAD_LENGTH_ITEMS);
             return;
         }
@@ -148,7 +156,14 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         // El desplegable solo necesita número y nombre.
         if(toSearchModal && isWritingName) return buscarPorNombre(value);
 
-        const peticion = nuevaPeticion();
+        // El desplegable no toca el listado, así que no compite con él: si
+        // contara, un número tecleado fuera de la Pokédex cancelaba la página
+        // que estuviera cargando.
+        const peticion = toSearchModal ? null : nuevaPeticion();
+        // La búsqueda sustituye a la carga que hubiera en marcha, que ya no
+        // pintará nada: si no se soltaba aquí, el scroll infinito se quedaba
+        // esperando a que acabara para siempre.
+        if(!toSearchModal) isLoadingPokemons.value = false;
         let pokemons;
         if(isWritingName) {
             const encontrados = await buscarPorNombre(value);
@@ -170,23 +185,25 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         return;
     }
 
-    const getPokemons = async(range = { start: 0, end: NEXT_LOAD_LENGTH_ITEMS }) => {
+    /**
+     * Pide un tramo del listado y, si sigue siendo lo último que se pidió, lo
+     * pone (`poner`). La carga se apaga siempre que esta sea la última, aunque
+     * falle; si otra la ha sustituido, es esa la que la apagará.
+     */
+    const cargarTramo = async(range, poner) => {
         const peticion = nuevaPeticion();
         isLoadingPokemons.value = true;
-        const resultado = await fetchPokemonsRange(range);
-        if(!esLaUltima(peticion)) return;
-        setPokemons(resultado);
-        isLoadingPokemons.value = false;
+        try {
+            const resultado = await fetchPokemonsRange(range);
+            if(esLaUltima(peticion)) poner(resultado);
+        } finally {
+            if(esLaUltima(peticion)) isLoadingPokemons.value = false;
+        }
     }
 
-    const addPokemons = async(range = { start: 0, end: NEXT_LOAD_LENGTH_ITEMS}) => {
-        const peticion = nuevaPeticion();
-        isLoadingPokemons.value = true;
-        const resultado = await fetchPokemonsRange(range);
-        if(!esLaUltima(peticion)) return;
-        setAddPokemons(resultado);
-        isLoadingPokemons.value = false;
-    }
+    const getPokemons = (range = PRIMERA_PAGINA) => cargarTramo(range, setPokemons);
+
+    const addPokemons = (range) => cargarTramo(range, setAddPokemons);
 
     /**
      * Cambia los filtros y vuelve a empezar el listado.
@@ -194,19 +211,11 @@ export const usePokemonsStore = defineStore('pokemon', () => {
      */
     const setFilters = async(newFilters) => {
         filters.value = { ...filters.value, ...newFilters };
-        const peticion = nuevaPeticion();
-        isLoadingPokemons.value = true;
-        const resultado = await fetchPokemonsRange({ start: 0, end: NEXT_LOAD_LENGTH_ITEMS });
-        if(!esLaUltima(peticion)) return totalCount.value;
-        setPokemons(resultado);
-        isLoadingPokemons.value = false;
+        await cargarTramo(PRIMERA_PAGINA, setPokemons);
         return totalCount.value;
     }
 
-    const clearFilters = () => setFilters({
-        types: [], generation: null, rarity: null, onlyShiny: false, onlyShadow: false,
-        onlyDynamax: false, onlyGigantamax: false
-    });
+    const clearFilters = () => setFilters(FILTROS_VACIOS);
 
     /** Cuántos filtros hay puestos, para el contador del botón. */
     const activeFilterCount = computed(() => {
@@ -219,14 +228,6 @@ export const usePokemonsStore = defineStore('pokemon', () => {
             + (active.onlyDynamax ? 1 : 0)
             + (active.onlyGigantamax ? 1 : 0);
     });
-
-    const getPokemon = (id) => {
-        if(!id) {
-            console.warn('No se ha encontrado ID para buscar al pokemon.');
-            return undefined;
-        }
-        return pokemonList.value.find( pokemon => pokemon.pokemon_id === id );
-    }
 
     const setPokemons = (pokemonsArr) => {
         pokemonList.value = [...pokemonsArr];
@@ -243,13 +244,11 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     return {
         activeFilterCount,
         addPokemons,
-        allPokemons,
         clearFilters,
         filters,
         setFilters,
         totalCount,
         filterPokemons,
-        getPokemon,
         getPokemons,
         isLoading,
         isSearching,
@@ -258,3 +257,5 @@ export const usePokemonsStore = defineStore('pokemon', () => {
         pokemons
     }
   })
+
+if (import.meta.hot) import.meta.hot.accept(acceptHMRUpdate(usePokemonsStore, import.meta.hot));

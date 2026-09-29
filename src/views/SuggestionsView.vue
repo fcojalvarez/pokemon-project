@@ -96,7 +96,7 @@ const signIn = async () => {
 
 const signOut = async () => {
   await auth.signOut()
-  items.value = []
+  suggestions.reset()
 }
 
 /**

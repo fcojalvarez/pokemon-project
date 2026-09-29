@@ -5,18 +5,18 @@ import BaseEmptyState from '../components/base/BaseEmptyState.vue'
 import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
 import BaseDropdown from '../components/base/BaseDropdown.vue'
 import BasePillButton from '../components/base/BasePillButton.vue'
+import BaseSidebar from '../components/base/BaseSidebar.vue'
 import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import AttackerList from '../components/rankings/AttackerList.vue'
 import AttackerTable from '../components/rankings/AttackerTable.vue'
 import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
 import StabBadge from '../components/base/StabBadge.vue'
-import { POTENCIA_MAX, mejorRapido, pesoAtaqueMax } from '../utils/maxBattle'
 import BaseChevron from '../components/base/BaseChevron.vue'
 import { useMedia } from '../composables/useMedia'
 import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useTranslate } from '../composables/useTranslate'
-import { gigamaxSpriteId } from '../utils/gigamax'
+import { useTopFilas } from '../composables/useTopFilas'
 
 const gameData = useGameDataStore()
 const { t } = useTranslate()
@@ -44,6 +44,23 @@ const includeElite = ref(true)
  * conseguir cualquier día en un nodo energético.
  */
 const includeLegendary = ref(true)
+
+/**
+ * Los botones de «Incluir» de cada modo. En Dinamax solo hay uno, los
+ * legendarios; en PvP, ninguno.
+ */
+const incluir = computed(() => {
+  if (mode.value === 'pve') {
+    return [
+      { clave: 'mega', valor: includeMega, texto: 'top.megas' },
+      { clave: 'shadow', valor: includeShadow, texto: 'top.shadows' },
+      { clave: 'legacy', valor: includeLegacy, texto: 'moves.legacy', ayuda: 'top.legacyHelp' },
+      { clave: 'elite', valor: includeElite, texto: 'moves.elite', ayuda: 'top.eliteHelp' }
+    ]
+  }
+  if (mode.value === 'max') return [{ clave: 'legendary', valor: includeLegendary, texto: 'top.legendaries', ayuda: 'top.legendaryHelp' }]
+  return []
+})
 
 /**
  * La selección va en la URL (en inglés, como las rutas): al ir a una ficha y
@@ -141,196 +158,12 @@ const filtrosCambiados = computed(
     (mode.value === 'max' && !includeLegendary.value ? 1 : 0)
 )
 
+const { pveRows, pvpRows, maxRows, filasVisibles, origenes, leyendaMax } = useTopFilas({
+  mode, type, sortBy, league, includeMega, includeShadow, includeLegacy, includeElite, includeLegendary
+})
+
 /** Si la pestaña activa tiene algo que pintar; si no, sale el vacío. */
-const rowsShown = computed(() =>
-  mode.value === 'max' ? maxRows.value.length
-    : mode.value === 'pve' ? pveRows.value.length
-      : pvpRows.value.length
-)
-
-const pveRows = computed(() => {
-  if (!gameData.isReady || mode.value !== 'pve') return []
-  const rankings = gameData.pveRankings({
-    includeMega: includeMega.value,
-    includeShadow: includeShadow.value,
-    includeLegacy: includeLegacy.value,
-    includeElite: includeElite.value,
-    sortBy: sortBy.value,
-    limit: 50
-  })
-  return type.value === 'all' ? rankings.overall : rankings.byType[type.value] ?? []
-})
-
-const pvpRows = computed(() => {
-  if (!gameData.isReady || mode.value !== 'pvp') return []
-  const rows = gameData.pvp[league.value] ?? []
-  return type.value === 'all' ? rows : rows.filter((row) => row.types.includes(type.value))
-})
-
-/**
- * Top de Dinamax, ordenado por ataque base.
- *
- * Aquí no se puede calcular un DPS como en el PvE: los ataques Max no publican
- * potencia, el daño lo resuelve el cliente del juego a partir del nivel del
- * movimiento. Lo que sí se sabe es el tipo: el Ataque Max de un Dinamax es del
- * tipo de su ataque RÁPIDO, y todos los de un tipo son el mismo ataque. Así
- * que dentro de un tipo la potencia se cancela y queda el ataque base, con el
- * STAB (×1,2 si el Pokémon es de ese tipo).
- *
- * Con un tipo elegido salen todos los que pueden sacar ese Ataque Max, sean o
- * no de ese tipo, con los rápidos que llevan a él. Con «Todos», por ataque
- * base, con todos sus Ataques Max: sin tipo no se comparan ataques distintos.
- *
- * Dinamax y Gigamax van en filas distintas, cada una con su marca: son
- * Pokémon distintos en el juego (hay especies que solo han salido en una de
- * las dos, y otras en las dos), y el Gigamax pega con su ataque propio, fijo,
- * sea cual sea su rápido. Por eso en su fila va el mejor rápido (el que antes
- * llena el medidor).
- *
- * Cada fila lleva, bajo el nombre, su Ataque Max (o su ataque Gigamax) y
- * debajo los rápidos con los que se saca. Con «Todos», una línea así por cada
- * Ataque Max que tenga.
- */
-const chipRapido = (movimiento) => ({ id: movimiento.id, name: movimiento.name, nameEs: movimiento.nameEs, type: movimiento.type })
-
-/**
- * Una línea de la fila: el Ataque Max y los rápidos que lo dan. Con un ataque
- * fijo (Gigamax o exclusivo), el mejor rápido para llenar el medidor.
- */
-const lineaMax = (opcion, entry) => ({
-  max: opcion.max,
-  gigamax: opcion.gigamax,
-  rapidos: opcion.gigamax || opcion.exclusivo
-    ? [mejorRapido(entry, gameData.moves)].filter(Boolean).map(chipRapido)
-    : opcion.rapidos.map(chipRapido)
-})
-
-const maxRows = computed(() => {
-  if (!gameData.isReady || mode.value !== 'max') return []
-
-  const vistos = new Set()
-  const filas = []
-  for (const entry of gameData.roster) {
-    if (!entry.dynamax && !entry.gigantamax) continue
-    if (!includeLegendary.value && (entry.legendary || entry.mythical)) continue
-    const opciones = gameData.maxInfoFor(entry)?.opciones ?? []
-    // Una fila por cada puntuación distinta: los Ataques Max de su tipo pegan
-    // igual (misma potencia, con STAB) y van juntos; los ajenos a su tipo,
-    // sin STAB, pegan menos y salen en otra fila más abajo. Así Alakazam
-    // queda arriba con Maxionda y más abajo con Maxipuño, y Excadrill sale
-    // una sola vez con Maxitemblor y Maximetal, que son de sus dos tipos.
-    const grupos = new Map()
-    for (const opcion of opciones) {
-      if (type.value !== 'all' && opcion.max.type !== type.value) continue
-      const version = opcion.gigamax ? 'gigantamax' : 'dynamax'
-      const peso = pesoAtaqueMax(entry, opcion)
-      const clave = `${entry.dex}-${version}-${Math.round(peso)}`
-      if (!grupos.has(clave)) grupos.set(clave, { version, peso, stab: opcion.stab, opciones: [] })
-      grupos.get(clave).opciones.push(opcion)
-    }
-    for (const [clave, grupo] of grupos) {
-      // Los Pikachu con gorro comparten stats con el normal: una fila basta.
-      if (vistos.has(clave)) continue
-      vistos.add(clave)
-      filas.push({
-        entry,
-        version: grupo.version,
-        maxId: grupo.opciones.map((opcion) => opcion.max.id).join('+'),
-        maxLines: grupo.opciones.map((opcion) => lineaMax(opcion, entry)),
-        stab: grupo.stab,
-        // Potencia × ataque × STAB, en la escala del ataque: el de un Dinamax
-        // sin STAB (base + 15 de IV). Un Gigamax pega 450 en vez de 350.
-        value: grupo.peso / POTENCIA_MAX
-      })
-    }
-  }
-
-  return filas
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 50)
-    .map(({ entry, version, maxId, maxLines, stab, value }, indice) => ({
-      id: `${entry.id}-${maxId}`,
-      version,
-      maxLines,
-      rank: indice + 1,
-      dex: entry.dex,
-      // La fila Gigamax, con su sprite gigamaxizado.
-      spriteId: version === 'gigantamax' ? gigamaxSpriteId(entry.spriteId) : entry.spriteId,
-      name: entry.name,
-      nameEs: entry.nameEs,
-      types: entry.types,
-      moves: [],
-      stab,
-      value
-    }))
-})
-
-/** Qué marcas explica la leyenda del pie: solo las que salen en la lista. */
-const leyendaMax = computed(() => ({
-  stab: maxRows.value.some((fila) => fila.stab),
-  gigantamax: maxRows.value.some((fila) => fila.version === 'gigantamax')
-}))
-
-const moveType = (id) => gameData.moves[id]?.type ?? 'normal'
-
-/**
- * Las filas de PvP llegan de pvpoke con otra forma (movimientos por id y una
- * puntuación en vez de DPS). Se traducen aquí a lo que espera AttackerList,
- * que es quien pinta los dos rankings.
- */
-const pvpAsRows = computed(() =>
-  pvpRows.value.map((row) => {
-    const entry = gameData.byId.get(row.id)
-    const elite = new Set(entry?.eliteMoves ?? [])
-    const legacy = new Set(entry?.legacyMoves ?? [])
-    const mega = new Set(entry?.megaMoves ?? [])
-    return {
-      id: row.id,
-      rank: row.rank,
-      dex: entry?.dex ?? null,
-      spriteId: entry?.spriteId ?? 0,
-      // Para el halo morado del oscuro, como en el PvE.
-      shadow: Boolean(entry?.shadow),
-      name: row.name,
-      nameEs: row.nameEs,
-      types: row.types,
-      // Sin el movimiento en moves.json queda el id, que es mejor que nada.
-      moves: (row.moveset ?? []).map((id) => ({
-        id,
-        name: gameData.moves[id]?.name ?? id,
-        nameEs: gameData.moves[id]?.nameEs ?? id,
-        type: moveType(id),
-        elite: elite.has(id),
-        legacy: legacy.has(id),
-        mega: mega.has(id)
-      })),
-      value: row.score
-    }
-  })
-)
-
-/**
- * Qué procedencias de movimiento salen en la tabla que se está viendo.
- *
- * La leyenda solo explica los colores que de verdad aparecen: si en ese top no
- * hay ningún legacy, decir qué significa el morado sobra y despista.
- */
-const filasVisibles = computed(() =>
-  mode.value === 'max' ? maxRows.value : mode.value === 'pve' ? pveRows.value : pvpAsRows.value
-)
-
-const origenes = computed(() => {
-  const marcas = { elite: false, legacy: false, mega: false }
-  for (const fila of filasVisibles.value) {
-    const movimientos = fila.moves ?? [fila.fast, fila.charged].filter(Boolean)
-    for (const m of movimientos) {
-      if (m?.elite) marcas.elite = true
-      if (m?.legacy) marcas.legacy = true
-      if (m?.mega) marcas.mega = true
-    }
-  }
-  return marcas
-})
+const rowsShown = computed(() => filasVisibles.value.length)
 
 onMounted(() => gameData.load())
 
@@ -355,11 +188,7 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
       en una columna, filtros arriba y lista de tarjetas.
     -->
     <div :class="ancho ? 'grid grid-cols-[280px_minmax(0,1fr)] gap-6 items-start' : ''">
-      <aside
-        :class="ancho
-          ? '[@media(min-height:720px)]:sticky top-[104px] flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
-          : ''"
-      >
+      <base-sidebar :activa="ancho">
         <!-- Móvil: una línea con lo elegido y el botón que abre los filtros. -->
         <div v-if="movil" class="flex items-center gap-3 mb-3">
           <p class="flex-1 min-w-0 text-mini text-gray-600 dark:text-gray-300 truncate" :title="resumenFiltros">
@@ -414,7 +243,7 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
           Mismo trato que los selectores: etiqueta encima y botones del mismo
           alto repartidos en rejilla.
         -->
-        <div v-if="mode === 'pve'" :class="ancho ? '' : 'mb-3'">
+        <div v-if="incluir.length" :class="ancho ? '' : 'mb-3'">
           <span
             id="incluir-top"
             class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
@@ -427,72 +256,23 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
             :class="ancho ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'"
           >
             <base-pill-button
+              v-for="opcion in incluir"
+              :key="opcion.clave"
               :class="boton"
-              :active="includeMega"
-              @click="includeMega = !includeMega"
+              :active="opcion.valor.value"
+              :title="opcion.ayuda ? $t(opcion.ayuda) : undefined"
+              @click="opcion.valor.value = !opcion.valor.value"
             >
-              {{ $t('top.megas') }}
-            </base-pill-button>
-            <base-pill-button
-              :class="boton"
-              :active="includeShadow"
-              @click="includeShadow = !includeShadow"
-            >
-              {{ $t('top.shadows') }}
-            </base-pill-button>
-            <base-pill-button
-              :class="boton"
-              :active="includeLegacy"
-              :title="$t('top.legacyHelp')"
-              @click="includeLegacy = !includeLegacy"
-            >
-              {{ $t('moves.legacy') }}
-            </base-pill-button>
-            <base-pill-button
-              :class="boton"
-              :active="includeElite"
-              :title="$t('top.eliteHelp')"
-              @click="includeElite = !includeElite"
-            >
-              {{ $t('moves.elite') }}
-            </base-pill-button>
-          </div>
-        </div>
-
-        <!-- En Dinamax solo hay un «Incluir»: los legendarios. -->
-        <div v-else-if="mode === 'max'" :class="ancho ? '' : 'mb-3'">
-          <span
-            id="incluir-top-max"
-            class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
-          >{{ $t('top.include') }}</span>
-          <div
-            role="group"
-            aria-labelledby="incluir-top-max"
-            class="grid gap-2"
-            :class="ancho ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'"
-          >
-            <base-pill-button
-              :class="boton"
-              :active="includeLegendary"
-              :title="$t('top.legendaryHelp')"
-              @click="includeLegendary = !includeLegendary"
-            >
-              {{ $t('top.legendaries') }}
+              {{ $t(opcion.texto) }}
             </base-pill-button>
           </div>
         </div>
         </div>
 
-        <move-legend
-          v-if="origenes.elite || origenes.legacy || origenes.mega"
-          :class="ancho ? '' : 'mb-3'"
-          :elite="origenes.elite"
-          :legacy="origenes.legacy"
-          :mega="origenes.mega"
-        />
+        <move-legend :class="ancho ? '' : 'mb-3'" v-bind="origenes" />
 
         <top-calculo v-if="ancho && mode === 'pve'" class="pt-3 border-t border-gray-300 dark:border-gray-700" />
-      </aside>
+      </base-sidebar>
 
       <div class="min-w-0">
         <!-- Filas con la forma de las de verdad: sprite, nombre, ataques y métrica. -->
@@ -553,7 +333,7 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
         <!-- PvP: la misma lista, sin barra ni métrica de apoyo (no hay DPS aquí). -->
         <attacker-list
           v-else
-          :rows="pvpAsRows"
+          :rows="pvpRows"
           sort-by="score"
           unit=""
           :show-bar="false"

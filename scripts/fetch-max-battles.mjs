@@ -21,9 +21,10 @@
 import fs from 'node:fs/promises'
 import { loadEnv } from './lib/env.mjs'
 import { dexPorNombre, maxEnEventos, sumarVistos } from './lib/maxLiberados.mjs'
+import { FEEDS } from '../src/utils/liveFeed.js'
 
 const FUENTE = 'https://www.snacknap.com/max-battles'
-const EVENTOS = 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/events.json'
+const EVENTOS = FEEDS.events
 const SECO = process.argv.includes('--dry-run')
 
 /**

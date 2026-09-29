@@ -22,11 +22,6 @@ const OPCIONALES = ['maxlive', 'traducciones']
 const APARTE = ['pvp', 'texts']
 
 /**
- * Formas y disfraces de cada Pokémon (Vivillon, Zygarde, Pikachu…). Pesan más
- * que el resto y solo hacen falta al abrir la galería de una ficha, así que se
- * piden entonces, una vez por sesión.
- */
-/**
  * Noticias oficiales de Pokémon GO asociadas a cada evento (las escribe
  * `pnpm noticias`): `{ eventos: {eventID: slug}, noticias: {slug: {url, es, en}} }`.
  * Solo hacen falta al abrir el detalle de un evento.
@@ -43,6 +38,11 @@ export function cargarNoticias() {
   return noticiasPendientes
 }
 
+/**
+ * Formas y disfraces de cada Pokémon (Vivillon, Zygarde, Pikachu…). Pesan más
+ * que el resto y solo hacen falta al abrir la galería de una ficha, así que se
+ * piden entonces, una vez por sesión.
+ */
 let formasPendientes = null
 export function cargarFormas() {
   formasPendientes ??= (async () => {
@@ -108,7 +108,7 @@ async function desdeFicheros(nombres = FICHEROS) {
  * filtros, así que cambiar de pestaña no repite el trabajo.
  */
 export const useGameDataStore = defineStore('gameData', () => {
-  const { t, te, locale } = useTranslate()
+  const { t, locale } = useTranslate()
 
   const roster = shallowRef([])
   const moves = shallowRef({})
@@ -167,6 +167,14 @@ export const useGameDataStore = defineStore('gameData', () => {
     return map
   })
 
+  /** Lo que piden opcionesMax y maxCounters para saber los Ataques Max. */
+  const datosMax = () => ({
+    moves: moves.value,
+    maxPorTipo: maxBattles.value.byType,
+    gmaxPorEspecie: maxBattles.value.gmaxBySpecies,
+    exclusivoPorForma: maxBattles.value.exclusiveByForm
+  })
+
   /**
    * Lo que hace falta para pintar los combates Max de un Pokémon del roster.
    *
@@ -177,14 +185,6 @@ export const useGameDataStore = defineStore('gameData', () => {
    * Devuelve null si ese Pokémon no puede dinamaxizar, que es lo normal: las
    * megas y los oscuros no pueden, y de los demás solo unos 156.
    */
-  /** Lo que piden opcionesMax y maxCounters para saber los Ataques Max. */
-  const datosMax = () => ({
-    moves: moves.value,
-    maxPorTipo: maxBattles.value.byType,
-    gmaxPorEspecie: maxBattles.value.gmaxBySpecies,
-    exclusivoPorForma: maxBattles.value.exclusiveByForm
-  })
-
   const maxInfoFor = (entry) => {
     if (!entry?.dynamax && !entry?.gigantamax) return null
     const datos = datosMax()
@@ -460,20 +460,6 @@ export const useGameDataStore = defineStore('gameData', () => {
     return delJuego !== text ? delJuego : autoTranslate(text)
   }
 
-  /**
-   * Nombre del tipo en el idioma de la app. El español sale de la tabla de
-   * tipos del juego; el inglés, de los ficheros de idioma o, si es un tipo
-   * nuevo que aún no está ahí, del propio id con mayúscula.
-   */
-  const typeName = (type) => {
-    if (locale() === 'en') {
-      if (te(`types.${type}`)) return t(`types.${type}`)
-      const id = String(type ?? '')
-      return id.charAt(0).toUpperCase() + id.slice(1)
-    }
-    return typeChart.value.es[type] ?? type
-  }
-
   return {
     roster,
     moves,
@@ -481,7 +467,6 @@ export const useGameDataStore = defineStore('gameData', () => {
     pvp,
     texts,
     meta,
-    maxBattles,
     maxLive,
     maxLiveEdad,
     maxLiveCaducado,
@@ -494,7 +479,6 @@ export const useGameDataStore = defineStore('gameData', () => {
     types,
     chart,
     byId,
-    namesEs,
     baseByDex,
     baseByName,
     fichaBase,
@@ -512,11 +496,9 @@ export const useGameDataStore = defineStore('gameData', () => {
     cargarPvp,
     estadoAparte,
     pvpListo,
-    cargarTextos,
     traducciones,
     autoTranslate,
-    translateText,
-    typeName
+    translateText
   }
 })
 

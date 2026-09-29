@@ -17,6 +17,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadEnv } from './lib/env.mjs'
+import { FEEDS } from '../src/utils/liveFeed.js'
 import {
   fusionar,
   glosario,
@@ -29,10 +30,8 @@ import {
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const SECO = process.argv.includes('--dry-run')
 
-const FUENTES = {
-  events: 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/events.json',
-  research: 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/research.json'
-}
+// Los dos feeds con texto en inglés que la app enseña.
+const FUENTES = { events: FEEDS.events, research: FEEDS.research }
 
 /**
  * Tope de textos por pasada. Normalmente llegan unos pocos, pero la primera

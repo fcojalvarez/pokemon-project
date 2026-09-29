@@ -4,6 +4,7 @@ import { useLiveStore } from '../../stores/live'
 import { useGameDataStore } from '../../stores/gameData'
 import { formatDuration } from '../../utils/time'
 import { useTranslate } from '../../composables/useTranslate'
+import { useEventos } from '../../composables/useEventos'
 import {
   parseEventName,
   parseMaxBattle,
@@ -30,11 +31,8 @@ const live = useLiveStore()
 const gameData = useGameDataStore()
 const { t, te, localName, intlLocale } = useTranslate()
 
-/** LeekDuck publica tipos nuevos de vez en cuando: si falta, usamos su título. */
-const typeLabel = computed(() => {
-  const key = `events.types.${props.event.eventType}`
-  return te(key) ? t(key) : gameData.autoTranslate(props.event.heading) || t('events.types.event')
-})
+const { tipoDeEvento } = useEventos()
+const typeLabel = computed(() => tipoDeEvento(props.event))
 
 const countdown = computed(() => {
   const target = props.event.status === 'upcoming' ? props.event.startDate : props.event.endDate

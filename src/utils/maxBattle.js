@@ -40,9 +40,9 @@ export const STAB = 1.2
  * compara con el ataque al máximo normal, el nivel 3. Estas constantes solo
  * son el respaldo si un movimiento llega sin potencia.
  */
-export const NIVEL_MAX = 3
+const NIVEL_MAX = 3
 export const POTENCIA_MAX = 350
-export const POTENCIA_GIGAMAX = 450
+const POTENCIA_GIGAMAX = 450
 
 /** La potencia de un Ataque Max al nivel 3, la de los datos si la trae. */
 export function potenciaMax(max, { gigamax = false } = {}) {

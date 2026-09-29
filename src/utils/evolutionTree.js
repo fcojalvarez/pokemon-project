@@ -13,7 +13,7 @@
  * viajan en la rama (la flecha), no en el nodo.
  */
 
-export const CAMPOS_REQUISITO = [
+const CAMPOS_REQUISITO = [
   'candy_required',
   'mega_energy_required',
   'item_required',

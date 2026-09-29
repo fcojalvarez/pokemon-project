@@ -19,6 +19,8 @@ import { spriteUrl } from '../../utils/sprites'
 import BaseSprite from '../base/BaseSprite.vue'
 import { localName } from '../../composables/useTranslate'
 import StabBadge from '../base/StabBadge.vue'
+import MaxMoveLines from './MaxMoveLines.vue'
+import { movesOf, rowKey } from '../../utils/rankingRows'
 
 const props = defineProps({
   rows: { type: Array, required: true },
@@ -37,11 +39,6 @@ const unitLabel = computed(() => props.unit ?? UNITS[props.sortBy] ?? '')
 
 const valueOf = (row) => row.value ?? row[props.sortBy]
 
-/** Las filas de PvE traen `fast`/`charged`; las de PvP, una lista ya montada. */
-const movesOf = (row) => row.moves ?? [row.fast, row.charged].filter(Boolean)
-
-const rowKey = (row) => [row.id, ...movesOf(row).map((move) => move?.id ?? move?.nameEs)].join('-')
-
 const max = computed(() => (props.rows.length ? valueOf(props.rows[0]) || 1 : 1))
 
 const mainValue = (row) => {
@@ -51,7 +48,6 @@ const mainValue = (row) => {
 }
 
 const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
-
 </script>
 
 <template>
@@ -97,33 +93,11 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
             <type-icons :types="row.types" size="12" class="shrink-0" />
           </div>
 
-          <!--
-            Max: su Ataque Max (el Gigamax, en fucsia) y debajo los rápidos que
-            lo dan. Con «Todos», un bloque así por cada Ataque Max. El Ataque
-            Max lleva el mismo sangrado que el borde y el relleno de la píldora
-            de debajo, para que sus iconos queden en la misma columna.
-          -->
-          <template v-if="row.maxLines">
-            <div v-for="linea in row.maxLines" :key="linea.max.id" class="min-w-0 text-mini text-gray-600 dark:text-gray-300">
-              <p
-                class="flex items-center gap-1 pl-[9px] text-xs font-semibold"
-                :class="linea.gigamax ? 'text-fuchsia-700 dark:text-fuchsia-300' : 'text-gray-800 dark:text-gray-100'"
-                :title="linea.gigamax ? $t('moves.gigamaxHelp') : null"
-              >
-                <type-icons :types="[linea.max.type]" size="10" />
-                {{ localName(linea.max) }}
-              </p>
-              <span class="mt-1 flex flex-wrap gap-1.5">
-                <move-tag
-                  v-for="rapido in linea.rapidos"
-                  :key="rapido.id"
-                  chip
-                  :name="localName(rapido)"
-                  :type="rapido.type"
-                />
-              </span>
-            </div>
-          </template>
+          <max-move-lines
+            v-if="row.maxLines"
+            :lines="row.maxLines"
+            line-class="min-w-0 text-mini text-gray-600 dark:text-gray-300"
+          />
           <!--
             PvE: rápido y cargado, cada uno en su fila. Casi nunca caben juntos, y
             las pocas filas en que sí salían más bajas que el resto.
@@ -142,7 +116,6 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
               :elite="move.elite"
               :legacy="move.legacy"
               :mega="move.mega"
-              :gigamax="move.gigamax"
             />
           </div>
         </div>

@@ -8,7 +8,7 @@ import { supabaseCompleto } from '../lib/supabaseClient'
 export const CATEGORIES = ['bug', 'idea', 'data', 'other']
 export const STATUSES = ['new', 'doing', 'done', 'discarded']
 
-export const MIN_MESSAGE = 10
+const MIN_MESSAGE = 10
 export const MAX_MESSAGE = 2000
 
 /**
@@ -82,11 +82,6 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
   const isSending = ref(false)
   const error = ref(null)
 
-  /** Cuántas hay sin tocar, para el contador del panel. */
-  const pendingCount = computed(
-    () => items.value.filter((item) => item.status === 'new').length
-  )
-
   const countsByStatus = computed(() =>
     Object.fromEntries(
       STATUSES.map((status) => [
@@ -95,6 +90,14 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
       ])
     )
   )
+
+  /** Cuántas hay sin tocar, para el contador del panel. */
+  const pendingCount = computed(() => countsByStatus.value.new)
+
+  /** Al cerrar sesión: la lista era de quien la tenía abierta. */
+  const reset = () => {
+    items.value = []
+  }
 
   /**
    * Envía una sugerencia.
@@ -196,7 +199,8 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
     load,
     update,
     setStatus,
-    remove
+    remove,
+    reset
   }
 })
 

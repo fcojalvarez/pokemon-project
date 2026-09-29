@@ -49,14 +49,6 @@ describe('store de datos de juego según el idioma', () => {
     expect(store.nombreEs('Machop')).toBe('Machop')
   })
 
-  it('typeName sale de la tabla del juego en español y de los ficheros de idioma en inglés', () => {
-    expect(store.typeName('fire')).toBe('Fuego')
-    i18n.global.locale = 'en'
-    expect(store.typeName('fire')).toBe('Fire')
-    // Un tipo que aún no está en los ficheros: el id con mayúscula.
-    expect(store.typeName('stellar')).toBe('Stellar')
-  })
-
   it('translateText no traduce nada con la app en inglés', () => {
     expect(store.translateText('Trade Pokémon')).toBe('Intercambia Pokémon')
     i18n.global.locale = 'en'

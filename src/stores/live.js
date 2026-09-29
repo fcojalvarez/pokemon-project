@@ -1,75 +1,36 @@
 import { computed, ref } from 'vue'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { normalizeName } from '../utils/gameText'
-
-// Se reexporta porque es aquí donde la buscan quienes ya la usaban.
-export { normalizeName }
-
-const FEEDS = {
-  events: 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/events.json',
-  raids: 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/raids.json',
-  eggs: 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/eggs.json',
-  research: 'https://raw.githubusercontent.com/bigfoott/ScrapedDuck/data/research.json'
-}
+import { FEEDS, MAX_CACHE_AGE_MS, eventStatus, isCacheExpired, parseDate } from '../utils/liveFeed'
 
 const STORAGE_KEY = 'pogodex:live'
 
-/**
- * Cuánto vale la caché. Las incursiones, huevos y tareas del feed no llevan
- * fecha: son "lo que hay ahora". Lo único que dice si siguen valiendo es
- * cuándo se descargaron, así que pasado este plazo no se muestran como
- * actuales: o se recarga, o se avisa de que son viejas.
- */
-const MAX_CACHE_AGE_MS = 6 * 60 * 60 * 1000
+const TIER_ORDER = [
+  '1-Star Raids',
+  '3-Star Raids',
+  '5-Star Raids',
+  'Mega Raids',
+  'Elite Raids'
+]
 
-/**
- * LeekDuck publica las fechas en hora local sin zona horaria
- * ("2026-09-26T10:00:00.000"), que es justo como funcionan los eventos de
- * Pokémon GO: a las 10:00 de donde estés. new Date() ya lo interpreta así.
- */
-export function parseDate(value) {
-  if (!value) return null
-  const date = new Date(value)
-  return Number.isNaN(date.getTime()) ? null : date
-}
+const EGG_ORDER = ['1 km', '2 km', '5 km', '7 km', '10 km', '12 km']
 
-export function eventStatus(event, now = new Date()) {
-  const start = parseDate(event.start)
-  const end = parseDate(event.end)
-  if (start && end) {
-    if (now < start) return 'upcoming'
-    if (now > end) return 'past'
-    return 'active'
+/** Agrupa por `key` y ordena los grupos según `order` (los desconocidos, al final). */
+function groupBy(list, key, order) {
+  const groups = new Map()
+  for (const item of list) {
+    if (!groups.has(item[key])) groups.set(item[key], [])
+    groups.get(item[key]).push(item)
   }
-  if (start && !end) return now < start ? 'upcoming' : 'active'
-  return 'undated'
+  return [...groups.entries()]
+    .sort((a, b) => {
+      const ia = order.indexOf(a[0])
+      const ib = order.indexOf(b[0])
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
+    })
+    .map(([name, list]) => ({ name, list }))
 }
 
-/**
- * ¿Siguen valiendo unos datos descargados en `fetchedAt`?
- *
- * Se separa de la store para poder probarla: es la regla que decide si al
- * abrir la app se enseñan las incursiones guardadas o se espera a las nuevas.
- */
-export function isCacheExpired(fetchedAt, now = new Date(), maxAgeMs = MAX_CACHE_AGE_MS) {
-  const at = parseDate(fetchedAt)
-  if (!at) return true
-  return now.getTime() - at.getTime() > maxAgeMs
-}
-
-/**
- * Número de Pokédex a partir de la imagen de LeekDuck.
- * Los ficheros se llaman `pm147.icon.png` o `pokemon_icon_147_00.png`, así que
- * el número sale de ahí sin tener que adivinarlo por el nombre.
- */
-export function dexFromImage(url) {
-  const file = String(url ?? '').split('/').pop() ?? ''
-  const match = /pm(\d+)|pokemon_icon_(\d+)/.exec(file)
-  if (!match) return null
-  return Number(match[1] ?? match[2])
-}
-
-/** Normaliza un nombre de LeekDuck para poder cruzarlo con la Pokédex. */
 function readCache() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -89,8 +50,8 @@ function writeCache(payload) {
 
 /**
  * Eventos, incursiones, huevos e investigaciones en vivo desde ScrapedDuck
- * (que scrapea LeekDuck). Se guardan en localStorage para que la app abra con
- * algo útil aunque no haya cobertura.
+ * (que scrapea LeekDuck, ver utils/liveFeed.js). Se guardan en localStorage
+ * para que la app abra con algo útil aunque no haya cobertura.
  */
 export const useLiveStore = defineStore('live', () => {
   const events = ref([])
@@ -166,8 +127,6 @@ export const useLiveStore = defineStore('live', () => {
       .sort((a, b) => (a.startDate?.getTime() ?? 0) - (b.startDate?.getTime() ?? 0))
   )
 
-  const undated = computed(() => withStatus.value.filter((e) => e.status === 'undated'))
-
   /** Hace cuánto se descargaron los datos, en ms. null si nunca. */
   const cacheAge = computed(() => {
     if (!fetchedAt.value) return null
@@ -177,35 +136,6 @@ export const useLiveStore = defineStore('live', () => {
 
   /** Datos con más de MAX_CACHE_AGE_MS: hay que avisar de que son viejos. */
   const isStale = computed(() => stale.value || (cacheAge.value ?? 0) > MAX_CACHE_AGE_MS)
-
-  const past = computed(() =>
-    withStatus.value
-      .filter((e) => e.status === 'past')
-      .sort((a, b) => (b.endDate?.getTime() ?? 0) - (a.endDate?.getTime() ?? 0))
-  )
-
-  const groupBy = (list, key, order) => {
-    const groups = new Map()
-    for (const item of list) {
-      if (!groups.has(item[key])) groups.set(item[key], [])
-      groups.get(item[key]).push(item)
-    }
-    return [...groups.entries()]
-      .sort((a, b) => {
-        const ia = order.indexOf(a[0])
-        const ib = order.indexOf(b[0])
-        return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
-      })
-      .map(([name, list]) => ({ name, list }))
-  }
-
-const TIER_ORDER = [
-  '1-Star Raids',
-  '3-Star Raids',
-  '5-Star Raids',
-  'Mega Raids',
-  'Elite Raids'
-]
 
   /**
    * Jefes por nivel, con los oscuros aparte.
@@ -248,7 +178,7 @@ const TIER_ORDER = [
       vistos.add(clave)
       return true
     })
-    return groupBy(unicos, 'eggType', ['1 km', '2 km', '5 km', '7 km', '10 km', '12 km'])
+    return groupBy(unicos, 'eggType', EGG_ORDER)
   })
 
   /**
@@ -330,13 +260,9 @@ const TIER_ORDER = [
     cacheAge,
     isStale,
     now,
-    statusClock,
     load,
-    withStatus,
     active,
     upcoming,
-    undated,
-    past,
     raidsByTier,
     eggsByType,
     whereToFind
