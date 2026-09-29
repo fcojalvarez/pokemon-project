@@ -145,10 +145,11 @@ const marcasLeyenda = computed(() =>
 )
 
 /**
- * En móvil no hay barra lateral y las misiones son una lista muy larga: una
- * fila de chips fija arriba lleva a cada categoría. Solo salta, no filtra,
- * para que siga viéndose todo al bajar.
+ * En móvil no hay barra lateral y cada pestaña es una lista larga: una fila de
+ * chips fija arriba lleva a cada grupo. Solo salta, no filtra, para que siga
+ * viéndose todo al bajar. Son los grupos de la barra lateral sin «Todas».
  */
+const atajos = computed(() => filtros.value.filter((opcion) => opcion.value !== 'all'))
 const irACategoria = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
 const jefeAbierto = computed(() => live.raids.find((raid) => raid.name === openBoss.value) ?? null)
@@ -327,6 +328,30 @@ onMounted(() => {
           </base-pill-button>
         </div>
 
+        <!--
+          En móvil no hay barra lateral y las pestañas son listas largas: una
+          fila de chips fija arriba lleva a cada grupo. Son los mismos grupos
+          de la barra lateral, pero aquí solo saltan, no filtran.
+          top-16 / sm:top-14: justo debajo de la cabecera fija (64 px en móvil, 56 desde sm).
+        -->
+        <nav
+          v-if="live.status === 'ready' && !ancho && atajos.length > 1"
+          :aria-label="tabLabel(tab)"
+          class="sticky top-16 sm:top-14 z-10 -mx-4 px-4 py-2 mb-3 flex gap-2 overflow-x-auto bg-gray-100 dark:bg-gray-700 [scrollbar-width:none]"
+        >
+          <button
+            v-for="atajo in atajos"
+            :key="atajo.value"
+            type="button"
+            class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+            @click="irACategoria(atajo.value)"
+          >
+            {{ atajo.label }}
+            <!-- Entre paréntesis: con «Nivel 1» o «5 km» delante, «Nivel 1 4» no se leía. -->
+            <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums">({{ atajo.count }})</span>
+          </button>
+        </nav>
+
         <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
           <section v-for="grupo in 2" :key="grupo" class="mb-5">
             <span class="esqueleto block h-4 w-20 mb-2 rounded-full"></span>
@@ -362,8 +387,9 @@ onMounted(() => {
 
           <section
             v-for="group in incursionesVisibles"
+            :id="idIncursion(group)"
             :key="group.name"
-            class="mb-5"
+            class="mb-5 scroll-mt-36"
           >
             <h2 class="text-sm font-bold mb-2">
               {{ group.shadow ? $t('raids.tiers.shadow') : tierLabel(group.name) }}
@@ -420,8 +446,9 @@ onMounted(() => {
 
             <section
               v-for="grupo in maxVisibles"
+              :id="idMax(grupo)"
               :key="grupo.tier"
-              class="mb-5"
+              class="mb-5 scroll-mt-36"
             >
               <h3 class="text-sm font-bold mb-2">
                 {{ $t('max.tier', { n: grupo.tier }) }}
@@ -484,8 +511,9 @@ onMounted(() => {
 
           <section
             v-for="group in huevosVisibles"
+            :id="idHuevo(group)"
             :key="group.name"
-            class="mb-5"
+            class="mb-5 scroll-mt-36"
           >
             <h2 class="text-sm font-bold mb-2">{{ group.name }}</h2>
             <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
@@ -508,23 +536,6 @@ onMounted(() => {
         <template v-else>
           <base-empty-state v-if="researchGroups.length === 0" :message="$t('raids.noResearch')" />
 
-          <!-- top-16 / sm:top-14: justo debajo de la cabecera fija (64 px en móvil, 56 desde sm). -->
-          <nav
-            v-if="!ancho && researchGroups.length > 1"
-            :aria-label="tabLabel('research')"
-            class="sticky top-16 sm:top-14 z-10 -mx-4 px-4 py-2 mb-3 flex gap-2 overflow-x-auto bg-gray-100 dark:bg-gray-700 [scrollbar-width:none]"
-          >
-            <button
-              v-for="group in researchGroups"
-              :key="group.type"
-              type="button"
-              class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
-              @click="irACategoria(idTarea(group))"
-            >
-              {{ group.label }}
-              <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums">{{ group.list.length }}</span>
-            </button>
-          </nav>
 
           <!-- scroll-mt: al saltar desde los chips, que el título no quede debajo de la cabecera y de ellos. -->
           <section

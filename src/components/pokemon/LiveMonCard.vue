@@ -56,7 +56,12 @@ const to = computed(() => (props.dex ? `/pokemon/${props.dex}` : null))
       highlight ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950' : ''
     ]"
   >
-    <span class="relative shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center">
+    <!--
+      `isolate`: el z-10 de la marca shiny tiene que ganar al sprite y a nada
+      más. Suelto, competía con la barra fija de filtros de Ahora (también
+      z-10, pero antes en el DOM) y la marca asomaba por encima al hacer scroll.
+    -->
+    <span class="relative isolate shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center">
       <!-- El aura del oscuro la pone BaseSprite: no hay sprite con ella. -->
       <base-sprite
         v-if="image"
