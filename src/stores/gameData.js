@@ -281,8 +281,14 @@ export const useGameDataStore = defineStore('gameData', () => {
     return map
   })
 
+  /**
+   * Resultados ya calculados (rankings, counters…). Solo se guardan con los
+   * datos cargados: calculado antes, un resultado vacío se quedaba para toda
+   * la sesión. Con datos nuevos (load), se empieza de cero.
+   */
   const cache = new Map()
   const cached = (key, factory) => {
+    if (status.value !== 'ready') return factory()
     if (!cache.has(key)) cache.set(key, factory())
     return cache.get(key)
   }
@@ -320,6 +326,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     maxLive.value = datos.maxlive ?? null
     traducciones.value = datos.traducciones?.es ?? {}
     meta.value = datos.meta
+    cache.clear()
     status.value = 'ready'
   }
 

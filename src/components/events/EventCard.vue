@@ -34,14 +34,23 @@ const { t, te, localName, intlLocale } = useTranslate()
 const { tipoDeEvento } = useEventos()
 const typeLabel = computed(() => tipoDeEvento(props.event))
 
-const countdown = computed(() => {
+/**
+ * La cuenta atrás. El reloj va al segundo, pero el texto solo cambia cuando
+ * cambia lo que se ve («2 h 14 min» dura un minuto entero): por eso son dos
+ * valores sueltos (texto y urgencia) y no un objeto, que al ser uno nuevo cada
+ * segundo repintaba todas las tarjetas aunque dijeran lo mismo.
+ */
+const restante = () => {
   const target = props.event.status === 'upcoming' ? props.event.startDate : props.event.endDate
-  if (!target) return null
-  const remaining = target.getTime() - live.now.getTime()
-  if (remaining <= 0) return null
+  return target ? target.getTime() - live.now.getTime() : 0
+}
+const countdownText = computed(() => {
+  const ms = restante()
+  if (ms <= 0) return null
   const prefix = props.event.status === 'upcoming' ? t('events.startsIn') : t('events.endsIn')
-  return { text: `${prefix} ${formatDuration(remaining)}`, urgent: remaining < 6 * 3600 * 1000 }
+  return `${prefix} ${formatDuration(ms)}`
 })
+const countdownUrgent = computed(() => restante() > 0 && restante() < 6 * 3600 * 1000)
 
 /**
  * El día de inicio ya lo dice la hoja de calendario; aquí va el resto:
@@ -274,13 +283,13 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
 
         <!-- El horario entero y, debajo, la cuenta atrás: primero cuándo, luego cuánto falta. -->
         <p v-if="horario" class="mt-1.5 sm:mt-2 text-xs sm:text-sm tabular-nums">{{ horario }}</p>
-        <p v-if="event.status === 'active' || countdown" class="mt-0.5 text-mini">
+        <p v-if="event.status === 'active' || countdownText" class="mt-0.5 text-mini">
           <span v-if="event.status === 'active'" class="text-green-700 dark:text-green-400">● {{ $t('events.inProgress') }}</span>
-          <template v-if="event.status === 'active' && countdown"> · </template>
+          <template v-if="event.status === 'active' && countdownText"> · </template>
           <span
-            v-if="countdown"
-            :class="countdown.urgent ? 'text-amber-700 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'"
-          >{{ countdown.text }}</span>
+            v-if="countdownText"
+            :class="countdownUrgent ? 'text-amber-700 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'"
+          >{{ countdownText }}</span>
         </p>
 
         <!--

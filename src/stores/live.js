@@ -15,6 +15,18 @@ const TIER_ORDER = [
 
 const EGG_ORDER = ['1 km', '2 km', '5 km', '7 km', '10 km', '12 km']
 
+/**
+ * Cuánto se espera a cada feed. Sin plazo, con mala cobertura y sin caché,
+ * el esqueleto se quedaba puesto hasta que el navegador se rendía (minutos).
+ */
+const ESPERA_MAXIMA_MS = 15000
+
+/**
+ * Tras un intento fallido, cuánto esperar para volver a intentarlo solo. Sin
+ * red, la recarga automática lo reintentaba cada 30 s para siempre.
+ */
+const REINTENTO_MS = 5 * 60 * 1000
+
 /** Agrupa por `key` y ordena los grupos según `order` (los desconocidos, al final). */
 function groupBy(list, key, order) {
   const groups = new Map()
@@ -80,12 +92,20 @@ export const useLiveStore = defineStore('live', () => {
    */
   const refrescarSiCaduca = () => {
     if (typeof document !== 'undefined' && document.hidden) return
-    if (status.value === 'loading') return
+    if (enCurso) return
     if (!isCacheExpired(fetchedAt.value)) return
+    if (Date.now() - ultimoIntento < REINTENTO_MS) return
     load({ force: true })
   }
 
-  if (typeof window !== 'undefined') {
+  /**
+   * Los relojes arrancan con la primera carga y no al crear la store: la
+   * crea también la ficha de un Pokémon, que no enseña nada que caduque.
+   */
+  let relojEnMarcha = false
+  const arrancarReloj = () => {
+    if (relojEnMarcha || typeof window === 'undefined') return
+    relojEnMarcha = true
     let ticks = 0
     setInterval(() => {
       // En una pestaña oculta no hay nada que repintar.
@@ -106,13 +126,22 @@ export const useLiveStore = defineStore('live', () => {
     })
   }
 
+  /**
+   * Cada evento con su estado. Si el estado no ha cambiado se devuelve el
+   * mismo objeto que la vez anterior: cada 30 s se recalcula, y con objetos
+   * nuevos todas las tarjetas de Eventos se volvían a pintar (y a traducir su
+   * título) sin que nada hubiera cambiado.
+   */
+  const conEstado = new WeakMap()
   const withStatus = computed(() =>
-    events.value.map((event) => ({
-      ...event,
-      status: eventStatus(event, statusClock.value),
-      startDate: parseDate(event.start),
-      endDate: parseDate(event.end)
-    }))
+    events.value.map((event) => {
+      const status = eventStatus(event, statusClock.value)
+      const previo = conEstado.get(event)
+      if (previo?.status === status) return previo
+      const conSuEstado = { ...event, status, startDate: parseDate(event.start), endDate: parseDate(event.end) }
+      conEstado.set(event, conSuEstado)
+      return conSuEstado
+    })
   )
 
   const active = computed(() =>
@@ -215,18 +244,30 @@ export const useLiveStore = defineStore('live', () => {
     return true
   }
 
-  const load = async ({ force = false } = {}) => {
-    if (status.value === 'loading') return
-    if (status.value === 'ready' && !force) return
+  /** La carga en marcha: quien llame mientras tanto espera a la misma. */
+  let enCurso = null
+  let ultimoIntento = 0
 
-    const hadCache = hydrateFromCache()
+  const load = ({ force = false } = {}) => {
+    if (enCurso) return enCurso
+    if (status.value === 'ready' && !force) return Promise.resolve()
+    arrancarReloj()
+    enCurso = bajar().finally(() => { enCurso = null })
+    return enCurso
+  }
+
+  const bajar = async () => {
+    ultimoIntento = Date.now()
+    // Con datos ya en pantalla (una recarga automática) se refresca por
+    // detrás: antes volvía a 'loading' y las vistas enseñaban el esqueleto.
+    const hadCache = status.value === 'ready' || hydrateFromCache()
     status.value = hadCache ? 'ready' : 'loading'
     error.value = null
 
     try {
       const [ev, rd, eg, rs] = await Promise.all(
         Object.values(FEEDS).map(async (url) => {
-          const res = await fetch(url, { cache: 'no-cache' })
+          const res = await fetch(url, { cache: 'no-cache', signal: AbortSignal.timeout?.(ESPERA_MAXIMA_MS) })
           if (!res.ok) throw new Error(`HTTP ${res.status}`)
           return res.json()
         })
@@ -260,6 +301,7 @@ export const useLiveStore = defineStore('live', () => {
     cacheAge,
     isStale,
     now,
+    statusClock,
     load,
     active,
     upcoming,

@@ -43,8 +43,11 @@ const noticia = computed(() => {
   const entrada = slug ? datos.value.noticias?.[slug] : null
   if (!entrada) return null
   const idioma = locale() === 'en' && entrada.en ? 'en' : 'es'
+  const texto = entrada[idioma]
   return {
-    ...entrada[idioma],
+    ...texto,
+    // Agrupadas aquí y no en la plantilla: ahí se rehacían en cada repintado.
+    secciones: (texto?.secciones ?? []).map((seccion) => ({ ...seccion, bloques: agrupar(seccion.bloques ?? []) })),
     url: enlaceSeguro(idioma === 'en' ? entrada.url?.replace('/es/news/', '/en/news/') : entrada.url)
   }
 })
@@ -86,7 +89,7 @@ const agrupar = (bloques) => {
           <p class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('events.official') }}</p>
           <section v-for="(seccion, i) in noticia.secciones" :key="i" class="mt-3">
             <h3 class="text-sm font-bold">{{ seccion.titulo }}</h3>
-            <template v-for="(bloque, j) in agrupar(seccion.bloques)" :key="j">
+            <template v-for="(bloque, j) in seccion.bloques" :key="j">
               <ul v-if="bloque.t === 'ul'" class="mt-1.5 flex flex-col gap-1 pl-4 list-disc text-sm">
                 <li v-for="(item, k) in bloque.items" :key="k">{{ item }}</li>
               </ul>

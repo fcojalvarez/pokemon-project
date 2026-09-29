@@ -67,6 +67,21 @@ const scrollHandler = async() => {
 }
 
 /**
+ * Como mucho una comprobación por fotograma: el scroll lanza decenas de
+ * eventos por segundo y cada uno leía scrollHeight, que obliga al navegador a
+ * recalcular el layout si algo ha cambiado (las imágenes que van llegando).
+ */
+let comprobando = false;
+const alDesplazar = () => {
+    if (comprobando) return;
+    comprobando = true;
+    requestAnimationFrame(() => {
+        comprobando = false;
+        scrollHandler();
+    });
+};
+
+/**
  * La URL manda. Al volver atrás (del navegador o de la app) trae los filtros y
  * la búsqueda, que se escriben en ella al aplicarlos, y se restauran. Al
  * entrar desde el menú llega sin nada: entonces se limpian también en la
@@ -92,10 +107,10 @@ watch(filters, () => { isAllPokemonsLoaded.value = false; }, { deep: true });
 onMounted(async() => {
     // Con filtros en la URL, la primera carga la hace setFilters (ver arriba).
     if(pokemons.value.length === 0 && !habiaFiltros) await getPokemons();
-    document.addEventListener('scroll', scrollHandler, { passive: true });
+    document.addEventListener('scroll', alDesplazar, { passive: true });
 })
 onUnmounted(() => {
-    document.removeEventListener('scroll', scrollHandler);
+    document.removeEventListener('scroll', alDesplazar);
 })
 </script>
 

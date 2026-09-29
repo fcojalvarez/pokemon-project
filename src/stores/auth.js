@@ -27,21 +27,32 @@ export const useAuthStore = defineStore('auth', () => {
   const email = computed(() => session.value?.user?.email ?? null)
   const isSignedIn = computed(() => Boolean(session.value))
 
-  const init = async () => {
-    if (isReady.value) return
+  /**
+   * Una sola vez aunque se llame dos veces seguidas: antes, dos llamadas a la
+   * vez pedían la sesión dos veces y se suscribían dos veces a sus cambios.
+   * Si falla, la siguiente llamada lo vuelve a intentar.
+   */
+  let iniciando = null
+  const init = () => {
+    iniciando ??= (async () => {
+      const cliente = await supabaseCompleto()
+      const { data } = await cliente.auth.getSession()
+      session.value = data.session ?? null
+      isReady.value = true
 
-    const { data } = await (await supabaseCompleto()).auth.getSession()
-    session.value = data.session ?? null
-    isReady.value = true
-
-    // Mantiene la vista al día cuando el token se renueva solo o cuando se
-    // cierra sesión desde otra pestaña.
-    if (!desuscribir) {
-      const { data: sub } = (await supabaseCompleto()).auth.onAuthStateChange((_evento, nueva) => {
-        session.value = nueva ?? null
-      })
-      desuscribir = () => sub.subscription.unsubscribe()
-    }
+      // Mantiene la vista al día cuando el token se renueva solo o cuando se
+      // cierra sesión desde otra pestaña.
+      if (!desuscribir) {
+        const { data: sub } = cliente.auth.onAuthStateChange((_evento, nueva) => {
+          session.value = nueva ?? null
+        })
+        desuscribir = () => sub.subscription.unsubscribe()
+      }
+    })().catch((err) => {
+      iniciando = null
+      throw err
+    })
+    return iniciando
   }
 
   const signIn = async (correo, password) => {

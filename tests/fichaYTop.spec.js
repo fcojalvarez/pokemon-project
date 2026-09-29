@@ -148,6 +148,22 @@ describe('datos de la ficha', () => {
   })
 })
 
+describe('caché de resultados', () => {
+  it('lo calculado antes de tener datos no se queda para siempre', async () => {
+    setActivePinia(createPinia())
+    const vacia = useGameDataStore()
+    // Sin cargar, un matchup sale vacío…
+    expect(vacia.matchups(['fire']).weak).toEqual([])
+    await vacia.load()
+    // …y con los datos ya no.
+    expect(vacia.matchups(['fire']).weak.length).toBeGreaterThan(0)
+    setActivePinia(createPinia())
+    gameData = useGameDataStore()
+    await gameData.load()
+    await gameData.cargarPvp()
+  })
+})
+
 describe('filas del Top', () => {
   const filtros = (extra = {}) => ({
     mode: ref('pve'),

@@ -110,6 +110,61 @@ describe('store en vivo', () => {
     expect(live.error).toBe('HTTP 503')
   })
 
+  it('dos cargas a la vez son una sola, y las dos esperan a que acabe', async () => {
+    const fetch = responder()
+    vi.stubGlobal('fetch', fetch)
+    const a = live.load()
+    const b = live.load()
+    await Promise.all([a, b])
+    expect(fetch).toHaveBeenCalledTimes(4)
+    expect(live.status).toBe('ready')
+  })
+
+  it('la recarga automática refresca por detrás, sin volver a «cargando»', async () => {
+    vi.stubGlobal('fetch', responder())
+    await live.load()
+    const estados = []
+    let soltar
+    vi.stubGlobal('fetch', vi.fn(() => new Promise((r) => { soltar = r })))
+    // Pasa el plazo de la caché y llega el tic de los 30 s.
+    vi.setSystemTime(new Date(AHORA.getTime() + 7 * 3600 * 1000))
+    vi.advanceTimersByTime(30_000)
+    estados.push(live.status)
+    soltar({ ok: false, status: 500 })
+    await vi.waitFor(() => expect(live.error).toBe('HTTP 500'))
+    estados.push(live.status)
+    // Nunca se enseña el esqueleto: los datos siguen ahí y marcados como viejos.
+    expect(estados).toEqual(['ready', 'ready'])
+    expect(live.raids).toHaveLength(5)
+    expect(live.isStale).toBe(true)
+  })
+
+  it('sin red, la recarga automática no lo reintenta cada 30 s', async () => {
+    vi.stubGlobal('fetch', responder())
+    await live.load()
+    const sinRed = responder(true)
+    vi.stubGlobal('fetch', sinRed)
+    vi.setSystemTime(new Date(AHORA.getTime() + 7 * 3600 * 1000))
+    vi.advanceTimersByTime(30_000)
+    await vi.waitFor(() => expect(live.error).toBe('sin red'))
+    // Que acabe del todo la carga fallida (su finally) antes de mover el reloj.
+    await new Promise((r) => setImmediate(r))
+    expect(sinRed).toHaveBeenCalledTimes(4)
+    // Unos minutos más de tics: nada nuevo hasta pasado el plazo de reintento.
+    vi.advanceTimersByTime(4 * 60_000)
+    expect(sinRed).toHaveBeenCalledTimes(4)
+    vi.advanceTimersByTime(90_000)
+    await vi.waitFor(() => expect(sinRed).toHaveBeenCalledTimes(8))
+  })
+
+  it('un evento que no cambia de estado es el mismo objeto de una vez a otra', async () => {
+    vi.stubGlobal('fetch', responder())
+    await live.load()
+    const antes = live.active[0]
+    vi.advanceTimersByTime(30_000)
+    expect(live.active[0]).toBe(antes)
+  })
+
   describe('agrupado', () => {
     beforeEach(async () => {
       vi.stubGlobal('fetch', responder())

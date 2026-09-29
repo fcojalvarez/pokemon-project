@@ -29,7 +29,10 @@ import { plainText } from '../utils/gameText'
 const live = useLiveStore()
 const gameData = useGameDataStore()
 // Antigüedad de los combates Max, con el reloj de `live` para que avance.
-const edadMax = computed(() => gameData.maxLiveEdad(live.now))
+// Con el reloj de 30 s: el «hace X min» no necesita más, y con el de cada
+// segundo la vista entera se volvía a pintar una vez por segundo.
+const edadMax = computed(() => gameData.maxLiveEdad(live.statusClock))
+const maxCaducado = computed(() => gameData.maxLiveCaducado(live.statusClock))
 const route = useRoute()
 const { t, te, locale, localName } = useTranslate()
 
@@ -441,7 +444,7 @@ onMounted(() => {
           -->
           <template v-if="maxVisibles.length">
             <h2 class="mt-6 text-sm font-bold">{{ $t('max.battlesTitle') }}</h2>
-            <data-freshness :age-ms="edadMax" :stale="gameData.maxLiveCaducado(live.now)" class="mb-2" />
+            <data-freshness :age-ms="edadMax" :stale="maxCaducado" class="mb-2" />
             <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">{{ $t('max.globalPool') }}</p>
 
             <section
