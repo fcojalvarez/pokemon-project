@@ -8,13 +8,14 @@
  * se marca en todos a la vez.
  *
  * El color es la información: ámbar = élite, morado = legacy, fucsia =
- * exclusivo de supermega o ataque Gigamax (no salen nunca juntos: en los
- * combates Max no entran megas). Siempre acompañado de `title` y, en los contenedores
- * que listan movimientos, de un <move-legend> que lo explica.
+ * exclusivo de supermega. Siempre acompañado de `title` y, en los contenedores
+ * que listan movimientos, de un <move-legend> que lo explica. Los colores y
+ * por qué son esos, en utils/moveOrigins.js.
  */
 import { computed } from 'vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import { useTranslate } from '../../composables/useTranslate'
+import { COLORES_ORIGEN } from '../../utils/moveOrigins'
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -26,8 +27,6 @@ const props = defineProps({
   legacy: Boolean,
   // Exclusivo de la supermegaevolución.
   mega: Boolean,
-  // Ataque Gigamax: fijo, no depende del rápido.
-  gigamax: Boolean,
   // Píldora con borde completo. Es lo que se usa en toda la app: el subrayado
   // suelto se leía peor y costaba distinguir el ámbar del morado de un vistazo.
   chip: Boolean,
@@ -41,45 +40,14 @@ const { t } = useTranslate()
  * manda legacy: es la condición más restrictiva.
  */
 const origin = computed(() => {
-  if (props.gigamax) return 'gigamax'
   if (props.mega) return 'mega'
   if (props.legacy) return 'legacy'
   if (props.elite) return 'elite'
   return null
 })
 
-/**
- * Colores medidos contra fondo blanco y gray-900.
- *
- * El texto de las píldoras va siempre >= 4.5:1. El subrayado del élite es la
- * excepción a propósito: en amber-600 llegaba a 3,19:1 pero se leía marrón y
- * dejaba de parecer amarillo, que es justo lo que tiene que distinguirlo del
- * morado del legacy. Se usa amber-500, que es amarillo de verdad, y la
- * identificación no queda colgando del color: cada movimiento lleva su
- * `title` y todos los contenedores que los listan llevan un <move-legend> que
- * lo dice con palabras.
- */
-const COLORS = {
-  gigamax: {
-    chip: 'border-fuchsia-600 dark:border-fuchsia-400 text-fuchsia-700 dark:text-fuchsia-300',
-    line: 'border-fuchsia-600 dark:border-fuchsia-400'
-  },
-  mega: {
-    chip: 'border-fuchsia-600 dark:border-fuchsia-400 text-fuchsia-700 dark:text-fuchsia-300',
-    line: 'border-fuchsia-600 dark:border-fuchsia-400'
-  },
-  legacy: {
-    chip: 'border-violet-600 dark:border-violet-400 text-violet-700 dark:text-violet-300',
-    line: 'border-violet-600 dark:border-violet-400'
-  },
-  elite: {
-    chip: 'border-amber-500 dark:border-amber-400 text-amber-700 dark:text-amber-300',
-    line: 'border-amber-500 dark:border-amber-400'
-  }
-}
-
 const styling = computed(() => {
-  const color = origin.value ? COLORS[origin.value] : null
+  const color = origin.value ? COLORES_ORIGEN[origin.value] : null
   if (props.chip) {
     return [
       'px-2 py-0.5 rounded-full border',

@@ -18,7 +18,7 @@
  * campo mientras está abierta, y vuelve al botón al cerrar. Escribir con el
  * desplegable cerrado lo abre con esa letra ya puesta.
  */
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, useId, watch } from 'vue'
 import BaseChevron from './BaseChevron.vue'
 import useDetectOutsideClick from '../../composables/useDetectOutsideClick'
 
@@ -53,7 +53,7 @@ const visibles = computed(() => {
   return props.options.filter((option) => !q || normalizar(option.label).includes(q))
 })
 
-const uid = Math.random().toString(36).slice(2, 8)
+const uid = useId()
 const listId = `lista-${uid}`
 const optionId = (index) => `opcion-${uid}-${index}`
 

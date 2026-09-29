@@ -1,6 +1,6 @@
 <script setup>
     import { computed } from 'vue';
-    import { BaseIcon } from '.';
+    import BaseIcon from './base/BaseIcon.vue';
     import ShinyMark from './pokemon/ShinyMark.vue';
     import MaxMark from './pokemon/MaxMark.vue';
     import BaseSprite from './base/BaseSprite.vue';

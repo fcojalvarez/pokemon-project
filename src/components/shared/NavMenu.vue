@@ -1,17 +1,13 @@
 <script setup>
-import { nextTick, onUnmounted, ref, watch } from 'vue'
+import { nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { useMainStore } from '../../stores/main'
-import { storeToRefs } from 'pinia'
 import BaseIcon from '../base/BaseIcon.vue'
 import SuggestionButton from './SuggestionButton.vue'
 import LanguageSelector from './LanguageSelector.vue'
-import { useInertApp } from '../../composables/useInertApp'
-import { useCerrarConAtras } from '../../composables/useCerrarConAtras'
+import AppVersion from './AppVersion.vue'
+import { useCapa } from '../../composables/useCapa'
 import { NAV_LINKS as links, esSeccionActiva } from './navLinks'
 
-const mainStore = useMainStore()
-const { isDarkMode } = storeToRefs(mainStore)
 const route = useRoute()
 
 // Dos raíces (el botón y el Teleport del cajón): las clases que lleguen de
@@ -19,42 +15,22 @@ const route = useRoute()
 defineOptions({ inheritAttrs: false })
 
 const isOpen = ref(false)
-const { bloquear, liberar } = useInertApp()
 const panel = ref(null)
 const trigger = ref(null)
 
-// La versión sale de package.json (vite.config.js la inyecta), así que al
-// subir versión solo hay que tocarla ahí.
-const version = import.meta.env.VITE_APP_VERSION
-// El build cambia en cada despliegue; la versión solo cuando se sube a mano.
-// Con los dos se sabe exactamente qué hay instalado.
-const build = import.meta.env.VITE_APP_BUILD
-
-
-// El «atrás» del navegador cierra el menú en vez de salir de la página.
-const atras = useCerrarConAtras(() => close())
+const capa = useCapa((opciones) => close(opciones))
 
 const open = async () => {
   isOpen.value = true
-  atras.alAbrir()
-  bloquear()
-  document.body.style.overflow = 'hidden'
+  capa.alAbrir()
   await nextTick()
   panel.value?.querySelector('a')?.focus()
 }
 
-/**
- * `navegando`: se cierra porque se va a otra página (una sección del menú).
- * Entonces no se retira la entrada del historial: hacerlo desharía la
- * navegación que se acaba de pedir.
- */
+/** `navegando`: se cierra porque se va a otra página (una sección del menú). */
 const close = ({ restoreFocus = true, navegando = false } = {}) => {
   isOpen.value = false
-  if (navegando) atras.alNavegar()
-  else atras.alCerrar()
-  // Antes de devolver el foco: sobre una app inerte no se puede enfocar nada.
-  liberar()
-  document.body.style.overflow = ''
+  capa.alCerrar({ navegando })
   if (restoreFocus) trigger.value?.focus()
 }
 
@@ -68,16 +44,6 @@ const isActive = (to) => esSeccionActiva(route.path, to)
 const onKeydown = (event) => {
   if (event.key === 'Escape') close()
 }
-
-onUnmounted(liberar)
-
-// Al cambiar de página el menú se cierra solo.
-watch(
-  () => route.path,
-  () => {
-    if (isOpen.value) close({ restoreFocus: false, navegando: true })
-  }
-)
 </script>
 
 <template>
@@ -148,11 +114,13 @@ watch(
           "
           @click="close({ restoreFocus: false, navegando: true })"
         >
+          <!-- currentColor: el gris del texto del enlace, 700 en claro y 200 en oscuro. -->
           <base-icon
             :stroke-width="1.5"
             width="20"
             height="20"
-            :color="isDarkMode ? '#e5e7eb' : '#374151'"
+            color="currentColor"
+            class="text-gray-700 dark:text-gray-200"
             stroke-linecap="round"
             stroke-linejoin="round"
             :d="link.icon"
@@ -176,9 +144,7 @@ watch(
             @close="trigger?.focus()"
           />
         </div>
-        <span v-if="version" class="text-mini text-gray-600 dark:text-gray-300">
-          v{{ version }}<template v-if="build"> · {{ build }}</template>
-        </span>
+        <app-version tag="span" />
       </div>
     </div>
   </Teleport>

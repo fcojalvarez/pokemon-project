@@ -1,41 +1,22 @@
 <script setup>
-import { computed, onBeforeMount } from 'vue';
+import { computed } from 'vue';
 import { useMainStore } from '../stores/main';
 import { storeToRefs } from 'pinia';
 import { darkIcon, lightIcon } from '../utils/Settings';
-import { BaseIcon } from '.';
+import BaseIcon from './base/BaseIcon.vue';
 
+// El tema de arranque lo pone main.js (useMainStore().iniciarTema()).
 const mainStore = useMainStore();
 const { isDarkMode } = storeToRefs(mainStore);
-const { setDarkMode } = mainStore;
 
-// El texto solo cabe en escritorio; en móvil, solo el icono. Nombre fijo y el
-// estado en aria-pressed.
-const icon = computed({
-    get() {
-        return isDarkMode.value? lightIcon : darkIcon;
-    }
-})
+const icon = computed(() => (isDarkMode.value ? lightIcon : darkIcon));
 
-const toggleDarkMode = () => {
-    setDarkMode(!isDarkMode.value);
-    document.documentElement.classList.toggle('dark');
-}
-
-onBeforeMount(() => {
-    const isDarkModeLS = JSON.parse(localStorage.getItem('isDarkMode'));
-    if( isDarkModeLS === null ) {
-        // Sin preferencia guardada, la del sistema. No se guarda: si el
-        // móvil cambia de tema, la app lo sigue hasta que alguien elija.
-        setDarkMode(window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false, { persist: false });
-    } else {
-        setDarkMode(isDarkModeLS);
-    }
-    document.documentElement.classList.toggle('dark', isDarkMode.value);
-})
+const toggleDarkMode = () => mainStore.setDarkMode(!isDarkMode.value);
 </script>
 
 <template>
+    <!-- El texto solo cabe en escritorio; en móvil, solo el icono. Nombre fijo y
+         el estado en aria-pressed. -->
     <button
         type="button"
         :aria-pressed="isDarkMode"

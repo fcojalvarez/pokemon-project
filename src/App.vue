@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue';
-import { HeaderComponent, FooterComponent } from './components/index';
+import HeaderComponent from './components/shared/HeaderComponent.vue';
+import FooterComponent from './components/shared/FooterComponent.vue';
 import BottomNav from './components/shared/BottomNav.vue';
 import UpdatePrompt from './components/shared/UpdatePrompt.vue';
 import { useRoute } from 'vue-router';

@@ -12,20 +12,17 @@
  * está abierto, el resto de la app queda inerte, como con el menú: el foco
  * entra en el panel y al cerrar vuelve al botón.
  */
-import { computed, nextTick, onUnmounted, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useMainStore } from '../../stores/main'
 import i18n, { LOCALES, setLocale } from '../../plugins/i18n'
-import { useInertApp } from '../../composables/useInertApp'
-import { useCerrarConAtras } from '../../composables/useCerrarConAtras'
+import { useCapa } from '../../composables/useCapa'
 import BaseIcon from '../base/BaseIcon.vue'
 import SuggestionButton from './SuggestionButton.vue'
+import AppVersion from './AppVersion.vue'
 
 const mainStore = useMainStore()
 const { isDarkMode } = storeToRefs(mainStore)
-
-const version = import.meta.env.VITE_APP_VERSION
-const build = import.meta.env.VITE_APP_BUILD
 
 const ICONOS = {
   // Reguladores (Tabler, adjustments-horizontal): más ligero que el engranaje y se lee como «preferencias».
@@ -39,9 +36,8 @@ const trigger = ref(null)
 const panel = ref(null)
 /** Dónde va el panel: justo debajo del botón, con el pico en su centro. */
 const posicion = ref({ top: 0, right: 0, pico: 0 })
-const { bloquear, liberar } = useInertApp()
-// El «atrás» del navegador cierra el panel en vez de salir de la página.
-const atras = useCerrarConAtras(() => close())
+// Sin bloquear el scroll: el panel es pequeño y va pegado al botón.
+const capa = useCapa((opciones) => close(opciones), { bloquearScroll: false })
 
 const open = async () => {
   // clientWidth y no innerWidth: este cuenta la barra de scroll, y el panel
@@ -51,28 +47,20 @@ const open = async () => {
   const right = Math.max(8, ancho - caja.right)
   posicion.value = { top: caja.bottom + 10, right, pico: ancho - right - (caja.left + caja.width / 2) }
   isOpen.value = true
-  atras.alAbrir()
-  bloquear()
+  capa.alAbrir()
   await nextTick()
   panel.value?.querySelector('[aria-checked="true"]')?.focus()
 }
 
-const close = ({ restoreFocus = true } = {}) => {
+const close = ({ restoreFocus = true, navegando = false } = {}) => {
   if (!isOpen.value) return
   isOpen.value = false
-  atras.alCerrar()
-  liberar()
+  capa.alCerrar({ navegando })
   if (restoreFocus) trigger.value?.focus()
 }
 
-onUnmounted(liberar)
-
 /** El tema, igual que el botón de la cabecera en escritorio (ToggleDarkMode). */
-const ponerTema = (oscuro) => {
-  if (oscuro === isDarkMode.value) return
-  mainStore.setDarkMode(oscuro)
-  document.documentElement.classList.toggle('dark', oscuro)
-}
+const ponerTema = (oscuro) => mainStore.setDarkMode(oscuro)
 
 const idioma = computed(() => i18n.global.locale)
 
@@ -206,9 +194,7 @@ const opcion = (elegida) => [
           @close="trigger?.focus()"
         />
 
-        <p v-if="version" class="text-mini text-right text-gray-600 dark:text-gray-300">
-          v{{ version }}<template v-if="build"> · {{ build }}</template>
-        </p>
+        <app-version class="text-right" />
       </div>
     </Transition>
   </Teleport>

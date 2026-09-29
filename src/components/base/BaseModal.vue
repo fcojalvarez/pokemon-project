@@ -9,10 +9,9 @@
  * «atrás» del navegador lo cierra en vez de salir de la página
  * (useCerrarConAtras).
  */
-import { nextTick, onUnmounted, ref, watch } from 'vue'
+import { nextTick, ref, useId, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { useInertApp } from '../../composables/useInertApp'
-import { useCerrarConAtras } from '../../composables/useCerrarConAtras'
+import { useCapa } from '../../composables/useCapa'
 
 const props = defineProps({
   open: Boolean,
@@ -23,48 +22,38 @@ const props = defineProps({
 const emit = defineEmits(['close'])
 
 const route = useRoute()
-const { bloquear, liberar } = useInertApp()
 const panel = ref(null)
 let origen = null
-const titulo = `modal-${Math.random().toString(36).slice(2, 9)}`
-const atras = useCerrarConAtras(() => emit('close'))
+const titulo = useId()
 /** Se cierra porque se ha cambiado de página: el historial ya no se toca. */
 let porNavegacion = false
+// Lo abre y lo cierra el padre con `open`: aquí solo se le pide que lo cierre.
+// Con fullPath, como hasta ahora: también se cierra si cambia la query.
+const capa = useCapa(
+  ({ navegando = false } = {}) => {
+    porNavegacion = navegando
+    emit('close')
+  },
+  { vigilar: () => route.fullPath }
+)
 
 watch(
   () => props.open,
   async (abierto) => {
     if (abierto) {
       origen = document.activeElement
-      bloquear()
-      document.body.style.overflow = 'hidden'
-      atras.alAbrir()
+      capa.alAbrir()
       await nextTick()
       panel.value?.focus()
     } else {
-      if (porNavegacion) atras.alNavegar()
-      else atras.alCerrar()
+      capa.alCerrar({ navegando: porNavegacion })
       porNavegacion = false
-      liberar()
-      document.body.style.overflow = ''
       if (origen && !origen.closest?.('[inert]')) origen.focus?.()
       origen = null
     }
   },
   { immediate: true }
 )
-
-watch(() => route.fullPath, () => {
-  if (!props.open) return
-  porNavegacion = true
-  emit('close')
-})
-
-onUnmounted(() => {
-  atras.alNavegar()
-  liberar()
-  document.body.style.overflow = ''
-})
 
 const onKeydown = (event) => {
   if (event.key === 'Escape') emit('close')

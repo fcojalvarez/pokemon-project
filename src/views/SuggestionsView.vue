@@ -14,14 +14,12 @@ import { useAuthStore } from '../stores/auth'
 import { STATUSES, useSuggestionsStore } from '../stores/suggestions'
 import { formatDateTime } from '../utils/time'
 import { useTranslate } from '../composables/useTranslate'
-import {
-  BaseCard,
-  BaseDropdown,
-  BaseEmptyState,
-  BaseErrorMessage,
-  BaseIcon,
-  SpinnerComponent
-} from '../components/index'
+import BaseCard from '../components/base/BaseCard.vue'
+import BaseDropdown from '../components/base/BaseDropdown.vue'
+import BaseEmptyState from '../components/base/BaseEmptyState.vue'
+import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
+import BaseIcon from '../components/base/BaseIcon.vue'
+import SpinnerComponent from '../components/SpinnerComponent.vue'
 
 const auth = useAuthStore()
 const suggestions = useSuggestionsStore()

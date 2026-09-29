@@ -1,6 +1,7 @@
 <script setup>
     import { ref, watch, computed, nextTick } from 'vue';
-    import { BaseIcon, SpinnerComponent } from '.';
+    import BaseIcon from './base/BaseIcon.vue';
+    import SpinnerComponent from './SpinnerComponent.vue';
     import BaseSprite from './base/BaseSprite.vue';
     import ShinyMark from './pokemon/ShinyMark.vue';
     import MaxMark from './pokemon/MaxMark.vue';

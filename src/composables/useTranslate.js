@@ -18,6 +18,11 @@ export function intlLocale() {
   return i18n.global.locale === 'en' ? 'en-GB' : 'es-ES'
 }
 
+/** Un número con los separadores del idioma de la app («1.800» / «1,800»). */
+export function formatNumber(value) {
+  return new Intl.NumberFormat(intlLocale()).format(value)
+}
+
 /**
  * Acceso a las traducciones desde `<script setup>`.
  *
@@ -40,6 +45,7 @@ export function useTranslate() {
     te: (...args) => global.te(...args),
     locale: () => global.locale,
     localName,
-    intlLocale
+    intlLocale,
+    formatNumber
   }
 }

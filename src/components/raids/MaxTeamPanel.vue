@@ -1,28 +1,29 @@
 <script setup>
 /**
  * Equipo recomendado contra un jefe Max: uno que aguante con Maxibarrera y
- * dos pegando, y de dónde sacar cada uno hoy.
- *
- * Como los counters de incursión, sale desplegado bajo el jefe o en el panel
- * lateral de escritorio ancho.
+ * dos pegando, y de dónde sacar cada uno hoy. Sale desplegado bajo el jefe
+ * (Incursiones) y en la ficha (MaxBattlePanel).
  */
-import { BaseEmptyState } from '../index'
+import BaseEmptyState from '../base/BaseEmptyState.vue'
 import LiveMonCard from '../pokemon/LiveMonCard.vue'
 import { spriteUrl } from '../../utils/sprites'
 import { useTranslate } from '../../composables/useTranslate'
 
-const props = defineProps({
+defineProps({
   /** Nombre del jefe, ya traducido. */
   bossName: { type: String, required: true },
   /** { tanks, attackers } de maxCounters. */
-  team: { type: Object, required: true },
-  /** Cómo conseguir a cada uno hoy (texto corto o null). */
-  howToGet: { type: Function, required: true },
-  /** Una sola columna: para el panel lateral. */
-  single: Boolean
+  team: { type: Object, required: true }
 })
 
-const { localName } = useTranslate()
+const { t, localName } = useTranslate()
+
+/** Cómo conseguirlo hoy: directamente, evolucionando, o de ninguna forma. */
+const howToGet = (quien) => {
+  if (quien.availableNow) return t('max.availableNow')
+  if (quien.availableFrom) return t('max.availableVia', { pokemon: localName(quien.availableFrom) })
+  return null
+}
 
 /**
  * A los que pegan, además, con qué llevarlos: el Ataque Max depende del
@@ -32,7 +33,7 @@ const conAtaque = (quien) => {
   const ataque = quien.maxMove
     ? quien.fastMove ? `${localName(quien.fastMove)} → ${localName(quien.maxMove)}` : localName(quien.maxMove)
     : null
-  return [ataque, props.howToGet(quien)].filter(Boolean).join(' · ') || null
+  return [ataque, howToGet(quien)].filter(Boolean).join(' · ') || null
 }
 </script>
 
@@ -42,7 +43,7 @@ const conAtaque = (quien) => {
       {{ $t('max.teamIntro', { pokemon: bossName }) }}
     </p>
 
-    <div class="grid gap-4" :class="single ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'">
+    <div class="grid gap-4 grid-cols-1 md:grid-cols-2">
       <div>
         <h4 class="text-xs font-bold mb-2">{{ $t('max.tank') }}</h4>
         <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1.5">

@@ -10,7 +10,7 @@
  */
 import { computed } from 'vue'
 import { useGameDataStore } from '../../stores/gameData'
-import { intlLocale, useTranslate } from '../../composables/useTranslate'
+import { useTranslate } from '../../composables/useTranslate'
 import FichaSeccion from './FichaSeccion.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MaxMark from './MaxMark.vue'
@@ -25,8 +25,7 @@ const props = defineProps({
 })
 
 const gameData = useGameDataStore()
-const { t, localName } = useTranslate()
-const formatNumber = (value) => new Intl.NumberFormat(intlLocale()).format(value)
+const { t, localName, formatNumber } = useTranslate()
 
 const maxInfo = computed(() =>
   gameData.isReady && props.entry ? gameData.maxInfoFor(props.entry) : null
@@ -80,12 +79,6 @@ const equipo = computed(() => {
   })
   return salida.tanks.length || salida.attackers.length ? salida : null
 })
-
-const comoConseguir = (quien) => {
-  if (quien.availableNow) return t('max.availableNow')
-  if (quien.availableFrom) return t('max.availableVia', { pokemon: localName(quien.availableFrom) })
-  return null
-}
 
 /**
  * El PC de un 100 % de lo que sale de un combate Max: siempre a nivel 20, sin
@@ -182,9 +175,7 @@ const resumen = computed(() => {
     </dl>
 
     <dl v-if="maxInfo.gmaxMove" class="mt-2 flex flex-col gap-2">
-
       <div
-        v-if="maxInfo.gmaxMove"
         class="flex items-center justify-between gap-2 p-2 rounded-xl bg-fuchsia-50 dark:bg-fuchsia-950 border border-fuchsia-300 dark:border-fuchsia-800"
       >
         <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.gmaxMove') }}</dt>
@@ -236,8 +227,7 @@ const resumen = computed(() => {
       <h3 class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">
         {{ $t('max.teamAgainst', { pokemon: localName(entry) }) }}
       </h3>
-      <max-team-panel :boss-name="localName(entry)" :team="equipo" :how-to-get="comoConseguir" />
+      <max-team-panel :boss-name="localName(entry)" :team="equipo" />
     </div>
   </ficha-seccion>
-
 </template>

@@ -1,5 +1,5 @@
 <script setup>
-import { PokemonView } from '../components/index';
+import PokemonView from '../components/PokemonView.vue';
 </script>
 
 <template>

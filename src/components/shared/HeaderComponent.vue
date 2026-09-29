@@ -1,13 +1,12 @@
 <script setup>
     import { computed, ref } from 'vue';
     import { useRoute, useRouter } from 'vue-router';
-    import { SearchBar, ToggleDarkMode, BaseIcon, NavMenu } from '../index';
+    import SearchBar from '../SearchBar.vue';
+    import ToggleDarkMode from '../ToggleDarkMode.vue';
+    import BaseIcon from '../base/BaseIcon.vue';
+    import NavMenu from './NavMenu.vue';
     import SettingsMenu from './SettingsMenu.vue';
-    import { useMainStore } from '../../stores/main';
-    import { storeToRefs } from 'pinia';
 
-    const mainStore = useMainStore();
-    const { isDarkMode } = storeToRefs(mainStore);
     const route = useRoute();
 
     // Solo en la ficha de un Pokémon: entre páginas principales se navega
@@ -21,12 +20,6 @@
     const buscadorTapa = ref(false);
 
     /**
-     * Vuelve a donde se estaba: el Top, los eventos, otra ficha… Antes iba
-     * siempre a la Pokédex. Si se entró directamente a la ficha (un enlace
-     * compartido) no hay a dónde volver dentro de la app, y entonces sí se va
-     * a la Pokédex. El router guarda la página anterior en history.state.back.
-     */
-    /**
      * El logo lleva a la Pokédex como recién abierta. Llegar a «/» sin nada en
      * la URL ya le quita filtros y búsqueda (PokemonsList); si ya se está ahí
      * tal cual, lo único que falta es volver arriba.
@@ -37,6 +30,12 @@
         }
     };
 
+    /**
+     * Vuelve a donde se estaba: el Top, los eventos, otra ficha… Antes iba
+     * siempre a la Pokédex. Si se entró directamente a la ficha (un enlace
+     * compartido) no hay a dónde volver dentro de la app, y entonces sí se va
+     * a la Pokédex. El router guarda la página anterior en history.state.back.
+     */
     const volver = () => {
         if (window.history.state?.back) router.back();
         else router.push('/');
@@ -59,10 +58,10 @@
             :aria-label="$t('back')"
             @click="volver"
         >
-            <div class="flex md:hidden justify-center items-center h-full">
+            <div class="flex md:hidden justify-center items-center h-full text-gray-500 dark:text-gray-300">
                 <base-icon
                     width="20" height="20"
-                    :stroke-width="1.5" :color="isDarkMode?'#d1d5db':'#6b7280'"
+                    :stroke-width="1.5" color="currentColor"
                     d="M21 12H3m0 0 8.5-8.5M3 12l8.5 8.5"
                 />
             </div>
@@ -121,9 +120,8 @@
             />
 
             <!--
-                En móvil el modo oscuro vive en Ajustes (SettingsMenu). Se
-                oculta pero sigue montado: es quien aplica al arrancar el
-                tema guardado o el del sistema.
+                En móvil el modo oscuro vive en Ajustes (SettingsMenu). El
+                tema de arranque lo pone main.js.
             -->
             <toggle-dark-mode
                 class="hidden sm:flex shrink-0 ml-auto px-4 cursor-pointer"

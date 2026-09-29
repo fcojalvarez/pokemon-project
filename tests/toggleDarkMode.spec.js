@@ -3,9 +3,10 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import i18n from '../src/plugins/i18n'
 import ToggleDarkMode from '../src/components/ToggleDarkMode.vue'
+import { useMainStore } from '../src/stores/main'
 
 /**
- * El modo oscuro:
+ * El modo oscuro (el arranque lo hace main.js con iniciarTema):
  *   - la primera vez sigue al sistema, pero sin guardarlo (si el móvil cambia
  *     de tema, la app lo sigue hasta que alguien elija);
  *   - lo que elige el usuario sí se guarda y manda sobre el sistema;
@@ -17,6 +18,7 @@ const sistema = (oscuro) => {
 const montar = (props = {}) => {
   const pinia = createPinia()
   setActivePinia(pinia)
+  useMainStore().iniciarTema()
   return mount(ToggleDarkMode, { props, global: { plugins: [pinia, i18n] } })
 }
 
@@ -49,6 +51,23 @@ describe('botón de modo oscuro', () => {
     expect(document.documentElement.classList.contains('dark')).toBe(true)
     expect(localStorage.getItem('isDarkMode')).toBe('true')
     expect(w.get('button').attributes('aria-pressed')).toBe('true')
+  })
+
+  it('un valor guardado que no se entiende cuenta como sin elegir', () => {
+    sistema(true)
+    localStorage.setItem('isDarkMode', '{roto')
+    montar()
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+  })
+
+  it('el tema elegido en otro sitio (Ajustes) cambia la clase del documento', () => {
+    sistema(false)
+    const w = montar()
+    useMainStore().setDarkMode(true)
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+    useMainStore().setDarkMode(false)
+    expect(document.documentElement.classList.contains('dark')).toBe(false)
+    expect(w.exists()).toBe(true)
   })
 
   it('tiene nombre fijo y el estado va en aria-pressed', () => {

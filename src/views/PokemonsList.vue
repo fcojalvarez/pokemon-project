@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
-import { ItemPokemonList, ScrollUpButton } from '../components/index';
+import ItemPokemonList from '../components/ItemPokemonList.vue';
+import ScrollUpButton from '../components/ScrollUpButton.vue';
 import MarkLegend from '../components/pokemon/MarkLegend.vue';
 import PokedexFilters from '../components/pokemon/PokedexFilters.vue';
 import { storeToRefs } from 'pinia';

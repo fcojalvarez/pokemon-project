@@ -5,12 +5,11 @@
  * El diálogo va en `Teleport` porque el botón vive dentro del cajón del menú,
  * que se cierra al abrirlo: si el formulario colgara de ahí, se iría con él.
  */
-import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { CATEGORIES, MAX_MESSAGE, useSuggestionsStore } from '../../stores/suggestions'
 import { useTranslate } from '../../composables/useTranslate'
-import { useInertApp } from '../../composables/useInertApp'
-import { useCerrarConAtras } from '../../composables/useCerrarConAtras'
+import { useCapa } from '../../composables/useCapa'
 import BaseIcon from '../base/BaseIcon.vue'
 import BasePillButton from '../base/BasePillButton.vue'
 
@@ -28,8 +27,6 @@ const route = useRoute()
 const suggestions = useSuggestionsStore()
 
 const isOpen = ref(false)
-const { bloquear, liberar } = useInertApp()
-onUnmounted(liberar)
 const isSent = ref(false)
 const category = ref('idea')
 const message = ref('')
@@ -49,27 +46,23 @@ const errorText = computed(() => {
     : t(`suggestions.errors.${errorKey.value}`)
 })
 
-// El «atrás» del navegador cierra el diálogo en vez de salir de la página.
-const atras = useCerrarConAtras(() => close())
+// Si se navega con el diálogo abierto (por ejemplo desde el historial del
+// navegador), se cierra para no dejar la página bloqueada con el scroll fijo.
+const capa = useCapa((opciones) => close(opciones))
 
 const open = async () => {
   isOpen.value = true
-  atras.alAbrir()
-  bloquear()
+  capa.alAbrir()
   isSent.value = false
   errorKey.value = null
   emit('open')
-  document.body.style.overflow = 'hidden'
   await nextTick()
   campoMensaje.value?.focus()
 }
 
 const close = ({ restoreFocus = true, navegando = false } = {}) => {
   isOpen.value = false
-  if (navegando) atras.alNavegar()
-  else atras.alCerrar()
-  liberar()
-  document.body.style.overflow = ''
+  capa.alCerrar({ navegando })
   if (!restoreFocus) return
 
   // Al abrir el diálogo el menú se cierra, y un menú cerrado es `inert`: el
@@ -110,15 +103,6 @@ const onKeydown = (event) => {
   // escribir párrafos.
   if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !isSent.value) submit()
 }
-
-// Si se navega con el diálogo abierto (por ejemplo desde el historial del
-// navegador), se cierra para no dejar la página bloqueada con el scroll fijo.
-watch(
-  () => route.path,
-  () => {
-    if (isOpen.value) close({ restoreFocus: false, navegando: true })
-  }
-)
 </script>
 
 <template>

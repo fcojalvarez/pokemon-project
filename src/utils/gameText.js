@@ -83,3 +83,12 @@ export function translateGameText(text, dictionary) {
 
   return template.replace(/\{(\d+)\}/g, (_, index) => numbers[Number(index)] ?? numbers[0])
 }
+
+/**
+ * El texto de una tarea de investigación de LeekDuck, sin el <span> en que
+ * viene envuelto. Es también la clave con la que scripts/lib/traducciones.mjs
+ * guarda su traducción, así que los dos lados tienen que limpiarlo igual.
+ */
+export function plainText(html) {
+  return String(html).replace(/<[^>]*>/g, '').trim()
+}

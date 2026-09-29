@@ -2,14 +2,12 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useLiveStore } from '../stores/live'
 import { useGameDataStore } from '../stores/gameData'
-import {
-  BaseEmptyState,
-  BaseErrorMessage,
-  BaseFilterSelect,
-  BasePillButton,
-  DataFreshness,
-  SkeletonLoader
-} from '../components/index'
+import BaseEmptyState from '../components/base/BaseEmptyState.vue'
+import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
+import BaseDropdown from '../components/base/BaseDropdown.vue'
+import BasePillButton from '../components/base/BasePillButton.vue'
+import DataFreshness from '../components/shared/DataFreshness.vue'
+import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import EventCard from '../components/events/EventCard.vue'
 import EventDetail from '../components/events/EventDetail.vue'
 import { cargarNoticias } from '../stores/gameData'
@@ -157,7 +155,7 @@ onMounted(async () => {
         </div>
 
         <div v-else class="flex flex-wrap items-end gap-3 mb-4">
-          <base-filter-select
+          <base-dropdown
             v-model="typeFilter"
             :label="$t('events.filterType')"
             :options="typeOptions"

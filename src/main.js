@@ -10,10 +10,14 @@ import './assets/main.css';
 import './index.css';
 
 import { usePwaUpdate } from './composables/usePwaUpdate';
+import { useMainStore } from './stores/main';
 
 const app = createApp(App);
+const pinia = createPinia();
 
-app.use(createPinia());
+app.use(pinia);
+// El tema antes de montar: si no, la app se pintaba un instante en claro.
+useMainStore(pinia).iniciarTema();
 app.use(router);
 app.use(i18n);
 

@@ -13,11 +13,8 @@
  * Así que aquí solo se recoge lo que no cubren ni 1 ni 2: cada texto se
  * traduce una vez y se queda en la memoria para siempre.
  */
-import { translateGameText } from '../../src/utils/gameText.js'
+import { plainText, translateGameText } from '../../src/utils/gameText.js'
 import { parseEventName } from '../../src/utils/eventName.js'
-
-/** El texto de la tarea viene envuelto en <span>; en la app, igual. */
-export const plainText = (html) => String(html).replace(/<[^>]*>/g, '').trim()
 
 /** Ni números sueltos ni símbolos: eso no hay que mandarlo a traducir. */
 const tieneLetras = (texto) => /\p{L}{2,}/u.test(texto)

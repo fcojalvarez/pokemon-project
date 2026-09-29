@@ -1,13 +1,11 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useGameDataStore } from '../stores/gameData'
-import {
-  BaseEmptyState,
-  BaseErrorMessage,
-  BaseFilterSelect,
-  BasePillButton,
-  SkeletonLoader
-} from '../components/index'
+import BaseEmptyState from '../components/base/BaseEmptyState.vue'
+import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
+import BaseDropdown from '../components/base/BaseDropdown.vue'
+import BasePillButton from '../components/base/BasePillButton.vue'
+import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import AttackerList from '../components/rankings/AttackerList.vue'
 import AttackerTable from '../components/rankings/AttackerTable.vue'
 import TopCalculo from '../components/rankings/TopCalculo.vue'
@@ -389,22 +387,22 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
           :class="ancho ? 'contents' : movil ? 'mb-3 p-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900' : ''"
         >
         <div :class="ancho ? 'flex flex-col gap-3' : 'grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mb-3'">
-          <base-filter-select v-model="mode" :label="$t('top.mode')" :options="modeOptions" />
-          <base-filter-select v-model="type" buscable :label="$t('top.type')" :options="typeOptions" />
+          <base-dropdown v-model="mode" :label="$t('top.mode')" :options="modeOptions" />
+          <base-dropdown v-model="type" buscable :label="$t('top.type')" :options="typeOptions" />
           <!--
             En la tabla también se ordena pulsando las cabeceras; los dos van a
             la par. Lo que significa cada orden va justo debajo del selector.
           -->
           <!-- A dos columnas va solo en su fila: a media anchura se cortaba («Daño por segundo (…»). -->
           <div v-if="mode === 'pve'" class="min-w-0 xs:col-span-2 sm:col-span-1">
-            <base-filter-select
+            <base-dropdown
               v-model="sortBy"
               :label="$t('top.sortBy')"
               :options="sortOptions"
             />
             <p class="mt-1.5 text-mini text-gray-600 dark:text-gray-300">{{ sortHelp }}</p>
           </div>
-          <base-filter-select
+          <base-dropdown
             v-else-if="mode === 'pvp'"
             v-model="league"
             :label="$t('top.league')"

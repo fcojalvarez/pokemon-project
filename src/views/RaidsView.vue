@@ -3,13 +3,11 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { dexFromImage, useLiveStore } from '../stores/live'
 import { useGameDataStore } from '../stores/gameData'
-import {
-  BaseEmptyState,
-  BaseErrorMessage,
-  BasePillButton,
-  DataFreshness,
-  SkeletonLoader
-} from '../components/index'
+import BaseEmptyState from '../components/base/BaseEmptyState.vue'
+import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
+import BasePillButton from '../components/base/BasePillButton.vue'
+import DataFreshness from '../components/shared/DataFreshness.vue'
+import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import MaxMark from '../components/pokemon/MaxMark.vue'
 import RaidCountersPanel from '../components/raids/RaidCountersPanel.vue'
 import MaxTeamPanel from '../components/raids/MaxTeamPanel.vue'
@@ -23,6 +21,7 @@ import { maxCounters } from '../utils/maxBattle'
 import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { formatDuration } from '../utils/time'
+import { plainText } from '../utils/gameText'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
@@ -155,22 +154,6 @@ const climaAbierto = computed(() => (jefeAbierto.value?.boostedWeather ?? []).ma
 const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
 
 /**
- * Nombre de un Pokémon en español. LeekDuck los publica en inglés y con la
- * forma entre paréntesis; se usa el mismo traductor que los títulos de evento
- * para que «Shadow Machop» o «Hisuian Samurott» salgan igual en toda la app.
- */
-/**
- * Los Pokémon que hay ahora mismo en los nodos energéticos, por nivel.
- *
- * Esto no sale del GAME_MASTER: él dice quién PUEDE dinamaxizar, no quién
- * ESTÁ hoy. Lo escribe un workflow cada tres horas leyendo Snacknap, que es
- * la única fuente que publica el roster entero y no solo lo que alguien ha
- * escaneado cerca.
- *
- * El nombre y el sprite se resuelven aquí contra el roster: la fuente da el
- * número de Pokédex, que es lo que no se rompe.
- */
-/**
  * A quién llevar contra el jefe Max abierto.
  *
  * Un equipo Max son tres: uno que aguante usando Maxibarrera y dos pegando.
@@ -194,13 +177,17 @@ const equipoMax = computed(() => {
   })
 })
 
-/** Cómo conseguirlo hoy: directamente, evolucionando, o de ninguna forma. */
-const comoConseguir = (quien) => {
-  if (quien.availableNow) return t('max.availableNow')
-  if (quien.availableFrom) return t('max.availableVia', { pokemon: localName(quien.availableFrom) })
-  return null
-}
-
+/**
+ * Los Pokémon que hay ahora mismo en los nodos energéticos, por nivel.
+ *
+ * Esto no sale del GAME_MASTER: él dice quién PUEDE dinamaxizar, no quién
+ * ESTÁ hoy. Lo escribe un workflow cada tres horas leyendo Snacknap, que es
+ * la única fuente que publica el roster entero y no solo lo que alguien ha
+ * escaneado cerca.
+ *
+ * El nombre y el sprite se resuelven aquí contra el roster: la fuente da el
+ * número de Pokédex, que es lo que no se rompe.
+ */
 const maxPorNivel = computed(() => {
   const vivos = gameData.maxLive?.pokemon ?? []
   if (!vivos.length) return []
@@ -234,25 +221,13 @@ const toggleBoss = (boss) => {
 
 /** Counters del jefe abierto, con la efectividad real contra sus tipos. */
 const counters = computed(() => {
-  if (!openBoss.value || !gameData.isReady) return []
-  const boss = live.raids.find((raid) => raid.name === openBoss.value)
-  return boss ? gameData.counters(bossTypes(boss), { limit: 10 }) : []
-})
-
-/** Qué procedencias aparecen entre los counters, para la leyenda de colores. */
-const counterOrigins = computed(() => {
-  const moves = counters.value.flatMap((counter) => [counter.fast, counter.charged])
-  return {
-    elite: moves.some((move) => move?.elite),
-    legacy: moves.some((move) => move?.legacy),
-    mega: moves.some((move) => move?.mega)
-  }
+  const boss = jefeAbierto.value
+  return boss && gameData.isReady ? gameData.counters(bossTypes(boss), { limit: 10 }) : []
 })
 
 const weaknesses = computed(() => {
-  if (!openBoss.value || !gameData.isReady) return []
-  const boss = live.raids.find((raid) => raid.name === openBoss.value)
-  return boss ? gameData.matchups(bossTypes(boss)).weak.map((entry) => entry.type) : []
+  const boss = jefeAbierto.value
+  return boss && gameData.isReady ? gameData.matchups(bossTypes(boss)).weak.map((entry) => entry.type) : []
 })
 
 const tierLabel = (tier) => (te(`raids.tiers.${tier}`) ? t(`raids.tiers.${tier}`) : tier)
@@ -282,12 +257,8 @@ const researchGroups = computed(() => {
     .sort((a, b) => a.label.localeCompare(b.label, locale()))
 })
 
-/** El texto de la tarea viene envuelto en <span>. */
-const plainText = (html) => String(html).replace(/<[^>]*>/g, '').trim()
-
 /** Las tareas llegan en inglés: se traducen con las frases del juego. */
 const taskText = (html) => gameData.translateText(plainText(html))
-
 
 // Llegada desde la ficha: ?tab=raids&dex=113
 watch(
@@ -313,9 +284,7 @@ onMounted(() => {
   <section class="text-gray-800 dark:text-gray-200">
     <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.raidsTitle') }}</h1>
 
-    <div class="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
-      <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300">{{ $t('raids.intro') }}</p>
-    </div>
+    <p class="mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">{{ $t('raids.intro') }}</p>
 
     <!-- Solo salta si los datos se han quedado viejos. -->
     <data-freshness :age-ms="live.cacheAge" :stale="live.isStale" class="mb-3" />
@@ -447,7 +416,6 @@ onMounted(() => {
                   :weaknesses="weaknesses"
                   :weather="climaAbierto"
                   :counters="counters"
-                  :origins="counterOrigins"
                 />
               </template>
             </div>
@@ -464,10 +432,10 @@ onMounted(() => {
             <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">{{ $t('max.globalPool') }}</p>
 
             <section
-            v-for="grupo in maxVisibles"
-            :key="grupo.tier"
-            class="mb-5"
-          >
+              v-for="grupo in maxVisibles"
+              :key="grupo.tier"
+              class="mb-5"
+            >
               <h3 class="text-sm font-bold mb-2">
                 {{ $t('max.tier', { n: grupo.tier }) }}
                 <span class="font-normal text-gray-600 dark:text-gray-300">({{ grupo.list.length }})</span>
@@ -511,7 +479,6 @@ onMounted(() => {
                     class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
                     :boss-name="localName(uno)"
                     :team="equipoMax"
-                    :how-to-get="comoConseguir"
                   />
                 </template>
               </div>
@@ -521,7 +488,8 @@ onMounted(() => {
               {{ $t('max.liveSource') }}
               <template v-if="edadMax != null">{{ $t('max.updatedAgo', { age: formatDuration(edadMax) }) }}</template>
             </p>
-          </template>        </template>
+          </template>
+        </template>
 
         <!-- ---------- Huevos ---------- -->
         <template v-else-if="tab === 'eggs'">

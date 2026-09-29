@@ -12,7 +12,7 @@
  * nada que quitar después, así que no hay salto.
  */
 import { onMounted, onUnmounted, ref } from 'vue'
-import { BaseIcon } from '.'
+import BaseIcon from './base/BaseIcon.vue'
 
 const isShowButton = ref(false)
 const rebota = ref(false)

@@ -1,29 +1,31 @@
 <script setup>
 /**
  * Con quién ganarle a un jefe de incursión: a qué es débil, qué clima lo
- * potencia y la lista de counters con sus ataques y DPS.
- *
- * Sale desplegado bajo el jefe o, en escritorio ancho, en el panel lateral:
- * por eso va aparte, para no tener el mismo marcado dos veces.
+ * potencia y la lista de counters con sus ataques y DPS. Sale desplegado bajo
+ * el jefe.
  */
-import { MoveTag, TypeIcons } from '../index'
+import { computed } from 'vue'
+import MoveTag from '../pokemon/MoveTag.vue'
+import TypeIcons from '../base/TypeIcons.vue'
 import MoveLegend from '../pokemon/MoveLegend.vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import { spriteUrl } from '../../utils/sprites'
 import { useTranslate } from '../../composables/useTranslate'
+import { origenesPresentes } from '../../utils/moveOrigins'
 
-defineProps({
+const props = defineProps({
   weaknesses: { type: Array, default: () => [] },
   /** Climas que lo potencian, ya traducidos. */
   weather: { type: Array, default: () => [] },
-  counters: { type: Array, default: () => [] },
-  /** Qué procedencias de ataque salen, para la leyenda: { elite, legacy, mega }. */
-  origins: { type: Object, default: () => ({}) },
-  /** Una columna: para el panel lateral, donde no caben dos. */
-  single: Boolean
+  counters: { type: Array, default: () => [] }
 })
 
 const { localName } = useTranslate()
+
+/** Qué procedencias salen entre los counters, para la leyenda de colores. */
+const origins = computed(() =>
+  origenesPresentes(props.counters.flatMap((counter) => [counter.fast, counter.charged]))
+)
 </script>
 
 <template>
@@ -39,12 +41,9 @@ const { localName } = useTranslate()
       </span>
     </div>
 
-    <ol
-      class="mt-2 grid gap-1.5"
-      :class="single ? 'grid-cols-1' : 'grid-cols-[repeat(auto-fill,minmax(230px,1fr))]'"
-    >
+    <ol class="mt-2 grid gap-1.5 grid-cols-[repeat(auto-fill,minmax(230px,1fr))]">
       <li
-        v-for="(counter, index) in counters"
+        v-for="counter in counters"
         :key="`${counter.id}-${counter.fast.id}-${counter.charged.id}`"
       >
         <component
@@ -52,7 +51,6 @@ const { localName } = useTranslate()
           :to="counter.dex ? `/pokemon/${counter.dex}` : undefined"
           class="flex items-center gap-2 p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-150 hover:dark:bg-gray-700"
         >
-          <span v-if="single" class="w-5 shrink-0 text-right text-mini text-gray-600 dark:text-gray-300 tabular-nums">{{ index + 1 }}</span>
           <base-sprite :src="spriteUrl(counter.spriteId)" :oscuro="counter.shadow" class="w-8 h-8 shrink-0" img-class="drop-shadow-contorno dark:drop-shadow-none" />
           <div class="flex-1 min-w-0">
             <div class="text-xs font-semibold truncate">{{ localName(counter) }}</div>
@@ -79,12 +77,6 @@ const { localName } = useTranslate()
       </li>
     </ol>
 
-    <move-legend
-      v-if="origins.elite || origins.legacy || origins.mega"
-      class="mt-2"
-      :elite="origins.elite"
-      :legacy="origins.legacy"
-      :mega="origins.mega"
-    />
+    <move-legend class="mt-2" v-bind="origins" />
   </div>
 </template>

@@ -29,10 +29,12 @@ const props = defineProps({
   sinRegionales: Boolean
 })
 
-const { locale } = useTranslate()
+const { locale, intlLocale } = useTranslate()
 const todas = ref({})
 const abierta = ref(false)
 const shiny = ref(false)
+/** La que se ve en grande, o null con la cuadrícula (ver `pasar`). */
+const ampliada = ref(null)
 
 onMounted(async () => {
   todas.value = await cargarFormas()
@@ -81,7 +83,6 @@ const nombre = (uno) => (locale() === 'en' ? uno.en : uno.es)
  * detalles del disfraz. Con las flechas se pasa a la anterior o la siguiente,
  * de formas a disfraces sin volver atrás.
  */
-const ampliada = ref(null)
 const todasEnOrden = computed(() => grupos.value.flatMap((grupo) => grupo.lista))
 const posicion = computed(() => todasEnOrden.value.findIndex((uno) => uno.f === ampliada.value?.f))
 const pasar = (paso) => {
@@ -89,7 +90,7 @@ const pasar = (paso) => {
   const siguiente = lista[(posicion.value + paso + lista.length) % lista.length]
   if (siguiente) ampliada.value = siguiente
 }
-const fecha = (texto) => new Date(texto).toLocaleDateString(locale() === 'en' ? 'en-GB' : 'es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+const fecha = (texto) => new Date(texto).toLocaleDateString(intlLocale(), { day: 'numeric', month: 'long', year: 'numeric' })
 </script>
 
 <template>

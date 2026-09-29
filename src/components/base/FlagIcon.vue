@@ -1,10 +1,6 @@
-<script>
-// Fuera de `<script setup>`: ese se ejecuta una vez por instancia, y el
-// contador tiene que ser uno para todas.
-let contador = 0
-</script>
-
 <script setup>
+import { useId } from 'vue'
+
 /**
  * Bandera de un idioma, para el selector del menú.
  *
@@ -20,7 +16,7 @@ defineProps({
 // La inglesa necesita un clipPath, y los id de un SVG en línea son globales
 // al documento: con dos iguales, la segunda usaría el de la primera y, al
 // desmontarse esa, se quedaría sin recorte.
-const id = `bandera-${++contador}`
+const id = `bandera-${useId()}`
 </script>
 
 <template>
