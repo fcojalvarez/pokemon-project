@@ -54,19 +54,17 @@ const onKeydown = (event) => {
     :aria-label="$t(isOpen ? 'nav.close' : 'nav.open')"
     :aria-expanded="isOpen"
     aria-controls="menu-lateral"
-    class="nav-trigger transition-colors max-w-[50px] md:max-w-[160px] flex justify-center items-center cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 w-40 md:w-auto px-4 hover:bg-gray-150 hover:dark:bg-gray-800"
+    class="nav-trigger flex justify-center items-center w-11 rounded-xl text-gray-500 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-800 transition-colors"
+    :class="isOpen ? 'bg-gray-200 dark:bg-gray-800' : ''"
     @click="isOpen ? close() : open()"
   >
     <base-icon
       :stroke-width="1.5"
       height="24"
       width="24"
-      class-path="stroke-gray-600 dark:stroke-gray-100"
+      color="currentColor"
       d="M4 6h16M4 12h16M4 18h16"
     />
-    <span class="hidden md:block text-sm text-gray-800 dark:text-gray-200 ml-3">
-      {{ $t('nav.menu') }}
-    </span>
   </button>
 
   <Teleport to="body">

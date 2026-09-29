@@ -117,12 +117,11 @@ test('el botón de modo oscuro está en un solo sitio', async ({ page }) => {
 })
 
 /**
- * En móvil el buscador es una lupa: al tocarla se abre con el foco dentro y
+ * El buscador es una lupa, en todos los anchos: al tocarla se abre con el foco dentro y
  * tapa el modo oscuro, que sale del tabulador. La ✕ lo vacía, lo pliega y
  * devuelve el foco a la lupa.
  */
-test('en móvil el buscador se abre desde la lupa y se pliega con la ✕', async ({ page }) => {
-  test.skip(page.viewportSize().width >= 768, 'solo en móvil')
+test('el buscador se abre desde la lupa y se pliega con la ✕', async ({ page }) => {
   await page.goto('/')
   const lupa = page.getByRole('button', { name: 'Abrir el buscador' })
   const oscuro = page.locator('button[aria-label="Modo oscuro"]')
@@ -142,7 +141,7 @@ test('en móvil el buscador se abre desde la lupa y se pliega con la ✕', async
 
 test('los resultados del buscador se recorren con las flechas y se abren con Enter', async ({ page }) => {
   await page.goto('/top')
-  if (page.viewportSize().width < 768) await page.getByRole('button', { name: 'Abrir el buscador' }).click()
+  await page.getByRole('button', { name: 'Abrir el buscador' }).click()
   const campo = page.getByRole('combobox', { name: 'Buscar un Pokémon por nombre' })
   await campo.fill('charm')
   await expect(page.getByRole('listbox', { name: 'Resultados de la búsqueda' })).toBeVisible()

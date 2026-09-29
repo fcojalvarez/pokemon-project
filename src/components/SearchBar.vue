@@ -9,7 +9,6 @@
     import { formatDex } from '../utils/dex';
     import { useRoute, useRouter } from 'vue-router';
     import useDetectOutsideClick from '../composables/useDetectOutsideClick';
-    import { useMedia } from '../composables/useMedia';
     import { usePokemonsStore } from '@/stores/pokemons';
     import { useMainStore } from '../stores/main';
     import { storeToRefs } from 'pinia';
@@ -31,17 +30,17 @@
     const searchBarRef = ref();
 
     /**
-     * En móvil el buscador se queda plegado en una lupa: abierto ocupaba media
-     * cabecera todo el rato. Al tocarla crece hacia la derecha hasta el menú,
-     * tapando el modo oscuro, y se vuelve a plegar al salir si está vacío. Con
-     * algo escrito sigue abierto: en la Pokédex eso es lo que filtra la rejilla.
-     * En escritorio sobra sitio y está siempre abierto.
+     * El buscador se queda plegado en una lupa: abierto ocupaba media cabecera
+     * todo el rato. Al tocarla crece hacia la derecha hasta el menú, tapando el
+     * modo oscuro, y se vuelve a plegar al salir si está vacío. Con algo
+     * escrito sigue abierto: en la Pokédex eso es lo que filtra la rejilla.
+     * Igual en todos los anchos: en escritorio iba siempre desplegado, con
+     * caja, y la cabecera se veía distinta a la del móvil.
      */
     const emit = defineEmits(['tapa']);
-    const esMovil = useMedia('(max-width: 767px)');
     const abierto = ref(false);
-    const plegado = computed(() => esMovil.value && !abierto.value);
-    watch(() => esMovil.value && abierto.value, (tapa) => emit('tapa', tapa), { immediate: true });
+    const plegado = computed(() => !abierto.value);
+    watch(abierto, (tapa) => emit('tapa', tapa), { immediate: true });
 
     const inputRef = ref();
     const lupaRef = ref();
@@ -76,12 +75,11 @@
         cerrar({ devolverFoco: true });
     }
     const alSalir = (event) => {
-        if (!esMovil.value || inputValue.value) return;
+        if (inputValue.value) return;
         if (event.currentTarget.contains(event.relatedTarget)) return;
         cerrar();
     }
 
-    // La lupa: la plegada en móvil y la del campo en escritorio.
     const ICONO_LUPA = 'm17 17 4 4M3 11a8 8 0 1 0 16 0 8 8 0 0 0-16 0z';
 
     const scrollbarBackground = computed(() => isDarkMode.value? '#111827' : '#fff');
@@ -128,7 +126,7 @@
         if (event.key === 'Escape') {
             // Primero cierra los resultados; con ellos ya cerrados, pliega.
             if (!isListView.value && isShowModalSearch.value) isShowModalSearch.value = false;
-            else if (esMovil.value && !inputValue.value) cerrar({ devolverFoco: true });
+            else if (!inputValue.value) cerrar({ devolverFoco: true });
             return;
         }
         if (isListView.value) return;
@@ -158,23 +156,27 @@
     // URL la trae (?q=, al volver atrás) y se vacía si no. Solo al cambiar de
     // página, no con cada tecla: la URL se actualiza mientras se escribe y, si
     // se copiara de vuelta, podría pisar lo último tecleado.
-    watch(() => route.path, () => {
+    // Al arrancar se espera al router: antes de la primera navegación la ruta
+    // aún no trae el ?q=, y al entrar con una búsqueda en la URL la rejilla
+    // salía filtrada pero con el buscador plegado.
+    const leerDeLaUrl = () => {
         if(isListView.value) isShowModalSearch.value = false;
         inputValue.value = isListView.value && route.query.q ? String(route.query.q) : null;
         abierto.value = Boolean(inputValue.value);
-    }, { immediate: true })
+    }
+    watch(() => route.path, leerDeLaUrl)
+    router.isReady().then(leerDeLaUrl)
 </script>
 
 <template>
     <!-- El anillo de foco va en la caja entera y no en el campo, que queda
          metido dentro del borde y se veía como un segundo recuadro. -->
-    <!-- Menos relleno en móvil: con 28 px por lado, en la ficha a 320 px solo
-         cabía la «B» de «Buscar». -->
-    <!-- En móvil, sin relleno a la izquierda: la lupa ocupa el cuadrado entero
-         del botón plegado y queda en el mismo sitio al abrirse. -->
+    <!-- Poco relleno: con 28 px por lado, en la ficha a 320 px solo cabía la
+         «B» de «Buscar». Ninguno a la izquierda: la lupa ocupa el cuadrado
+         entero del botón plegado y queda en el mismo sitio al abrirse. -->
     <section
         ref="cajaRef"
-        class="buscador relative flex items-center gap-2 transition-colors w-full md:px-4 border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-1 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300"
+        class="buscador relative flex items-center gap-2 transition-colors w-full border border-gray-400 bg-white dark:bg-gray-900 rounded-xl shadow-md focus-within:outline focus-within:outline-1 focus-within:outline-offset-2 focus-within:outline-blue-600 dark:focus-within:outline-blue-300"
         :class="{ 'buscador-abierto pr-1': abierto, 'overflow-hidden !border-transparent !bg-transparent !shadow-none': plegado }"
         @focusout="alSalir"
         @transitionend="alPlegarse"
@@ -182,7 +184,7 @@
         <button
             ref="lupaRef"
             type="button"
-            class="md:hidden shrink-0 self-stretch w-12 flex items-center justify-center"
+            class="shrink-0 self-stretch w-12 flex items-center justify-center"
             :class="abierto ? 'pointer-events-none' : 'cursor-pointer'"
             :tabindex="abierto ? -1 : 0"
             :aria-hidden="abierto || undefined"
@@ -208,7 +210,7 @@
             autocapitalize="off"
             spellcheck="false"
             enterkeyhint="search"
-            class="flex-1 min-w-0 bg-transparent py-2 px-1.5 md:px-3 outline-none focus-visible:outline-none text-black dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400"
+            class="flex-1 min-w-0 bg-transparent py-2 px-1.5 outline-none focus-visible:outline-none text-black dark:text-gray-300 placeholder:text-gray-500 dark:placeholder:text-gray-400"
             :placeholder="$t('searchPokemon')"
             :aria-label="$t('a11y.search')"
             :role="isListView ? undefined : 'combobox'"
@@ -222,7 +224,7 @@
             @keydown="onKeydown"
         >
         <button
-            v-if="esMovil && abierto"
+            v-if="abierto"
             type="button"
             class="zona-tactil shrink-0 w-9 h-9 rounded-lg text-gray-600 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
             :aria-label="$t('a11y.closeSearch')"
@@ -230,12 +232,6 @@
         >
             <span aria-hidden="true">✕</span>
         </button>
-        <base-icon
-            :stroke-width="1.5"
-            icon-class="hidden md:block shrink-0 w-6"
-            class-path="stroke-gray-600 dark:stroke-gray-100"
-            :d="ICONO_LUPA"
-        />
 
         <section ref="searchBarRef" v-if="isShowModalSearch" class="absolute left-0 top-full z-40 mt-2 w-full py-2 border border-gray-400 bg-white dark:bg-gray-900 dark:text-white rounded-xl shadow-md">
            <div class="overflow-y-scroll search-modal min-h-[120px] max-h-96">
@@ -280,25 +276,26 @@
 <style scoped>
 /* Plegado mide lo mismo que los botones de modo oscuro y menú. Va encima del
    de modo oscuro (HeaderComponent) y al abrirse lo tapa. */
-@media (max-width: 767px) {
-    .buscador {
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 10;
-        width: 50px;
-        transition: width 0.25s ease, background-color 0.15s, color 0.15s;
-    }
-    .buscador-abierto {
-        width: 100%;
-    }
-    .buscador input {
-        transition: opacity 0.2s ease;
-    }
-    .buscador:not(.buscador-abierto) input {
-        opacity: 0;
-    }
+.buscador {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 10;
+    width: 50px;
+    transition: width 0.25s ease, background-color 0.15s, color 0.15s;
+}
+.buscador-abierto {
+    width: 100%;
+    /* En escritorio llenaba el hueco entero hasta el menú: un campo de más
+       de 1000 px para escribir un nombre. */
+    max-width: 32rem;
+}
+.buscador input {
+    transition: opacity 0.2s ease;
+}
+.buscador:not(.buscador-abierto) input {
+    opacity: 0;
 }
 @media (prefers-reduced-motion: reduce) {
     .buscador, .buscador input { transition: none; }

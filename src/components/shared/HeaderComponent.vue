@@ -15,7 +15,7 @@
 
     const router = useRouter();
 
-    // En móvil, con el buscador abierto el modo oscuro queda debajo: fuera del
+    // Con el buscador abierto el modo oscuro queda debajo: fuera del
     // tabulador, para no enfocar un botón que no se ve.
     const buscadorTapa = ref(false);
 
@@ -50,7 +50,7 @@
     -->
     <header class="relative h-16 sm:h-14 flex items-stretch gap-3">
         <button
-            class="back-btn shrink-0 rounded-xl hover:bg-gray-200 hover:dark:bg-gray-800 md:border-gray-400 md:shadow-md md:bg-white md:dark:bg-gray-900 md:hover:bg-gray-150"
+            class="back-btn shrink-0 rounded-xl hover:bg-gray-200 hover:dark:bg-gray-800"
             :class="{ 'back-btn-visible': isPokemonView }"
             :tabindex="isPokemonView && !buscadorTapa ? 0 : -1"
             :aria-hidden="!isPokemonView || buscadorTapa || undefined"
@@ -58,29 +58,23 @@
             :aria-label="$t('back')"
             @click="volver"
         >
-            <div class="flex md:hidden justify-center items-center h-full text-gray-500 dark:text-gray-300">
+            <div class="flex justify-center items-center h-full text-gray-500 dark:text-gray-300">
                 <base-icon
                     width="20" height="20"
                     :stroke-width="1.5" color="currentColor"
                     d="M21 12H3m0 0 8.5-8.5M3 12l8.5 8.5"
                 />
             </div>
-
-            <span class="hidden md:block text-gray-800 dark:text-white whitespace-nowrap">
-                {{ $t('back') }}
-            </span>
         </button>
 
         <!--
             El icono y el nombre, en el centro de la cabecera (de toda ella, no
             del hueco que queda: por eso va absoluto). Lleva a la Pokédex.
-            Entre md y lg no cabe: el buscador ya va desplegado y los botones
-            de la derecha llevan texto, y se encontraban en el medio. En
-            móvil se aparta mientras el buscador está abierto, que lo tapa.
+            Se aparta mientras el buscador está abierto, que lo tapa.
         -->
         <router-link
             to="/"
-            class="marca absolute z-[5] inset-y-0 left-1/2 -translate-x-1/2 flex md:hidden lg:flex items-center gap-1.5 px-1 rounded-xl text-gray-800 dark:text-gray-100 transition-opacity"
+            class="marca absolute z-[5] inset-y-0 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-1 rounded-xl text-gray-800 dark:text-gray-100 transition-opacity"
             :class="buscadorTapa ? 'opacity-0 pointer-events-none' : ''"
             :tabindex="buscadorTapa ? -1 : undefined"
             :aria-hidden="buscadorTapa || undefined"
@@ -101,21 +95,20 @@
             </span>
         </router-link>
         <!--
-            El buscador y el modo oscuro comparten hueco. En escritorio van en
-            fila, como siempre: el buscador topa en max-w-lg y el ml-auto manda
-            el modo oscuro a la derecha. En móvil el buscador es una lupa
-            (absoluta, a la izquierda del hueco) que al abrirse lo llena entero
-            y tapa el modo oscuro; ver SearchBar.
+            El buscador y el modo oscuro comparten hueco. El buscador es una
+            lupa (absoluta, a la izquierda del hueco) que al abrirse lo llena
+            entero y tapa el modo oscuro; ver SearchBar. Igual en todos los
+            anchos: en escritorio iba desplegado y con caja, y los botones con
+            caja y texto, y la cabecera no se parecía a la del móvil.
             El hueco del buscador cruza el centro y va después: sin el z-[5] del
             logo, le quitaba los clics. El buscador abierto (z-10) queda encima.
         -->
         <div class="relative flex-1 min-w-0 flex items-stretch gap-3">
-            <!-- Desde lg, que no llegue al centro, donde va el nombre: la mitad del hueco, o menos con el botón de volver al lado. -->
             <search-bar
                 v-if="!route.meta.sinNavegacion"
                 id="search-bar"
-                class="md:flex-1 min-w-0 md:max-w-lg"
-                :class="isPokemonView ? 'buscar-sobre-volver lg:max-w-[min(32rem,calc(50%-7rem))]' : 'lg:max-w-[min(32rem,calc(50%-2rem))]'"
+                class="min-w-0"
+                :class="{ 'buscar-sobre-volver': isPokemonView }"
                 @tapa="buscadorTapa = $event"
             />
 
@@ -124,7 +117,7 @@
                 tema de arranque lo pone main.js.
             -->
             <toggle-dark-mode
-                class="hidden sm:flex shrink-0 ml-auto px-4 cursor-pointer"
+                class="hidden sm:flex shrink-0 ml-auto"
                 :inert="buscadorTapa || undefined"
                 :aria-hidden="buscadorTapa || undefined"
             />
@@ -148,7 +141,7 @@
     margin-right: -0.75rem;
     transition: max-width 0.3s ease, opacity 0.25s ease, padding 0.3s ease, margin 0.3s ease;
 }
-/* En móvil, solo la flecha en gris y sin caja, como la lupa y los ajustes, y
+/* Solo la flecha en gris y sin caja, como la lupa y los ajustes, y
    con la lupa pegada: sin el gap-3 y los dos en 36 px (la lupa, abajo). Con
    el ancho de siempre, entre los dos iconos quedaban 23 px de aire. */
 .back-btn-visible {
@@ -157,40 +150,26 @@
     width: 36px;
     opacity: 1;
 }
-/* Desde md lleva el texto «Volver», y ahí sí con su caja. */
 /*
- * En la ficha, en móvil, el buscador abierto se come también el botón de
+ * En la ficha, el buscador abierto se come también el botón de
  * volver: crece hacia la izquierda lo que mide el botón (36 px, sin hueco). .buscador-abierto lo pone SearchBar en su raíz; el estilo con scope
  * de aquí le llega porque la raíz de un hijo lleva también el del padre.
  */
-@media (max-width: 767px) {
-    .buscar-sobre-volver.buscador-abierto {
-        left: -36px;
-        width: calc(100% + 36px);
-        transition: width 0.25s ease, left 0.25s ease, background-color 0.15s, color 0.15s;
-    }
+.buscar-sobre-volver.buscador-abierto {
+    left: -36px;
+    width: calc(100% + 36px);
+    transition: width 0.25s ease, left 0.25s ease, background-color 0.15s, color 0.15s;
 }
 /*
  * La lupa de SearchBar, en la ficha, en un hueco de 36 px como el de volver y
  * con el icono centrado. Arrimarla a la izquierda dentro del de 50 dejaba el
  * anillo de foco descentrado respecto al icono.
  */
-@media (max-width: 767px) {
-    .buscar-sobre-volver:not(.buscador-abierto) {
-        width: 36px;
-    }
-    .buscar-sobre-volver:not(.buscador-abierto) :deep(> button:first-child) {
-        width: 100%;
-    }
+.buscar-sobre-volver:not(.buscador-abierto) {
+    width: 36px;
 }
-@media (min-width: 768px) {
-    .back-btn-visible {
-        margin-right: 0;
-        width: auto;
-        max-width: 150px;
-        padding: 8px 16px;
-        border-width: 1px;
-    }
+.buscar-sobre-volver:not(.buscador-abierto) :deep(> button:first-child) {
+    width: 100%;
 }
 @media (prefers-reduced-motion: reduce) {
     .back-btn { transition: none; }
