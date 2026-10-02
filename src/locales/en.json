@@ -71,6 +71,16 @@
     "bestMoves": "Best moves",
     "fastMoves": "Fast moves",
     "chargedMoves": "Charged moves",
+    "yourMoves": {
+      "title": "What about your moves?",
+      "overall": "Overall",
+      "hint": "Tap one fast and one charged move.",
+      "noData": "That move has no raid damage data yet, so its rank can't be worked out.",
+      "beyond": "beyond #{n}",
+      "dropHelp": "{n} places below its best moveset",
+      "isBest": "This is its best moveset: the rank shown in the Top.",
+      "versusBest": "{percent}% of the damage of its best moveset ({fast} + {charged})."
+    },
     "whereToFind": "Where to get it",
     "notAvailableNow": "Not in raids, eggs, research or events right now",
     "dittoWild": "Always in the wild, disguised as another Pokémon",

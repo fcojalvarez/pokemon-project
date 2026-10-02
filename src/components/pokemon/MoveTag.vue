@@ -30,7 +30,12 @@ const props = defineProps({
   // Píldora con borde completo. Es lo que se usa en toda la app: el subrayado
   // suelto se leía peor y costaba distinguir el ámbar del morado de un vistazo.
   chip: Boolean,
-  hideIcon: Boolean
+  hideIcon: Boolean,
+  /**
+   * Elegido (en la ficha, para ver dónde queda con tus ataques): ✓ delante y
+   * un borde más grueso. El color de procedencia se mantiene.
+   */
+  selected: Boolean
 })
 
 const { t } = useTranslate()
@@ -62,7 +67,15 @@ const hint = computed(() => (origin.value ? t(`moves.${origin.value}Help`) : nul
 </script>
 
 <template>
-  <span :class="['inline-flex items-center gap-1 min-w-0 text-mini', styling]" :title="hint">
+  <span
+    :class="[
+      'inline-flex items-center gap-1 min-w-0 text-mini',
+      styling,
+      selected ? 'font-semibold outline outline-2 outline-offset-1 outline-current' : ''
+    ]"
+    :title="hint"
+  >
+    <span v-if="selected" aria-hidden="true">✓</span>
     <type-icons v-if="!hideIcon && type" :types="[type]" :size="size" />
     <span class="truncate">{{ name }}</span>
   </span>

@@ -71,6 +71,16 @@
     "bestMoves": "Mejores ataques",
     "fastMoves": "Ataques rápidos",
     "chargedMoves": "Ataques cargados",
+    "yourMoves": {
+      "title": "¿Y con tus ataques?",
+      "overall": "General",
+      "hint": "Toca un rápido y un cargado.",
+      "noData": "Ese ataque aún no tiene datos de daño en incursiones: no se puede calcular el puesto.",
+      "beyond": "más allá del #{n}",
+      "dropHelp": "{n} puestos por debajo de su mejor conjunto",
+      "isBest": "Es su mejor conjunto: el puesto que sale en el Top.",
+      "versusBest": "El {percent} % del daño de su mejor conjunto ({fast} + {charged})."
+    },
     "whereToFind": "Dónde conseguirlo",
     "notAvailableNow": "Ahora mismo no está en incursiones, huevos, misiones ni eventos",
     "dittoWild": "Siempre en estado salvaje, disfrazado de otro Pokémon",

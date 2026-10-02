@@ -226,6 +226,27 @@ test('los iconos de LeekDuck se ven aunque lleguen sin una cabecera CORS válida
   expect(await page.locator('main article img[src*="pokemon_icons"]').count()).toBeGreaterThan(0)
 })
 
+test('la ficha dice en qué puesto queda con tus ataques', async ({ page }) => {
+  await page.goto('/pokemon/150')
+  const seccion = page.locator('#ficha-ataques')
+  await expect(seccion).toBeVisible()
+  const plegada = seccion.locator('button[aria-expanded="false"]')
+  if (await plegada.count()) await plegada.click()
+  // El nombre del botón lleva delante el del tipo (el icono): se busca por el final.
+  const ataque = (nombre) =>
+    seccion.locator('button[aria-pressed]').filter({ hasText: new RegExp(`^\\W*${nombre}$`) })
+  await ataque('Psicocorte').click()
+  await expect(ataque('Psicocorte')).toHaveAttribute('aria-pressed', 'true')
+  await ataque('Psíquico').click()
+  const resultado = seccion.getByRole('status')
+  await expect(resultado).toContainText('Psicocorte + Psíquico')
+  await expect(resultado).toContainText(/General\s*#\d+/)
+  await expect(resultado).toContainText('del daño de su mejor conjunto')
+  // Tocar otra vez el elegido lo quita, y sin los dos no hay resultado.
+  await ataque('Psíquico').click()
+  await expect(resultado).toBeEmpty()
+})
+
 test('una sugerencia demasiado corta no sale; una buena, sí', async ({ page }) => {
   // Nunca se escribe en la tabla de verdad: el insert se contesta aquí.
   const enviadas = []

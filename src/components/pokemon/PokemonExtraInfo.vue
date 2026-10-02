@@ -197,6 +197,7 @@ const moverVisible = (id, paso) => {
           v-else-if="id === 'ataques'"
           :best-movesets="bestMovesets"
           :movepool="movepool"
+          :entrada="entrada"
         />
         <ficha-efectos v-else-if="id === 'efectos'" :efectos="moveEffects" />
         <ficha-debilidades v-else-if="id === 'debilidades'" :matchups="matchups" />
