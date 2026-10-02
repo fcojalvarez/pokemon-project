@@ -77,39 +77,64 @@ const onKeydown = (event) => {
     </button>
 
     <!--
-      Plegable: un desplegable bajo el botón. Sin plegar, la lista siempre.
+      Plegable: un desplegable bajo el botón, que crece desde él como Ajustes
+      (antes aparecía de golpe). Sin plegar, la lista siempre.
     -->
-    <div
-      id="leyenda-marcas"
-      class="flex-col gap-1.5 text-mini text-gray-600 dark:text-gray-300"
-      :class="
-        plegable
-          ? [
-              abierta ? 'flex' : 'hidden',
-              'absolute left-0 top-full z-20 mt-2 w-max p-3 rounded-xl border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 shadow-lg'
-            ]
-          : 'flex'
-      "
-    >
-      <ul :aria-label="$t('legend.title')" class="flex flex-col gap-1.5">
-        <li v-for="marca in marcas" :key="marca" class="flex items-center gap-2">
-          <!-- Todas en una caja del mismo ancho: así los textos quedan alineados. -->
-          <span class="w-4 shrink-0 flex justify-center" aria-hidden="true">
-            <shiny-mark
-              v-if="marca === 'shiny'"
-              variant="dex"
-              size="text-mini"
-              inline
-              :scale="0.65"
-            />
-            <no-liberado-mark v-else-if="marca === 'noLiberado'" />
-            <max-mark v-else :variant="marca" :size="15" class="shrink-0" />
-          </span>
-          <span :class="marca === 'noLiberado' ? 'line-through' : ''">{{
-            $t(`legend.${marca}`)
-          }}</span>
-        </li>
-      </ul>
-    </div>
+    <Transition name="leyenda">
+      <div
+        v-show="!plegable || abierta"
+        id="leyenda-marcas"
+        class="flex flex-col gap-1.5 text-mini text-gray-600 dark:text-gray-300"
+        :class="
+          plegable
+            ? 'leyenda absolute left-0 top-full z-20 mt-2 w-max p-3 rounded-xl border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 shadow-lg'
+            : ''
+        "
+      >
+        <ul :aria-label="$t('legend.title')" class="flex flex-col gap-1.5">
+          <li v-for="marca in marcas" :key="marca" class="flex items-center gap-2">
+            <!-- Todas en una caja del mismo ancho: así los textos quedan alineados. -->
+            <span class="w-4 shrink-0 flex justify-center" aria-hidden="true">
+              <shiny-mark
+                v-if="marca === 'shiny'"
+                variant="dex"
+                size="text-mini"
+                inline
+                :scale="0.65"
+              />
+              <no-liberado-mark v-else-if="marca === 'noLiberado'" />
+              <max-mark v-else :variant="marca" :size="15" class="shrink-0" />
+            </span>
+            <span :class="marca === 'noLiberado' ? 'line-through' : ''">{{
+              $t(`legend.${marca}`)
+            }}</span>
+          </li>
+        </ul>
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+/* Crece desde el botón, arriba a la izquierda, como el panel de Ajustes. */
+.leyenda {
+  transform-origin: 1.5rem top;
+}
+.leyenda-enter-active {
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.leyenda-leave-active {
+  transition: opacity 0.12s ease, transform 0.15s ease-in;
+}
+.leyenda-enter-from,
+.leyenda-leave-to {
+  opacity: 0;
+  transform: scale(0.6);
+}
+@media (prefers-reduced-motion: reduce) {
+  .leyenda-enter-active,
+  .leyenda-leave-active {
+    transition: none;
+  }
+}
+</style>

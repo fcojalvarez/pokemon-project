@@ -28,8 +28,10 @@ test('con el teclado se llega a los Pokémon de la Pokédex y se abren con Enter
   await expect(page.getByText('Bulbasaur', { exact: true }).first()).toBeVisible()
 
   // Antes las tarjetas eran <section> con @click y el tabulador se las saltaba.
+  // En escritorio ancho, antes de la rejilla van los filtros de la barra
+  // lateral (los 18 tipos y demás), como en el Top.
   let enTarjeta = false
-  for (let i = 0; i < 12 && !enTarjeta; i++) {
+  for (let i = 0; i < 45 && !enTarjeta; i++) {
     await page.keyboard.press('Tab')
     enTarjeta = await page.evaluate(() => document.activeElement?.hasAttribute('data-dex-tile'))
   }

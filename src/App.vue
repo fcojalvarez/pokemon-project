@@ -57,8 +57,13 @@ const saltarAlContenido = (event) => {
       :class="bajada ? 'shadow-[0_1px_0_0_#d1d5db] dark:shadow-[0_1px_0_0_#4b5563]' : ''"
     />
 
-    <!-- tabindex -1: recibe el foco del enlace de salto sin entrar en el orden del tabulador. -->
-    <main id="contenido" tabindex="-1" class="min-h-[74vh] mb-4 focus:outline-none">
+    <!--
+      tabindex -1: recibe el foco del enlace de salto sin entrar en el orden del tabulador.
+      min-h-screen: el pie empieza siempre por debajo de la pantalla. Con 74vh
+      se veía abajo mientras cargaba (los esqueletos son más cortos que lo de
+      verdad) y daba un salto al llegar los datos.
+    -->
+    <main id="contenido" tabindex="-1" class="min-h-screen mb-4 focus:outline-none">
       <RouterView />
     </main>
 

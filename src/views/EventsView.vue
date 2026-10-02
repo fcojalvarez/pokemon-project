@@ -36,6 +36,15 @@ const abierto = ref(null)
 /** Bonus de la noticia oficial de cada evento, para enseñarlos en su tarjeta. */
 const noticias = ref(null)
 
+/**
+ * El esqueleto se queda hasta tener los eventos y las noticias: los bonus de
+ * la noticia van dentro de la tarjeta, y si llegaban después, todas crecían
+ * y la lista bajaba de golpe.
+ */
+const cargando = computed(
+  () => live.status === 'loading' || live.status === 'idle' || noticias.value === null
+)
+
 // Ni pasados ni sin fecha: uno que ya terminó no sirve para nada, y los que
 // LeekDuck publica sin fechas no se pueden ni situar en el tiempo. «Semana»
 // (F10) junta los dos por día, para planear los próximos siete.
@@ -106,7 +115,12 @@ const list = computed(() =>
 onMounted(async () => {
   live.load()
   gameData.load()
-  noticias.value = await cargarNoticias()
+  // Con un tope: unas noticias lentas no pueden dejar el esqueleto puesto.
+  // Si llegan después, los bonus se añaden entonces.
+  const tope = new Promise((listo) => setTimeout(() => listo(null), 4000))
+  const primero = await Promise.race([cargarNoticias(), tope])
+  noticias.value = primero ?? { eventos: {}, noticias: {}, bonus: {} }
+  if (!primero) noticias.value = await cargarNoticias()
 })
 </script>
 
@@ -153,6 +167,22 @@ onMounted(async () => {
           <base-filter-list v-model="typeFilter" :options="typeOptions" />
         </div>
 
+        <!--
+          Mientras cargan los eventos no hay tipos que contar: su hueco, para
+          que la lista no baje de golpe al llegar (la empujaba 58 px).
+        -->
+        <div
+          v-else-if="!semana && cargando"
+          class="py-2 mb-3 flex gap-2 overflow-hidden"
+          aria-hidden="true"
+        >
+          <span
+            v-for="(medida, i) in ['w-24', 'w-28', 'w-32', 'w-28']"
+            :key="i"
+            class="esqueleto shrink-0 h-[30px] rounded-full"
+            :class="medida"
+          ></span>
+        </div>
         <!-- top-16 / sm:top-14: justo debajo de la cabecera fija (64 px en móvil, 56 desde sm). -->
         <div
           v-else-if="!ancho && !semana && typeOptions.length > 2"
@@ -193,7 +223,12 @@ onMounted(async () => {
           {{ $t('max.battlesNote') }}
         </p>
 
-        <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
+        <!--
+          Con las mismas piezas que EventCard: el cartel, la hoja de calendario,
+          la etiqueta del tipo, el título en dos líneas, el horario, el estado y,
+          bajo una línea, las etiquetas de lo que trae.
+        -->
+        <skeleton-loader v-if="cargando">
           <div :class="rejilla">
             <div
               v-for="n in 6"
@@ -203,19 +238,23 @@ onMounted(async () => {
               <span
                 class="esqueleto block -mx-3 -mt-3 mb-2.5 h-24 sm:-mx-4 sm:-mt-4 sm:mb-3 sm:h-32 rounded-t-xl rounded-b-none"
               ></span>
-              <div class="flex gap-4 items-start">
-                <span class="esqueleto w-14 h-[4.5rem] sm:w-16 sm:h-20 shrink-0 rounded-xl"></span>
-                <div class="flex-1 flex flex-col gap-2">
-                  <span class="esqueleto h-4 w-20 rounded-full"></span>
-                  <span class="esqueleto h-3.5 w-full rounded-full"></span>
-                  <span class="esqueleto h-3.5 w-3/5 rounded-full"></span>
+              <div class="flex gap-3 sm:gap-4">
+                <span
+                  class="esqueleto w-14 h-[4.25rem] sm:w-16 sm:h-[4.75rem] shrink-0 rounded-xl"
+                ></span>
+                <div class="flex-1 min-w-0 flex flex-col">
+                  <span class="esqueleto h-5 w-20 rounded-full"></span>
+                  <span class="esqueleto mt-1.5 h-4 w-full rounded-full"></span>
+                  <span class="esqueleto mt-1.5 h-4 w-3/5 rounded-full"></span>
+                  <span class="esqueleto mt-2.5 h-3.5 w-36 rounded-full"></span>
+                  <span class="esqueleto mt-1.5 h-3 w-44 rounded-full"></span>
+                  <span
+                    class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700 flex flex-wrap gap-2"
+                  >
+                    <span class="esqueleto h-6 w-36 rounded-full"></span>
+                  </span>
                 </div>
               </div>
-              <div class="flex gap-2 mt-3">
-                <span class="esqueleto h-5 w-24 rounded-full"></span>
-                <span class="esqueleto h-5 w-28 rounded-full"></span>
-              </div>
-              <span class="esqueleto block h-3 w-2/3 mt-3 rounded-full"></span>
             </div>
           </div>
         </skeleton-loader>

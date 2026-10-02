@@ -25,6 +25,14 @@ const noExiste = ref(false)
 const route = useRoute()
 const isShowShiny = ref(false)
 const gameData = useGameDataStore()
+
+/**
+ * La ficha sale cuando están el Pokémon y los datos de juego. Antes salía con
+ * el Pokémon solo, y al llegar los datos de juego aparecían las megas en la
+ * línea evolutiva y «Dinamax, Gigamax» en la cabecera: todo bajaba de golpe.
+ * Si los datos de juego fallan, sale igual con lo que haya.
+ */
+const datosListos = computed(() => gameData.isReady || gameData.status === 'error')
 const live = useLiveStore()
 
 // ?form=charizard_mega_y muestra esa forma concreta en vez del Pokémon base,
@@ -182,7 +190,7 @@ watch(
         las envuelva: cabecera, cadena evolutiva y las secciones de datos. Desde
         md las secciones van en dos columnas (ver <pokemon-extra-info>).
     -->
-  <div v-if="pokemon" class="flex flex-col gap-3 lg:gap-4">
+  <div v-if="pokemon && datosListos" class="flex flex-col gap-3 lg:gap-4">
     <!--
             Desde lg, una sola fila: el Pokémon a la izquierda y la leyenda y los
             botones a la derecha. En dos filas, la tarjeta ocupaba el ancho entero
@@ -332,52 +340,87 @@ watch(
 
   <not-found-view v-else-if="noExiste" />
 
-  <!-- Mientras llega el Pokémon: las mismas tarjetas, con su forma. -->
+  <!--
+    Mientras llega el Pokémon: las mismas tarjetas, con las mismas cajas y
+    medidas que la ficha de verdad (cabecera, línea evolutiva y secciones),
+    para que al llegar no se mueva nada. En móvil y tablet las secciones van
+    plegadas, con su título y el resumen; desde lg, abiertas y a dos columnas,
+    con «Ordenar secciones» encima.
+  -->
   <skeleton-loader v-else class="flex flex-col gap-3 lg:gap-4">
-    <base-card>
-      <div class="flex items-center gap-4 pb-3 border-b border-gray-300 dark:border-gray-700">
-        <span class="w-20 h-20 shrink-0 flex items-center justify-center"
+    <base-card class="!pb-3 lg:!py-4 lg:!px-6 lg:flex lg:items-center lg:gap-6">
+      <div
+        class="flex items-center gap-4 pb-3 border-b border-gray-300 dark:border-gray-700 lg:flex-1 lg:pb-0 lg:border-b-0"
+      >
+        <span class="w-20 h-20 lg:w-28 lg:h-28 shrink-0 flex items-center justify-center"
           ><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span
         ></span>
-        <span class="flex flex-col gap-2">
+        <span class="flex flex-col">
           <span class="esqueleto h-3 w-10 rounded-full"></span>
-          <span class="esqueleto h-6 w-40 rounded-full"></span>
-          <span class="flex gap-2">
-            <span class="esqueleto h-3.5 w-16 rounded-full"></span>
-            <span class="esqueleto h-3.5 w-16 rounded-full"></span>
+          <span class="esqueleto mt-1.5 h-7 lg:h-8 w-44 rounded-full"></span>
+          <span class="mt-2 flex gap-2">
+            <span class="esqueleto h-4 w-16 rounded-full"></span>
+            <span class="esqueleto h-4 w-16 rounded-full"></span>
           </span>
         </span>
       </div>
-      <div class="mt-3 flex items-center justify-between">
-        <span class="esqueleto h-3.5 w-28 rounded-full"></span>
-        <span class="esqueleto h-8 w-28 rounded-xl"></span>
+      <!-- «Liberado: …» y, debajo a la derecha, «Formas» y «Ver shiny». -->
+      <div
+        class="mt-3 lg:mt-0 lg:shrink-0 flex flex-wrap items-center justify-between gap-3 lg:flex-col lg:items-end lg:gap-2"
+      >
+        <span class="esqueleto h-3.5 w-64 max-w-full rounded-full"></span>
+        <span class="ml-auto flex gap-2">
+          <span class="esqueleto h-[34px] w-24 rounded-xl"></span>
+          <span class="esqueleto h-[34px] w-[5.5rem] rounded-xl"></span>
+        </span>
       </div>
     </base-card>
-    <base-card>
-      <div class="flex items-center justify-center gap-4 py-2">
+
+    <base-card class="!px-2 !pb-4 lg:!px-6 lg:!pb-6">
+      <span class="esqueleto block mx-2 lg:mx-0 h-4 w-32 rounded-full"></span>
+      <div class="mt-4 flex items-center justify-center gap-2 min-[420px]:gap-4">
         <template v-for="n in 3" :key="n">
           <span v-if="n > 1" class="esqueleto h-0.5 w-8 rounded-full"></span>
-          <span class="flex flex-col items-center gap-2">
+          <span class="flex flex-col items-center gap-1.5 p-1 min-[420px]:p-2">
             <span class="w-16 h-16 lg:w-24 lg:h-24 flex items-center justify-center"
               ><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span
             ></span>
-            <span class="esqueleto h-3 w-16 rounded-full"></span>
+            <span class="esqueleto h-3 w-8 rounded-full"></span>
+            <span class="esqueleto h-3 w-20 rounded-full"></span>
+            <span class="esqueleto h-3.5 w-3.5 rounded-full"></span>
           </span>
         </template>
       </div>
     </base-card>
-    <base-card
-      v-for="n in 4"
-      :key="`s${n}`"
-      as="div"
-      padding="px-4 py-3.5"
-      class="flex items-center gap-3"
-    >
-      <span class="flex-1 flex flex-col gap-1.5">
-        <span class="esqueleto h-3.5 w-32 rounded-full"></span>
-        <span class="esqueleto h-3 w-48 rounded-full"></span>
-      </span>
-      <span class="esqueleto w-5 h-5 rounded-full"></span>
-    </base-card>
+
+    <div class="flex flex-col">
+      <span class="hidden lg:flex justify-end mb-2"
+        ><span class="esqueleto h-[26px] w-36 rounded-xl"></span
+      ></span>
+      <div class="flex flex-col gap-3 md:block md:columns-2 lg:gap-4">
+        <div v-for="n in 6" :key="`s${n}`" class="min-w-0 md:break-inside-avoid md:mb-3">
+          <base-card padding="" as="div">
+            <!-- Plegada (móvil y tablet): el título, el resumen y la flecha. -->
+            <span class="lg:hidden flex items-center gap-3 px-4 py-3.5">
+              <span class="flex-1 flex flex-col gap-1.5">
+                <span class="esqueleto h-4 w-36 rounded-full"></span>
+                <span class="esqueleto h-3 w-full max-w-[16rem] rounded-full"></span>
+                <span class="esqueleto h-3 w-2/3 max-w-[11rem] rounded-full"></span>
+              </span>
+              <span class="esqueleto w-5 h-5 rounded-full"></span>
+            </span>
+            <!-- Abierta (escritorio): el título y unas filas de contenido. -->
+            <span class="hidden lg:flex flex-col gap-2 p-4">
+              <span class="esqueleto h-4 w-36 rounded-full"></span>
+              <span
+                v-for="fila in n % 2 ? 4 : 3"
+                :key="fila"
+                class="esqueleto h-8 w-full rounded-xl"
+              ></span>
+            </span>
+          </base-card>
+        </div>
+      </div>
+    </div>
   </skeleton-loader>
 </template>

@@ -197,6 +197,14 @@ onMounted(() => gameData.load())
 
 // Los rankings PvP se piden aparte, la primera vez que se entra en ese modo.
 const esperandoPvp = computed(() => mode.value === 'pvp' && gameData.isReady && !gameData.pvpListo)
+
+/** Mientras no hay ranking que enseñar: el esqueleto de la lista y el de la leyenda. */
+const cargando = computed(
+  () =>
+    gameData.status === 'loading' ||
+    gameData.status === 'idle' ||
+    (esperandoPvp.value && gameData.estadoAparte.pvp !== 'error')
+)
 watch(
   esperandoPvp,
   (esperando) => {
@@ -325,7 +333,19 @@ watch(
           </div>
         </div>
 
-        <move-legend :class="ancho ? '' : 'mb-3'" v-bind="origenes" />
+        <!--
+          La leyenda sale con el ranking: mientras carga, su hueco, para que la
+          lista no baje de golpe al llegar (empujaba todo 28 px).
+        -->
+        <div
+          v-if="cargando"
+          :class="ancho ? '' : 'mb-3'"
+          class="h-4 flex items-center gap-3"
+          aria-hidden="true"
+        >
+          <span v-for="n in 3" :key="n" class="esqueleto h-3 w-14 rounded-full"></span>
+        </div>
+        <move-legend v-else :class="ancho ? '' : 'mb-3'" v-bind="origenes" />
 
         <top-calculo
           v-if="ancho && mode === 'pve'"
@@ -335,13 +355,7 @@ watch(
 
       <div class="min-w-0">
         <!-- Filas con la forma de las de verdad: sprite, nombre, ataques y métrica. -->
-        <skeleton-loader
-          v-if="
-            gameData.status === 'loading' ||
-            gameData.status === 'idle' ||
-            (esperandoPvp && gameData.estadoAparte.pvp !== 'error')
-          "
-        >
+        <skeleton-loader v-if="cargando">
           <div class="flex flex-col gap-2">
             <div
               v-for="n in 8"

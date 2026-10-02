@@ -378,8 +378,24 @@ onMounted(() => {
           de la barra lateral, pero aquí solo saltan, no filtran.
           top-16 / sm:top-14: justo debajo de la cabecera fija (64 px en móvil, 56 desde sm).
         -->
+        <!--
+          Mientras carga, el hueco de la fila de grupos: al llegar los datos
+          aparecía de golpe y bajaba toda la lista.
+        -->
+        <div
+          v-if="!ancho && (live.status === 'loading' || live.status === 'idle')"
+          class="py-2 mb-3 flex gap-2 overflow-hidden"
+          aria-hidden="true"
+        >
+          <span
+            v-for="(medida, i) in ['w-24', 'w-24', 'w-24', 'w-20']"
+            :key="i"
+            class="esqueleto shrink-0 h-[30px] rounded-full"
+            :class="medida"
+          ></span>
+        </div>
         <nav
-          v-if="live.status === 'ready' && !ancho && atajos.length > 1"
+          v-else-if="live.status === 'ready' && !ancho && atajos.length > 1"
           :aria-label="tabLabel(tab)"
           class="sticky top-16 sm:top-14 z-10 -mx-4 px-4 py-2 mb-3 flex gap-2 overflow-x-auto bg-gray-100 dark:bg-gray-700 [scrollbar-width:none]"
         >

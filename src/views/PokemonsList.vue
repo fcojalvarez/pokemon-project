@@ -14,6 +14,7 @@ import {
 } from '../utils/Settings'
 import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useRoute } from 'vue-router'
+import { useMedia } from '../composables/useMedia'
 
 const pokemonStore = usePokemonsStore()
 const route = useRoute()
@@ -165,6 +166,9 @@ onMounted(async () => {
 onUnmounted(() => {
   document.removeEventListener('scroll', alDesplazar)
 })
+
+// El mismo corte que PokedexFilters y el Top: desde aquí, barra lateral.
+const ancho = useMedia('(min-width: 1280px)')
 </script>
 
 <template>
@@ -179,16 +183,25 @@ onUnmounted(() => {
     </p>
 
     <!--
-            La leyenda, arriba y a la izquierda de Filtros. Al final no la veía
-            nadie: con el scroll infinito, a la Pokédex casi nunca se le llega
-            al fondo.
-        -->
-    <pokedex-filters class="pt-3">
-      <!-- En móvil, plegada en un botón de una línea: abierta ocupaba media pantalla. -->
-      <mark-legend v-if="pokemons.length > 0" plegable />
-    </pokedex-filters>
+      Como el Top: desde xl, los filtros en una barra lateral fija y la
+      rejilla a su derecha; por debajo, el botón de Filtros encima.
+    -->
+    <div
+      class="w-full pt-3"
+      :class="ancho ? 'grid grid-cols-[280px_minmax(0,1fr)] gap-6 items-start' : ''"
+    >
+      <!--
+        La leyenda, arriba y a la izquierda de Filtros (en la barra, debajo de
+        ellos). Al final no la veía nadie: con el scroll infinito, a la
+        Pokédex casi nunca se le llega al fondo.
+      -->
+      <pokedex-filters v-slot="{ ancho: enBarra }">
+        <!-- En la fila del botón, plegada: abierta ocupaba media pantalla. -->
+        <mark-legend v-if="pokemons.length > 0 || isLoading" :plegable="!enBarra" />
+      </pokedex-filters>
 
-    <!--
+      <div class="min-w-0">
+        <!--
             Rejilla de verdad: antes cada tarjeta medía lo que su contenido y
             el flex-wrap metía las que cupieran, así que en un móvil de 375 px
             salía una por fila. Ahora, tres en móvil (como la Pokédex del
@@ -196,49 +209,51 @@ onUnmounted(() => {
             tablet y de 168 en escritorio (cuatro y siete), que con más anchas
             se veían 20 Pokémon por pantalla en escritorio.
         -->
-    <div
-      v-if="pokemons.length > 0 || isLoading"
-      class="w-full grid grid-cols-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-x-1 gap-y-2 sm:gap-y-4 md:p-2"
-    >
-      <template v-if="pokemons.length > 0">
         <div
-          v-for="pokemon in pokemons"
-          :key="pokemon.pokemon_id"
-          class="min-w-0 flex justify-center"
+          v-if="pokemons.length > 0 || isLoading"
+          class="w-full grid grid-cols-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-x-1 gap-y-2 sm:gap-y-4 md:p-2"
         >
-          <item-pokemon-list :pokemon="pokemon" class="w-full max-w-[8rem] md:max-w-[12rem]" />
-        </div>
-      </template>
+          <template v-if="pokemons.length > 0">
+            <div
+              v-for="pokemon in pokemons"
+              :key="pokemon.pokemon_id"
+              class="min-w-0 flex justify-center"
+            >
+              <item-pokemon-list :pokemon="pokemon" class="w-full max-w-[8rem] md:max-w-[12rem]" />
+            </div>
+          </template>
 
-      <!--
+          <!--
             Esqueletos con la misma caja que una tarjeta de verdad: al cargar la
             siguiente tanda con el scroll, la rejilla ya tiene el hueco hecho y
             no salta. Al entrar se pinta una pantalla entera; al hacer scroll,
             una fila corta al final de lo que ya hay.
         -->
-      <template v-if="isLoading">
-        <p class="sr-only" role="status">{{ $t('common.loading') }}</p>
-        <div
-          v-for="n in pokemons.length ? 10 : 20"
-          :key="`esqueleto-${n}`"
-          class="min-w-0 flex justify-center"
-          aria-hidden="true"
-        >
-          <div class="w-full max-w-[8rem] md:max-w-[12rem] p-2">
-            <div class="w-24 h-24 mx-auto flex items-center justify-center">
-              <div class="w-[76%] h-[76%] rounded-full esqueleto"></div>
+          <template v-if="isLoading">
+            <p class="sr-only" role="status">{{ $t('common.loading') }}</p>
+            <div
+              v-for="n in pokemons.length ? 10 : 20"
+              :key="`esqueleto-${n}`"
+              class="min-w-0 flex justify-center"
+              aria-hidden="true"
+            >
+              <div class="w-full max-w-[8rem] md:max-w-[12rem] p-2">
+                <div class="w-24 h-24 mx-auto flex items-center justify-center">
+                  <div class="w-[76%] h-[76%] rounded-full esqueleto"></div>
+                </div>
+                <div class="mt-3 h-5 flex items-center justify-center gap-1">
+                  <span class="h-3 w-8 rounded-full esqueleto"></span>
+                  <span class="h-3.5 w-16 rounded-full esqueleto"></span>
+                </div>
+                <div class="mt-1 flex justify-center gap-1">
+                  <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
+                  <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
+                </div>
+              </div>
             </div>
-            <div class="mt-3 h-5 flex items-center justify-center gap-1">
-              <span class="h-3 w-8 rounded-full esqueleto"></span>
-              <span class="h-3.5 w-16 rounded-full esqueleto"></span>
-            </div>
-            <div class="mt-1 flex justify-center gap-1">
-              <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
-              <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
-            </div>
-          </div>
+          </template>
         </div>
-      </template>
+      </div>
     </div>
 
     <scroll-up-button />

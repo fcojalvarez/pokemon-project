@@ -222,8 +222,10 @@ test('el filtro de Gigamax recorta la Pokédex', async ({ page }) => {
   const antes = await tarjetas.count()
   expect(antes).toBeGreaterThan(20)
 
-  await page.getByRole('button', { name: /filtros/i }).click()
-  await page.getByRole('button', { name: 'Solo Gigamax' }).click()
+  // Desde 1280 px los filtros van a la vista, en la barra lateral.
+  const abrir = page.getByRole('button', { name: /filtros/i })
+  if (await abrir.isVisible()) await abrir.click()
+  await page.getByRole('button', { name: 'Gigamax', exact: true }).click()
   await page.waitForResponse((res) => res.url().includes('can_gigantamax'))
 
   await expect(page.getByText('Venusaur')).toBeVisible()
@@ -374,7 +376,17 @@ test.describe('filtros en la URL', () => {
     await page.goto('/?kinds=fire&only=gigantamax')
     await expect(page.getByText('Charizard', { exact: true })).toBeVisible()
     await expect(page.getByText('Bulbasaur', { exact: true })).toHaveCount(0)
-    await expect(page.getByRole('button', { name: /filtros/i })).toContainText('2')
+    // Con el botón (por debajo de 1280 px), su contador; en la barra, marcados.
+    const abrir = page.getByRole('button', { name: /filtros/i })
+    if (await abrir.isVisible()) {
+      await expect(abrir).toContainText('2')
+    } else {
+      await expect(page.getByRole('button', { name: /Fuego/ })).toHaveAttribute('aria-pressed', 'true')
+      await expect(page.getByRole('button', { name: 'Gigamax', exact: true })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
+    }
   })
 })
 
