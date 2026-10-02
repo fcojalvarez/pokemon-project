@@ -123,7 +123,18 @@
     "cpFromEgg": "Egg",
     "cpFromEggMax": "Egg or Max Battle",
     "cpFromResearch": "Research",
-    "cpNoWeather": "Not weather boosted"
+    "cpNoWeather": "Not weather boosted",
+    "pvpIv": {
+      "title": "PvP IVs",
+      "intro": "In a league with a CP cap, the bulkiest under the cap wins, not the 100%. Type your IVs to see where yours ranks.",
+      "yours": "Your IVs",
+      "yoursShort": "Yours",
+      "best": "Best",
+      "atk": "Attack",
+      "def": "Defense",
+      "hp": "HP",
+      "master": "Master League has no cap: the best is the 100% at level 50."
+    }
   },
   "top": {
     "pokemonColumn": "Pokémon",

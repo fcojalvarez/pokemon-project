@@ -123,7 +123,18 @@
     "cpFromEgg": "Huevo",
     "cpFromEggMax": "Huevo o combate Max",
     "cpFromResearch": "Misión",
-    "cpNoWeather": "No se potencia con el clima"
+    "cpNoWeather": "No se potencia con el clima",
+    "pvpIv": {
+      "title": "IV para PvP",
+      "intro": "En una liga con tope de PC gana el que más aguanta bajo el tope, no el 100 %. Escribe los IV del tuyo para ver en qué puesto queda.",
+      "yours": "Los IV del tuyo",
+      "yoursShort": "El tuyo",
+      "best": "El mejor",
+      "atk": "Ataque",
+      "def": "Defensa",
+      "hp": "PS",
+      "master": "En la Master Liga no hay tope: el mejor es el 100 % a nivel 50."
+    }
   },
   "top": {
     "pokemonColumn": "Pokémon",

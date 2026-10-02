@@ -136,3 +136,52 @@ export function effectivenessAgainst(chart, attackType, defenderTypes) {
   if (!row) return 1
   return defenderTypes.reduce((acc, t) => acc * (row[t] ?? 1), 1)
 }
+
+/** Nivel máximo de un Pokémon (con caramelos XL). */
+export const MAX_LEVEL = 50
+
+/** Producto de estadísticas (bulk), criterio para valorar IV en PvP. */
+export function statProduct(base, ivs, level, options = {}) {
+  const s = effectiveStats(base, ivs, level, options)
+  return s.atk * s.def * s.hp
+}
+
+/** Nivel máximo al que unos IV siguen por debajo del tope de PC, o null si ni a nivel 1. */
+export function maxLevelForCap(base, ivs, cap, maxLevel = MAX_LEVEL) {
+  let best = null
+  for (let l = 1; l <= maxLevel; l += 0.5) {
+    if (calcCP(base, ivs, l) <= cap) best = l
+    else break
+  }
+  return best
+}
+
+/**
+ * Las 4096 combinaciones de IV para una liga con tope de PC, de mejor a peor
+ * por producto de estadísticas, cada una con su puesto, nivel, PC y su
+ * porcentaje respecto a la mejor. Es el criterio de pvpoke y de las
+ * calculadoras de IV de PvP: en una liga con tope gana el que más aguanta
+ * (defensa y PS), no el 100 %.
+ */
+export function rankIVsForLeague(base, cap, options = {}) {
+  const maxLevel = options.maxLevel ?? MAX_LEVEL
+  const shadow = options.shadow === true
+  const all = []
+  for (let a = 0; a <= 15; a++) {
+    for (let d = 0; d <= 15; d++) {
+      for (let h = 0; h <= 15; h++) {
+        const ivs = { atk: a, def: d, hp: h }
+        const level = maxLevelForCap(base, ivs, cap, maxLevel)
+        if (level === null) continue
+        all.push({ ivs, level, cp: calcCP(base, ivs, level), product: statProduct(base, ivs, level, { shadow }) })
+      }
+    }
+  }
+  all.sort((x, y) => y.product - x.product)
+  const top = all.length ? all[0].product : 1
+  all.forEach((e, i) => {
+    e.rank = i + 1
+    e.percent = (e.product / top) * 100
+  })
+  return all
+}

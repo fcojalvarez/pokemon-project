@@ -16,6 +16,7 @@ import FichaCostes from './ficha/FichaCostes.vue'
 import FichaPc from './ficha/FichaPc.vue'
 import FichaPve from './ficha/FichaPve.vue'
 import FichaPvp from './ficha/FichaPvp.vue'
+import FichaIvPvp from './ficha/FichaIvPvp.vue'
 import FichaAtaques from './ficha/FichaAtaques.vue'
 import FichaEfectos from './ficha/FichaEfectos.vue'
 import FichaDebilidades from './ficha/FichaDebilidades.vue'
@@ -55,6 +56,7 @@ const TITULOS = {
   pc: 'pokemon.cp100',
   pve: 'pokemon.pveRanks',
   pvp: 'pokemon.pvpRanks',
+  pvpIv: 'pokemon.pvpIv.title',
   ataques: 'pokemon.bestMoves',
   efectos: 'moves.effectsTitle',
   debilidades: 'pokemon.weaknesses'
@@ -72,6 +74,8 @@ const tiene = computed(() => ({
   pc: cpTable.value.length > 0,
   pve: true,
   pvp: true,
+  // Sin estadísticas (una especie que el roster aún no trae) no hay qué calcular.
+  pvpIv: Boolean(entrada.value?.stats?.atk),
   ataques: bestMovesets.value.length > 0 || movepool.value.fast.length > 0,
   efectos: moveEffects.value.length > 0,
   debilidades: matchups.value.weak.length > 0 || matchups.value.resist.length > 0
@@ -181,6 +185,7 @@ const moverVisible = (id, paso) => {
           :con-nombre="conNombre"
           :listo="gameData.pvpListo"
         />
+        <ficha-iv-pvp v-else-if="id === 'pvpIv'" :stats="entrada.stats" />
         <ficha-ataques
           v-else-if="id === 'ataques'"
           :best-movesets="bestMovesets"
