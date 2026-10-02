@@ -18,6 +18,7 @@ import { useGameDataStore } from '../../stores/gameData'
 import FichaSeccion from './FichaSeccion.vue'
 import { useTranslate } from '../../composables/useTranslate'
 import MaxMark from './MaxMark.vue'
+import BaseSprite from '../base/BaseSprite.vue'
 
 const props = defineProps({
   pokemon: { type: Object, required: true }
@@ -137,7 +138,8 @@ const resumen = computed(() => {
             :to="irA('raids')"
             class="flex items-center gap-1 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
           >
-            <img :src="boss.image" alt="" crossorigin="anonymous" class="w-6 h-6" loading="lazy" />
+            <!-- BaseSprite y no un <img>: si el icono de LeekDuck falla, lo reintenta. -->
+            <base-sprite :src="boss.image" class="w-6 h-6" />
             {{ gameData.nombreEs(boss.name) }}
           </router-link>
         </div>

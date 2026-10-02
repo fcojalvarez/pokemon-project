@@ -79,11 +79,18 @@ describe('BaseSprite', () => {
     expect(w.find('.esqueleto').exists()).toBe(false)
   })
 
-  it('si la imagen falla, no se queda el hueco pulsando para siempre', async () => {
+  it('si la imagen falla, la reintenta sin crossorigin y luego no se queda el hueco pulsando', async () => {
     imagen({ complete: false })
     const w = montar()
+    expect(w.get('img').attributes('crossorigin')).toBe('anonymous')
+    await w.get('img').trigger('error')
+    // Una respuesta sin cabecera CORS se rechaza con crossorigin: sin él, no.
+    expect(w.get('img').attributes('crossorigin')).toBeUndefined()
+    expect(w.find('.esqueleto').exists()).toBe(true)
     await w.get('img').trigger('error')
     expect(w.find('.esqueleto').exists()).toBe(false)
+    // Rota del todo: oculta, sin el icono de imagen rota.
+    expect(w.get('img').attributes('style')).toContain('visibility: hidden')
   })
 
   it('los sprites de PokeAPI salen de la miniatura WebP propia, y si falta, del PNG', async () => {
@@ -93,7 +100,9 @@ describe('BaseSprite', () => {
     expect(w.get('img').attributes('src')).toBe('/sprites/shiny/6.webp')
     await w.get('img').trigger('error')
     expect(w.get('img').attributes('src')).toBe(png)
-    // Y si también falla el PNG, se da por rota: no se queda probando.
+    // Si también falla el PNG, un intento sin crossorigin y se da por rota.
+    await w.get('img').trigger('error')
+    expect(w.get('img').attributes('crossorigin')).toBeUndefined()
     await w.get('img').trigger('error')
     expect(w.find('.esqueleto').exists()).toBe(false)
   })

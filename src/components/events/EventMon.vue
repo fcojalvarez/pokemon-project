@@ -14,6 +14,8 @@
  */
 import { computed } from 'vue'
 import { useGameDataStore } from '../../stores/gameData'
+import { useImagenTolerante } from '../../composables/useImagenTolerante'
+import { miniatura, spriteUrl } from '../../utils/sprites'
 import ShinyMark from '../pokemon/ShinyMark.vue'
 
 const props = defineProps({
@@ -31,6 +33,18 @@ const entrada = computed(() => gameData.baseByName(props.name))
 const nombreEs = computed(() => gameData.nombreEs(props.name))
 
 const to = computed(() => (entrada.value ? `/pokemon/${entrada.value.dex}` : null))
+
+/**
+ * Si el icono de LeekDuck no carga, el nuestro (la miniatura servida desde la
+ * web), el de la forma base si es una que no tenemos.
+ */
+const respaldo = computed(() => {
+  const id = entrada.value?.spriteId ?? entrada.value?.dex
+  if (!id) return null
+  const original = spriteUrl(id)
+  return miniatura(original) ?? original
+})
+const imagen = useImagenTolerante(() => props.image, respaldo)
 
 /**
  * La marca de variocolor, a escala del sprite que acompaña.
@@ -55,12 +69,13 @@ const markScale = computed(() => {
     :class="to ? 'hover:underline' : ''"
   >
     <img
-      v-if="props.image"
-      :src="props.image"
+      v-if="imagen.url.value"
+      :src="imagen.url.value"
       alt=""
-      crossorigin="anonymous"
+      :crossorigin="imagen.crossorigin.value"
       :class="['shrink-0 object-contain', props.spriteClass]"
       loading="lazy"
+      @error="imagen.alFallar"
     />
     <span class="truncate">{{ nombreEs }}</span>
     <!--

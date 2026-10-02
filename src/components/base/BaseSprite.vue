@@ -45,9 +45,22 @@ const props = defineProps({
 const sinMiniatura = ref(false)
 const fuente = computed(() => (sinMiniatura.value ? null : miniatura(props.src)) ?? props.src)
 
+/**
+ * Último intento antes de darla por rota: la misma imagen sin `crossorigin`.
+ * Si la respuesta llega sin la cabecera CORS (una copia vieja en la caché del
+ * móvil, un nodo del CDN que la quita), el navegador la rechaza aunque exista;
+ * sin `crossorigin` eso no puede pasar (ver useImagenTolerante).
+ */
+const sinCors = ref(false)
+
 const alFallar = () => {
   if (!sinMiniatura.value && miniatura(props.src)) {
     sinMiniatura.value = true
+    estado.value = 'cargando'
+    return
+  }
+  if (!sinCors.value) {
+    sinCors.value = true
     estado.value = 'cargando'
     return
   }
@@ -78,6 +91,7 @@ watch(
   () => props.src,
   () => {
     sinMiniatura.value = false
+    sinCors.value = false
     estado.value = 'cargando'
     nextTick(comprobarCache)
   }
@@ -101,7 +115,7 @@ onMounted(comprobarCache)
       v-if="src"
       ref="img"
       :src="fuente"
-      crossorigin="anonymous"
+      :crossorigin="sinCors ? undefined : 'anonymous'"
       :alt="alt"
       :loading="lazy ? 'lazy' : undefined"
       decoding="async"
@@ -110,7 +124,13 @@ onMounted(comprobarCache)
         imgClass,
         estado === 'brillando' ? (entrada === 'salida' ? 'sprite-brilla' : 'sprite-suave') : null
       ]"
-      :style="estado === 'cargando' ? { opacity: 0 } : null"
+      :style="
+        estado === 'cargando'
+          ? { opacity: 0 }
+          : estado === 'error'
+          ? { visibility: 'hidden' }
+          : null
+      "
       @load="alCargar"
       @animationend="estado = 'lista'"
       @error="alFallar"

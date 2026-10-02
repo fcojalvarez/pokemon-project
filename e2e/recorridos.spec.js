@@ -197,6 +197,35 @@ test('la semana de Eventos va por días y cada fila abre su detalle', async ({ p
   await expect(page.getByRole('dialog', { name: 'Detalle del evento' })).toBeVisible()
 })
 
+test('los iconos de LeekDuck se ven aunque lleguen sin una cabecera CORS válida', async ({ page }) => {
+  // Lo que pasaba en Android: la imagen existe, pero la cabecera CORS no vale
+  // para nuestra web y, pedida con crossorigin, el navegador la rechaza. Sin
+  // ninguna cabecera no se puede simular: Playwright pone la suya al contestar.
+  await page.route('https://cdn.leekduck.com/assets/img/pokemon_icons**', async (route) => {
+    const respuesta = await route.fetch()
+    const headers = { ...respuesta.headers() }
+    for (const clave of Object.keys(headers)) {
+      if (clave.toLowerCase().startsWith('access-control-')) delete headers[clave]
+    }
+    headers['access-control-allow-origin'] = 'https://otra-web.example'
+    await route.fulfill({ response: respuesta, headers })
+  })
+  await page.goto('/events')
+  await expect(page.locator('main article').first()).toBeVisible()
+  // Bajando poco a poco, para que carguen las perezosas.
+  for (let i = 0; i < 12; i++) {
+    await page.mouse.wheel(0, 900)
+    await page.waitForTimeout(150)
+  }
+  const rotas = () =>
+    page
+      .locator('main article img')
+      .evaluateAll((imgs) => imgs.filter((i) => i.complete && i.naturalWidth === 0).length)
+  await expect.poll(rotas).toBe(0)
+  // Y que siguen siendo las de LeekDuck: basta con el reintento sin crossorigin.
+  expect(await page.locator('main article img[src*="pokemon_icons"]').count()).toBeGreaterThan(0)
+})
+
 test('una sugerencia demasiado corta no sale; una buena, sí', async ({ page }) => {
   // Nunca se escribe en la tabla de verdad: el insert se contesta aquí.
   const enviadas = []
