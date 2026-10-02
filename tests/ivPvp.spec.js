@@ -15,7 +15,13 @@ describe('ranking de IV por liga', () => {
   it('el mejor de Charizard en Súper y en Hiper', () => {
     const super_ = rankIVsForLeague(CHARIZARD, 1500)
     expect(super_).toHaveLength(4096)
-    expect(super_[0]).toMatchObject({ ivs: { atk: 0, def: 15, hp: 13 }, level: 19.5, cp: 1500, rank: 1, percent: 100 })
+    expect(super_[0]).toMatchObject({
+      ivs: { atk: 0, def: 15, hp: 13 },
+      level: 19.5,
+      cp: 1500,
+      rank: 1,
+      percent: 100
+    })
     const hiper = rankIVsForLeague(CHARIZARD, 2500)
     expect(hiper[0]).toMatchObject({ ivs: { atk: 0, def: 13, hp: 15 }, level: 35, cp: 2500 })
   })
@@ -29,18 +35,25 @@ describe('ranking de IV por liga', () => {
   })
 
   it('sin tope que lo frene, llega a nivel 50', () => {
-    expect(maxLevelForCap({ atk: 50, def: 50, hp: 50 }, { atk: 15, def: 15, hp: 15 }, 1500)).toBe(50)
+    expect(maxLevelForCap({ atk: 50, def: 50, hp: 50 }, { atk: 15, def: 15, hp: 15 }, 1500)).toBe(
+      50
+    )
   })
 
   it('el oscuro tiene los mismos mejores IV: ×1,2 de ataque y ÷1,2 de defensa se anulan', () => {
-    const normal = rankIVsForLeague(CHARIZARD, 1500).slice(0, 20).map((e) => e.ivs)
-    const oscuro = rankIVsForLeague(CHARIZARD, 1500, { shadow: true }).slice(0, 20).map((e) => e.ivs)
+    const normal = rankIVsForLeague(CHARIZARD, 1500)
+      .slice(0, 20)
+      .map((e) => e.ivs)
+    const oscuro = rankIVsForLeague(CHARIZARD, 1500, { shadow: true })
+      .slice(0, 20)
+      .map((e) => e.ivs)
     expect(oscuro).toEqual(normal)
   })
 })
 
 describe('sección IV para PvP', () => {
-  const montar = () => mount(FichaIvPvp, { props: { stats: CHARIZARD }, global: { plugins: [i18n] } })
+  const montar = () =>
+    mount(FichaIvPvp, { props: { stats: CHARIZARD }, global: { plugins: [i18n] } })
 
   it('enseña el mejor de cada liga y, con los IV del jugador, su puesto', async () => {
     const w = montar()

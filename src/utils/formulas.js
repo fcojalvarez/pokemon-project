@@ -173,7 +173,12 @@ export function rankIVsForLeague(base, cap, options = {}) {
         const ivs = { atk: a, def: d, hp: h }
         const level = maxLevelForCap(base, ivs, cap, maxLevel)
         if (level === null) continue
-        all.push({ ivs, level, cp: calcCP(base, ivs, level), product: statProduct(base, ivs, level, { shadow }) })
+        all.push({
+          ivs,
+          level,
+          cp: calcCP(base, ivs, level),
+          product: statProduct(base, ivs, level, { shadow })
+        })
       }
     }
   }

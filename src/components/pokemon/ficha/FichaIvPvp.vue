@@ -55,7 +55,12 @@ const filas = computed(() =>
   rankings.value.map(({ league, cap, todas }) => {
     const mejor = todas[0]
     const mio = misIvs.value
-      ? todas.find((e) => e.ivs.atk === misIvs.value.atk && e.ivs.def === misIvs.value.def && e.ivs.hp === misIvs.value.hp)
+      ? todas.find(
+          (e) =>
+            e.ivs.atk === misIvs.value.atk &&
+            e.ivs.def === misIvs.value.def &&
+            e.ivs.hp === misIvs.value.hp
+        )
       : null
     return { league, cap, total: todas.length, mejor, mio }
   })
@@ -72,9 +77,15 @@ const resumen = computed(() =>
     <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.pvpIv.intro') }}</p>
 
     <fieldset class="mt-2">
-      <legend class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.pvpIv.yours') }}</legend>
+      <legend class="text-mini text-gray-600 dark:text-gray-300">
+        {{ $t('pokemon.pvpIv.yours') }}
+      </legend>
       <div class="mt-1 grid grid-cols-3 gap-2">
-        <label v-for="campo in CAMPOS" :key="campo" class="text-mini text-gray-600 dark:text-gray-300">
+        <label
+          v-for="campo in CAMPOS"
+          :key="campo"
+          class="text-mini text-gray-600 dark:text-gray-300"
+        >
           {{ $t(`pokemon.pvpIv.${campo}`) }}
           <input
             v-model="mios[campo]"
@@ -90,18 +101,27 @@ const resumen = computed(() =>
     </fieldset>
 
     <ul class="mt-3 flex flex-col gap-1.5">
-      <li v-for="fila in filas" :key="fila.league" class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs">
-        <span class="block font-semibold">{{ $t(`top.${fila.league}`) }} · {{ formatNumber(fila.cap) }} PC</span>
+      <li
+        v-for="fila in filas"
+        :key="fila.league"
+        class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+      >
+        <span class="block font-semibold"
+          >{{ $t(`top.${fila.league}`) }} · {{ formatNumber(fila.cap) }} PC</span
+        >
         <span class="flex flex-wrap items-center gap-x-2 mt-0.5 text-gray-600 dark:text-gray-300">
-          {{ $t('pokemon.pvpIv.best') }}: <strong class="text-gray-800 dark:text-gray-100">{{ ivTexto(fila.mejor.ivs) }}</strong>
-          · {{ $t('common.levelShort') }} {{ nivel(fila.mejor.level) }} · PC {{ fila.mejor.cp }}
+          {{ $t('pokemon.pvpIv.best') }}:
+          <strong class="text-gray-800 dark:text-gray-100">{{ ivTexto(fila.mejor.ivs) }}</strong> ·
+          {{ $t('common.levelShort') }} {{ nivel(fila.mejor.level) }} · PC {{ fila.mejor.cp }}
         </span>
         <span v-if="fila.mio" class="flex items-center gap-2 mt-0.5">
           <span class="text-gray-600 dark:text-gray-300">
-            {{ $t('pokemon.pvpIv.yoursShort') }}: {{ $t('common.levelShort') }} {{ nivel(fila.mio.level) }} · PC {{ fila.mio.cp }}
+            {{ $t('pokemon.pvpIv.yoursShort') }}: {{ $t('common.levelShort') }}
+            {{ nivel(fila.mio.level) }} · PC {{ fila.mio.cp }}
           </span>
           <span class="ml-auto shrink-0">
-            #{{ fila.mio.rank }} · <strong>{{ formatNumber(Math.round(fila.mio.percent * 10) / 10) }} %</strong>
+            #{{ fila.mio.rank }} ·
+            <strong>{{ formatNumber(Math.round(fila.mio.percent * 10) / 10) }} %</strong>
           </span>
         </span>
       </li>
