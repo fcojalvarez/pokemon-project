@@ -132,6 +132,22 @@ test('un evento en marcha se descarga como .ics para el calendario', async ({ pa
   expect(descarga.suggestedFilename()).toMatch(/\.ics$/)
 })
 
+test('la ficha compara con otro Pokémon elegido por su nombre', async ({ page }) => {
+  await page.goto('/pokemon/6')
+  const seccion = page.locator('#ficha-comparar')
+  await expect(seccion).toBeVisible()
+  // En móvil y tablet va plegada; en escritorio, siempre abierta.
+  const plegada = seccion.locator('button[aria-expanded="false"]')
+  if (await plegada.count()) await plegada.click()
+  await seccion.getByRole('searchbox').fill('blasto')
+  await seccion.getByRole('button', { name: /^Blastoise #9$/ }).click()
+  const tabla = seccion.getByRole('table')
+  await expect(tabla.getByRole('columnheader', { name: 'Blastoise' })).toBeVisible()
+  await expect(tabla.getByRole('rowheader', { name: 'Ataque' })).toBeVisible()
+  await seccion.getByRole('button', { name: 'Comparar con otro' }).click()
+  await expect(seccion.getByRole('searchbox')).toBeVisible()
+})
+
 test('una sugerencia demasiado corta no sale; una buena, sí', async ({ page }) => {
   // Nunca se escribe en la tabla de verdad: el insert se contesta aquí.
   const enviadas = []

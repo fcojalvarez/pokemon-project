@@ -135,6 +135,25 @@
       "hp": "HP",
       "master": "Master League has no cap: the best is the 100% at level 50."
     },
+    "compare": {
+      "title": "Compare with…",
+      "summary": "Put it side by side with another: stats, moves and ranks",
+      "pick": "Compare it with which one?",
+      "placeholder": "Name or number",
+      "none": "Nothing by that name.",
+      "bestSet": "Best raid moves",
+      "help": "In green, the winner of each row. A “—” in a rank means it isn't among the ranked ones in that league.",
+      "other": "Compare with another",
+      "rows": {
+        "atk": "Attack",
+        "def": "Defense",
+        "hp": "HP",
+        "cp": "Max CP (lv. 50)",
+        "dps": "DPS",
+        "tdo": "Total damage",
+        "pve": "Raid rank"
+      }
+    },
     "howToBeat": "How to beat it",
     "howToBeatHelp": "The ones that deal it the most damage per second, with their best moves: the same as for a raid boss.",
     "pvpCombat": {

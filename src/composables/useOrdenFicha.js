@@ -21,7 +21,8 @@ export const BLOQUES_FICHA = [
   'ataques',
   'efectos',
   'debilidades',
-  'ganarle'
+  'ganarle',
+  'comparar'
 ]
 
 const CLAVE = 'pogodex.fichaOrden'
