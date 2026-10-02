@@ -61,7 +61,7 @@
     "statusAndCosts": "Notes and costs",
     "reorder": "Reorder sections",
     "reorderDone": "Done",
-    "reorderReset": "Default order",
+    "reorderReset": "Reset order",
     "reorderHelp": "Move each section up or down. Saved in this browser.",
     "moveUp": "Move {section} up",
     "moveDown": "Move {section} down",

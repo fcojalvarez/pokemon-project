@@ -61,7 +61,7 @@
     "statusAndCosts": "Avisos y costes",
     "reorder": "Ordenar secciones",
     "reorderDone": "Listo",
-    "reorderReset": "Orden de siempre",
+    "reorderReset": "Restablecer orden",
     "reorderHelp": "Sube o baja cada sección. Se guarda en este navegador.",
     "moveUp": "Subir {section}",
     "moveDown": "Bajar {section}",

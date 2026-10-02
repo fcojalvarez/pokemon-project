@@ -76,7 +76,7 @@ test('el orden de las secciones de la ficha se guarda y se puede restablecer', a
   expect(await antes('debilidades', 'efectos')).toBe(true)
 
   await page.getByRole('button', { name: 'Ordenar secciones' }).click()
-  await page.getByRole('button', { name: 'Orden de siempre' }).click()
+  await page.getByRole('button', { name: 'Restablecer orden' }).click()
   expect(await antes('efectos', 'debilidades')).toBe(true)
 })
 
