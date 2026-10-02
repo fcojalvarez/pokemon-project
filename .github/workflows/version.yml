@@ -9,7 +9,8 @@
 # comprueba también quién lo hace.
 #
 # Para poner una versión a mano (la 1.0.0, por ejemplo), el último commit del
-# push lleva «[sin versión]» en el mensaje: entonces no se sube nada. Si ese
+# push lleva «[sin versión]» en su primera línea: entonces no se sube nada.
+# Solo cuenta la primera línea: un cuerpo que explique la marca no la activa. Si ese
 # commit empieza por «chore(version):», aviso-version.yml avisa igual de que
 # hay versión nueva.
 name: Versión
@@ -29,7 +30,7 @@ concurrency:
 
 jobs:
   subir:
-    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[sin versión]')
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -42,6 +43,10 @@ jobs:
       # trae el runner, y es una action menos con acceso al token de escritura.
       - name: Subir el último número y guardarlo
         run: |
+          ASUNTO=$(git log -1 --format=%s)
+          case "$ASUNTO" in
+            *"[sin versión]"*) echo "«$ASUNTO» lleva [sin versión]: no se sube."; exit 0 ;;
+          esac
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git pull --rebase origin main
