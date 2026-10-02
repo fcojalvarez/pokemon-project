@@ -7,6 +7,11 @@
 # Ese commit lo hace el propio workflow y no vuelve a lanzarlo: GitHub no
 # dispara workflows con los pushes hechos con GITHUB_TOKEN, y por si acaso se
 # comprueba también quién lo hace.
+#
+# Para poner una versión a mano (la 1.0.0, por ejemplo), el último commit del
+# push lleva «[sin versión]» en el mensaje: entonces no se sube nada. Si ese
+# commit empieza por «chore(version):», aviso-version.yml avisa igual de que
+# hay versión nueva.
 name: Versión
 
 on:
@@ -24,7 +29,7 @@ concurrency:
 
 jobs:
   subir:
-    if: github.actor != 'github-actions[bot]'
+    if: github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[sin versión]')
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
