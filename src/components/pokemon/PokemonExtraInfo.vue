@@ -29,8 +29,19 @@ const props = defineProps({
 const gameData = useGameDataStore()
 const live = useLiveStore()
 const {
-  entrada, cpTable, esMax, maxInfo, matchups, bestMovesets, movepool, moveEffects,
-  costs, flags, pveRanks, pvpPorLiga, conNombre
+  entrada,
+  cpTable,
+  esMax,
+  maxInfo,
+  matchups,
+  bestMovesets,
+  movepool,
+  moveEffects,
+  costs,
+  flags,
+  pveRanks,
+  pvpPorLiga,
+  conNombre
 } = useFichaDatos({ pokemon: () => props.pokemon, formId: () => props.formId })
 
 // ---------- Orden de los bloques ----------
@@ -89,19 +100,29 @@ const moverVisible = (id, paso) => {
       secciones empiecen justo debajo de la línea evolutiva; en escritorio,
       discreto arriba a la derecha, sobre las dos columnas.
     -->
-    <div class="order-last mt-3 lg:order-first lg:mt-0 lg:mb-2 flex flex-wrap items-center justify-end gap-2">
+    <div
+      class="order-last mt-3 lg:order-first lg:mt-0 lg:mb-2 flex flex-wrap items-center justify-end gap-2"
+    >
       <template v-if="ordenando">
-        <p class="mr-auto text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.reorderHelp') }}</p>
-        <button type="button" class="px-3 py-1 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-800" @click="restablecer">
+        <p class="mr-auto text-mini text-gray-600 dark:text-gray-300">
+          {{ $t('pokemon.reorderHelp') }}
+        </p>
+        <button
+          type="button"
+          class="px-3 py-1 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-800"
+          @click="restablecer"
+        >
           {{ $t('pokemon.reorderReset') }}
         </button>
       </template>
       <button
         type="button"
         class="px-3 py-1 text-xs rounded-xl border transition-colors"
-        :class="ordenando
-          ? 'bg-gray-700 dark:bg-gray-600 text-white border-gray-700 dark:border-gray-600'
-          : 'border-transparent lg:border-gray-400 lg:dark:border-gray-600 underline underline-offset-4 lg:no-underline text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'"
+        :class="
+          ordenando
+            ? 'bg-gray-700 dark:bg-gray-600 text-white border-gray-700 dark:border-gray-600'
+            : 'border-transparent lg:border-gray-400 lg:dark:border-gray-600 underline underline-offset-4 lg:no-underline text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
+        "
         :aria-pressed="ordenando"
         @click="ordenando = !ordenando"
       >
@@ -117,7 +138,11 @@ const moverVisible = (id, paso) => {
       derecha cómo combate), que es también el orden de fábrica.
     -->
     <div class="flex flex-col gap-3 md:block md:columns-2 lg:gap-4">
-      <div v-for="(id, indice) in bloquesVisibles" :key="id" class="min-w-0 md:break-inside-avoid md:mb-3 lg:mb-4">
+      <div
+        v-for="(id, indice) in bloquesVisibles"
+        :key="id"
+        class="min-w-0 md:break-inside-avoid md:mb-3 lg:mb-4"
+      >
         <div
           v-if="ordenando"
           class="flex items-center gap-2 mb-1 px-3 py-1.5 rounded-xl border border-dashed border-gray-400 dark:border-gray-600"
@@ -129,14 +154,18 @@ const moverVisible = (id, paso) => {
             :disabled="indice === 0"
             :aria-label="$t('pokemon.moveUp', { section: $t(TITULOS[id]) })"
             @click="moverVisible(id, -1)"
-          >↑</button>
+          >
+            ↑
+          </button>
           <button
             type="button"
             class="w-8 h-8 rounded-lg border border-gray-400 dark:border-gray-600 disabled:opacity-40"
             :disabled="indice === bloquesVisibles.length - 1"
             :aria-label="$t('pokemon.moveDown', { section: $t(TITULOS[id]) })"
             @click="moverVisible(id, 1)"
-          >↓</button>
+          >
+            ↓
+          </button>
         </div>
 
         <!-- bloquesVisibles ya deja fuera las que este Pokémon no tiene. -->
@@ -146,8 +175,17 @@ const moverVisible = (id, paso) => {
         <max-battle-panel v-else-if="id === 'max'" :entry="entrada" />
         <ficha-pc v-else-if="id === 'pc'" :cp-table="cpTable" :es-max="esMax" />
         <ficha-pve v-else-if="id === 'pve'" :ranks="pveRanks" :con-nombre="conNombre" />
-        <ficha-pvp v-else-if="id === 'pvp'" :por-liga="pvpPorLiga" :con-nombre="conNombre" :listo="gameData.pvpListo" />
-        <ficha-ataques v-else-if="id === 'ataques'" :best-movesets="bestMovesets" :movepool="movepool" />
+        <ficha-pvp
+          v-else-if="id === 'pvp'"
+          :por-liga="pvpPorLiga"
+          :con-nombre="conNombre"
+          :listo="gameData.pvpListo"
+        />
+        <ficha-ataques
+          v-else-if="id === 'ataques'"
+          :best-movesets="bestMovesets"
+          :movepool="movepool"
+        />
         <ficha-efectos v-else-if="id === 'efectos'" :efectos="moveEffects" />
         <ficha-debilidades v-else-if="id === 'debilidades'" :matchups="matchups" />
       </div>

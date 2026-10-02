@@ -39,7 +39,13 @@ const nivelPc = (level) => props.cpTable.find((row) => row.level === level) ?? {
  * subirlo: el 40 sin caramelos XL y el 50 con ellos.
  */
 const pcAtrapar = computed(() => [
-  { clave: 'raid', iconos: ['raid'], texto: t('pokemon.cpFromRaid'), normal: nivelPc(20), clima: nivelPc(25) },
+  {
+    clave: 'raid',
+    iconos: ['raid'],
+    texto: t('pokemon.cpFromRaid'),
+    normal: nivelPc(20),
+    clima: nivelPc(25)
+  },
   {
     clave: 'egg',
     iconos: props.esMax ? ['egg', 'max'] : ['egg'],
@@ -47,7 +53,13 @@ const pcAtrapar = computed(() => [
     normal: nivelPc(20),
     clima: null
   },
-  { clave: 'research', iconos: ['research'], texto: t('pokemon.cpFromResearch'), normal: nivelPc(15), clima: null }
+  {
+    clave: 'research',
+    iconos: ['research'],
+    texto: t('pokemon.cpFromResearch'),
+    normal: nivelPc(15),
+    clima: null
+  }
 ])
 
 const pcSubir = computed(() => [
@@ -59,7 +71,9 @@ const pcSubir = computed(() => [
 const resumen = computed(() => {
   const primero = nivelPc(20)
   const ultimo = nivelPc(50)
-  return `${t('common.levelShort')} ${primero.level}: ${primero.cp} · ${t('common.levelShort')} ${ultimo.level}: ${ultimo.cp}`
+  return `${t('common.levelShort')} ${primero.level}: ${primero.cp} · ${t('common.levelShort')} ${
+    ultimo.level
+  }: ${ultimo.cp}`
 })
 </script>
 
@@ -71,11 +85,17 @@ const resumen = computed(() => {
       que es lo que se compara. Cada icono lleva su texto para lectores de
       pantalla y en el title.
     -->
-    <h3 class="mt-2 mb-1 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('pokemon.cpCatch') }}</h3>
+    <h3
+      class="mt-2 mb-1 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300"
+    >
+      {{ $t('pokemon.cpCatch') }}
+    </h3>
     <table class="w-full border-separate [border-spacing:0_6px] -my-1.5 tabular-nums">
       <thead>
         <tr class="text-mini text-gray-600 dark:text-gray-300">
-          <th scope="col"><span class="sr-only">{{ $t('pokemon.cpOrigin') }}</span></th>
+          <th scope="col">
+            <span class="sr-only">{{ $t('pokemon.cpOrigin') }}</span>
+          </th>
           <th scope="col" class="w-24 pr-2 font-normal text-right">{{ $t('pokemon.cpNormal') }}</th>
           <th scope="col" class="w-24 pr-2 font-normal">
             <span class="flex items-center justify-end gap-1">
@@ -89,7 +109,11 @@ const resumen = computed(() => {
         <tr v-for="fila in pcAtrapar" :key="fila.clave">
           <th scope="row" class="text-left font-normal">
             <span class="sr-only">{{ fila.texto }}</span>
-            <span class="flex items-center gap-1.5 text-gray-700 dark:text-gray-200" :title="fila.texto" aria-hidden="true">
+            <span
+              class="flex items-center gap-1.5 text-gray-700 dark:text-gray-200"
+              :title="fila.texto"
+              aria-hidden="true"
+            >
               <template v-for="icono in fila.iconos" :key="icono">
                 <max-mark v-if="icono === 'max'" variant="dynamax" :size="16" class="shrink-0" />
                 <icono-mascara v-else :src="ICONOS_PC[icono]" class="w-5 h-5" />
@@ -99,13 +123,20 @@ const resumen = computed(() => {
           <td class="p-0 pl-1.5">
             <span class="flex flex-col items-end px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800">
               <span class="text-base font-bold leading-tight">{{ fila.normal.cp }}</span>
-              <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('common.levelShort') }} {{ fila.normal.level }}</span>
+              <span class="text-mini text-gray-600 dark:text-gray-300"
+                >{{ $t('common.levelShort') }} {{ fila.normal.level }}</span
+              >
             </span>
           </td>
           <td class="p-0 pl-1.5">
-            <span v-if="fila.clima" class="flex flex-col items-end px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800">
+            <span
+              v-if="fila.clima"
+              class="flex flex-col items-end px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800"
+            >
               <span class="text-base font-bold leading-tight">{{ fila.clima.cp }}</span>
-              <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('common.levelShort') }} {{ fila.clima.level }}</span>
+              <span class="text-mini text-gray-600 dark:text-gray-300"
+                >{{ $t('common.levelShort') }} {{ fila.clima.level }}</span
+              >
             </span>
             <!-- Huevos, combates Max y misiones no se potencian con el clima -->
             <span v-else class="block pr-2 text-right text-gray-500 dark:text-gray-400">
@@ -117,15 +148,25 @@ const resumen = computed(() => {
       </tbody>
     </table>
 
-    <h3 class="mt-3 mb-1.5 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('pokemon.cpPowerUp') }}</h3>
+    <h3
+      class="mt-3 mb-1.5 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300"
+    >
+      {{ $t('pokemon.cpPowerUp') }}
+    </h3>
     <dl class="grid grid-cols-2 gap-1.5 tabular-nums">
       <div
         v-for="fila in pcSubir"
         :key="fila.level"
         class="flex items-center justify-between gap-2 px-2 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800"
       >
-        <dt class="flex items-center gap-1.5 whitespace-nowrap text-mini text-gray-600 dark:text-gray-300" :title="fila.texto">
-          <icono-mascara :src="fila.xl ? iconoCarameloXl : iconoCaramelo" class="w-4 h-4 text-gray-600 dark:text-gray-300" />
+        <dt
+          class="flex items-center gap-1.5 whitespace-nowrap text-mini text-gray-600 dark:text-gray-300"
+          :title="fila.texto"
+        >
+          <icono-mascara
+            :src="fila.xl ? iconoCarameloXl : iconoCaramelo"
+            class="w-4 h-4 text-gray-600 dark:text-gray-300"
+          />
           <span class="sr-only">{{ fila.texto }},</span>
           {{ $t('common.levelShort') }} {{ fila.level }}
         </dt>

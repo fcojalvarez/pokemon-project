@@ -21,11 +21,18 @@ import { NAV_LINKS, esSeccionActiva } from './navLinks'
 const route = useRoute()
 
 const escribiendo = ref(false)
-const esCampo = (el) => el?.matches?.('input:not([type=checkbox]):not([type=radio]), textarea, select, [contenteditable="true"]')
-const alEnfocar = (event) => { escribiendo.value = Boolean(esCampo(event.target)) }
+const esCampo = (el) =>
+  el?.matches?.(
+    'input:not([type=checkbox]):not([type=radio]), textarea, select, [contenteditable="true"]'
+  )
+const alEnfocar = (event) => {
+  escribiendo.value = Boolean(esCampo(event.target))
+}
 const alSalir = () => {
   // El foco pasa de un campo a otro sin quedarse en el body: se mira después.
-  setTimeout(() => { escribiendo.value = Boolean(esCampo(document.activeElement)) })
+  setTimeout(() => {
+    escribiendo.value = Boolean(esCampo(document.activeElement))
+  })
 }
 
 onMounted(() => {
@@ -50,15 +57,25 @@ onUnmounted(() => {
       :to="link.to"
       :aria-current="esSeccionActiva(route.path, link.to) ? 'page' : undefined"
       class="flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl border text-[11px] leading-tight transition-colors"
-      :class="esSeccionActiva(route.path, link.to)
-        ? 'border-gray-400 dark:border-gray-500 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold'
-        : 'border-transparent text-gray-600 dark:text-gray-300'"
+      :class="
+        esSeccionActiva(route.path, link.to)
+          ? 'border-gray-400 dark:border-gray-500 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold'
+          : 'border-transparent text-gray-600 dark:text-gray-300'
+      "
     >
       <!--
         El color va en el propio SVG: BaseIcon trae color="#000" y el trazo en
         currentColor salía negro también en modo oscuro.
       -->
-      <base-icon :stroke-width="1.5" width="22" height="22" color="currentColor" stroke-linecap="round" stroke-linejoin="round" :d="link.icon" />
+      <base-icon
+        :stroke-width="1.5"
+        width="22"
+        height="22"
+        color="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        :d="link.icon"
+      />
       <span>{{ $t(`nav.${link.key}`) }}</span>
     </RouterLink>
   </nav>

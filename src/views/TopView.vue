@@ -58,7 +58,15 @@ const incluir = computed(() => {
       { clave: 'elite', valor: includeElite, texto: 'moves.elite', ayuda: 'top.eliteHelp' }
     ]
   }
-  if (mode.value === 'max') return [{ clave: 'legendary', valor: includeLegendary, texto: 'top.legendaries', ayuda: 'top.legendaryHelp' }]
+  if (mode.value === 'max')
+    return [
+      {
+        clave: 'legendary',
+        valor: includeLegendary,
+        texto: 'top.legendaries',
+        ayuda: 'top.legendaryHelp'
+      }
+    ]
   return []
 })
 
@@ -68,13 +76,14 @@ const incluir = computed(() => {
  * (?without=legacy,elite), que es lo raro.
  */
 const excluidos = computed({
-  get: () => [
-    !includeMega.value && 'mega',
-    !includeShadow.value && 'shadow',
-    !includeLegacy.value && 'legacy',
-    !includeElite.value && 'elite',
-    !includeLegendary.value && 'legendary'
-  ].filter(Boolean),
+  get: () =>
+    [
+      !includeMega.value && 'mega',
+      !includeShadow.value && 'shadow',
+      !includeLegacy.value && 'legacy',
+      !includeElite.value && 'elite',
+      !includeLegendary.value && 'legendary'
+    ].filter(Boolean),
   set: (quitados) => {
     includeMega.value = !quitados.includes('mega')
     includeShadow.value = !quitados.includes('shadow')
@@ -85,10 +94,18 @@ const excluidos = computed({
 })
 useFiltrosEnUrl({
   mode: { valor: mode, defecto: 'pve', leer: entre(['pve', 'max', 'pvp']) },
-  kind: { valor: type, defecto: 'all', leer: (texto) => (/^[a-z]+$/.test(texto) ? texto : undefined) },
+  kind: {
+    valor: type,
+    defecto: 'all',
+    leer: (texto) => (/^[a-z]+$/.test(texto) ? texto : undefined)
+  },
   sort: { valor: sortBy, defecto: 'dps', leer: entre(['dps', 'tdo', 'er']) },
   league: { valor: league, defecto: 'great', leer: entre(['great', 'ultra', 'master']) },
-  without: { valor: excluidos, defecto: [], ...lista(['mega', 'shadow', 'legacy', 'elite', 'legendary']) }
+  without: {
+    valor: excluidos,
+    defecto: [],
+    ...lista(['mega', 'shadow', 'legacy', 'elite', 'legendary'])
+  }
 })
 
 // Dinamax va justo detrás de incursiones: las dos son PvE, y el PvP es lo
@@ -126,7 +143,8 @@ const sortHelp = computed(() => t(`top.${sortBy.value}Help`))
 const movil = useMedia('(max-width: 639px)')
 const filtrosAbiertos = ref(false)
 
-const etiqueta = (opciones, valor) => opciones.find((opcion) => opcion.value === valor)?.label ?? valor
+const etiqueta = (opciones, valor) =>
+  opciones.find((opcion) => opcion.value === valor)?.label ?? valor
 
 const resumenFiltros = computed(() => {
   const partes = [etiqueta(modeOptions.value, mode.value), etiqueta(typeOptions.value, type.value)]
@@ -154,12 +172,22 @@ const filtrosCambiados = computed(
     (type.value !== 'all' ? 1 : 0) +
     (mode.value === 'pve' && sortBy.value !== 'dps' ? 1 : 0) +
     (mode.value === 'pvp' && league.value !== 'great' ? 1 : 0) +
-    (mode.value === 'pve' ? excluidos.value.filter((quitado) => quitado !== 'legendary').length : 0) +
+    (mode.value === 'pve'
+      ? excluidos.value.filter((quitado) => quitado !== 'legendary').length
+      : 0) +
     (mode.value === 'max' && !includeLegendary.value ? 1 : 0)
 )
 
 const { pveRows, pvpRows, maxRows, filasVisibles, origenes, leyendaMax } = useTopFilas({
-  mode, type, sortBy, league, includeMega, includeShadow, includeLegacy, includeElite, includeLegendary
+  mode,
+  type,
+  sortBy,
+  league,
+  includeMega,
+  includeShadow,
+  includeLegacy,
+  includeElite,
+  includeLegendary
 })
 
 /** Si la pestaña activa tiene algo que pintar; si no, sale el vacío. */
@@ -169,15 +197,29 @@ onMounted(() => gameData.load())
 
 // Los rankings PvP se piden aparte, la primera vez que se entra en ese modo.
 const esperandoPvp = computed(() => mode.value === 'pvp' && gameData.isReady && !gameData.pvpListo)
-watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { immediate: true })
+watch(
+  esperandoPvp,
+  (esperando) => {
+    if (esperando) gameData.cargarPvp()
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
-    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.top') }}</h1>
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">
+      {{ $t('nav.top') }}
+    </h1>
 
     <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">
-      {{ mode === 'max' ? $t('max.tabIntro') : mode === 'pve' ? $t('top.pveIntro') : $t('top.pvpIntro') }}
+      {{
+        mode === 'max'
+          ? $t('max.tabIntro')
+          : mode === 'pve'
+          ? $t('top.pveIntro')
+          : $t('top.pvpIntro')
+      }}
     </p>
 
     <!--
@@ -191,7 +233,10 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
       <base-sidebar :activa="ancho">
         <!-- Móvil: una línea con lo elegido y el botón que abre los filtros. -->
         <div v-if="movil" class="flex items-center gap-3 mb-3">
-          <p class="flex-1 min-w-0 text-mini text-gray-600 dark:text-gray-300 truncate" :title="resumenFiltros">
+          <p
+            class="flex-1 min-w-0 text-mini text-gray-600 dark:text-gray-300 truncate"
+            :title="resumenFiltros"
+          >
             {{ resumenFiltros }}
           </p>
           <button
@@ -205,7 +250,8 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
             <span
               v-if="filtrosCambiados"
               class="px-1.5 rounded-full bg-gray-600 dark:bg-gray-500 text-white text-mini"
-            >{{ filtrosCambiados }}</span>
+              >{{ filtrosCambiados }}</span
+            >
             <base-chevron :open="filtrosAbiertos" />
           </button>
         </div>
@@ -213,79 +259,101 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
         <div
           v-show="!movil || filtrosAbiertos"
           id="filtros-top"
-          :class="ancho ? 'contents' : movil ? 'mb-3 p-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900' : ''"
+          :class="
+            ancho
+              ? 'contents'
+              : movil
+              ? 'mb-3 p-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
+              : ''
+          "
         >
-        <div :class="ancho ? 'flex flex-col gap-3' : 'grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mb-3'">
-          <base-dropdown v-model="mode" :label="$t('top.mode')" :options="modeOptions" />
-          <base-dropdown v-model="type" buscable :label="$t('top.type')" :options="typeOptions" />
-          <!--
+          <div
+            :class="
+              ancho
+                ? 'flex flex-col gap-3'
+                : 'grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mb-3'
+            "
+          >
+            <base-dropdown v-model="mode" :label="$t('top.mode')" :options="modeOptions" />
+            <base-dropdown v-model="type" buscable :label="$t('top.type')" :options="typeOptions" />
+            <!--
             En la tabla también se ordena pulsando las cabeceras; los dos van a
             la par. Lo que significa cada orden va justo debajo del selector.
           -->
-          <!-- A dos columnas va solo en su fila: a media anchura se cortaba («Daño por segundo (…»). -->
-          <div v-if="mode === 'pve'" class="min-w-0 xs:col-span-2 sm:col-span-1">
+            <!-- A dos columnas va solo en su fila: a media anchura se cortaba («Daño por segundo (…»). -->
+            <div v-if="mode === 'pve'" class="min-w-0 xs:col-span-2 sm:col-span-1">
+              <base-dropdown v-model="sortBy" :label="$t('top.sortBy')" :options="sortOptions" />
+              <p class="mt-1.5 text-mini text-gray-600 dark:text-gray-300">{{ sortHelp }}</p>
+            </div>
             <base-dropdown
-              v-model="sortBy"
-              :label="$t('top.sortBy')"
-              :options="sortOptions"
+              v-else-if="mode === 'pvp'"
+              v-model="league"
+              :label="$t('top.league')"
+              :options="leagueOptions"
             />
-            <p class="mt-1.5 text-mini text-gray-600 dark:text-gray-300">{{ sortHelp }}</p>
           </div>
-          <base-dropdown
-            v-else-if="mode === 'pvp'"
-            v-model="league"
-            :label="$t('top.league')"
-            :options="leagueOptions"
-          />
-        </div>
 
-        <!--
+          <!--
           Mismo trato que los selectores: etiqueta encima y botones del mismo
           alto repartidos en rejilla.
         -->
-        <div v-if="incluir.length" :class="ancho ? '' : 'mb-3'">
-          <span
-            id="incluir-top"
-            class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
-          >{{ $t('top.include') }}</span>
-
-          <div
-            role="group"
-            aria-labelledby="incluir-top"
-            class="grid gap-2"
-            :class="ancho ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'"
-          >
-            <base-pill-button
-              v-for="opcion in incluir"
-              :key="opcion.clave"
-              :class="boton"
-              casilla
-              :active="opcion.valor.value"
-              :title="opcion.ayuda ? $t(opcion.ayuda) : undefined"
-              @click="opcion.valor.value = !opcion.valor.value"
+          <div v-if="incluir.length" :class="ancho ? '' : 'mb-3'">
+            <span
+              id="incluir-top"
+              class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+              >{{ $t('top.include') }}</span
             >
-              {{ $t(opcion.texto) }}
-            </base-pill-button>
+
+            <div
+              role="group"
+              aria-labelledby="incluir-top"
+              class="grid gap-2"
+              :class="ancho ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'"
+            >
+              <base-pill-button
+                v-for="opcion in incluir"
+                :key="opcion.clave"
+                :class="boton"
+                casilla
+                :active="opcion.valor.value"
+                :title="opcion.ayuda ? $t(opcion.ayuda) : undefined"
+                @click="opcion.valor.value = !opcion.valor.value"
+              >
+                {{ $t(opcion.texto) }}
+              </base-pill-button>
+            </div>
           </div>
-        </div>
         </div>
 
         <move-legend :class="ancho ? '' : 'mb-3'" v-bind="origenes" />
 
-        <top-calculo v-if="ancho && mode === 'pve'" class="pt-3 border-t border-gray-300 dark:border-gray-700" />
+        <top-calculo
+          v-if="ancho && mode === 'pve'"
+          class="pt-3 border-t border-gray-300 dark:border-gray-700"
+        />
       </base-sidebar>
 
       <div class="min-w-0">
         <!-- Filas con la forma de las de verdad: sprite, nombre, ataques y métrica. -->
-        <skeleton-loader v-if="gameData.status === 'loading' || gameData.status === 'idle' || (esperandoPvp && gameData.estadoAparte.pvp !== 'error')">
+        <skeleton-loader
+          v-if="
+            gameData.status === 'loading' ||
+            gameData.status === 'idle' ||
+            (esperandoPvp && gameData.estadoAparte.pvp !== 'error')
+          "
+        >
           <div class="flex flex-col gap-2">
             <div
               v-for="n in 8"
               :key="n"
               class="flex items-center gap-3 p-2 pr-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
             >
-              <span class="w-6 shrink-0 flex justify-end"><span class="esqueleto h-3 w-3 rounded-full"></span></span>
-              <span class="w-12 h-12 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
+              <span class="w-6 shrink-0 flex justify-end"
+                ><span class="esqueleto h-3 w-3 rounded-full"></span
+              ></span>
+              <span class="w-12 h-12 shrink-0 flex items-center justify-center"
+                ><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span
+              ></span>
               <span class="flex-1 min-w-0 flex flex-col gap-2">
                 <span class="esqueleto h-3.5 w-2/5 rounded-full"></span>
                 <span class="flex gap-1.5">
@@ -303,7 +371,9 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
         </skeleton-loader>
 
         <base-error-message
-          v-else-if="gameData.status === 'error' || (esperandoPvp && gameData.estadoAparte.pvp === 'error')"
+          v-else-if="
+            gameData.status === 'error' || (esperandoPvp && gameData.estadoAparte.pvp === 'error')
+          "
           :message="$t('common.error')"
           :detail="gameData.error"
         />
@@ -342,26 +412,35 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
         />
 
         <!-- Cómo se calcula el top Max: debajo de la lista, encima de la leyenda. -->
-        <top-calculo v-if="gameData.isReady && mode === 'max' && rowsShown" modo="max" class="mt-3" />
+        <top-calculo
+          v-if="gameData.isReady && mode === 'max' && rowsShown"
+          modo="max"
+          class="mt-3"
+        />
 
         <!-- Leyenda del Max: solo lo que sale en la lista. -->
         <div
           v-if="gameData.isReady && mode === 'max' && rowsShown"
           class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700 text-mini text-gray-600 dark:text-gray-300"
         >
-        <p id="leyenda-max" class="mb-1.5 text-xs font-semibold text-gray-800 dark:text-gray-100">{{ $t('legend.title') }}:</p>
-        <!-- Un significado por fila. -->
-        <ul aria-labelledby="leyenda-max" class="flex flex-col gap-1.5">
-          <li v-if="leyendaMax.stab" class="flex items-center gap-1.5">
-            <stab-badge />
-            {{ $t('max.stabLegend') }}
-          </li>
-          <!-- Sin marca junto al nombre: el Gigamax se reconoce por su borde, su ataque y su sprite. -->
-          <li v-if="leyendaMax.gigantamax" class="flex items-center gap-1.5">
-            <span class="w-5 h-3.5 shrink-0 rounded border-2 border-fuchsia-500 dark:border-fuchsia-400" aria-hidden="true"></span>
-            {{ $t('max.gmaxBorderLegend') }}
-          </li>
-        </ul>
+          <p id="leyenda-max" class="mb-1.5 text-xs font-semibold text-gray-800 dark:text-gray-100">
+            {{ $t('legend.title') }}:
+          </p>
+          <!-- Un significado por fila. -->
+          <ul aria-labelledby="leyenda-max" class="flex flex-col gap-1.5">
+            <li v-if="leyendaMax.stab" class="flex items-center gap-1.5">
+              <stab-badge />
+              {{ $t('max.stabLegend') }}
+            </li>
+            <!-- Sin marca junto al nombre: el Gigamax se reconoce por su borde, su ataque y su sprite. -->
+            <li v-if="leyendaMax.gigantamax" class="flex items-center gap-1.5">
+              <span
+                class="w-5 h-3.5 shrink-0 rounded border-2 border-fuchsia-500 dark:border-fuchsia-400"
+                aria-hidden="true"
+              ></span>
+              {{ $t('max.gmaxBorderLegend') }}
+            </li>
+          </ul>
         </div>
 
         <base-empty-state

@@ -5,11 +5,21 @@
  * de «Más tarde», que hacía lo mismo que la ✕. La lógica está en usePwaUpdate.
  */
 import BaseModal from '../base/BaseModal.vue'
-import { actualizarAhora, aplazarAviso, avisoVisible, versionNueva } from '../../composables/usePwaUpdate'
+import {
+  actualizarAhora,
+  aplazarAviso,
+  avisoVisible,
+  versionNueva
+} from '../../composables/usePwaUpdate'
 </script>
 
 <template>
-  <base-modal :open="avisoVisible" :title="$t('update.title')" size="sm:max-w-sm" @close="aplazarAviso">
+  <base-modal
+    :open="avisoVisible"
+    :title="$t('update.title')"
+    size="sm:max-w-sm"
+    @close="aplazarAviso"
+  >
     <div class="p-4 flex flex-col gap-4">
       <p class="text-xs">
         {{ versionNueva ? $t('update.textVersion', { version: versionNueva }) : $t('update.text') }}

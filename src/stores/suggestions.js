@@ -167,7 +167,10 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
     const previo = indice >= 0 ? { ...items.value[indice] } : null
     if (indice >= 0) items.value[indice] = { ...items.value[indice], ...cambios }
 
-    const { error: fallo } = await (await supabaseCompleto()).from('suggestions').update(cambios).eq('id', id)
+    const { error: fallo } = await (await supabaseCompleto())
+      .from('suggestions')
+      .update(cambios)
+      .eq('id', id)
     if (fallo) {
       if (previo) items.value[indice] = previo
       error.value = fallo.message
@@ -179,7 +182,10 @@ export const useSuggestionsStore = defineStore('suggestions', () => {
   const setStatus = (id, status) => update(id, { status })
 
   const remove = async (id) => {
-    const { error: fallo } = await (await supabaseCompleto()).from('suggestions').delete().eq('id', id)
+    const { error: fallo } = await (await supabaseCompleto())
+      .from('suggestions')
+      .delete()
+      .eq('id', id)
     if (fallo) {
       error.value = fallo.message
       return false

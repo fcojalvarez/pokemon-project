@@ -39,11 +39,14 @@ const ampliada = ref(null)
 onMounted(async () => {
   todas.value = await cargarFormas()
 })
-watch(() => props.dex, () => {
-  abierta.value = false
-  shiny.value = false
-  ampliada.value = null
-})
+watch(
+  () => props.dex,
+  () => {
+    abierta.value = false
+    shiny.value = false
+    ampliada.value = null
+  }
+)
 // Al cerrar, la próxima vez vuelve a la cuadrícula.
 watch(abierta, (valor) => {
   if (!valor) ampliada.value = null
@@ -59,10 +62,14 @@ const MEGA = /\.f(MEGA|PRIMAL)/
 const variantes = computed(() => {
   const v = todas.value?.[props.dex]
   if (!v) return null
-  const formas = v.formas.filter((uno) => !MEGA.test(uno.f) && !(props.sinRegionales && REGIONAL.test(uno.f)))
+  const formas = v.formas.filter(
+    (uno) => !MEGA.test(uno.f) && !(props.sinRegionales && REGIONAL.test(uno.f))
+  )
   return { ...v, formas }
 })
-const total = computed(() => (variantes.value ? variantes.value.formas.length + variantes.value.disfraces.length : 0))
+const total = computed(() =>
+  variantes.value ? variantes.value.formas.length + variantes.value.disfraces.length : 0
+)
 /** Sin las regionales puede quedar un solo disfraz, y también vale la pena verlo. */
 const minimo = computed(() => (props.sinRegionales ? 1 : 2))
 const soloDisfraces = computed(() => Boolean(variantes.value) && !variantes.value.formas.length)
@@ -90,7 +97,12 @@ const pasar = (paso) => {
   const siguiente = lista[(posicion.value + paso + lista.length) % lista.length]
   if (siguiente) ampliada.value = siguiente
 }
-const fecha = (texto) => new Date(texto).toLocaleDateString(intlLocale(), { day: 'numeric', month: 'long', year: 'numeric' })
+const fecha = (texto) =>
+  new Date(texto).toLocaleDateString(intlLocale(), {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
 </script>
 
 <template>
@@ -107,11 +119,20 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(intlLocale(), { day:
     </template>
   </button>
 
-  <base-modal :open="abierta" :title="$t(soloDisfraces ? 'forms.costumesTitle' : 'forms.title', { pokemon: name })" size="sm:max-w-3xl" @close="abierta = false">
+  <base-modal
+    :open="abierta"
+    :title="$t(soloDisfraces ? 'forms.costumesTitle' : 'forms.title', { pokemon: name })"
+    size="sm:max-w-3xl"
+    @close="abierta = false"
+  >
     <div class="p-4">
       <div class="flex flex-wrap items-center gap-2 mb-3">
-        <base-pill-button :active="!shiny" @click="shiny = false">{{ $t('forms.normal') }}</base-pill-button>
-        <base-pill-button :active="shiny" @click="shiny = true">{{ $t('forms.shiny') }}</base-pill-button>
+        <base-pill-button :active="!shiny" @click="shiny = false">{{
+          $t('forms.normal')
+        }}</base-pill-button>
+        <base-pill-button :active="shiny" @click="shiny = true">{{
+          $t('forms.shiny')
+        }}</base-pill-button>
         <p class="basis-full sm:basis-auto sm:ml-auto text-mini text-gray-600 dark:text-gray-300">
           {{ $t('forms.note') }}
         </p>
@@ -126,7 +147,10 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(intlLocale(), { day:
           class="w-56 h-56 sm:w-72 sm:h-72 object-contain"
         />
         <p class="text-base font-bold text-center">{{ nombre(ampliada) }}</p>
-        <p v-if="ampliada.s" class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+        <p
+          v-if="ampliada.s"
+          class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300"
+        >
           <shiny-mark variant="dex" size="text-mini" :label="$t('pokemon.shinyLegend')" />
           {{ $t('forms.shinySince', { date: fecha(ampliada.s) }) }}
         </p>
@@ -136,14 +160,20 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(intlLocale(), { day:
             class="w-10 h-10 rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
             :aria-label="$t('forms.previous')"
             @click="pasar(-1)"
-          >←</button>
-          <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums">{{ posicion + 1 }} / {{ todasEnOrden.length }}</span>
+          >
+            ←
+          </button>
+          <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums"
+            >{{ posicion + 1 }} / {{ todasEnOrden.length }}</span
+          >
           <button
             type="button"
             class="w-10 h-10 rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
             :aria-label="$t('forms.next')"
             @click="pasar(1)"
-          >→</button>
+          >
+            →
+          </button>
         </div>
         <base-pill-button @click="ampliada = null">{{ $t('forms.back') }}</base-pill-button>
       </div>
@@ -151,7 +181,9 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(intlLocale(), { day:
       <section v-for="grupo in grupos" v-else :key="grupo.clave" class="mb-4 last:mb-0">
         <h3 class="text-sm font-bold mb-2">
           {{ $t(`forms.${grupo.clave}`) }}
-          <span class="font-normal text-gray-600 dark:text-gray-300">({{ grupo.lista.length }})</span>
+          <span class="font-normal text-gray-600 dark:text-gray-300"
+            >({{ grupo.lista.length }})</span
+          >
         </h3>
         <ul class="grid grid-cols-3 sm:grid-cols-[repeat(auto-fill,minmax(110px,1fr))] gap-2">
           <li v-for="uno in grupo.lista" :key="uno.f">
@@ -161,25 +193,27 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(intlLocale(), { day:
               :aria-label="$t('forms.enlarge', { name: nombre(uno) })"
               @click="ampliada = uno"
             >
-            <span class="relative w-16 h-16">
-              <img
-                :src="iconoForma(uno.f, { shiny })"
-                crossorigin="anonymous"
-                alt=""
-                class="w-full h-full object-contain"
-                loading="lazy"
-                decoding="async"
-              />
-              <shiny-mark
-                v-if="uno.s"
-                variant="dex"
-                size="text-mini"
-                class="absolute -top-1 -right-1 scale-75 origin-top-right"
-                :title="$t('pokemon.shinyLegend')"
-                :label="$t('pokemon.shinyLegend')"
-              />
-            </span>
-            <span class="text-mini font-semibold leading-tight break-words hyphens-auto">{{ nombre(uno) }}</span>
+              <span class="relative w-16 h-16">
+                <img
+                  :src="iconoForma(uno.f, { shiny })"
+                  crossorigin="anonymous"
+                  alt=""
+                  class="w-full h-full object-contain"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <shiny-mark
+                  v-if="uno.s"
+                  variant="dex"
+                  size="text-mini"
+                  class="absolute -top-1 -right-1 scale-75 origin-top-right"
+                  :title="$t('pokemon.shinyLegend')"
+                  :label="$t('pokemon.shinyLegend')"
+                />
+              </span>
+              <span class="text-mini font-semibold leading-tight break-words hyphens-auto">{{
+                nombre(uno)
+              }}</span>
             </button>
           </li>
         </ul>

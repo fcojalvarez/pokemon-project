@@ -46,7 +46,11 @@ const activeIndex = ref(-1)
 const query = ref('')
 
 // Sin tildes ni mayúsculas: «elec» encuentra «Eléctrico».
-const normalizar = (texto) => String(texto).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+const normalizar = (texto) =>
+  String(texto)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
 
 const visibles = computed(() => {
   const q = normalizar(query.value.trim())
@@ -98,7 +102,9 @@ const move = (delta) => {
 
 // Al escribir, la opción activa pasa a ser la primera que queda. Al abrir con
 // una letra ya puesta también, en vez de la elegida (que quizá no aparece).
-watch(query, () => { activeIndex.value = visibles.value.length ? 0 : -1 })
+watch(query, () => {
+  activeIndex.value = visibles.value.length ? 0 : -1
+})
 
 /** Sin esto, al bajar con el teclado la opción activa se sale de la caja. */
 const scrollActiveIntoView = () => {
@@ -113,7 +119,13 @@ const onKeydown = (event) => {
     if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(key)) {
       event.preventDefault()
       open()
-    } else if (props.buscable && key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    } else if (
+      props.buscable &&
+      key.length === 1 &&
+      !event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey
+    ) {
       // Escribir con el desplegable cerrado lo abre con esa letra ya puesta.
       event.preventDefault()
       open(key)
@@ -125,8 +137,14 @@ const onKeydown = (event) => {
   const acciones = {
     ArrowDown: () => move(1),
     ArrowUp: () => move(-1),
-    Home: () => { activeIndex.value = 0; scrollActiveIntoView() },
-    End: () => { activeIndex.value = visibles.value.length - 1; scrollActiveIntoView() },
+    Home: () => {
+      activeIndex.value = 0
+      scrollActiveIntoView()
+    },
+    End: () => {
+      activeIndex.value = visibles.value.length - 1
+      scrollActiveIntoView()
+    },
     Enter: () => pick(activeIndex.value),
     Escape: () => close({ devolverFoco: props.buscable }),
     Tab: () => close()
@@ -169,7 +187,9 @@ useDetectOutsideClick(root, () => close())
       :aria-controls="listId"
       :aria-label="ariaLabel ?? undefined"
       :aria-labelledby="label ? `etiqueta-${uid}` : undefined"
-      :aria-activedescendant="isOpen && !buscable && activeIndex >= 0 ? optionId(activeIndex) : undefined"
+      :aria-activedescendant="
+        isOpen && !buscable && activeIndex >= 0 ? optionId(activeIndex) : undefined
+      "
       @click="isOpen ? close() : open()"
       @keydown="onKeydown"
     >
@@ -202,14 +222,9 @@ useDetectOutsideClick(root, () => close())
           :aria-activedescendant="activeIndex >= 0 ? optionId(activeIndex) : undefined"
           class="campo !py-1.5"
           @keydown="onKeydown"
-        >
+        />
       </div>
-      <ul
-        :id="listId"
-        ref="list"
-        role="listbox"
-        class="max-h-60 overflow-y-auto py-1"
-      >
+      <ul :id="listId" ref="list" role="listbox" class="max-h-60 overflow-y-auto py-1">
         <li
           v-for="(option, index) in visibles"
           :id="optionId(index)"
@@ -225,8 +240,16 @@ useDetectOutsideClick(root, () => close())
               punto más, para que el teclado se note también al pasar por ella.
             */
             option.value === modelValue
-              ? ['font-bold text-gray-900 dark:text-gray-50', index === activeIndex ? 'bg-gray-400/60 dark:bg-gray-600' : 'bg-gray-300 dark:bg-gray-700']
-              : ['text-gray-800 dark:text-gray-200', index === activeIndex ? 'bg-gray-150 dark:bg-gray-800' : '']
+              ? [
+                  'font-bold text-gray-900 dark:text-gray-50',
+                  index === activeIndex
+                    ? 'bg-gray-400/60 dark:bg-gray-600'
+                    : 'bg-gray-300 dark:bg-gray-700'
+                ]
+              : [
+                  'text-gray-800 dark:text-gray-200',
+                  index === activeIndex ? 'bg-gray-150 dark:bg-gray-800' : ''
+                ]
           "
           @click="pick(index)"
           @mousemove="activeIndex = index"
@@ -246,7 +269,11 @@ useDetectOutsideClick(root, () => close())
             <path d="M5 12l5 5L20 7" />
           </svg>
         </li>
-        <li v-if="!visibles.length" role="presentation" class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300">
+        <li
+          v-if="!visibles.length"
+          role="presentation"
+          class="px-3 py-2 text-sm text-gray-600 dark:text-gray-300"
+        >
           {{ $t('common.empty') }}
         </li>
       </ul>

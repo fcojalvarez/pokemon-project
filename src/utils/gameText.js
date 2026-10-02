@@ -90,5 +90,7 @@ export function translateGameText(text, dictionary) {
  * guarda su traducción, así que los dos lados tienen que limpiarlo igual.
  */
 export function plainText(html) {
-  return String(html).replace(/<[^>]*>/g, '').trim()
+  return String(html)
+    .replace(/<[^>]*>/g, '')
+    .trim()
 }

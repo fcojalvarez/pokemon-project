@@ -90,12 +90,16 @@ const monProps = (nodo, extra = {}) => ({
   mon: nodo.mon,
   // Megas y formas regionales (Meowth de Galar en la cadena de Perrserker)
   // enlazan a la ficha de esa forma, y se resaltan cuando es la que se ve.
-  to: nodo.mega ? nodo.mega.to : nodo.mon.form ? `/pokemon/${nodo.mon.pokemon_id}?form=${nodo.mon.form}` : `/pokemon/${nodo.mon.pokemon_id}`,
+  to: nodo.mega
+    ? nodo.mega.to
+    : nodo.mon.form
+    ? `/pokemon/${nodo.mon.pokemon_id}?form=${nodo.mon.form}`
+    : `/pokemon/${nodo.mon.pokemon_id}`,
   active: nodo.mega
     ? nodo.mega.id === cadena.formId.value
     : nodo.mon.form
-      ? nodo.mon.form === cadena.formId.value
-      : !cadena.formId.value && nodo.mon.pokemon_id === cadena.activeId.value,
+    ? nodo.mon.form === cadena.formId.value
+    : !cadena.formId.value && nodo.mon.pokemon_id === cadena.activeId.value,
   shiny: cadena.shiny.value,
   sinNumero: Boolean(nodo.mega) || props.enGrupo || Boolean(extra.enGrupo),
   badge: nodo.mega?.superMega ? t('pokemon.superMega') : null,
@@ -112,7 +116,11 @@ const monProps = (nodo, extra = {}) => ({
     <div class="inline-flex flex-col max-w-full">
       <div class="flex flex-wrap items-center justify-center">
         <div v-for="(unidad, i) in tramo.unidades" :key="i" class="flex items-center">
-          <evolution-arrow v-if="unidad.flecha" :req="unidad.flecha.req" :type="unidad.flecha.caramelo" />
+          <evolution-arrow
+            v-if="unidad.flecha"
+            :req="unidad.flecha.req"
+            :type="unidad.flecha.caramelo"
+          />
           <evolution-mon v-bind="monProps(unidad.nodo)" />
         </div>
       </div>
@@ -148,7 +156,8 @@ const monProps = (nodo, extra = {}) => ({
         <span
           class="absolute -top-2.5 left-3 px-2 bg-white dark:bg-gray-900 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 whitespace-nowrap"
           aria-hidden="true"
-        >{{ tramo.final.etiqueta }}</span>
+          >{{ tramo.final.etiqueta }}</span
+        >
 
         <!--
           En escritorio la columna no baja de lo que mide su tarjeta: con

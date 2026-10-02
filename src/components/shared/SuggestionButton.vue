@@ -118,96 +118,105 @@ const onKeydown = (event) => {
     <span class="text-xs md:text-sm whitespace-nowrap">{{ $t('suggestions.button') }}</span>
   </button>
 
-  <base-modal :open="isOpen" :title="$t('suggestions.title')" enfocar="#mensaje-sugerencia" @close="close">
+  <base-modal
+    :open="isOpen"
+    :title="$t('suggestions.title')"
+    enfocar="#mensaje-sugerencia"
+    @close="close"
+  >
     <div @keydown="onKeydown">
-        <!-- Enviada: el formulario se cambia entero por el acuse, para que no
+      <!-- Enviada: el formulario se cambia entero por el acuse, para que no
              quede duda de si hace falta volver a darle. -->
-        <div v-if="isSent" class="p-6 text-center">
-          <p class="text-sm text-gray-800 dark:text-gray-200 mb-4">
-            {{ $t('suggestions.thanks') }}
-          </p>
-          <div class="flex flex-wrap justify-center gap-2">
-            <base-pill-button @click="isSent = false">
-              {{ $t('suggestions.another') }}
-            </base-pill-button>
-            <base-pill-button @click="close()">
-              {{ $t('suggestions.close') }}
-            </base-pill-button>
-          </div>
+      <div v-if="isSent" class="p-6 text-center">
+        <p class="text-sm text-gray-800 dark:text-gray-200 mb-4">
+          {{ $t('suggestions.thanks') }}
+        </p>
+        <div class="flex flex-wrap justify-center gap-2">
+          <base-pill-button @click="isSent = false">
+            {{ $t('suggestions.another') }}
+          </base-pill-button>
+          <base-pill-button @click="close()">
+            {{ $t('suggestions.close') }}
+          </base-pill-button>
         </div>
+      </div>
 
-        <form v-else class="p-4" @submit.prevent="submit">
-          <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
-            {{ $t('suggestions.intro') }}
-          </p>
+      <form v-else class="p-4" @submit.prevent="submit">
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-4">
+          {{ $t('suggestions.intro') }}
+        </p>
 
-          <fieldset class="mb-4">
-            <legend class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
-              {{ $t('suggestions.category') }}
-            </legend>
-            <div class="flex flex-wrap gap-2">
-              <base-pill-button
-                v-for="name in CATEGORIES"
-                :key="name"
-                :active="category === name"
-                @click="category = name"
-              >
-                {{ $t(`suggestions.categories.${name}`) }}
-              </base-pill-button>
-            </div>
-          </fieldset>
-
-          <label
-            for="mensaje-sugerencia"
-            class="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1"
-          >
-            {{ $t('suggestions.message') }}
-          </label>
-          <textarea
-            id="mensaje-sugerencia"
-            v-model="message"
-            rows="5"
-            :maxlength="MAX_MESSAGE"
-            :placeholder="$t('suggestions.messagePlaceholder')"
-            class="campo shadow-md"
-          ></textarea>
-          <p class="text-mini text-gray-600 dark:text-gray-300 mt-1 mb-4 text-right">
-            {{ $t('suggestions.remaining', { count: restante }) }}
-          </p>
-
-          <label
-            for="contacto-sugerencia"
-            class="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1"
-          >
-            {{ $t('suggestions.contact') }}
-          </label>
-          <input
-            id="contacto-sugerencia"
-            v-model="contact"
-            type="email"
-            autocomplete="email"
-            :placeholder="$t('suggestions.contactPlaceholder')"
-            class="campo shadow-md"
-          />
-          <p class="text-mini text-gray-600 dark:text-gray-300 mt-1 mb-4">
-            {{ $t('suggestions.contactHint') }}
-          </p>
-
-          <base-error-message v-if="errorText" :message="errorText" class="mb-4 text-gray-800 dark:text-gray-200" />
-
-          <div class="flex justify-end gap-2">
-            <base-pill-button type="button" @click="close()">
-              {{ $t('suggestions.cancel') }}
-            </base-pill-button>
-            <button
-              type="submit"
-              :disabled="suggestions.isSending"
-              class="zona-tactil px-4 py-1.5 text-xs rounded-xl border border-gray-500 shadow-md bg-gray-500 dark:bg-gray-600 text-white transition-colors hover:bg-gray-600 hover:dark:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+        <fieldset class="mb-4">
+          <legend class="text-sm font-medium text-gray-800 dark:text-gray-200 mb-2">
+            {{ $t('suggestions.category') }}
+          </legend>
+          <div class="flex flex-wrap gap-2">
+            <base-pill-button
+              v-for="name in CATEGORIES"
+              :key="name"
+              :active="category === name"
+              @click="category = name"
             >
-              {{ $t(suggestions.isSending ? 'suggestions.sending' : 'suggestions.submit') }}
-            </button>
+              {{ $t(`suggestions.categories.${name}`) }}
+            </base-pill-button>
           </div>
-        </form>
+        </fieldset>
+
+        <label
+          for="mensaje-sugerencia"
+          class="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1"
+        >
+          {{ $t('suggestions.message') }}
+        </label>
+        <textarea
+          id="mensaje-sugerencia"
+          v-model="message"
+          rows="5"
+          :maxlength="MAX_MESSAGE"
+          :placeholder="$t('suggestions.messagePlaceholder')"
+          class="campo shadow-md"
+        ></textarea>
+        <p class="text-mini text-gray-600 dark:text-gray-300 mt-1 mb-4 text-right">
+          {{ $t('suggestions.remaining', { count: restante }) }}
+        </p>
+
+        <label
+          for="contacto-sugerencia"
+          class="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1"
+        >
+          {{ $t('suggestions.contact') }}
+        </label>
+        <input
+          id="contacto-sugerencia"
+          v-model="contact"
+          type="email"
+          autocomplete="email"
+          :placeholder="$t('suggestions.contactPlaceholder')"
+          class="campo shadow-md"
+        />
+        <p class="text-mini text-gray-600 dark:text-gray-300 mt-1 mb-4">
+          {{ $t('suggestions.contactHint') }}
+        </p>
+
+        <base-error-message
+          v-if="errorText"
+          :message="errorText"
+          class="mb-4 text-gray-800 dark:text-gray-200"
+        />
+
+        <div class="flex justify-end gap-2">
+          <base-pill-button type="button" @click="close()">
+            {{ $t('suggestions.cancel') }}
+          </base-pill-button>
+          <button
+            type="submit"
+            :disabled="suggestions.isSending"
+            class="zona-tactil px-4 py-1.5 text-xs rounded-xl border border-gray-500 shadow-md bg-gray-500 dark:bg-gray-600 text-white transition-colors hover:bg-gray-600 hover:dark:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ $t(suggestions.isSending ? 'suggestions.sending' : 'suggestions.submit') }}
+          </button>
+        </div>
+      </form>
     </div>
   </base-modal>
 </template>

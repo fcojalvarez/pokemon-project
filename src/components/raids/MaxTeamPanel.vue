@@ -31,7 +31,9 @@ const howToGet = (quien) => {
  */
 const conAtaque = (quien) => {
   const ataque = quien.maxMove
-    ? quien.fastMove ? `${localName(quien.fastMove)} → ${localName(quien.maxMove)}` : localName(quien.maxMove)
+    ? quien.fastMove
+      ? `${localName(quien.fastMove)} → ${localName(quien.maxMove)}`
+      : localName(quien.maxMove)
     : null
   return [ataque, howToGet(quien)].filter(Boolean).join(' · ') || null
 }

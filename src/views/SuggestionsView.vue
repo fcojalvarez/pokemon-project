@@ -36,9 +36,7 @@ const confirming = ref(null)
 const notasAbiertas = ref(new Set())
 
 const list = computed(() =>
-  filter.value === 'all'
-    ? items.value
-    : items.value.filter((item) => item.status === filter.value)
+  filter.value === 'all' ? items.value : items.value.filter((item) => item.status === filter.value)
 )
 
 /**
@@ -84,8 +82,7 @@ const ICONO_SALIR =
 const ICONO_BORRAR =
   'm14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0'
 
-const fecha = (value) =>
-  formatDateTime(value ? new Date(value) : null, intlLocale())
+const fecha = (value) => formatDateTime(value ? new Date(value) : null, intlLocale())
 
 const signIn = async () => {
   if (await auth.signIn(formEmail.value, formPassword.value)) {
@@ -130,7 +127,14 @@ onMounted(async () => {
       class="mb-3 h-9 px-3 flex items-center gap-1.5 rounded-xl border border-gray-400 dark:border-gray-600 shadow-md bg-white dark:bg-gray-900 text-xs text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
       @click="signOut"
     >
-      <base-icon :d="ICONO_SALIR" width="16" height="16" color="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+      <base-icon
+        :d="ICONO_SALIR"
+        width="16"
+        height="16"
+        color="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
       {{ $t('suggestions.signOut') }}
     </button>
 
@@ -166,7 +170,11 @@ onMounted(async () => {
           class="campo mb-4 shadow-md"
         />
 
-        <base-error-message v-if="auth.error" class="mb-4" :message="$t('suggestions.signInError')" />
+        <base-error-message
+          v-if="auth.error"
+          class="mb-4"
+          :message="$t('suggestions.signInError')"
+        />
 
         <button
           type="submit"
@@ -185,7 +193,8 @@ onMounted(async () => {
         <p class="flex-1 min-w-0 text-mini text-gray-600 dark:text-gray-300 truncate">
           {{ email }}
           <template v-if="pendingCount">
-            · <strong class="font-semibold text-blue-700 dark:text-blue-300">
+            ·
+            <strong class="font-semibold text-blue-700 dark:text-blue-300">
               {{ pendingCount }} {{ $t('suggestions.statuses.new').toLowerCase() }}
             </strong>
           </template>
@@ -198,7 +207,14 @@ onMounted(async () => {
           :disabled="isLoading"
           @click="suggestions.load()"
         >
-          <base-icon :d="ICONO_ACTUALIZAR" width="18" height="18" color="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+          <base-icon
+            :d="ICONO_ACTUALIZAR"
+            width="18"
+            height="18"
+            color="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
         </button>
       </div>
 
@@ -246,11 +262,20 @@ onMounted(async () => {
                     ? 'px-3 bg-red-600 text-white'
                     : 'w-11 lg:w-9 justify-center text-gray-500 dark:text-gray-400 hover:text-red-700 hover:bg-red-50 hover:dark:text-red-400 hover:dark:bg-red-900/30'
                 "
-                :aria-label="$t(confirming === item.id ? 'suggestions.confirmDelete' : 'suggestions.delete')"
+                :aria-label="
+                  $t(confirming === item.id ? 'suggestions.confirmDelete' : 'suggestions.delete')
+                "
                 @click="confirming === item.id ? remove(item.id) : (confirming = item.id)"
                 @blur="confirming === item.id ? (confirming = null) : null"
               >
-                <base-icon :d="ICONO_BORRAR" width="18" height="18" color="currentColor" stroke-linecap="round" stroke-linejoin="round" />
+                <base-icon
+                  :d="ICONO_BORRAR"
+                  width="18"
+                  height="18"
+                  color="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
                 <span v-if="confirming === item.id">{{ $t('suggestions.confirmDelete') }}</span>
               </button>
             </div>
@@ -263,7 +288,9 @@ onMounted(async () => {
               v-if="item.contact || item.page || item.app_version"
               class="mt-2 text-mini text-gray-600 dark:text-gray-300 break-all"
             >
-              <a v-if="item.contact" :href="`mailto:${item.contact}`" class="underline">{{ item.contact }}</a>
+              <a v-if="item.contact" :href="`mailto:${item.contact}`" class="underline">{{
+                item.contact
+              }}</a>
               <template v-if="item.contact && (item.page || item.app_version)"> · </template>
               <span v-if="item.page">{{ item.page }}</span>
               <template v-if="item.page && item.app_version"> · </template>

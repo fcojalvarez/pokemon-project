@@ -63,7 +63,11 @@ const irA = (pestana) => ({
 })
 
 const plainText = (html) =>
-  gameData.translateText(String(html).replace(/<[^>]*>/g, '').trim())
+  gameData.translateText(
+    String(html)
+      .replace(/<[^>]*>/g, '')
+      .trim()
+  )
 
 /** Plegada, la sección dice de dónde sale ahora, sin el detalle. */
 const resumen = computed(() => {
@@ -75,20 +79,28 @@ const resumen = computed(() => {
     where.raids.length && t('pokemon.inRaids'),
     where.eggs.length && t('pokemon.inEggs'),
     where.research.length && t('pokemon.inResearch')
-  ].filter(Boolean).join(' · ')
+  ]
+    .filter(Boolean)
+    .join(' · ')
 })
 </script>
 
 <template>
-  <ficha-seccion v-if="live.status === 'ready'" id="donde" :title="$t('pokemon.whereToFind')" :summary="resumen">
-
+  <ficha-seccion
+    v-if="live.status === 'ready'"
+    id="donde"
+    :title="$t('pokemon.whereToFind')"
+    :summary="resumen"
+  >
     <p v-if="!hasWhereToFind" class="mt-2 text-xs text-gray-600 dark:text-gray-300">
       {{ $t('pokemon.notAvailableNow') }}
     </p>
 
     <template v-else>
       <div v-if="esDitto" class="mt-3">
-        <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.dittoWild') }}</span>
+        <span class="text-mini text-gray-600 dark:text-gray-300">{{
+          $t('pokemon.dittoWild')
+        }}</span>
         <p class="mt-1 text-xs text-gray-800 dark:text-gray-200">{{ $t('pokemon.dittoHelp') }}</p>
       </div>
 
@@ -161,5 +173,4 @@ const resumen = computed(() => {
       </div>
     </template>
   </ficha-seccion>
-
 </template>

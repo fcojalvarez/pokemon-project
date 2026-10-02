@@ -26,8 +26,10 @@ const { isDarkMode } = storeToRefs(mainStore)
 
 const ICONOS = {
   // Reguladores (Tabler, adjustments-horizontal): más ligero que el engranaje y se lee como «preferencias».
-  ajustes: 'M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 6l8 0 M16 6l4 0 M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 12l2 0 M10 12l10 0 M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 18l11 0 M19 18l1 0',
-  claro: 'M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7',
+  ajustes:
+    'M14 6m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 6l8 0 M16 6l4 0 M8 12m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 12l2 0 M10 12l10 0 M17 18m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0 M4 18l11 0 M19 18l1 0',
+  claro:
+    'M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0 M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7',
   oscuro: 'M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z'
 }
 
@@ -45,7 +47,11 @@ const open = async () => {
   const ancho = document.documentElement.clientWidth
   const caja = trigger.value.getBoundingClientRect()
   const right = Math.max(8, ancho - caja.right)
-  posicion.value = { top: caja.bottom + 10, right, pico: ancho - right - (caja.left + caja.width / 2) }
+  posicion.value = {
+    top: caja.bottom + 10,
+    right,
+    pico: ancho - right - (caja.left + caja.width / 2)
+  }
   isOpen.value = true
   capa.alAbrir()
   await nextTick()
@@ -134,14 +140,23 @@ const opcion = (elegida) => [
         aria-modal="true"
         :aria-label="$t('settings.title')"
         class="ajustes fixed z-50 w-[min(240px,calc(100vw-16px))] flex flex-col gap-3 p-3 rounded-2xl border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 shadow-xl"
-        :style="{ top: `${posicion.top}px`, right: `${posicion.right}px`, '--pico': `${posicion.pico}px` }"
+        :style="{
+          top: `${posicion.top}px`,
+          right: `${posicion.right}px`,
+          '--pico': `${posicion.pico}px`
+        }"
         @keydown="onKeydown"
       >
         <!-- El pico que apunta al botón. -->
         <span class="pico" aria-hidden="true"></span>
 
         <div>
-          <p id="ajustes-tema" class="mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('settings.theme') }}</p>
+          <p
+            id="ajustes-tema"
+            class="mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+          >
+            {{ $t('settings.theme') }}
+          </p>
           <div
             role="radiogroup"
             aria-labelledby="ajustes-tema"
@@ -158,14 +173,27 @@ const opcion = (elegida) => [
               :class="opcion(isDarkMode === oscuro)"
               @click="ponerTema(oscuro)"
             >
-              <base-icon :stroke-width="1.5" width="16" height="16" color="currentColor" stroke-linecap="round" stroke-linejoin="round" :d="oscuro ? ICONOS.oscuro : ICONOS.claro" />
+              <base-icon
+                :stroke-width="1.5"
+                width="16"
+                height="16"
+                color="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                :d="oscuro ? ICONOS.oscuro : ICONOS.claro"
+              />
               {{ $t(oscuro ? 'settings.dark' : 'settings.light') }}
             </button>
           </div>
         </div>
 
         <div>
-          <p id="ajustes-idioma" class="mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('language.label') }}</p>
+          <p
+            id="ajustes-idioma"
+            class="mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+          >
+            {{ $t('language.label') }}
+          </p>
           <div
             role="radiogroup"
             aria-labelledby="ajustes-idioma"

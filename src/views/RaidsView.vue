@@ -61,7 +61,9 @@ const senalar = (dex) => {
   requestAnimationFrame(() => {
     document.getElementById(`mon-${dex}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
   })
-  temporizador = setTimeout(() => { destacado.value = null }, 6000)
+  temporizador = setTimeout(() => {
+    destacado.value = null
+  }, 6000)
 }
 const openBoss = ref(null)
 /** Qué jefe Max tiene el equipo recomendado abierto. */
@@ -81,7 +83,11 @@ const filtro = ref('all')
 useFiltrosEnUrl(
   {
     tab: { valor: tab, defecto: 'raids', leer: entre(TABS) },
-    group: { valor: filtro, defecto: 'all', leer: (texto) => (/^[\w-]+$/.test(texto) ? texto : undefined) }
+    group: {
+      valor: filtro,
+      defecto: 'all',
+      leer: (texto) => (/^[\w-]+$/.test(texto) ? texto : undefined)
+    }
   },
   { quitar: ['dex'] }
 )
@@ -104,7 +110,10 @@ const tabLabel = (name) => t(`raids.tab${name.charAt(0).toUpperCase()}${name.sli
 /** Las pestañas, para el selector segmentado de móvil y tablet. */
 const tabOptions = computed(() => TABS.map((name) => ({ value: name, label: tabLabel(name) })))
 
-const slug = (texto) => String(texto).toLowerCase().replace(/[^a-z0-9]+/g, '-')
+const slug = (texto) =>
+  String(texto)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
 
 const idIncursion = (grupo) => `nivel-${slug(grupo.name)}`
 const idMax = (grupo) => `max-${grupo.tier}`
@@ -128,9 +137,17 @@ const filtros = computed(() => {
       }))
     ]
   } else if (tab.value === 'eggs') {
-    grupos = live.eggsByType.map((grupo) => ({ value: idHuevo(grupo), label: grupo.name, count: grupo.list.length }))
+    grupos = live.eggsByType.map((grupo) => ({
+      value: idHuevo(grupo),
+      label: grupo.name,
+      count: grupo.list.length
+    }))
   } else {
-    grupos = researchGroups.value.map((grupo) => ({ value: idTarea(grupo), label: grupo.label, count: grupo.list.length }))
+    grupos = researchGroups.value.map((grupo) => ({
+      value: idTarea(grupo),
+      label: grupo.label,
+      count: grupo.list.length
+    }))
   }
   if (!grupos.length) return []
   const total = grupos.reduce((suma, grupo) => suma + grupo.count, 0)
@@ -140,7 +157,9 @@ const filtros = computed(() => {
 /** Sin barra lateral no hay filtro que tocar: se ve todo. */
 const seVe = (id) => !ancho.value || filtro.value === 'all' || filtro.value === id
 
-const incursionesVisibles = computed(() => live.raidsByTier.filter((grupo) => seVe(idIncursion(grupo))))
+const incursionesVisibles = computed(() =>
+  live.raidsByTier.filter((grupo) => seVe(idIncursion(grupo)))
+)
 const maxVisibles = computed(() => maxPorNivel.value.filter((grupo) => seVe(idMax(grupo))))
 const huevosVisibles = computed(() => live.eggsByType.filter((grupo) => seVe(idHuevo(grupo))))
 const tareasVisibles = computed(() => researchGroups.value.filter((grupo) => seVe(idTarea(grupo))))
@@ -156,10 +175,13 @@ const marcasLeyenda = computed(() =>
  * viéndose todo al bajar. Son los grupos de la barra lateral sin «Todas».
  */
 const atajos = computed(() => filtros.value.filter((opcion) => opcion.value !== 'all'))
-const irACategoria = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+const irACategoria = (id) =>
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
 const jefeAbierto = computed(() => live.raids.find((raid) => raid.name === openBoss.value) ?? null)
-const climaAbierto = computed(() => (jefeAbierto.value?.boostedWeather ?? []).map((w) => weatherLabel(w.name)))
+const climaAbierto = computed(() =>
+  (jefeAbierto.value?.boostedWeather ?? []).map((w) => weatherLabel(w.name))
+)
 
 const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
 
@@ -212,7 +234,9 @@ const maxPorNivel = computed(() => {
       name: entry?.name ?? uno.name,
       nameEs: entry?.nameEs ?? uno.name,
       // Un jefe Gigamax sale gigamaxizado, que es como se ve en el combate.
-      image: entry ? spriteUrl(uno.gigantamax ? gigamaxSpriteId(entry.spriteId) : entry.spriteId) : null
+      image: entry
+        ? spriteUrl(uno.gigantamax ? gigamaxSpriteId(entry.spriteId) : entry.spriteId)
+        : null
     })
   }
 
@@ -237,7 +261,9 @@ const counters = computed(() => {
 
 const weaknesses = computed(() => {
   const boss = jefeAbierto.value
-  return boss && gameData.isReady ? gameData.matchups(bossTypes(boss)).weak.map((entry) => entry.type) : []
+  return boss && gameData.isReady
+    ? gameData.matchups(bossTypes(boss)).weak.map((entry) => entry.type)
+    : []
 })
 
 const tierLabel = (tier) => (te(`raids.tiers.${tier}`) ? t(`raids.tiers.${tier}`) : tier)
@@ -292,9 +318,13 @@ onMounted(() => {
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
-    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.raidsTitle') }}</h1>
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">
+      {{ $t('nav.raidsTitle') }}
+    </h1>
 
-    <p class="mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">{{ $t('raids.intro') }}</p>
+    <p class="mb-3 sm:mb-4 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+      {{ $t('raids.intro') }}
+    </p>
 
     <!-- Solo salta si los datos se han quedado viejos. -->
     <data-freshness :age-ms="live.cacheAge" :stale="live.isStale" class="mb-3" />
@@ -345,7 +375,9 @@ onMounted(() => {
           >
             {{ atajo.label }}
             <!-- Entre paréntesis: con «Nivel 1» o «5 km» delante, «Nivel 1 4» no se leía. -->
-            <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums">({{ atajo.count }})</span>
+            <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums"
+              >({{ atajo.count }})</span
+            >
           </button>
         </nav>
 
@@ -358,7 +390,9 @@ onMounted(() => {
                 :key="n"
                 class="flex flex-wrap items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
               >
-                <span class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span></span>
+                <span class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 flex items-center justify-center"
+                  ><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span
+                ></span>
                 <span class="flex-1 flex flex-col gap-1.5">
                   <span class="esqueleto h-3 w-3/4 rounded-full"></span>
                   <span class="esqueleto h-2.5 w-1/2 rounded-full"></span>
@@ -439,7 +473,9 @@ onMounted(() => {
           <template v-if="maxVisibles.length">
             <h2 class="mt-6 text-sm font-bold">{{ $t('max.battlesTitle') }}</h2>
             <data-freshness :age-ms="edadMax" :stale="maxCaducado" class="mb-2" />
-            <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">{{ $t('max.globalPool') }}</p>
+            <p class="text-mini text-gray-600 dark:text-gray-300 mb-2">
+              {{ $t('max.globalPool') }}
+            </p>
 
             <section
               v-for="grupo in maxVisibles"
@@ -449,13 +485,17 @@ onMounted(() => {
             >
               <h3 class="text-sm font-bold mb-2">
                 {{ $t('max.tier', { n: grupo.tier }) }}
-                <span class="font-normal text-gray-600 dark:text-gray-300">({{ grupo.list.length }})</span>
+                <span class="font-normal text-gray-600 dark:text-gray-300"
+                  >({{ grupo.list.length }})</span
+                >
               </h3>
               <!--
                 A una columna en móvil estrecho: con la marca Max y el botón al
                 lado, a dos no cabían ni el nombre («Arti-cuno») ni el PC.
               -->
-              <div class="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2">
+              <div
+                class="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2"
+              >
                 <template v-for="uno in grupo.list" :key="`${grupo.tier}-${uno.dex}`">
                   <live-mon-card
                     :id="`mon-${uno.dex}`"
@@ -497,7 +537,9 @@ onMounted(() => {
 
             <p class="text-mini text-gray-600 dark:text-gray-300">
               {{ $t('max.liveSource') }}
-              <template v-if="edadMax != null">{{ $t('max.updatedAgo', { age: formatDuration(edadMax) }) }}</template>
+              <template v-if="edadMax != null">{{
+                $t('max.updatedAgo', { age: formatDuration(edadMax) })
+              }}</template>
             </p>
           </template>
         </template>
@@ -533,7 +575,6 @@ onMounted(() => {
         <template v-else>
           <base-empty-state v-if="researchGroups.length === 0" :message="$t('raids.noResearch')" />
 
-
           <!-- scroll-mt: al saltar desde los chips, que el título no quede debajo de la cabecera y de ellos. -->
           <section
             v-for="group in tareasVisibles"
@@ -559,7 +600,9 @@ onMounted(() => {
                     :image="reward.image"
                     :dex="dexFromImage(reward.image)"
                     :combat-power="reward.combatPower"
-                    :can-be-shiny="gameData.shinyReleased(dexFromImage(reward.image), reward.canBeShiny)"
+                    :can-be-shiny="
+                      gameData.shinyReleased(dexFromImage(reward.image), reward.canBeShiny)
+                    "
                   />
                 </div>
               </article>

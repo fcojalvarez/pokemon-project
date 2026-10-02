@@ -232,7 +232,9 @@ export const useGameDataStore = defineStore('gameData', () => {
     const formas = (formsByDex.value.get(dex) ?? []).filter(
       (entry) => !entry.mega && !entry.shadow && !entry.regional
     )
-    const nombre = String(name ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '_')
+    const nombre = String(name ?? '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
     return formas.find((entry) => entry.id === nombre) ?? formas[0] ?? null
   }
 
@@ -255,8 +257,7 @@ export const useGameDataStore = defineStore('gameData', () => {
    * Da igual el sitio: si el variocolor está liberado, puede aparecer en
    * cualquier encuentro de esa especie.
    */
-  const shinyReleased = (dex, delFeed = false) =>
-    baseByDex(dex)?.shinyReleased ?? !!delFeed
+  const shinyReleased = (dex, delFeed = false) => baseByDex(dex)?.shinyReleased ?? !!delFeed
 
   /**
    * Nombre en el idioma de la app de un Pokémon publicado en inglés, con su
@@ -380,10 +381,16 @@ export const useGameDataStore = defineStore('gameData', () => {
   /** Mejores counters contra un jefe con esos tipos. */
   const counters = (bossTypes, options = {}) =>
     cached(`cnt:${bossTypes.join('+')}:${JSON.stringify(options)}`, () =>
-      computeCounters(roster.value, moves.value, chart.value, { types: bossTypes }, {
-        limit: 12,
-        ...options
-      })
+      computeCounters(
+        roster.value,
+        moves.value,
+        chart.value,
+        { types: bossTypes },
+        {
+          limit: 12,
+          ...options
+        }
+      )
     )
 
   /** Debilidades y resistencias de una combinación de tipos. */
@@ -422,7 +429,8 @@ export const useGameDataStore = defineStore('gameData', () => {
       const rankings = pveRankings({ limit: 500 })
       const formas = new Map()
       const deLaForma = (row) => {
-        if (!formas.has(row.id)) formas.set(row.id, { id: row.id, entry: row, overall: null, byType: [] })
+        if (!formas.has(row.id))
+          formas.set(row.id, { id: row.id, entry: row, overall: null, byType: [] })
         return formas.get(row.id)
       }
       for (const row of rankings.overall) if (row.dex === dex) deLaForma(row).overall = row

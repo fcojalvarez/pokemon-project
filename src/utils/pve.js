@@ -82,22 +82,19 @@ export function evaluatePokemon(entry, moves, options = {}) {
     type: move.type,
     elite: elite.has(id),
     legacy: legacy.has(id),
-    mega: exclusive.has(id),
+    mega: exclusive.has(id)
   })
 
   for (const fastId of fastPool) {
     const fm = moves[fastId]
     if (!usableMove(fm, fastId)) continue
-    const fastEff = chart && defenderTypes
-      ? effectivenessAgainst(chart, fm.type, defenderTypes)
-      : 1
+    const fastEff = chart && defenderTypes ? effectivenessAgainst(chart, fm.type, defenderTypes) : 1
 
     for (const chargedId of chargedPool) {
       const cm = moves[chargedId]
       if (!usableMove(cm, chargedId)) continue
-      const chargedEff = chart && defenderTypes
-        ? effectivenessAgainst(chart, cm.type, defenderTypes)
-        : 1
+      const chargedEff =
+        chart && defenderTypes ? effectivenessAgainst(chart, cm.type, defenderTypes) : 1
 
       const perf = movesetPerformance({
         stats,
@@ -107,15 +104,15 @@ export function evaluatePokemon(entry, moves, options = {}) {
           energy: fm.pve.energy,
           duration: fm.pve.duration,
           stab: entry.types.includes(fm.type),
-          effectiveness: fastEff,
+          effectiveness: fastEff
         },
         charged: {
           power: cm.pve.power,
           energy: cm.pve.energy,
           duration: cm.pve.duration,
           stab: entry.types.includes(cm.type),
-          effectiveness: chargedEff,
-        },
+          effectiveness: chargedEff
+        }
       })
 
       results.push({
@@ -134,7 +131,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
         charged: describe(chargedId, cm),
         dps: perf.dps,
         tdo: perf.tdo,
-        er: perf.er,
+        er: perf.er
       })
     }
   }
@@ -193,7 +190,7 @@ export function computeCounters(pokemon, moves, chart, boss, options = {}) {
     ...options,
     chart,
     defenderTypes: boss.types,
-    target: boss.target ?? DEFAULT_TARGET,
+    target: boss.target ?? DEFAULT_TARGET
   }
 
   for (const entry of pokemon) {

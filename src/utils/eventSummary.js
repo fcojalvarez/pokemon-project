@@ -23,10 +23,9 @@ export function summarizeEvent(event) {
 
   // La hora destacada trae su protagonista en `spotlight.list` (a veces varios)
   // y el Día de la Comunidad en `communityday.spawns`.
-  const spawns = [
-    ...lista(extra.spotlight?.list),
-    ...lista(extra.communityday?.spawns)
-  ].filter(conNombre)
+  const spawns = [...lista(extra.spotlight?.list), ...lista(extra.communityday?.spawns)].filter(
+    conNombre
+  )
 
   const bosses = lista(extra.raidbattles?.bosses).filter(conNombre)
 

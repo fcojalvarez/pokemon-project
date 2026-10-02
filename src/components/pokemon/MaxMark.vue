@@ -55,6 +55,10 @@ const TRAZADOS = {
     class="drop-shadow-svg"
   >
     <title>{{ $t(props.variant === 'gigantamax' ? 'max.canGigantamax' : 'max.canDynamax') }}</title>
-    <path :d="TRAZADOS[props.variant] ?? TRAZADOS.dynamax" fill="currentColor" fill-rule="evenodd" />
+    <path
+      :d="TRAZADOS[props.variant] ?? TRAZADOS.dynamax"
+      fill="currentColor"
+      fill-rule="evenodd"
+    />
   </svg>
 </template>

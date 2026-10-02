@@ -7,7 +7,12 @@ import { origenDe, origenesPresentes } from '../utils/moveOrigins'
 /** Cuántos atacantes salen en cada top. */
 const LIMITE = 50
 
-const chipRapido = (movimiento) => ({ id: movimiento.id, name: movimiento.name, nameEs: movimiento.nameEs, type: movimiento.type })
+const chipRapido = (movimiento) => ({
+  id: movimiento.id,
+  name: movimiento.name,
+  nameEs: movimiento.nameEs,
+  type: movimiento.type
+})
 
 /**
  * Las filas del Top en los tres modos, ya con la forma que esperan
@@ -18,7 +23,17 @@ const chipRapido = (movimiento) => ({ id: movimiento.id, name: movimiento.name, 
  */
 export function useTopFilas(filtros) {
   const gameData = useGameDataStore()
-  const { mode, type, sortBy, league, includeMega, includeShadow, includeLegacy, includeElite, includeLegendary } = filtros
+  const {
+    mode,
+    type,
+    sortBy,
+    league,
+    includeMega,
+    includeShadow,
+    includeLegacy,
+    includeElite,
+    includeLegendary
+  } = filtros
 
   const pveRows = computed(() => {
     if (!gameData.isReady || mode.value !== 'pve') return []
@@ -43,30 +58,32 @@ export function useTopFilas(filtros) {
   const pvpRows = computed(() => {
     if (!gameData.isReady || mode.value !== 'pvp') return []
     const rows = gameData.pvp[league.value] ?? []
-    return (type.value === 'all' ? rows : rows.filter((row) => row.types.includes(type.value))).map((row) => {
-      const entry = gameData.byId.get(row.id)
-      const origen = origenDe(entry)
-      return {
-        id: row.id,
-        rank: row.rank,
-        dex: entry?.dex ?? null,
-        spriteId: entry?.spriteId ?? 0,
-        // Para el halo morado del oscuro, como en el PvE.
-        shadow: Boolean(entry?.shadow),
-        name: row.name,
-        nameEs: row.nameEs,
-        types: row.types,
-        // Sin el movimiento en moves.json queda el id, que es mejor que nada.
-        moves: (row.moveset ?? []).map((id) => ({
-          id,
-          name: gameData.moves[id]?.name ?? id,
-          nameEs: gameData.moves[id]?.nameEs ?? id,
-          type: moveType(id),
-          ...origen(id)
-        })),
-        value: row.score
+    return (type.value === 'all' ? rows : rows.filter((row) => row.types.includes(type.value))).map(
+      (row) => {
+        const entry = gameData.byId.get(row.id)
+        const origen = origenDe(entry)
+        return {
+          id: row.id,
+          rank: row.rank,
+          dex: entry?.dex ?? null,
+          spriteId: entry?.spriteId ?? 0,
+          // Para el halo morado del oscuro, como en el PvE.
+          shadow: Boolean(entry?.shadow),
+          name: row.name,
+          nameEs: row.nameEs,
+          types: row.types,
+          // Sin el movimiento en moves.json queda el id, que es mejor que nada.
+          moves: (row.moveset ?? []).map((id) => ({
+            id,
+            name: gameData.moves[id]?.name ?? id,
+            nameEs: gameData.moves[id]?.nameEs ?? id,
+            type: moveType(id),
+            ...origen(id)
+          })),
+          value: row.score
+        }
       }
-    })
+    )
   })
 
   /**
@@ -76,9 +93,10 @@ export function useTopFilas(filtros) {
   const lineaMax = (opcion, entry) => ({
     max: opcion.max,
     gigamax: opcion.gigamax,
-    rapidos: opcion.gigamax || opcion.exclusivo
-      ? [mejorRapido(entry, gameData.moves)].filter(Boolean).map(chipRapido)
-      : opcion.rapidos.map(chipRapido)
+    rapidos:
+      opcion.gigamax || opcion.exclusivo
+        ? [mejorRapido(entry, gameData.moves)].filter(Boolean).map(chipRapido)
+        : opcion.rapidos.map(chipRapido)
   })
 
   /**
@@ -125,7 +143,8 @@ export function useTopFilas(filtros) {
         const version = opcion.gigamax ? 'gigantamax' : 'dynamax'
         const peso = pesoAtaqueMax(entry, opcion)
         const clave = `${entry.dex}-${version}-${Math.round(peso)}`
-        if (!grupos.has(clave)) grupos.set(clave, { version, peso, stab: opcion.stab, opciones: [] })
+        if (!grupos.has(clave))
+          grupos.set(clave, { version, peso, stab: opcion.stab, opciones: [] })
         grupos.get(clave).opciones.push(opcion)
       }
       for (const [clave, grupo] of grupos) {
@@ -177,7 +196,9 @@ export function useTopFilas(filtros) {
    * hay ningún legacy, decir qué significa el morado sobra y despista.
    */
   const origenes = computed(() =>
-    origenesPresentes(filasVisibles.value.flatMap((fila) => fila.moves ?? [fila.fast, fila.charged]))
+    origenesPresentes(
+      filasVisibles.value.flatMap((fila) => fila.moves ?? [fila.fast, fila.charged])
+    )
   )
 
   /** Qué marcas explica la leyenda del Max: solo las que salen en la lista. */

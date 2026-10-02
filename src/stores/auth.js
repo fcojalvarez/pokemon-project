@@ -59,7 +59,9 @@ export const useAuthStore = defineStore('auth', () => {
     isBusy.value = true
     error.value = null
     try {
-      const { data, error: fallo } = await (await supabaseCompleto()).auth.signInWithPassword({
+      const { data, error: fallo } = await (
+        await supabaseCompleto()
+      ).auth.signInWithPassword({
         email: String(correo ?? '').trim(),
         password
       })

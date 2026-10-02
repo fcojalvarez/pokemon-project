@@ -15,7 +15,10 @@ const { t, tc, formatNumber } = useTranslate()
 
 const costeTexto = (row) => {
   if (row.texto) return row.texto
-  if (row.candy) return `${formatNumber(row.candy)} ${tc('candy', row.candy).toLowerCase()}${row.dust ? ` · ${formatNumber(row.dust)} ${t('pokemon.stardust')}` : ''}`
+  if (row.candy)
+    return `${formatNumber(row.candy)} ${tc('candy', row.candy).toLowerCase()}${
+      row.dust ? ` · ${formatNumber(row.dust)} ${t('pokemon.stardust')}` : ''
+    }`
   if (row.energy) return `${formatNumber(row.energy)} ${t('megaenergy')}`
   return `${formatNumber(row.km)} ${t('unitDistance')}`
 }
@@ -30,14 +33,17 @@ const resumen = computed(() => {
   const avisos = props.flags.map((flag) => t(`pokemon.flags.${flag}`))
   const primero = props.costs[0]
   return [...avisos, primero && `${t(`pokemon.costLabels.${primero.key}`)}: ${costeTexto(primero)}`]
-    .filter(Boolean).join(' · ')
+    .filter(Boolean)
+    .join(' · ')
 })
 </script>
 
 <template>
   <ficha-seccion id="costes" :title="titulo" :summary="resumen">
     <div v-if="flags.length" :class="costs.length ? 'mb-4' : ''">
-      <h3 v-if="costs.length" class="text-xs font-bold text-gray-600 dark:text-gray-300">{{ $t('pokemon.status') }}</h3>
+      <h3 v-if="costs.length" class="text-xs font-bold text-gray-600 dark:text-gray-300">
+        {{ $t('pokemon.status') }}
+      </h3>
       <div class="flex flex-wrap gap-1.5 mt-2">
         <span
           v-for="flag in flags"
@@ -50,7 +56,9 @@ const resumen = computed(() => {
     </div>
 
     <div v-if="costs.length">
-      <h3 v-if="flags.length" class="text-xs font-bold text-gray-600 dark:text-gray-300">{{ $t('pokemon.costs') }}</h3>
+      <h3 v-if="flags.length" class="text-xs font-bold text-gray-600 dark:text-gray-300">
+        {{ $t('pokemon.costs') }}
+      </h3>
       <ul class="mt-2 flex flex-col gap-1.5">
         <!--
           flex-wrap: si etiqueta y valor no caben en una línea, el valor baja

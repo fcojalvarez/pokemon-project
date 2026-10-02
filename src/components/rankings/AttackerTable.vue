@@ -35,7 +35,8 @@ const principal = computed(() => (props.mode === 'pve' ? props.sortBy : 'value')
 const valor = (row, clave) => row[clave] ?? row.value ?? 0
 const tope = computed(() => (props.rows.length ? valor(props.rows[0], principal.value) || 1 : 1))
 const porcentaje = (row) => Math.round((valor(row, principal.value) / tope.value) * 100)
-const formato = (clave, v) => (clave === 'tdo' || props.mode === 'max' ? Math.round(v) : Number(v).toFixed(1))
+const formato = (clave, v) =>
+  clave === 'tdo' || props.mode === 'max' ? Math.round(v) : Number(v).toFixed(1)
 
 const tituloValor = computed(() => (props.mode === 'max' ? t('max.damageUnit') : t('top.score')))
 const ordenar = (metrica) => {
@@ -44,7 +45,9 @@ const ordenar = (metrica) => {
 </script>
 
 <template>
-  <div class="overflow-x-auto border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900">
+  <div
+    class="overflow-x-auto border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+  >
     <table class="w-full border-collapse text-left">
       <thead class="bg-gray-100 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
         <tr class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
@@ -63,18 +66,26 @@ const ordenar = (metrica) => {
               <button
                 type="button"
                 class="inline-flex items-center gap-1 uppercase tracking-wider rounded-md"
-                :class="sortBy === metrica ? 'text-gray-900 dark:text-gray-100' : 'hover:text-gray-900 hover:dark:text-gray-100'"
+                :class="
+                  sortBy === metrica
+                    ? 'text-gray-900 dark:text-gray-100'
+                    : 'hover:text-gray-900 hover:dark:text-gray-100'
+                "
                 :title="$t(`top.${metrica}Help`)"
                 @click="ordenar(metrica)"
               >
                 {{ metrica }}
-                <span aria-hidden="true" class="text-[10px]">{{ sortBy === metrica ? '▼' : '↕' }}</span>
+                <span aria-hidden="true" class="text-[10px]">{{
+                  sortBy === metrica ? '▼' : '↕'
+                }}</span>
               </button>
             </th>
           </template>
           <template v-else>
             <th scope="col" class="px-3 py-2 font-semibold">{{ $t('top.moves') }}</th>
-            <th scope="col" class="px-3 py-2 font-semibold text-right" aria-sort="descending">{{ tituloValor }}</th>
+            <th scope="col" class="px-3 py-2 font-semibold text-right" aria-sort="descending">
+              {{ tituloValor }}
+            </th>
           </template>
         </tr>
       </thead>
@@ -87,8 +98,14 @@ const ordenar = (metrica) => {
         >
           <td
             class="px-3 py-1.5 text-right text-xs text-gray-600 dark:text-gray-300 tabular-nums"
-            :class="row.version === 'gigantamax' ? 'shadow-[inset_4px_0_0] shadow-fuchsia-500 dark:shadow-fuchsia-400' : ''"
-          >{{ row.rank }}</td>
+            :class="
+              row.version === 'gigantamax'
+                ? 'shadow-[inset_4px_0_0] shadow-fuchsia-500 dark:shadow-fuchsia-400'
+                : ''
+            "
+          >
+            {{ row.rank }}
+          </td>
           <td class="px-3 py-1.5">
             <div class="flex items-center gap-2 min-w-0">
               <base-sprite
@@ -101,30 +118,54 @@ const ordenar = (metrica) => {
                 v-if="row.dex"
                 :to="`/pokemon/${row.dex}`"
                 class="text-sm font-semibold text-gray-800 dark:text-gray-200 after:absolute after:inset-0 after:content-['']"
-              >{{ localName(row) }}</router-link>
-              <span v-else class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{ localName(row) }}</span>
+                >{{ localName(row) }}</router-link
+              >
+              <span v-else class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{
+                localName(row)
+              }}</span>
               <type-icons :types="row.types" size="12" class="shrink-0" />
             </div>
           </td>
           <template v-if="mode === 'pve'">
             <td class="px-3 py-1.5 text-mini">
-              <move-tag chip :name="localName(row.fast)" :type="row.fast.type" :elite="row.fast.elite" :legacy="row.fast.legacy" />
+              <move-tag
+                chip
+                :name="localName(row.fast)"
+                :type="row.fast.type"
+                :elite="row.fast.elite"
+                :legacy="row.fast.legacy"
+              />
             </td>
             <td class="px-3 py-1.5 text-mini">
-              <move-tag chip :name="localName(row.charged)" :type="row.charged.type" :elite="row.charged.elite" :legacy="row.charged.legacy" :mega="row.charged.mega" />
+              <move-tag
+                chip
+                :name="localName(row.charged)"
+                :type="row.charged.type"
+                :elite="row.charged.elite"
+                :legacy="row.charged.legacy"
+                :mega="row.charged.mega"
+              />
             </td>
             <td
               v-for="metrica in METRICAS"
               :key="metrica"
               class="px-3 py-1.5 text-right tabular-nums"
-              :class="metrica === sortBy ? 'text-sm font-bold text-gray-900 dark:text-gray-100' : 'text-xs text-gray-600 dark:text-gray-300'"
+              :class="
+                metrica === sortBy
+                  ? 'text-sm font-bold text-gray-900 dark:text-gray-100'
+                  : 'text-xs text-gray-600 dark:text-gray-300'
+              "
             >
               <span class="inline-flex items-center justify-end gap-2">
                 <span
                   v-if="metrica === sortBy"
                   class="w-14 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
                   aria-hidden="true"
-                ><span class="block h-full bg-gray-600 dark:bg-gray-300" :style="{ width: porcentaje(row) + '%' }"></span></span>
+                  ><span
+                    class="block h-full bg-gray-600 dark:bg-gray-300"
+                    :style="{ width: porcentaje(row) + '%' }"
+                  ></span
+                ></span>
                 {{ formato(metrica, row[metrica]) }}
               </span>
             </td>
@@ -149,10 +190,19 @@ const ordenar = (metrica) => {
                 />
               </span>
             </td>
-            <td class="px-3 py-1.5 text-right text-sm font-bold text-gray-900 dark:text-gray-100 tabular-nums">
+            <td
+              class="px-3 py-1.5 text-right text-sm font-bold text-gray-900 dark:text-gray-100 tabular-nums"
+            >
               <span class="inline-flex items-center justify-end gap-2">
-                <span v-if="mode === 'max'" class="w-14 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden" aria-hidden="true">
-                  <span class="block h-full bg-gray-600 dark:bg-gray-300" :style="{ width: porcentaje(row) + '%' }"></span>
+                <span
+                  v-if="mode === 'max'"
+                  class="w-14 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
+                  aria-hidden="true"
+                >
+                  <span
+                    class="block h-full bg-gray-600 dark:bg-gray-300"
+                    :style="{ width: porcentaje(row) + '%' }"
+                  ></span>
                 </span>
                 <stab-badge v-if="row.stab" />
                 {{ formato('value', row.value) }}

@@ -56,7 +56,7 @@ export function useFiltrosEnUrl(campos, { quitar = [] } = {}) {
 }
 
 /** Lee un valor solo si está entre los permitidos. */
-export const entre = (permitidos) => (texto) => (permitidos.includes(texto) ? texto : undefined)
+export const entre = (permitidos) => (texto) => permitidos.includes(texto) ? texto : undefined
 
 /** Listas en la URL como «a,b,c», filtradas a los valores permitidos. */
 export const lista = (permitidos = null) => ({

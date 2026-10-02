@@ -30,7 +30,18 @@ const CAMPOS_REQUISITO = [
 
 // Las ramas vienen con claves primary, secondary… y el objeto no garantiza el
 // orden. Se ordenan así para que salgan siempre igual (Vaporeon, Jolteon…).
-const ORDEN = ['primary', 'secondary', 'tertiary', 'quaternary', 'quinary', 'senary', 'septenary', 'octonary', 'nonary', 'denary']
+const ORDEN = [
+  'primary',
+  'secondary',
+  'tertiary',
+  'quaternary',
+  'quinary',
+  'senary',
+  'septenary',
+  'octonary',
+  'nonary',
+  'denary'
+]
 const posicion = (clave) => {
   const i = ORDEN.indexOf(clave)
   return i === -1 ? ORDEN.length : i
@@ -91,14 +102,16 @@ export function repartirRequisitos(ramas) {
   const comunes = {}
   for (const campo of CAMPOS_REQUISITO) {
     const valor = ramas[0].req[campo]
-    if (valor !== undefined && ramas.every((rama) => rama.req[campo] === valor)) comunes[campo] = valor
+    if (valor !== undefined && ramas.every((rama) => rama.req[campo] === valor))
+      comunes[campo] = valor
   }
   // La cantidad va con su objeto: las tres manzanas de Applin piden 20, pero
   // cada una es distinta, y «×20» suelto en la flecha no diría de qué.
   if ('item_cost' in comunes && !('item_required' in comunes)) delete comunes.item_cost
   const propios = ramas.map((rama) => {
     const resto = {}
-    for (const [campo, valor] of Object.entries(rama.req)) if (!(campo in comunes)) resto[campo] = valor
+    for (const [campo, valor] of Object.entries(rama.req))
+      if (!(campo in comunes)) resto[campo] = valor
     return resto
   })
   return { comunes, propios }

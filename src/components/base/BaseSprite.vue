@@ -74,11 +74,14 @@ const comprobarCache = () => {
   else estado.value = 'error'
 }
 
-watch(() => props.src, () => {
-  sinMiniatura.value = false
-  estado.value = 'cargando'
-  nextTick(comprobarCache)
-})
+watch(
+  () => props.src,
+  () => {
+    sinMiniatura.value = false
+    estado.value = 'cargando'
+    nextTick(comprobarCache)
+  }
+)
 onMounted(comprobarCache)
 </script>
 
@@ -89,7 +92,11 @@ onMounted(comprobarCache)
       aria-hidden="true"
       class="esqueleto absolute inset-[12%] rounded-full"
     ></span>
-    <span v-if="oscuro" aria-hidden="true" class="aura-oscuro absolute -inset-[18%] rounded-full"></span>
+    <span
+      v-if="oscuro"
+      aria-hidden="true"
+      class="aura-oscuro absolute -inset-[18%] rounded-full"
+    ></span>
     <img
       v-if="src"
       ref="img"
@@ -107,7 +114,7 @@ onMounted(comprobarCache)
       @load="alCargar"
       @animationend="estado = 'lista'"
       @error="alFallar"
-    >
+    />
   </span>
 </template>
 
@@ -121,10 +128,22 @@ onMounted(comprobarCache)
  * casi no se veía y con el 500 llamaba más la atención que el Pokémon.
  */
 .aura-oscuro {
-  background: radial-gradient(circle, rgba(126, 34, 206, 0.5) 0%, rgba(126, 34, 206, 0.32) 32%, rgba(126, 34, 206, 0.12) 55%, rgba(126, 34, 206, 0) 72%);
+  background: radial-gradient(
+    circle,
+    rgba(126, 34, 206, 0.5) 0%,
+    rgba(126, 34, 206, 0.32) 32%,
+    rgba(126, 34, 206, 0.12) 55%,
+    rgba(126, 34, 206, 0) 72%
+  );
 }
 :global(.dark .aura-oscuro) {
-  background: radial-gradient(circle, rgba(147, 51, 234, 0.5) 0%, rgba(147, 51, 234, 0.32) 32%, rgba(147, 51, 234, 0.12) 55%, rgba(147, 51, 234, 0) 72%);
+  background: radial-gradient(
+    circle,
+    rgba(147, 51, 234, 0.5) 0%,
+    rgba(147, 51, 234, 0.32) 32%,
+    rgba(147, 51, 234, 0.12) 55%,
+    rgba(147, 51, 234, 0) 72%
+  );
 }
 
 /*

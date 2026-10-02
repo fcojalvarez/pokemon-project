@@ -1,10 +1,10 @@
-import { createI18n } from 'vue-i18n';
-import es from '../locales/es.json';
+import { createI18n } from 'vue-i18n'
+import es from '../locales/es.json'
 
 /** Idiomas que se pueden elegir en el menú, en el orden en que salen. */
-export const LOCALES = ['es', 'en'];
+export const LOCALES = ['es', 'en']
 
-const STORAGE_KEY = 'locale';
+const STORAGE_KEY = 'locale'
 
 /**
  * Idioma con el que arranca la app: el que se eligió en el menú, si hay; si
@@ -13,12 +13,12 @@ const STORAGE_KEY = 'locale';
  */
 function localeInicial() {
   try {
-    const guardado = localStorage.getItem(STORAGE_KEY);
-    if (LOCALES.includes(guardado)) return guardado;
+    const guardado = localStorage.getItem(STORAGE_KEY)
+    if (LOCALES.includes(guardado)) return guardado
   } catch {
     // Sin acceso a localStorage (modo privado estricto): se sigue sin él.
   }
-  return import.meta.env.VITE_I18N_LOCALE || 'es';
+  return import.meta.env.VITE_I18N_LOCALE || 'es'
 }
 
 /**
@@ -28,7 +28,7 @@ function localeInicial() {
  */
 const CARGADORES = {
   en: () => import('../locales/en.json')
-};
+}
 
 const i18n = createI18n({
   legacy: true,
@@ -42,9 +42,9 @@ const i18n = createI18n({
 
 /** Descarga los textos de un idioma, si no están ya. */
 export async function cargarIdioma(locale) {
-  if (i18n.global.availableLocales.includes(locale) || !CARGADORES[locale]) return;
-  const { default: mensajes } = await CARGADORES[locale]();
-  i18n.global.setLocaleMessage(locale, mensajes);
+  if (i18n.global.availableLocales.includes(locale) || !CARGADORES[locale]) return
+  const { default: mensajes } = await CARGADORES[locale]()
+  i18n.global.setLocaleMessage(locale, mensajes)
 }
 
 /**
@@ -53,11 +53,11 @@ export async function cargarIdioma(locale) {
  * lo tiene en inglés.
  */
 export async function idiomaInicial() {
-  const locale = localeInicial();
-  if (locale === i18n.global.locale) return;
+  const locale = localeInicial()
+  if (locale === i18n.global.locale) return
   try {
-    await cargarIdioma(locale);
-    i18n.global.locale = locale;
+    await cargarIdioma(locale)
+    i18n.global.locale = locale
   } catch {
     // Sin red y sin el fichero en caché: se arranca en español.
   }
@@ -70,12 +70,12 @@ export async function idiomaInicial() {
  * pantalla leen el texto con la pronunciación del otro idioma.
  */
 export async function setLocale(locale) {
-  if (!LOCALES.includes(locale)) return;
-  await cargarIdioma(locale);
-  i18n.global.locale = locale;
-  document.documentElement.lang = locale;
+  if (!LOCALES.includes(locale)) return
+  await cargarIdioma(locale)
+  i18n.global.locale = locale
+  document.documentElement.lang = locale
   try {
-    localStorage.setItem(STORAGE_KEY, locale);
+    localStorage.setItem(STORAGE_KEY, locale)
   } catch {
     // Sin localStorage se cambia igual; solo que no se recordará.
   }

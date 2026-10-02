@@ -24,15 +24,22 @@ function abrir() {
   abierta ??= new Promise((resolve) => {
     if (typeof indexedDB === 'undefined') return resolve(null)
     const plazo = setTimeout(() => resolve(null), ESPERA_MAXIMA_MS)
-    const terminar = (db) => { clearTimeout(plazo); resolve(db) }
+    const terminar = (db) => {
+      clearTimeout(plazo)
+      resolve(db)
+    }
     try {
       const peticion = indexedDB.open(BASE_DE_DATOS, 1)
-      peticion.onupgradeneeded = () => peticion.result.createObjectStore(ALMACEN, { keyPath: 'name' })
+      peticion.onupgradeneeded = () =>
+        peticion.result.createObjectStore(ALMACEN, { keyPath: 'name' })
       peticion.onsuccess = () => {
         const db = peticion.result
         // Si otra pestaña con una versión nueva de la app necesita la base,
         // se le deja: la próxima lectura vuelve a abrirla.
-        db.onversionchange = () => { db.close(); abierta = null }
+        db.onversionchange = () => {
+          db.close()
+          abierta = null
+        }
         terminar(db)
       }
       peticion.onerror = () => terminar(null)
@@ -54,7 +61,9 @@ async function leerGuardadas(nombres) {
       const almacen = db.transaction(ALMACEN, 'readonly').objectStore(ALMACEN)
       for (const nombre of nombres) {
         const peticion = almacen.get(nombre)
-        peticion.onsuccess = () => { if (peticion.result) guardadas.set(nombre, peticion.result) }
+        peticion.onsuccess = () => {
+          if (peticion.result) guardadas.set(nombre, peticion.result)
+        }
       }
       almacen.transaction.oncomplete = () => resolve(guardadas)
       almacen.transaction.onerror = () => resolve(new Map())
@@ -91,7 +100,8 @@ export async function leerFilas(nombres) {
   const faltan = []
   for (const { name, updated_at: version } of versiones.data ?? []) {
     const guardada = guardadas.get(name)
-    if (guardada && guardada.updated_at === version && guardada.payload != null) filas[name] = guardada.payload
+    if (guardada && guardada.updated_at === version && guardada.payload != null)
+      filas[name] = guardada.payload
     else faltan.push(name)
   }
 

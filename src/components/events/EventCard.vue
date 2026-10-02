@@ -5,12 +5,7 @@ import { useGameDataStore } from '../../stores/gameData'
 import { formatDuration } from '../../utils/time'
 import { useTranslate } from '../../composables/useTranslate'
 import { useEventos } from '../../composables/useEventos'
-import {
-  parseEventName,
-  parseMaxBattle,
-  quitarTipo,
-  splitPokemonList
-} from '../../utils/eventName'
+import { parseEventName, parseMaxBattle, quitarTipo, splitPokemonList } from '../../utils/eventName'
 import { spriteUrl } from '../../utils/sprites'
 import { eventImageSrc, eventImageSrcset } from '../../utils/eventImage'
 import { summarizeEvent } from '../../utils/eventSummary'
@@ -64,9 +59,12 @@ const horario = computed(() => {
   const hora = (date) => fmt(date, { hour: '2-digit', minute: '2-digit' })
   if (!fin) return hora(inicio)
   if (inicio.toDateString() === fin.toDateString()) return `${hora(inicio)} → ${hora(fin)}`
-  const dia = fmt(fin, inicio.getMonth() === fin.getMonth()
-    ? { weekday: 'short', day: 'numeric' }
-    : { weekday: 'short', day: 'numeric', month: 'short' })
+  const dia = fmt(
+    fin,
+    inicio.getMonth() === fin.getMonth()
+      ? { weekday: 'short', day: 'numeric' }
+      : { weekday: 'short', day: 'numeric', month: 'short' }
+  )
   return `${hora(inicio)} → ${dia}, ${hora(fin)}`
 })
 
@@ -138,10 +136,13 @@ const imagenRota = ref(false)
  * prueba con el original antes de darla por rota.
  */
 const sinRedimensionar = ref(false)
-watch(() => props.event.image, () => {
-  imagenRota.value = false
-  sinRedimensionar.value = false
-})
+watch(
+  () => props.event.image,
+  () => {
+    imagenRota.value = false
+    sinRedimensionar.value = false
+  }
+)
 
 const cartel = computed(() => {
   const url = props.event.image
@@ -188,9 +189,7 @@ const resumen = computed(() => summarizeEvent(props.event))
  * sobre el Pokémon en vez de sacar una sección de «variocolor disponible»,
  * que es del Pokémon y no del evento.
  */
-const conVariocolor = computed(
-  () => new Set((resumen.value?.shinies ?? []).map((uno) => uno.name))
-)
+const conVariocolor = computed(() => new Set((resumen.value?.shinies ?? []).map((uno) => uno.name)))
 
 const esVariocolor = (uno) => !!uno?.canBeShiny || conVariocolor.value.has(uno?.name)
 
@@ -211,22 +210,28 @@ const communityDay = computed(() => props.event.extraData?.communityday ?? null)
 const MAX_BONUS = 3
 const oficial = computed(() => props.bonus.length > 0)
 const todosLosBonus = computed(() =>
-  oficial.value ? props.bonus : (communityDay.value?.bonuses ?? []).map((uno) => gameData.translateText(uno.text))
+  oficial.value
+    ? props.bonus
+    : (communityDay.value?.bonuses ?? []).map((uno) => gameData.translateText(uno.text))
 )
 const bonusVisibles = computed(() => {
   if (props.detalle) return oficial.value ? [] : todosLosBonus.value
   return todosLosBonus.value.slice(0, MAX_BONUS)
 })
-const bonusOcultos = computed(() => (props.detalle ? 0 : todosLosBonus.value.length - bonusVisibles.value.length))
+const bonusOcultos = computed(() =>
+  props.detalle ? 0 : todosLosBonus.value.length - bonusVisibles.value.length
+)
 const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? [])
 </script>
 
 <template>
   <article
     class="flex flex-col text-gray-800 dark:text-gray-200"
-    :class="detalle
-      ? 'p-4'
-      : 'p-3 sm:p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 cursor-pointer hover:border-gray-400 dark:hover:border-gray-600'"
+    :class="
+      detalle
+        ? 'p-4'
+        : 'p-3 sm:p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 cursor-pointer hover:border-gray-400 dark:hover:border-gray-600'
+    "
     @click="abrirEvento"
   >
     <!--
@@ -243,12 +248,18 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
       :src="cartel.src"
       :srcset="cartel.srcset ?? undefined"
       crossorigin="anonymous"
-      :sizes="detalle ? '(min-width: 768px) 768px, 100vw' : '(min-width: 1536px) 30vw, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, (min-width: 640px) 100vw, 66vw'"
+      :sizes="
+        detalle
+          ? '(min-width: 768px) 768px, 100vw'
+          : '(min-width: 1536px) 30vw, (min-width: 1280px) 40vw, (min-width: 768px) 50vw, (min-width: 640px) 100vw, 66vw'
+      "
       alt=""
       class="max-w-none object-cover bg-gray-100 dark:bg-gray-800"
-      :class="detalle
-        ? '-mx-4 -mt-4 mb-4 w-[calc(100%+2rem)] h-auto aspect-video'
-        : '-mx-3 -mt-3 mb-2.5 w-[calc(100%+1.5rem)] h-24 sm:-mx-4 sm:-mt-4 sm:mb-3 sm:w-[calc(100%+2rem)] sm:h-32 rounded-t-xl'"
+      :class="
+        detalle
+          ? '-mx-4 -mt-4 mb-4 w-[calc(100%+2rem)] h-auto aspect-video'
+          : '-mx-3 -mt-3 mb-2.5 w-[calc(100%+1.5rem)] h-24 sm:-mx-4 sm:-mt-4 sm:mb-3 sm:w-[calc(100%+2rem)] sm:h-32 rounded-t-xl'
+      "
       loading="lazy"
       decoding="async"
       @error="alFallarCartel"
@@ -272,24 +283,43 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
             >
               {{ typeLabel }}
             </span>
-            <span v-if="!detalle" class="shrink-0 text-lg leading-none text-gray-500 dark:text-gray-400" aria-hidden="true">›</span>
+            <span
+              v-if="!detalle"
+              class="shrink-0 text-lg leading-none text-gray-500 dark:text-gray-400"
+              aria-hidden="true"
+              >›</span
+            >
           </span>
           <!-- Siempre un h2 (la página lleva su h1), con el enlace dentro si lo hay. -->
           <h2 class="font-bold leading-snug" :class="detalle ? 'text-lg' : 'text-sm sm:text-base'">
             <template v-if="detalle">{{ titulo }}</template>
-            <button v-else type="button" class="text-left hover:underline" @click="emit('abrir', event)">{{ titulo }}</button>
+            <button
+              v-else
+              type="button"
+              class="text-left hover:underline"
+              @click="emit('abrir', event)"
+            >
+              {{ titulo }}
+            </button>
           </h2>
         </div>
 
         <!-- El horario entero y, debajo, la cuenta atrás: primero cuándo, luego cuánto falta. -->
         <p v-if="horario" class="mt-1.5 sm:mt-2 text-xs sm:text-sm tabular-nums">{{ horario }}</p>
         <p v-if="event.status === 'active' || countdownText" class="mt-0.5 text-mini">
-          <span v-if="event.status === 'active'" class="text-green-700 dark:text-green-400">● {{ $t('events.inProgress') }}</span>
+          <span v-if="event.status === 'active'" class="text-green-700 dark:text-green-400"
+            >● {{ $t('events.inProgress') }}</span
+          >
           <template v-if="event.status === 'active' && countdownText"> · </template>
           <span
             v-if="countdownText"
-            :class="countdownUrgent ? 'text-amber-700 dark:text-amber-400' : 'text-gray-600 dark:text-gray-300'"
-          >{{ countdownText }}</span>
+            :class="
+              countdownUrgent
+                ? 'text-amber-700 dark:text-amber-400'
+                : 'text-gray-600 dark:text-gray-300'
+            "
+            >{{ countdownText }}</span
+          >
         </p>
 
         <!--
@@ -312,7 +342,14 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
             class="flex items-center gap-2 min-w-0"
             :class="maxBattle.dex ? 'hover:underline' : ''"
           >
-            <img v-if="maxBattle.image" :src="maxBattle.image" alt="" crossorigin="anonymous" class="w-8 h-8" loading="lazy" />
+            <img
+              v-if="maxBattle.image"
+              :src="maxBattle.image"
+              alt=""
+              crossorigin="anonymous"
+              class="w-8 h-8"
+              loading="lazy"
+            />
             <strong v-if="maxBattle.label" class="text-sm truncate">{{ maxBattle.label }}</strong>
             <span v-else class="text-sm font-semibold">
               {{ $t(maxBattle.gigantamax ? 'max.legendGigantamax' : 'max.legendDynamax') }}
@@ -332,7 +369,9 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
               :can-be-shiny="esVariocolor(spotlight)"
               class="text-sm font-bold"
             />
-            <div class="text-mini text-gray-600 dark:text-gray-300">{{ gameData.translateText(spotlight.bonus) }}</div>
+            <div class="text-mini text-gray-600 dark:text-gray-300">
+              {{ gameData.translateText(spotlight.bonus) }}
+            </div>
           </div>
         </div>
 
@@ -362,8 +401,13 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
           />
         </div>
 
-        <div v-if="bonusVisibles.length" class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700">
-          <p class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('events.bonus') }}</p>
+        <div
+          v-if="bonusVisibles.length"
+          class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
+        >
+          <p class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
+            {{ $t('events.bonus') }}
+          </p>
           <ul class="mt-1 flex flex-col gap-0.5 pl-4 list-disc text-xs">
             <li v-for="uno in bonusVisibles" :key="uno">{{ uno }}</li>
           </ul>
@@ -372,7 +416,9 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
             type="button"
             class="mt-1 text-mini text-gray-600 dark:text-gray-300 underline"
             @click="emit('abrir', event)"
-          >{{ $tc('events.moreBonus', bonusOcultos, { n: bonusOcultos }) }}</button>
+          >
+            {{ $tc('events.moreBonus', bonusOcultos, { n: bonusOcultos }) }}
+          </button>
         </div>
 
         <!--
@@ -398,7 +444,6 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
               {{ $t('events.hasResearch') }}
             </span>
           </div>
-
         </div>
 
         <p

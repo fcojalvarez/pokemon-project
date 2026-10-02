@@ -24,8 +24,15 @@ const resumen = computed(() => {
     // Solo la oscura: con las megas la línea no cabía.
     ...otras
       .filter((forma) => forma.entry.shadow)
-      .map((forma) => `${t('pokemon.shadowShort')}: ${t(`types.${forma.byType[0].type}`)} #${forma.byType[0].rank}`)
-  ].filter(Boolean).join(' · ')
+      .map(
+        (forma) =>
+          `${t('pokemon.shadowShort')}: ${t(`types.${forma.byType[0].type}`)} #${
+            forma.byType[0].rank
+          }`
+      )
+  ]
+    .filter(Boolean)
+    .join(' · ')
 })
 </script>
 
@@ -36,7 +43,9 @@ const resumen = computed(() => {
     </p>
     <template v-else>
       <div v-for="forma in ranks" :key="forma.id" class="mt-2">
-        <p v-if="conNombre(forma.id, ranks.length > 1)" class="text-xs font-semibold">{{ localName(forma.entry) }}</p>
+        <p v-if="conNombre(forma.id, ranks.length > 1)" class="text-xs font-semibold">
+          {{ localName(forma.entry) }}
+        </p>
         <p v-if="forma.overall" class="mt-0.5 text-mini text-gray-600 dark:text-gray-300">
           {{ $t('top.overall') }}: <strong>#{{ forma.overall.rank }}</strong>
         </p>

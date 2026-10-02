@@ -42,12 +42,12 @@ const resumen = computed(() => {
         class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
       >
         <span class="block font-semibold">{{ $t(`top.${liga.league}`) }}</span>
-        <span
-          v-for="entry in liga.entries"
-          :key="entry.id"
-          class="flex items-center gap-2 mt-0.5"
-        >
-          <span v-if="conNombre(entry.id, liga.entries.length > 1)" class="min-w-0 text-gray-600 dark:text-gray-300">{{ localName(entry) }}</span>
+        <span v-for="entry in liga.entries" :key="entry.id" class="flex items-center gap-2 mt-0.5">
+          <span
+            v-if="conNombre(entry.id, liga.entries.length > 1)"
+            class="min-w-0 text-gray-600 dark:text-gray-300"
+            >{{ localName(entry) }}</span
+          >
           <span class="ml-auto shrink-0">
             #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
           </span>

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js'
 
 /**
  * Cliente completo de Supabase: con sesión, para las sugerencias y el panel
@@ -6,6 +6,6 @@ import { createClient } from '@supabase/supabase-js';
  * y solo se carga desde `supabaseCompleto()` en supabaseClient.js.
  */
 export const supabase = createClient(
-    import.meta.env.VITE_BASE_SUPABASE_URL,
-    import.meta.env.VITE_BASE_SUPABASE_KEY
-);
+  import.meta.env.VITE_BASE_SUPABASE_URL,
+  import.meta.env.VITE_BASE_SUPABASE_KEY
+)

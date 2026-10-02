@@ -29,12 +29,7 @@ const panelId = computed(() => `seccion-${props.id}`)
     El id y el tabindex dejan saltar aquí con un enlace a #ficha-…: el
     scroll-mt deja la sección por debajo de la cabecera fija.
   -->
-  <base-card
-    :id="`ficha-${id}`"
-    tabindex="-1"
-    padding=""
-    class="scroll-mt-28 focus:outline-none"
-  >
+  <base-card :id="`ficha-${id}`" tabindex="-1" padding="" class="scroll-mt-28 focus:outline-none">
     <h2 class="text-sm font-bold">
       <span v-if="esEscritorio" class="flex items-center gap-2 px-4 pt-4">
         {{ title }}<slot name="titulo" />
@@ -52,7 +47,8 @@ const panelId = computed(() => `seccion-${props.id}`)
           <span
             v-if="!abierta && summary"
             class="block mt-0.5 text-xs font-normal leading-snug text-gray-600 dark:text-gray-300 line-clamp-2"
-          >{{ summary }}</span>
+            >{{ summary }}</span
+          >
         </span>
         <!-- Mismo trazo que el resto de desplegables de la app; gira al abrir -->
         <base-chevron :open="abierta" size="w-5 h-5" class="text-gray-600 dark:text-gray-300" />

@@ -14,7 +14,9 @@ const props = defineProps({
 
 const abierto = ref(false)
 const textos = computed(() =>
-  props.modo === 'max' ? ['max.method1', 'max.method2', 'max.calcLegend'] : ['top.method1', 'top.method2', 'top.method3']
+  props.modo === 'max'
+    ? ['max.method1', 'max.method2', 'max.calcLegend']
+    : ['top.method1', 'top.method2', 'top.method3']
 )
 </script>
 

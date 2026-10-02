@@ -1,7 +1,4 @@
-import PokemonPage from './PokemonPage.vue';
-import PokemonsList from './PokemonsList.vue';
+import PokemonPage from './PokemonPage.vue'
+import PokemonsList from './PokemonsList.vue'
 
-export {
-    PokemonPage,
-    PokemonsList
-}
+export { PokemonPage, PokemonsList }

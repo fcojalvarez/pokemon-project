@@ -144,7 +144,12 @@ export function parseMaxBattle(name) {
 }
 
 /** Para comparar sin mayúsculas ni tildes: «Lunes MAX» y «lunes max» son lo mismo. */
-const plano = (texto) => String(texto ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
+const plano = (texto) =>
+  String(texto ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
 
 /**
  * El título de un evento sin el tipo delante, si lo repite: con «Lunes MAX»

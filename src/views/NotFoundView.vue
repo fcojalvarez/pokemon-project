@@ -14,7 +14,9 @@ import { NAV_LINKS } from '../components/shared/navLinks'
 const route = useRoute()
 const { t } = useTranslate()
 // También sale dentro de la ficha (/pokemon/99999), que no pasa por el título del router.
-onMounted(() => { document.title = `${t('notFound.title')} · PoGoDex` })
+onMounted(() => {
+  document.title = `${t('notFound.title')} · PoGoDex`
+})
 const ruta = computed(() => route.fullPath)
 
 // Las mismas secciones que el menú.
@@ -22,7 +24,9 @@ const SECCIONES = NAV_LINKS.map(({ to, key }) => ({ to, key: `nav.${key}` }))
 </script>
 
 <template>
-  <section class="max-w-md mx-auto my-10 p-6 rounded-xl bg-white dark:bg-gray-900 shadow-md text-center text-gray-800 dark:text-gray-100">
+  <section
+    class="max-w-md mx-auto my-10 p-6 rounded-xl bg-white dark:bg-gray-900 shadow-md text-center text-gray-800 dark:text-gray-100"
+  >
     <p class="text-4xl font-bold text-gray-400 dark:text-gray-500" aria-hidden="true">404</p>
     <h1 class="mt-2 text-xl font-bold">{{ $t('notFound.title') }}</h1>
     <p class="mt-2 text-sm text-gray-600 dark:text-gray-300">

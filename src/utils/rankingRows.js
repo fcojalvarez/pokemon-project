@@ -6,4 +6,5 @@
 export const movesOf = (row) => row.moves ?? [row.fast, row.charged].filter(Boolean)
 
 /** Clave de una fila: el mismo Pokémon sale una vez por cada conjunto de ataques. */
-export const rowKey = (row) => [row.id, ...movesOf(row).map((move) => move?.id ?? move?.nameEs)].join('-')
+export const rowKey = (row) =>
+  [row.id, ...movesOf(row).map((move) => move?.id ?? move?.nameEs)].join('-')

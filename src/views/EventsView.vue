@@ -43,7 +43,11 @@ const TABS = ['active', 'upcoming']
 // tipo que también viene en ella.
 useFiltrosEnUrl({
   view: { valor: tab, defecto: 'active', leer: entre(TABS) },
-  kind: { valor: typeFilter, defecto: 'all', leer: (texto) => (/^[\w-]+$/.test(texto) ? texto : undefined) }
+  kind: {
+    valor: typeFilter,
+    defecto: 'all',
+    leer: (texto) => (/^[\w-]+$/.test(texto) ? texto : undefined)
+  }
 })
 
 const source = computed(() => live[tab.value] ?? [])
@@ -79,7 +83,9 @@ const TIPOS_MAX = ['max-mondays', 'max-battles']
 const mostrarNotaMax = computed(() => TIPOS_MAX.includes(typeFilter.value))
 
 const rejilla = computed(() =>
-  ancho.value ? 'grid grid-cols-2 2xl:grid-cols-3 gap-3' : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3'
+  ancho.value
+    ? 'grid grid-cols-2 2xl:grid-cols-3 gap-3'
+    : 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3'
 )
 
 const list = computed(() =>
@@ -100,7 +106,9 @@ onMounted(async () => {
 
 <template>
   <section class="text-gray-800 dark:text-gray-200">
-    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.events') }}</h1>
+    <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">
+      {{ $t('nav.events') }}
+    </h1>
     <!-- Como el Top y «Ahora»: el título y qué hay en la página. -->
     <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">{{ $t('events.intro') }}</p>
 
@@ -147,14 +155,22 @@ onMounted(async () => {
             :key="option.value"
             type="button"
             class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500"
-            :class="typeFilter === option.value
-              ? 'bg-gray-500 dark:bg-gray-600 text-white'
-              : 'bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'"
+            :class="
+              typeFilter === option.value
+                ? 'bg-gray-500 dark:bg-gray-600 text-white'
+                : 'bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'
+            "
             :aria-pressed="typeFilter === option.value"
             @click="typeFilter = option.value"
           >
             {{ option.label }}
-            <span class="text-mini tabular-nums" :class="typeFilter === option.value ? 'text-white' : 'text-gray-600 dark:text-gray-300'">({{ option.count }})</span>
+            <span
+              class="text-mini tabular-nums"
+              :class="
+                typeFilter === option.value ? 'text-white' : 'text-gray-600 dark:text-gray-300'
+              "
+              >({{ option.count }})</span
+            >
           </button>
         </div>
       </base-sidebar>
@@ -174,7 +190,9 @@ onMounted(async () => {
               :key="n"
               class="p-3 sm:p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
             >
-              <span class="esqueleto block -mx-3 -mt-3 mb-2.5 h-24 sm:-mx-4 sm:-mt-4 sm:mb-3 sm:h-32 rounded-t-xl rounded-b-none"></span>
+              <span
+                class="esqueleto block -mx-3 -mt-3 mb-2.5 h-24 sm:-mx-4 sm:-mt-4 sm:mb-3 sm:h-32 rounded-t-xl rounded-b-none"
+              ></span>
               <div class="flex gap-4 items-start">
                 <span class="esqueleto w-14 h-[4.5rem] sm:w-16 sm:h-20 shrink-0 rounded-xl"></span>
                 <div class="flex-1 flex flex-col gap-2">
@@ -201,7 +219,13 @@ onMounted(async () => {
         <base-empty-state v-else-if="list.length === 0" :message="$t('common.empty')" />
 
         <div v-else :class="rejilla">
-          <event-card v-for="event in list" :key="event.eventID" :event="event" :bonus="bonusDeEvento(noticias, event)" @abrir="abierto = $event" />
+          <event-card
+            v-for="event in list"
+            :key="event.eventID"
+            :event="event"
+            :bonus="bonusDeEvento(noticias, event)"
+            @abrir="abierto = $event"
+          />
         </div>
       </div>
     </div>

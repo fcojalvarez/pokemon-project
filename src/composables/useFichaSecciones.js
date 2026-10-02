@@ -32,7 +32,9 @@ const vigilarAncho = () => {
   vigilando = true
   const consulta = window.matchMedia('(min-width: 1024px)')
   esEscritorio.value = consulta.matches
-  consulta.addEventListener?.('change', (evento) => { esEscritorio.value = evento.matches })
+  consulta.addEventListener?.('change', (evento) => {
+    esEscritorio.value = evento.matches
+  })
 }
 
 export function useFichaSecciones() {

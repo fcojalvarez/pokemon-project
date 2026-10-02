@@ -54,7 +54,12 @@ const alTeclear = (event) => {
   if (foco && foco !== document.body && !panel.value?.contains(foco)) return
   emit('close')
 }
-const escuchar = (si) => (si ? document.addEventListener : document.removeEventListener).call(document, 'keydown', alTeclear)
+const escuchar = (si) =>
+  (si ? document.addEventListener : document.removeEventListener).call(
+    document,
+    'keydown',
+    alTeclear
+  )
 
 watch(
   () => props.open,
@@ -95,7 +100,9 @@ onUnmounted(() => escuchar(false))
         class="w-full max-h-[90vh] flex flex-col bg-gray-100 dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-t-xl sm:rounded-xl shadow-md outline-none text-gray-800 dark:text-gray-200"
         :class="size"
       >
-        <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-300 dark:border-gray-600">
+        <div
+          class="flex items-center gap-3 px-4 py-3 border-b border-gray-300 dark:border-gray-600"
+        >
           <h2 :id="titulo" class="min-w-0 font-bold leading-snug">{{ title }}</h2>
           <!-- La ✕ sin caja, como la lupa y los ajustes de la cabecera. -->
           <button

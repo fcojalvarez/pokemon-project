@@ -23,7 +23,11 @@ defineProps({
   <div v-for="linea in lines" :key="linea.max.id" :class="lineClass">
     <p
       class="flex items-center gap-1 pl-[9px] text-xs font-semibold"
-      :class="linea.gigamax ? 'text-fuchsia-700 dark:text-fuchsia-300' : 'text-gray-800 dark:text-gray-100'"
+      :class="
+        linea.gigamax
+          ? 'text-fuchsia-700 dark:text-fuchsia-300'
+          : 'text-gray-800 dark:text-gray-100'
+      "
       :title="linea.gigamax ? $t('moves.gigamaxHelp') : null"
     >
       <type-icons :types="[linea.max.type]" size="10" />

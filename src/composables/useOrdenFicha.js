@@ -10,7 +10,17 @@ import { ref } from 'vue'
  * existen: uno que ya no está se ignora y uno nuevo va al final, para que un
  * cambio en la ficha no deje a nadie sin ver una sección.
  */
-export const BLOQUES_FICHA = ['donde', 'costes', 'max', 'pc', 'pve', 'pvp', 'ataques', 'efectos', 'debilidades']
+export const BLOQUES_FICHA = [
+  'donde',
+  'costes',
+  'max',
+  'pc',
+  'pve',
+  'pvp',
+  'ataques',
+  'efectos',
+  'debilidades'
+]
 
 const CLAVE = 'pogodex.fichaOrden'
 

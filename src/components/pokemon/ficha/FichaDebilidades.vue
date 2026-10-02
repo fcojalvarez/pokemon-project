@@ -14,7 +14,10 @@ const { t } = useTranslate()
 
 /** Plegada: las tres peores. */
 const resumen = computed(() =>
-  props.matchups.weak.slice(0, 3).map((entry) => `${t(`types.${entry.type}`)} ×${entry.mult.toFixed(2)}`).join(' · ')
+  props.matchups.weak
+    .slice(0, 3)
+    .map((entry) => `${t(`types.${entry.type}`)} ×${entry.mult.toFixed(2)}`)
+    .join(' · ')
 )
 
 const grupos = computed(() => [

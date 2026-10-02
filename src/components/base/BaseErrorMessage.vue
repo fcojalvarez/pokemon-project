@@ -10,10 +10,7 @@ defineProps({
 </script>
 
 <template>
-  <p
-    role="alert"
-    class="p-4 rounded-xl border border-red-400 bg-red-50 dark:bg-red-900/30 text-sm"
-  >
+  <p role="alert" class="p-4 rounded-xl border border-red-400 bg-red-50 dark:bg-red-900/30 text-sm">
     {{ message }}<template v-if="detail"> {{ detail }}</template>
   </p>
 </template>

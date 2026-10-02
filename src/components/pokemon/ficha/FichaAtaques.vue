@@ -22,7 +22,8 @@ const { localName } = useTranslate()
 /** Plegada: la mejor combinación o, sin ninguna, los ataques que tiene. */
 const resumen = computed(() => {
   const mejor = props.bestMovesets[0]
-  if (mejor) return `${localName(mejor.fast)} + ${localName(mejor.charged)} · ${mejor.dps.toFixed(1)} DPS`
+  if (mejor)
+    return `${localName(mejor.fast)} + ${localName(mejor.charged)} · ${mejor.dps.toFixed(1)} DPS`
   return [...props.movepool.fast, ...props.movepool.charged].map(localName).join(' · ')
 })
 </script>
@@ -56,7 +57,11 @@ const resumen = computed(() => {
       </li>
     </ol>
 
-    <div :class="bestMovesets.length ? 'mt-3 pt-3 border-t border-gray-300 dark:border-gray-700' : 'mt-2'">
+    <div
+      :class="
+        bestMovesets.length ? 'mt-3 pt-3 border-t border-gray-300 dark:border-gray-700' : 'mt-2'
+      "
+    >
       <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.fastMoves') }}</span>
       <div class="flex flex-wrap gap-1 mt-1">
         <move-tag

@@ -24,7 +24,11 @@ const LIGAS = ['great', 'ultra', 'master']
  * Supabase guarda "dragon tail" y el GAME_MASTER lo identifica como
  * DRAGON_TAIL: sin esta normalización solo casarían los de una palabra.
  */
-const idDeAtaque = (move) => move.toUpperCase().replace(/[\s-]+/g, '_').replace(/[^A-Z0-9_]/g, '')
+const idDeAtaque = (move) =>
+  move
+    .toUpperCase()
+    .replace(/[\s-]+/g, '_')
+    .replace(/[^A-Z0-9_]/g, '')
 
 /**
  * Todo lo que enseña la ficha de un Pokémon, calculado una vez para la
@@ -65,8 +69,11 @@ export function useFichaDatos({ pokemon, formId }) {
    * entonces en los puestos no hace falta repetir su nombre en cada fila. Con
    * varias (Urshifu, Deoxys) sí, que si no no se sabe de cuál es cada una.
    */
-  const formaUnica = computed(() =>
-    (gameData.formsByDex.get(fila()?.pokemon_id) ?? []).filter((e) => !e.mega && !e.shadow && !e.regional).length === 1
+  const formaUnica = computed(
+    () =>
+      (gameData.formsByDex.get(fila()?.pokemon_id) ?? []).filter(
+        (e) => !e.mega && !e.shadow && !e.regional
+      ).length === 1
   )
 
   /**
@@ -120,7 +127,9 @@ export function useFichaDatos({ pokemon, formId }) {
   /** Si puede dinamaxizar, el nivel 20 es también el de lo que sale de un combate Max. */
   const esMax = computed(() => Boolean(entrada.value?.dynamax || entrada.value?.gigantamax))
 
-  const maxInfo = computed(() => (gameData.isReady && entrada.value ? gameData.maxInfoFor(entrada.value) : null))
+  const maxInfo = computed(() =>
+    gameData.isReady && entrada.value ? gameData.maxInfoFor(entrada.value) : null
+  )
 
   // ---------- Debilidades ----------
   const matchups = computed(() => {
@@ -135,7 +144,8 @@ export function useFichaDatos({ pokemon, formId }) {
 
   const movepool = computed(() => {
     const entry = entrada.value
-    if (!entry || !gameData.isReady) return { fast: [], charged: [], origenes: origenesPresentes([]) }
+    if (!entry || !gameData.isReady)
+      return { fast: [], charged: [], origenes: origenesPresentes([]) }
 
     const origen = origenDe(entry)
     const pick = (ids) =>
@@ -203,10 +213,18 @@ export function useFichaDatos({ pokemon, formId }) {
     if (third?.candy_required >= NO_APRENDE) {
       rows.push({ key: 'secondCharged', texto: t('pokemon.cannotLearn') })
     } else if (polvo) {
-      rows.push({ key: 'secondCharged', candy: CARAMELOS_SEGUNDO_ATAQUE[polvo] ?? third?.candy_required ?? null, dust: polvo })
+      rows.push({
+        key: 'secondCharged',
+        candy: CARAMELOS_SEGUNDO_ATAQUE[polvo] ?? third?.candy_required ?? null,
+        dust: polvo
+      })
     } else if (third?.candy_required) {
       // Sí, en la base de datos la columna se llama "startdust_required".
-      rows.push({ key: 'secondCharged', candy: third.candy_required, dust: third.startdust_required ?? null })
+      rows.push({
+        key: 'secondCharged',
+        candy: third.candy_required,
+        dust: third.startdust_required ?? null
+      })
     }
 
     if (p.is_shadow_released && shadow?.candy_required_purification) {
@@ -219,7 +237,9 @@ export function useFichaDatos({ pokemon, formId }) {
 
     // El coste de megaevolucionar vive en el roster generado, no en Supabase.
     const mega = gameData.isReady
-      ? (gameData.formsByDex.get(p.pokemon_id) ?? []).find((forma) => forma.mega && forma.megaEnergy)
+      ? (gameData.formsByDex.get(p.pokemon_id) ?? []).find(
+          (forma) => forma.mega && forma.megaEnergy
+        )
       : null
     if (mega) {
       rows.push({ key: 'megaFirst', energy: mega.megaEnergy.first })
@@ -274,7 +294,13 @@ export function useFichaDatos({ pokemon, formId }) {
   })
 
   // Los rankings PvP se piden aparte, cuando ya está lo principal de la ficha.
-  watch(() => gameData.isReady, (listo) => { if (listo) gameData.cargarPvp() }, { immediate: true })
+  watch(
+    () => gameData.isReady,
+    (listo) => {
+      if (listo) gameData.cargarPvp()
+    },
+    { immediate: true }
+  )
 
   const pvpRanks = computed(() => {
     if (!gameData.isReady || !fila()) return []
@@ -288,8 +314,10 @@ export function useFichaDatos({ pokemon, formId }) {
    * «Hiper #103 · Hiper #125» sin aclarar que el segundo era el oscuro.
    */
   const pvpPorLiga = computed(() =>
-    LIGAS.map((league) => ({ league, entries: pvpRanks.value.filter((entry) => entry.league === league) }))
-      .filter((liga) => liga.entries.length)
+    LIGAS.map((league) => ({
+      league,
+      entries: pvpRanks.value.filter((entry) => entry.league === league)
+    })).filter((liga) => liga.entries.length)
   )
 
   /**

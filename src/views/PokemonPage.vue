@@ -1,9 +1,9 @@
 <script setup>
-import PokemonView from '../components/PokemonView.vue';
+import PokemonView from '../components/PokemonView.vue'
 </script>
 
 <template>
-    <!--
+  <!--
         Iba envuelto en un segundo <section> con 'pokemon-view-hidden' atado a
         un isEdit que no existía: quedaba de una edición que se quitó, y Vue
         avisaba en cada render. Las tres clases CSS de ese envoltorio tampoco
@@ -11,7 +11,7 @@ import PokemonView from '../components/PokemonView.vue';
         Además ponía w-max-[900px], que Tailwind no genera: el ancho máximo no
         se aplicaba nunca.
     -->
-    <section class="min-h-screen max-w-[900px] lg:max-w-[1200px] mx-auto">
-        <PokemonView />
-    </section>
+  <section class="min-h-screen max-w-[900px] lg:max-w-[1200px] mx-auto">
+    <PokemonView />
+  </section>
 </template>

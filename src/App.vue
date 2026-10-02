@@ -1,35 +1,40 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue';
-import HeaderComponent from './components/shared/HeaderComponent.vue';
-import FooterComponent from './components/shared/FooterComponent.vue';
-import BottomNav from './components/shared/BottomNav.vue';
-import UpdatePrompt from './components/shared/UpdatePrompt.vue';
-import { useRoute } from 'vue-router';
+import { onMounted, onUnmounted, ref } from 'vue'
+import HeaderComponent from './components/shared/HeaderComponent.vue'
+import FooterComponent from './components/shared/FooterComponent.vue'
+import BottomNav from './components/shared/BottomNav.vue'
+import UpdatePrompt from './components/shared/UpdatePrompt.vue'
+import { useRoute } from 'vue-router'
 
 // El panel de sugerencias va sin barra de secciones (meta.sinNavegacion).
-const route = useRoute();
+const route = useRoute()
 
 // Con la página ya bajada, la cabecera fija lleva una línea debajo: sin ella
 // el contenido pasaba por detrás cortado a ras de los botones, sin separación.
-const bajada = ref(false);
-const alDesplazar = () => { bajada.value = window.scrollY > 4; };
+const bajada = ref(false)
+const alDesplazar = () => {
+  bajada.value = window.scrollY > 4
+}
 onMounted(() => {
-    alDesplazar();
-    window.addEventListener('scroll', alDesplazar, { passive: true });
-});
-onUnmounted(() => window.removeEventListener('scroll', alDesplazar));
+  alDesplazar()
+  window.addEventListener('scroll', alDesplazar, { passive: true })
+})
+onUnmounted(() => window.removeEventListener('scroll', alDesplazar))
 
 // Se enfoca a mano en vez de dejar que el navegador siga el `#contenido`: con
 // el historial del router, cambiar el hash dispara una navegación.
 const saltarAlContenido = (event) => {
-    event.preventDefault();
-    document.getElementById('contenido')?.focus();
-};
+  event.preventDefault()
+  document.getElementById('contenido')?.focus()
+}
 </script>
 
 <template>
   <!-- En móvil, hueco abajo para la barra de secciones (BottomNav). -->
-  <div class="transition-colors min-h-screen bg-gray-100 dark:bg-gray-700 px-4 sm:px-8 md:px-16 xl:px-24 2xl:px-32" :class="route.meta.sinNavegacion ? '' : 'pb-[calc(88px+env(safe-area-inset-bottom))] sm:pb-0'">
+  <div
+    class="transition-colors min-h-screen bg-gray-100 dark:bg-gray-700 px-4 sm:px-8 md:px-16 xl:px-24 2xl:px-32"
+    :class="route.meta.sinNavegacion ? '' : 'pb-[calc(88px+env(safe-area-inset-bottom))] sm:pb-0'"
+  >
     <a
       href="#contenido"
       class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[70] focus:px-4 focus:py-2 focus:rounded-xl focus:bg-white focus:text-gray-900 focus:shadow-md"

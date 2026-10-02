@@ -95,7 +95,13 @@ useDetectOutsideClick(root, () => close({ restoreFocus: false }))
         :aria-label="$t('language.label')"
         class="idiomas-lista absolute bottom-full left-0 mb-2 z-10 min-w-[9.5rem] p-1.5 rounded-xl border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 shadow-md"
       >
-        <li v-for="(locale, i) in LOCALES" :key="locale" role="none" class="idiomas-opcion" :style="{ '--i': LOCALES.length - 1 - i }">
+        <li
+          v-for="(locale, i) in LOCALES"
+          :key="locale"
+          role="none"
+          class="idiomas-opcion"
+          :style="{ '--i': LOCALES.length - 1 - i }"
+        >
           <button
             type="button"
             role="menuitemradio"

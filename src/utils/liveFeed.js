@@ -63,7 +63,10 @@ export function isCacheExpired(fetchedAt, now = new Date(), maxAgeMs = MAX_CACHE
  * el número sale de ahí sin tener que adivinarlo por el nombre.
  */
 export function dexFromImage(url) {
-  const file = String(url ?? '').split('/').pop() ?? ''
+  const file =
+    String(url ?? '')
+      .split('/')
+      .pop() ?? ''
   const match = /pm(\d+)|pokemon_icon_(\d+)/.exec(file)
   if (!match) return null
   return Number(match[1] ?? match[2])

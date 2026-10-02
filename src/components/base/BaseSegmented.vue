@@ -27,9 +27,11 @@ defineEmits(['update:modelValue'])
       :key="option.value"
       type="button"
       class="zona-tactil min-w-0 px-2 py-2 rounded-[10px] text-xs sm:text-sm truncate transition-colors"
-      :class="modelValue === option.value
-        ? 'bg-white dark:bg-gray-600 shadow-sm font-semibold text-gray-900 dark:text-white'
-        : 'text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-700'"
+      :class="
+        modelValue === option.value
+          ? 'bg-white dark:bg-gray-600 shadow-sm font-semibold text-gray-900 dark:text-white'
+          : 'text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-700'
+      "
       :aria-pressed="modelValue === option.value"
       @click="$emit('update:modelValue', option.value)"
     >

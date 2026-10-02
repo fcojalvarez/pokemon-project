@@ -62,10 +62,7 @@ const hint = computed(() => (origin.value ? t(`moves.${origin.value}Help`) : nul
 </script>
 
 <template>
-  <span
-    :class="['inline-flex items-center gap-1 min-w-0 text-mini', styling]"
-    :title="hint"
-  >
+  <span :class="['inline-flex items-center gap-1 min-w-0 text-mini', styling]" :title="hint">
     <type-icons v-if="!hideIcon && type" :types="[type]" :size="size" />
     <span class="truncate">{{ name }}</span>
   </span>

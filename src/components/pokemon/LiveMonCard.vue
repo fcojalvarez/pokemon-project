@@ -61,7 +61,9 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
     class="flex flex-wrap md:flex-nowrap items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
     :class="[
       to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : '',
-      highlight ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950' : ''
+      highlight
+        ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950'
+        : ''
     ]"
   >
     <!--
@@ -69,7 +71,9 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
       más. Suelto, competía con la barra fija de filtros de Ahora (también
       z-10, pero antes en el DOM) y la marca asomaba por encima al hacer scroll.
     -->
-    <span class="relative isolate shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center">
+    <span
+      class="relative isolate shrink-0 w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center"
+    >
       <!-- El aura del oscuro la pone BaseSprite: no hay sprite con ella. -->
       <base-sprite
         v-if="image"
@@ -90,7 +94,12 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
 
     <span class="flex-1 min-w-0">
       <!-- Hasta dos líneas antes de recortar: «Typhlosion de Hisui» salía cortado con media pantalla libre. -->
-      <span class="text-xs font-semibold line-clamp-2 break-words" :class="ancha ? '' : 'hyphens-auto'" :title="name">{{ name }}</span>
+      <span
+        class="text-xs font-semibold line-clamp-2 break-words"
+        :class="ancha ? '' : 'hyphens-auto'"
+        :title="name"
+        >{{ name }}</span
+      >
       <!--
         En móvil, a dos columnas, no caben etiqueta y rango: el texto se salía
         por debajo del botón de desplegar. Se queda el rango, que junto a un
@@ -103,7 +112,9 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
         :title="`${$t('raids.cpRange')} ${cpLabel}`"
       >
         <!-- &nbsp;: el espacio normal al final del span se perdía («PC529–574»). -->
-        <span :class="ancha ? 'min-[420px]:hidden sm:inline' : 'hidden sm:inline'">{{ $t('raids.cpRange') }}&nbsp;</span>{{ cpLabel }}
+        <span :class="ancha ? 'min-[420px]:hidden sm:inline' : 'hidden sm:inline'"
+          >{{ $t('raids.cpRange') }}&nbsp;</span
+        >{{ cpLabel }}
       </span>
       <span v-if="badge" class="block text-mini text-gray-600 dark:text-gray-300">{{ badge }}</span>
     </span>

@@ -21,9 +21,11 @@ defineEmits(['update:modelValue'])
       <button
         type="button"
         class="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 text-sm text-left rounded-lg transition-colors"
-        :class="modelValue === option.value
-          ? 'bg-gray-500 dark:bg-gray-600 text-white'
-          : 'text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800'"
+        :class="
+          modelValue === option.value
+            ? 'bg-gray-500 dark:bg-gray-600 text-white'
+            : 'text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800'
+        "
         :aria-label="`${option.label} (${option.count})`"
         :aria-pressed="modelValue === option.value"
         @click="$emit('update:modelValue', option.value)"
@@ -32,7 +34,8 @@ defineEmits(['update:modelValue'])
         <span
           class="shrink-0 text-mini tabular-nums"
           :class="modelValue === option.value ? 'text-white' : 'text-gray-600 dark:text-gray-300'"
-        >{{ option.count }}</span>
+          >{{ option.count }}</span
+        >
       </button>
     </li>
   </ul>

@@ -91,9 +91,13 @@ const pc100 = computed(() => {
 })
 
 /** Los Ataques Max de sus rápidos, sin el Gigamax ni el exclusivo (van aparte). */
-const deRapidos = computed(() => (maxInfo.value?.opciones ?? []).filter((opcion) => !opcion.gigamax && !opcion.exclusivo))
+const deRapidos = computed(() =>
+  (maxInfo.value?.opciones ?? []).filter((opcion) => !opcion.gigamax && !opcion.exclusivo)
+)
 /** Zacian y Zamazenta coronados y Eternatus: su Ataque Max propio, fijo. */
-const exclusivo = computed(() => (maxInfo.value?.opciones ?? []).find((opcion) => opcion.exclusivo) ?? null)
+const exclusivo = computed(
+  () => (maxInfo.value?.opciones ?? []).find((opcion) => opcion.exclusivo) ?? null
+)
 const nombresRapidos = (opcion) => opcion.rapidos.map((rapido) => localName(rapido)).join(' / ')
 
 /** Plegada: el PC de un 100 %, los Ataques Max (y el Gigamax, si lo tiene). */
@@ -105,7 +109,9 @@ const resumen = computed(() => {
     ...deRapidos.value.map((opcion) => localName(opcion.max)),
     exclusivo.value && localName(exclusivo.value.max),
     info.gmaxMove && localName(info.gmaxMove)
-  ].filter(Boolean).join(' · ')
+  ]
+    .filter(Boolean)
+    .join(' · ')
 })
 </script>
 
@@ -129,7 +135,9 @@ const resumen = computed(() => {
         class="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
       >
         <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.cp100') }}</dt>
-        <dd class="text-sm font-semibold tabular-nums">{{ $t('max.cpValue', { cp: formatNumber(pc100) }) }}</dd>
+        <dd class="text-sm font-semibold tabular-nums">
+          {{ $t('max.cpValue', { cp: formatNumber(pc100) }) }}
+        </dd>
       </div>
     </dl>
 
@@ -138,7 +146,9 @@ const resumen = computed(() => {
       uno. El STAB, marcado, y explicado debajo.
     -->
     <template v-if="deRapidos.length">
-      <h3 class="mt-3 mb-1.5 text-xs font-bold text-gray-600 dark:text-gray-300">{{ $t('max.byFastMove') }}</h3>
+      <h3 class="mt-3 mb-1.5 text-xs font-bold text-gray-600 dark:text-gray-300">
+        {{ $t('max.byFastMove') }}
+      </h3>
       <ul class="flex flex-col gap-1.5">
         <li
           v-for="opcion in deRapidos"
@@ -157,14 +167,19 @@ const resumen = computed(() => {
           </span>
         </li>
       </ul>
-      <p v-if="deRapidos.some((opcion) => opcion.stab)" class="mt-1.5 flex items-start gap-1.5 text-mini text-gray-600 dark:text-gray-300">
+      <p
+        v-if="deRapidos.some((opcion) => opcion.stab)"
+        class="mt-1.5 flex items-start gap-1.5 text-mini text-gray-600 dark:text-gray-300"
+      >
         <stab-badge class="mt-px" />
         <span>{{ $t('max.stabHelp') }}</span>
       </p>
     </template>
 
     <dl v-if="exclusivo" class="mt-3 flex flex-col gap-2">
-      <div class="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800">
+      <div
+        class="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
+      >
         <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.exclusiveMove') }}</dt>
         <dd class="flex items-center gap-2 text-sm font-semibold">
           <type-icons :types="[exclusivo.max.type]" size="16" />
@@ -205,16 +220,28 @@ const resumen = computed(() => {
           <tr class="text-mini text-gray-600 dark:text-gray-300 align-bottom">
             <th scope="col" class="sr-only">{{ $t('max.upgradeTitle') }}</th>
             <th scope="col" class="pb-1 pl-2 font-normal text-right">{{ $t('max.particles') }}</th>
-            <th v-if="conCaramelos" scope="col" class="pb-1 pl-2 font-normal text-right">{{ $t('max.candy') }}</th>
-            <th v-if="conXl" scope="col" class="pb-1 pl-2 font-normal text-right">{{ $t('max.candyXl') }}</th>
+            <th v-if="conCaramelos" scope="col" class="pb-1 pl-2 font-normal text-right">
+              {{ $t('max.candy') }}
+            </th>
+            <th v-if="conXl" scope="col" class="pb-1 pl-2 font-normal text-right">
+              {{ $t('max.candyXl') }}
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in upgradeRows" :key="row.key" class="border-t border-gray-200 dark:border-gray-800">
+          <tr
+            v-for="row in upgradeRows"
+            :key="row.key"
+            class="border-t border-gray-200 dark:border-gray-800"
+          >
             <th scope="row" class="py-1 text-left font-semibold">{{ row.label }}</th>
             <td class="py-1 pl-2 text-right">{{ formatNumber(row.total.mp) }}</td>
-            <td v-if="conCaramelos" class="py-1 pl-2 text-right">{{ row.total.candy ? formatNumber(row.total.candy) : '—' }}</td>
-            <td v-if="conXl" class="py-1 pl-2 text-right">{{ row.total.xl ? formatNumber(row.total.xl) : '—' }}</td>
+            <td v-if="conCaramelos" class="py-1 pl-2 text-right">
+              {{ row.total.candy ? formatNumber(row.total.candy) : '—' }}
+            </td>
+            <td v-if="conXl" class="py-1 pl-2 text-right">
+              {{ row.total.xl ? formatNumber(row.total.xl) : '—' }}
+            </td>
           </tr>
         </tbody>
       </table>

@@ -42,7 +42,9 @@ const nombre = computed(() => {
   return props.sinNumero ? texto : `#${props.mon.pokemon_id} ${texto}`
 })
 
-const sprite = computed(() => (props.shiny ? props.mon.sprites?.male_shiny : props.mon.sprites?.male) ?? null)
+const sprite = computed(
+  () => (props.shiny ? props.mon.sprites?.male_shiny : props.mon.sprites?.male) ?? null
+)
 
 // El ancho incluye el relleno de la tarjeta (p-1.5 / lg:p-2).
 const ancho = computed(() => {
@@ -59,11 +61,15 @@ const ancho = computed(() => {
 // Igual que las tarjetas de la Pokédex: la tarjeta es el sprite, el nombre y
 // los tipos. El que se está viendo se marca con fondo y borde, y mide lo mismo
 // que los demás; los demás se resaltan al pasar el ratón.
-const activo = 'bg-gray-200 dark:bg-gray-700 outline outline-1 outline-gray-400 dark:outline-gray-500'
-const alPasar = 'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600'
+const activo =
+  'bg-gray-200 dark:bg-gray-700 outline outline-1 outline-gray-400 dark:outline-gray-500'
+const alPasar =
+  'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600'
 
 const caja = computed(() =>
-  props.enGrupo ? 'w-[54px] h-[54px] lg:w-[72px] lg:h-[72px]' : 'w-[60px] h-[60px] md:w-[72px] md:h-[72px] lg:w-24 lg:h-24'
+  props.enGrupo
+    ? 'w-[54px] h-[54px] lg:w-[72px] lg:h-[72px]'
+    : 'w-[60px] h-[60px] md:w-[72px] md:h-[72px] lg:w-24 lg:h-24'
 )
 </script>
 
@@ -91,15 +97,21 @@ const caja = computed(() =>
         :class="enGrupo ? 'scale-75' : 'scale-90'"
       />
     </span>
-    <span class="flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 text-center leading-tight">
+    <span
+      class="flex flex-wrap items-center justify-center gap-x-1 gap-y-0.5 text-center leading-tight"
+    >
       <!-- En móvil estrecho, a 11 px y un pelo más juntas: así un nombre de diez
            letras entra entero en vez de partirse («Charman-der»). -->
-      <span class="font-semibold text-[11px] tracking-tight min-[420px]:text-mini min-[420px]:tracking-normal lg:text-xs break-words min-w-0">{{ nombre }}</span>
+      <span
+        class="font-semibold text-[11px] tracking-tight min-[420px]:text-mini min-[420px]:tracking-normal lg:text-xs break-words min-w-0"
+        >{{ nombre }}</span
+      >
       <type-icons v-if="mon.types?.length" :types="mon.types" size="11" class="!gap-0.5" />
     </span>
     <span
       v-if="badge"
       class="px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-amber-500 text-amber-700 dark:text-amber-400"
-    >{{ badge }}</span>
+      >{{ badge }}</span
+    >
   </component>
 </template>

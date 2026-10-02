@@ -66,7 +66,9 @@ const PODER_OCULTO = 'HIDDEN_POWER'
 /** El ataque Gigamax de un Pokémon del roster, indexado por especie. */
 export function gigamaxDe(entry, gmaxPorEspecie) {
   if (!entry?.gigantamax) return null
-  const especie = String(entry.id ?? '').split('_')[0].toUpperCase()
+  const especie = String(entry.id ?? '')
+    .split('_')[0]
+    .toUpperCase()
   return gmaxPorEspecie?.[especie] ?? null
 }
 
@@ -96,14 +98,18 @@ export function opcionesMax(entry, { moves, maxPorTipo, gmaxPorEspecie, exclusiv
       if (!rapido) continue
       const max = maxPorTipo?.[id === PODER_OCULTO ? 'normal' : rapido.type]
       if (!max) continue
-      if (!porMax.has(max.id)) porMax.set(max.id, { max, rapidos: [], gigamax: false, exclusivo: false })
+      if (!porMax.has(max.id))
+        porMax.set(max.id, { max, rapidos: [], gigamax: false, exclusivo: false })
       porMax.get(max.id).rapidos.push(rapido)
     }
   }
   const opciones = [...porMax.values()]
   const gmax = gigamaxDe(entry, gmaxPorEspecie)
   if (gmax) opciones.push({ max: gmax, rapidos: [], gigamax: true, exclusivo: false })
-  return opciones.map((opcion) => ({ ...opcion, stab: entry.types?.includes(opcion.max.type) ?? false }))
+  return opciones.map((opcion) => ({
+    ...opcion,
+    stab: entry.types?.includes(opcion.max.type) ?? false
+  }))
 }
 
 /**
@@ -170,9 +176,7 @@ export function maxCounters(jefe, roster, chart, options = {}) {
   const porId = new Map(roster.map((e) => [e.id, e]))
   const desdeEvolucion = new Map()
   if (disponibles) {
-    const cola = roster
-      .filter((e) => disponibles.has(e.dex))
-      .map((e) => ({ actual: e, origen: e }))
+    const cola = roster.filter((e) => disponibles.has(e.dex)).map((e) => ({ actual: e, origen: e }))
 
     while (cola.length) {
       const { actual, origen } = cola.shift()
@@ -198,14 +202,32 @@ export function maxCounters(jefe, roster, chart, options = {}) {
     // El Ataque Max que mejor le pega al jefe, contando el STAB. Sin datos de
     // movimientos, el del tipo principal.
     const opciones = options.maxPorTipo ? opcionesMax(entry, options) : []
-    let mejor = { tipo: entry.types[0], max: null, rapido: null, stab: true, gigamax: false, exclusivo: false, valor: efectividad(chart, entry.types[0], tiposJefe) * STAB * POTENCIA_MAX }
+    let mejor = {
+      tipo: entry.types[0],
+      max: null,
+      rapido: null,
+      stab: true,
+      gigamax: false,
+      exclusivo: false,
+      valor: efectividad(chart, entry.types[0], tiposJefe) * STAB * POTENCIA_MAX
+    }
     if (opciones.length) {
       mejor = null
       for (const opcion of opciones) {
-        const valor = efectividad(chart, opcion.max.type, tiposJefe) * (opcion.stab ? STAB : 1) *
+        const valor =
+          efectividad(chart, opcion.max.type, tiposJefe) *
+          (opcion.stab ? STAB : 1) *
           potenciaMax(opcion.max, opcion)
         if (!mejor || valor > mejor.valor) {
-          mejor = { tipo: opcion.max.type, max: opcion.max, rapido: opcion.rapidos[0] ?? null, gigamax: opcion.gigamax, exclusivo: opcion.exclusivo, stab: opcion.stab, valor }
+          mejor = {
+            tipo: opcion.max.type,
+            max: opcion.max,
+            rapido: opcion.rapidos[0] ?? null,
+            gigamax: opcion.gigamax,
+            exclusivo: opcion.exclusivo,
+            stab: opcion.stab,
+            valor
+          }
         }
       }
     }
@@ -240,17 +262,16 @@ export function maxCounters(jefe, roster, chart, options = {}) {
       attackScore: pesoAtaqueMax(entry, mejor) * ataque,
       // La resistencia entra como divisor: recibir el doble vale lo mismo que
       // tener la mitad de aguante.
-      tankScore: (entry.stats.def * entry.stats.hp) / recibe,
+      tankScore: (entry.stats.def * entry.stats.hp) / recibe
     })
   }
 
-  const mejores = (clave) =>
-    [...candidatos].sort((a, b) => b[clave] - a[clave]).slice(0, limit)
+  const mejores = (clave) => [...candidatos].sort((a, b) => b[clave] - a[clave]).slice(0, limit)
 
   return {
     // Solo atacantes que no salgan perdiendo por tipo: ya se ha elegido su
     // mejor rápido, así que si ni con ese es efectivo, no tiene arreglo.
     attackers: mejores('attackScore').filter((uno) => uno.effectiveness >= 1),
-    tanks: mejores('tankScore'),
+    tanks: mejores('tankScore')
   }
 }

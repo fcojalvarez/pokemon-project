@@ -11,7 +11,9 @@ export function useMedia(query) {
 
   const consulta = window.matchMedia(query)
   cumple.value = consulta.matches
-  const alCambiar = (evento) => { cumple.value = evento.matches }
+  const alCambiar = (evento) => {
+    cumple.value = evento.matches
+  }
   consulta.addEventListener?.('change', alCambiar)
   onBeforeUnmount(() => consulta.removeEventListener?.('change', alCambiar))
   return cumple

@@ -47,8 +47,13 @@ const noticia = computed(() => {
   return {
     ...texto,
     // Agrupadas aquí y no en la plantilla: ahí se rehacían en cada repintado.
-    secciones: (texto?.secciones ?? []).map((seccion) => ({ ...seccion, bloques: agrupar(seccion.bloques ?? []) })),
-    url: enlaceSeguro(idioma === 'en' ? entrada.url?.replace('/es/news/', '/en/news/') : entrada.url)
+    secciones: (texto?.secciones ?? []).map((seccion) => ({
+      ...seccion,
+      bloques: agrupar(seccion.bloques ?? [])
+    })),
+    url: enlaceSeguro(
+      idioma === 'en' ? entrada.url?.replace('/es/news/', '/en/news/') : entrada.url
+    )
   }
 })
 
@@ -78,28 +83,48 @@ const agrupar = (bloques) => {
 </script>
 
 <template>
-  <base-modal :open="Boolean(event)" :title="$t('events.detail')" size="sm:max-w-3xl" @close="emit('close')">
+  <base-modal
+    :open="Boolean(event)"
+    :title="$t('events.detail')"
+    size="sm:max-w-3xl"
+    @close="emit('close')"
+  >
     <template v-if="event">
       <event-card :event="event" detalle :bonus="bonusOficial" />
 
       <div class="px-4 pb-4">
-        <p v-if="cargando" class="text-xs text-gray-600 dark:text-gray-300">{{ $t('common.loading') }}</p>
+        <p v-if="cargando" class="text-xs text-gray-600 dark:text-gray-300">
+          {{ $t('common.loading') }}
+        </p>
 
         <article v-else-if="noticia" class="pt-3 border-t border-gray-300 dark:border-gray-700">
-          <p class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">{{ $t('events.official') }}</p>
+          <p class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
+            {{ $t('events.official') }}
+          </p>
           <section v-for="(seccion, i) in noticia.secciones" :key="i" class="mt-3">
             <h3 class="text-sm font-bold">{{ seccion.titulo }}</h3>
             <template v-for="(bloque, j) in seccion.bloques" :key="j">
-              <ul v-if="bloque.t === 'ul'" class="mt-1.5 flex flex-col gap-1 pl-4 list-disc text-sm">
+              <ul
+                v-if="bloque.t === 'ul'"
+                class="mt-1.5 flex flex-col gap-1 pl-4 list-disc text-sm"
+              >
                 <li v-for="(item, k) in bloque.items" :key="k">{{ item }}</li>
               </ul>
-              <h4 v-else-if="bloque.t === 'h3'" class="mt-2 text-xs font-bold text-gray-600 dark:text-gray-300">{{ bloque.x }}</h4>
+              <h4
+                v-else-if="bloque.t === 'h3'"
+                class="mt-2 text-xs font-bold text-gray-600 dark:text-gray-300"
+              >
+                {{ bloque.x }}
+              </h4>
               <p v-else class="mt-1.5 text-sm">{{ bloque.x }}</p>
             </template>
           </section>
         </article>
 
-        <p v-else class="pt-3 border-t border-gray-300 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300">
+        <p
+          v-else
+          class="pt-3 border-t border-gray-300 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300"
+        >
           {{ $t('events.noOfficial') }}
         </p>
 
@@ -110,14 +135,16 @@ const agrupar = (bloques) => {
             target="_blank"
             rel="noopener"
             class="px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
-          >{{ $t('events.openOfficial') }}</a>
+            >{{ $t('events.openOfficial') }}</a
+          >
           <a
             v-if="enlaceLeekDuck"
             :href="enlaceLeekDuck"
             target="_blank"
             rel="noopener"
             class="px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
-          >{{ $t('events.openLeekDuck') }}</a>
+            >{{ $t('events.openLeekDuck') }}</a
+          >
         </div>
       </div>
     </template>

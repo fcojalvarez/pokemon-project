@@ -16,9 +16,11 @@ defineProps({
 
 <template>
   <aside
-    :class="activa
-      ? '[@media(min-height:720px)]:sticky top-[104px] flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
-      : ''"
+    :class="
+      activa
+        ? '[@media(min-height:720px)]:sticky top-[104px] flex flex-col gap-4 p-4 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
+        : ''
+    "
   >
     <slot />
   </aside>

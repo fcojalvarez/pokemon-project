@@ -5,13 +5,7 @@ import { FEEDS, MAX_CACHE_AGE_MS, eventStatus, isCacheExpired, parseDate } from 
 
 const STORAGE_KEY = 'pogodex:live'
 
-const TIER_ORDER = [
-  '1-Star Raids',
-  '3-Star Raids',
-  '5-Star Raids',
-  'Mega Raids',
-  'Elite Raids'
-]
+const TIER_ORDER = ['1-Star Raids', '3-Star Raids', '5-Star Raids', 'Mega Raids', 'Elite Raids']
 
 const EGG_ORDER = ['1 km', '2 km', '5 km', '7 km', '10 km', '12 km']
 
@@ -138,7 +132,12 @@ export const useLiveStore = defineStore('live', () => {
       const status = eventStatus(event, statusClock.value)
       const previo = conEstado.get(event)
       if (previo?.status === status) return previo
-      const conSuEstado = { ...event, status, startDate: parseDate(event.start), endDate: parseDate(event.end) }
+      const conSuEstado = {
+        ...event,
+        status,
+        startDate: parseDate(event.start),
+        endDate: parseDate(event.end)
+      }
       conEstado.set(event, conSuEstado)
       return conSuEstado
     })
@@ -188,9 +187,7 @@ export const useLiveStore = defineStore('live', () => {
       grupos.push({
         name: 'shadow',
         shadow: true,
-        list: [...oscuros].sort(
-          (a, b) => TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier)
-        )
+        list: [...oscuros].sort((a, b) => TIER_ORDER.indexOf(a.tier) - TIER_ORDER.indexOf(b.tier))
       })
     }
 
@@ -252,7 +249,9 @@ export const useLiveStore = defineStore('live', () => {
     if (enCurso) return enCurso
     if (status.value === 'ready' && !force) return Promise.resolve()
     arrancarReloj()
-    enCurso = bajar().finally(() => { enCurso = null })
+    enCurso = bajar().finally(() => {
+      enCurso = null
+    })
     return enCurso
   }
 
@@ -267,7 +266,10 @@ export const useLiveStore = defineStore('live', () => {
     try {
       const [ev, rd, eg, rs] = await Promise.all(
         Object.values(FEEDS).map(async (url) => {
-          const res = await fetch(url, { cache: 'no-cache', signal: AbortSignal.timeout?.(ESPERA_MAXIMA_MS) })
+          const res = await fetch(url, {
+            cache: 'no-cache',
+            signal: AbortSignal.timeout?.(ESPERA_MAXIMA_MS)
+          })
           if (!res.ok) throw new Error(`HTTP ${res.status}`)
           return res.json()
         })

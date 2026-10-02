@@ -1,38 +1,40 @@
-import { createApp, watch } from 'vue';
-import { createPinia } from 'pinia';
+import { createApp, watch } from 'vue'
+import { createPinia } from 'pinia'
 
-import App from './App.vue';
-import router from './router';
+import App from './App.vue'
+import router from './router'
 
-import i18n, { idiomaInicial } from './plugins/i18n';
+import i18n, { idiomaInicial } from './plugins/i18n'
 
-import './assets/main.css';
-import './index.css';
+import './assets/main.css'
+import './index.css'
 
-import { usePwaUpdate } from './composables/usePwaUpdate';
-import { useMainStore } from './stores/main';
+import { usePwaUpdate } from './composables/usePwaUpdate'
+import { useMainStore } from './stores/main'
 
-const app = createApp(App);
-const pinia = createPinia();
+const app = createApp(App)
+const pinia = createPinia()
 
-app.use(pinia);
+app.use(pinia)
 // El tema antes de montar: si no, la app se pintaba un instante en claro.
-useMainStore(pinia).iniciarTema();
-app.use(router);
-app.use(i18n);
-
+useMainStore(pinia).iniciarTema()
+app.use(router)
+app.use(i18n)
 
 // Título de pestaña por página. La ficha lo pone ella misma cuando sabe qué
 // Pokémon es, así que aquí se deja en paz.
 const ponerTitulo = (to) => {
-    if (to.name === 'PokemonPage') return;
-    const key = to.meta?.titleKey;
-    document.title = key ? `${i18n.global.t(key)} · PoGoDex` : 'PoGoDex';
-};
-router.afterEach(ponerTitulo);
+  if (to.name === 'PokemonPage') return
+  const key = to.meta?.titleKey
+  document.title = key ? `${i18n.global.t(key)} · PoGoDex` : 'PoGoDex'
+}
+router.afterEach(ponerTitulo)
 
 // Al cambiar de idioma desde el menú, el título de la pestaña también.
-watch(() => i18n.global.locale, () => ponerTitulo(router.currentRoute.value));
+watch(
+  () => i18n.global.locale,
+  () => ponerTitulo(router.currentRoute.value)
+)
 
 // Con el inglés elegido, se espera a su fichero (va en la precaché, así que
 // es inmediato salvo la primera vez) para no pintar la app en español.
@@ -43,11 +45,11 @@ watch(() => i18n.global.locale, () => ponerTitulo(router.currentRoute.value));
 // (el buscador se vaciaba y el menú se cerraba solo). allSettled: si esa
 // navegación falla, se monta igual y la recarga de abajo se ocupa.
 Promise.allSettled([idiomaInicial(), router.isReady()]).then(() => {
-    // El idioma del documento sigue al de la app: con lang="en" los lectores
-    // de pantalla leían el español con pronunciación inglesa.
-    document.documentElement.lang = i18n.global.locale;
-    app.mount('#app');
-});
+  // El idioma del documento sigue al de la app: con lang="en" los lectores
+  // de pantalla leían el español con pronunciación inglesa.
+  document.documentElement.lang = i18n.global.locale
+  app.mount('#app')
+})
 
 /**
  * Tras un despliegue, una pestaña abierta con la versión anterior pide trozos
@@ -61,22 +63,22 @@ Promise.allSettled([idiomaInicial(), router.isReady()]).then(() => {
  * ya no se leen (las nuevas llevan otro nombre, ver vite.config.js) y solo
  * ocupan sitio. Se borran al arrancar.
  */
-const CACHES_VIEJAS = ['pokeapi-sprites', 'leekduck-img', 'formas', 'noticias-img'];
+const CACHES_VIEJAS = ['pokeapi-sprites', 'leekduck-img', 'formas', 'noticias-img']
 if (typeof caches !== 'undefined') {
-  for (const nombre of CACHES_VIEJAS) caches.delete(nombre).catch(() => {});
+  for (const nombre of CACHES_VIEJAS) caches.delete(nombre).catch(() => {})
 }
 
 window.addEventListener('vite:preloadError', (evento) => {
   try {
-    const antes = Number(sessionStorage.getItem('recarga-version') ?? 0);
-    if (Date.now() - antes < 5 * 60 * 1000) return;
-    sessionStorage.setItem('recarga-version', String(Date.now()));
+    const antes = Number(sessionStorage.getItem('recarga-version') ?? 0)
+    if (Date.now() - antes < 5 * 60 * 1000) return
+    sessionStorage.setItem('recarga-version', String(Date.now()))
   } catch {
     /* sin sessionStorage se recarga igual */
   }
-  evento.preventDefault();
-  window.location.reload();
-});
+  evento.preventDefault()
+  window.location.reload()
+})
 
 // Se engancha después de montar: no bloquea el primer pintado.
-usePwaUpdate();
+usePwaUpdate()

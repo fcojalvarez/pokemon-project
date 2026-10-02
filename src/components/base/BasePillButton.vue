@@ -24,8 +24,8 @@ defineProps({
           ? 'border-gray-600 dark:border-gray-300 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white font-semibold'
           : 'border-dashed border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
         : active
-          ? 'border-gray-400 shadow-md bg-gray-500 dark:bg-gray-600 text-white'
-          : 'border-gray-400 shadow-md bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
+        ? 'border-gray-400 shadow-md bg-gray-500 dark:bg-gray-600 text-white'
+        : 'border-gray-400 shadow-md bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
     "
     :aria-pressed="active"
   >
