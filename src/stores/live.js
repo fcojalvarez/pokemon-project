@@ -1,7 +1,14 @@
 import { computed, ref } from 'vue'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { normalizeName } from '../utils/gameText'
-import { FEEDS, MAX_CACHE_AGE_MS, eventStatus, isCacheExpired, parseDate } from '../utils/liveFeed'
+import {
+  FEEDS,
+  FEED_ROCKET,
+  MAX_CACHE_AGE_MS,
+  eventStatus,
+  isCacheExpired,
+  parseDate
+} from '../utils/liveFeed'
 
 const STORAGE_KEY = 'pogodex:live'
 
@@ -64,6 +71,8 @@ export const useLiveStore = defineStore('live', () => {
   const raids = ref([])
   const eggs = ref([])
   const research = ref([])
+  /** Alineaciones del Team GO Rocket (Giovanni, líderes y reclutas). */
+  const rocket = ref([])
   const status = ref('idle')
   const error = ref(null)
   const fetchedAt = ref(null)
@@ -236,6 +245,7 @@ export const useLiveStore = defineStore('live', () => {
     raids.value = cached.raids ?? []
     eggs.value = cached.eggs ?? []
     research.value = cached.research ?? []
+    rocket.value = cached.rocket ?? []
     fetchedAt.value = cached.fetchedAt ?? null
     stale.value = true
     return true
@@ -263,25 +273,37 @@ export const useLiveStore = defineStore('live', () => {
     status.value = hadCache ? 'ready' : 'loading'
     error.value = null
 
+    const bajarUno = async (url) => {
+      const res = await fetch(url, {
+        cache: 'no-cache',
+        signal: AbortSignal.timeout?.(ESPERA_MAXIMA_MS)
+      })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      return res.json()
+    }
+    // El de Rocket, a la vez pero sin tumbar a los demás si falla: entonces se
+    // queda con lo que hubiera.
+    const conRocket = bajarUno(FEED_ROCKET).catch(() => null)
+
     try {
-      const [ev, rd, eg, rs] = await Promise.all(
-        Object.values(FEEDS).map(async (url) => {
-          const res = await fetch(url, {
-            cache: 'no-cache',
-            signal: AbortSignal.timeout?.(ESPERA_MAXIMA_MS)
-          })
-          if (!res.ok) throw new Error(`HTTP ${res.status}`)
-          return res.json()
-        })
-      )
+      const [ev, rd, eg, rs] = await Promise.all(Object.values(FEEDS).map(bajarUno))
+      const rk = (await conRocket) ?? rocket.value
       events.value = ev
       raids.value = rd
       eggs.value = eg
       research.value = rs
+      rocket.value = Array.isArray(rk) ? rk : []
       fetchedAt.value = new Date().toISOString()
       stale.value = false
       status.value = 'ready'
-      writeCache({ events: ev, raids: rd, eggs: eg, research: rs, fetchedAt: fetchedAt.value })
+      writeCache({
+        events: ev,
+        raids: rd,
+        eggs: eg,
+        research: rs,
+        rocket: rocket.value,
+        fetchedAt: fetchedAt.value
+      })
     } catch (err) {
       error.value = err.message
       // Sin red tiramos de caché aunque esté caducada, pero marcada: las vistas
@@ -296,6 +318,7 @@ export const useLiveStore = defineStore('live', () => {
     raids,
     eggs,
     research,
+    rocket,
     status,
     error,
     fetchedAt,

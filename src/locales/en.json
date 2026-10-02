@@ -273,10 +273,12 @@
     "tabRaids": "Raids",
     "tabEggs": "Eggs",
     "tabResearch": "Research",
+    "tabRocket": "Rocket",
     "all": {
       "raids": "All",
       "eggs": "All",
-      "research": "All"
+      "research": "All",
+      "rocket": "All"
     },
     "weakTo": "Weak to",
     "boostedBy": "Boosted by",
@@ -284,6 +286,22 @@
     "noRaids": "No raid bosses published.",
     "noEggs": "No egg data published.",
     "noResearch": "No tasks published.",
+    "noRocket": "No Team GO Rocket data right now.",
+    "rocket": {
+      "intro": "What each one can use in their three slots. “Catchable”: the Shadow Pokémon you get for beating them.",
+      "groups": {
+        "boss": "Giovanni",
+        "leader": "Leaders",
+        "grunt": "Grunts"
+      },
+      "grunt": "Grunt",
+      "gruntType": "{type}-type Grunt",
+      "decoy": "Decoy Grunt",
+      "male": "male",
+      "female": "female",
+      "slot": "Slot {n}",
+      "catchable": "Catchable"
+    },
     "tiers": {
       "1-Star Raids": "Tier 1",
       "3-Star Raids": "Tier 3",

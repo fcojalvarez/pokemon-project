@@ -148,6 +148,43 @@ test('la ficha compara con otro Pokémon elegido por su nombre', async ({ page }
   await expect(seccion.getByRole('searchbox')).toBeVisible()
 })
 
+test('la pestaña Rocket enseña las alineaciones y los counters de un recluta', async ({ page }) => {
+  // El feed se contesta aquí: el de verdad cambia cada pocas semanas.
+  const mon = (name, dex, isEncounter = false) => ({
+    name,
+    image: `https://cdn.leekduck.com/assets/img/pokemon_icons_crop/pm${dex}.icon.png`,
+    isEncounter
+  })
+  await page.route('**/rocketLineups.json', (route) =>
+    route.fulfill({
+      json: [
+        {
+          name: 'Giovanni',
+          title: 'Team GO Rocket Boss',
+          type: '',
+          firstPokemon: [mon('Persian', 53)],
+          secondPokemon: [mon('Kangaskhan', 115)],
+          thirdPokemon: [mon('Zekrom', 644, true)]
+        },
+        {
+          name: 'Fire-type Female Grunt',
+          title: 'Team GO Rocket Grunt',
+          type: 'fire',
+          firstPokemon: [mon('Ponyta', 77, true)],
+          secondPokemon: [mon('Magmar', 126)],
+          thirdPokemon: [mon('Magmortar', 467)]
+        }
+      ]
+    })
+  )
+  await page.goto('/live?tab=rocket')
+  await expect(page.getByRole('heading', { name: 'Giovanni', level: 3 })).toBeVisible()
+  const recluta = page.locator('article', { hasText: 'Recluta de tipo Fuego (chica)' })
+  await expect(recluta.getByText('Se atrapa')).toBeVisible()
+  await recluta.getByRole('button', { name: /Recluta de tipo Fuego/ }).click()
+  await expect(recluta.getByText('Débil a')).toBeVisible()
+})
+
 test('una sugerencia demasiado corta no sale; una buena, sí', async ({ page }) => {
   // Nunca se escribe en la tabla de verdad: el insert se contesta aquí.
   const enviadas = []

@@ -7,6 +7,10 @@
  * Antes eran pastillas como las de los grupos de debajo (Nivel 1, Nivel 3…),
  * una fila encima de otra, y no se distinguía qué cambiaba la página y qué
  * solo saltaba. Cada parte es un botón con aria-pressed, como las pastillas.
+ *
+ * Cada parte mide lo que su texto y el sitio que sobra se reparte: a partes
+ * iguales exactas, con cuatro pestañas en un móvil «Incursiones» no cabía
+ * y salía «Incursion…» mientras a «Rocket» le sobraba media parte.
  */
 defineProps({
   modelValue: { type: String, required: true },
@@ -20,7 +24,7 @@ defineEmits(['update:modelValue'])
 <template>
   <div
     class="grid gap-1 p-1 rounded-[14px] bg-gray-200 dark:bg-gray-800"
-    :style="{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }"
+    :style="{ gridTemplateColumns: `repeat(${options.length}, minmax(0, auto))` }"
   >
     <button
       v-for="option in options"

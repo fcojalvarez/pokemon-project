@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { FEEDS } from '../src/utils/liveFeed'
+import { FEEDS, FEED_ROCKET } from '../src/utils/liveFeed'
 import { useLiveStore } from '../src/stores/live'
 
 /**
@@ -29,13 +29,14 @@ const FEED = {
     { name: 'Riolu', eggType: '10 km' },
     { name: 'Pichu', eggType: '2 km' }
   ],
-  research: [{ text: 'Catch 5 Pokémon', type: 'catch', rewards: [{ name: 'Machop' }] }]
+  research: [{ text: 'Catch 5 Pokémon', type: 'catch', rewards: [{ name: 'Machop' }] }],
+  rocket: [{ name: 'Giovanni', title: 'Team GO Rocket Boss', type: '' }]
 }
 
 const responder = (fallar = false) =>
   vi.fn(async (url) => {
     if (fallar) throw new Error('sin red')
-    const clave = Object.keys(FEEDS).find((k) => FEEDS[k] === url)
+    const clave = url === FEED_ROCKET ? 'rocket' : Object.keys(FEEDS).find((k) => FEEDS[k] === url)
     return { ok: true, json: async () => FEED[clave] }
   })
 
@@ -55,11 +56,11 @@ describe('store en vivo', () => {
     vi.unstubAllGlobals()
   })
 
-  it('baja los cuatro feeds, queda lista y lo guarda para la próxima vez', async () => {
+  it('baja los cinco feeds, queda lista y lo guarda para la próxima vez', async () => {
     const fetch = responder()
     vi.stubGlobal('fetch', fetch)
     await live.load()
-    expect(fetch).toHaveBeenCalledTimes(4)
+    expect(fetch).toHaveBeenCalledTimes(5)
     expect(live.status).toBe('ready')
     expect(live.isStale).toBe(false)
     const guardado = JSON.parse(localStorage.getItem('pogodex:live'))
@@ -72,7 +73,7 @@ describe('store en vivo', () => {
     vi.stubGlobal('fetch', fetch)
     await live.load()
     await live.load()
-    expect(fetch).toHaveBeenCalledTimes(4)
+    expect(fetch).toHaveBeenCalledTimes(5)
   })
 
   it('con la caché reciente abre ya con ella mientras baja lo nuevo', async () => {
@@ -116,7 +117,7 @@ describe('store en vivo', () => {
     const a = live.load()
     const b = live.load()
     await Promise.all([a, b])
-    expect(fetch).toHaveBeenCalledTimes(4)
+    expect(fetch).toHaveBeenCalledTimes(5)
     expect(live.status).toBe('ready')
   })
 
@@ -149,12 +150,30 @@ describe('store en vivo', () => {
     await vi.waitFor(() => expect(live.error).toBe('sin red'))
     // Que acabe del todo la carga fallida (su finally) antes de mover el reloj.
     await new Promise((r) => setImmediate(r))
-    expect(sinRed).toHaveBeenCalledTimes(4)
+    expect(sinRed).toHaveBeenCalledTimes(5)
     // Unos minutos más de tics: nada nuevo hasta pasado el plazo de reintento.
     vi.advanceTimersByTime(4 * 60_000)
-    expect(sinRed).toHaveBeenCalledTimes(4)
+    expect(sinRed).toHaveBeenCalledTimes(5)
     vi.advanceTimersByTime(90_000)
-    await vi.waitFor(() => expect(sinRed).toHaveBeenCalledTimes(8))
+    await vi.waitFor(() => expect(sinRed).toHaveBeenCalledTimes(10))
+  })
+
+  it('si falla el feed de Rocket, lo demás carga igual y Rocket se queda con lo que había', async () => {
+    vi.stubGlobal('fetch', responder())
+    await live.load()
+    expect(live.rocket).toHaveLength(1)
+    const base = responder()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url) => {
+        if (url === FEED_ROCKET) throw new Error('caído')
+        return base(url)
+      })
+    )
+    await live.load({ force: true })
+    expect(live.status).toBe('ready')
+    expect(live.error).toBeNull()
+    expect(live.rocket).toHaveLength(1)
   })
 
   it('un evento que no cambia de estado es el mismo objeto de una vez a otra', async () => {

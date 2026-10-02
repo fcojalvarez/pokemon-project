@@ -15,6 +15,13 @@ export const FEEDS = {
 }
 
 /**
+ * Las alineaciones del Team GO Rocket. Va aparte de FEEDS porque es
+ * opcional: si un día falla, Ahora sigue enseñando incursiones, huevos y
+ * misiones, y solo la pestaña Rocket se queda vacía.
+ */
+export const FEED_ROCKET = `${BASE}/rocketLineups.json`
+
+/**
  * Cuánto vale la caché. Las incursiones, huevos y tareas del feed no llevan
  * fecha: son "lo que hay ahora". Lo único que dice si siguen valiendo es
  * cuándo se descargaron, así que pasado este plazo no se muestran como

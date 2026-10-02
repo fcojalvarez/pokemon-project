@@ -273,10 +273,12 @@
     "tabRaids": "Incursiones",
     "tabEggs": "Huevos",
     "tabResearch": "Misiones",
+    "tabRocket": "Rocket",
     "all": {
       "raids": "Todas",
       "eggs": "Todos",
-      "research": "Todas"
+      "research": "Todas",
+      "rocket": "Todos"
     },
     "weakTo": "Débil a",
     "boostedBy": "Potenciado con",
@@ -284,6 +286,22 @@
     "noRaids": "No hay jefes de incursión publicados.",
     "noEggs": "No hay datos de huevos publicados.",
     "noResearch": "No hay misiones publicadas.",
+    "noRocket": "No hay datos del Team GO Rocket ahora mismo.",
+    "rocket": {
+      "intro": "Qué puede sacar cada uno en sus tres puestos. «Se atrapa»: el Pokémon oscuro que te llevas al ganarle.",
+      "groups": {
+        "boss": "Giovanni",
+        "leader": "Líderes",
+        "grunt": "Reclutas"
+      },
+      "grunt": "Recluta",
+      "gruntType": "Recluta de tipo {type}",
+      "decoy": "Recluta señuelo",
+      "male": "chico",
+      "female": "chica",
+      "slot": "Puesto {n}",
+      "catchable": "Se atrapa"
+    },
     "tiers": {
       "1-Star Raids": "Nivel 1",
       "3-Star Raids": "Nivel 3",

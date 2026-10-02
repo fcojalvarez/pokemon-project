@@ -16,6 +16,8 @@ import MaxMark from '../components/pokemon/MaxMark.vue'
 import RaidCountersPanel from '../components/raids/RaidCountersPanel.vue'
 import MaxTeamPanel from '../components/raids/MaxTeamPanel.vue'
 import CountersToggle from '../components/raids/CountersToggle.vue'
+import RocketLineup from '../components/raids/RocketLineup.vue'
+import { rocketPorGrupo } from '../utils/rocket'
 import { gigamaxSpriteId } from '../utils/gigamax'
 import { useMedia } from '../composables/useMedia'
 import MarkLegend from '../components/pokemon/MarkLegend.vue'
@@ -69,7 +71,7 @@ const openBoss = ref(null)
 /** Qué jefe Max tiene el equipo recomendado abierto. */
 const openMax = ref(null)
 
-const TABS = ['raids', 'eggs', 'research']
+const TABS = ['raids', 'eggs', 'research', 'rocket']
 
 // La pestaña, en la URL (?tab=, la misma que usan los enlaces desde la ficha).
 // El ?dex= con el que se llega señalando a un Pokémon es de un solo uso: al
@@ -119,6 +121,14 @@ const idIncursion = (grupo) => `nivel-${slug(grupo.name)}`
 const idMax = (grupo) => `max-${grupo.tier}`
 const idHuevo = (grupo) => `huevos-${slug(grupo.name)}`
 const idTarea = (grupo) => `tareas-${slug(grupo.type)}`
+const idRocket = (grupo) => `rocket-${grupo.grupo}`
+
+/** Las alineaciones del Team GO Rocket: Giovanni, los líderes y los reclutas. */
+const rocketGrupos = computed(() =>
+  rocketPorGrupo(live.rocket, (tipo) => (te(`types.${tipo}`) ? t(`types.${tipo}`) : tipo))
+)
+/** Qué alineación tiene los counters abiertos (por su nombre, que es único). */
+const openRocket = ref(null)
 
 /** Los grupos de la pestaña, con cuántos tiene cada uno, y «Todas» delante. */
 const filtros = computed(() => {
@@ -142,6 +152,12 @@ const filtros = computed(() => {
       label: grupo.name,
       count: grupo.list.length
     }))
+  } else if (tab.value === 'rocket') {
+    grupos = rocketGrupos.value.map((grupo) => ({
+      value: idRocket(grupo),
+      label: t(`raids.rocket.groups.${grupo.grupo}`),
+      count: grupo.list.length
+    }))
   } else {
     grupos = researchGroups.value.map((grupo) => ({
       value: idTarea(grupo),
@@ -163,6 +179,7 @@ const incursionesVisibles = computed(() =>
 const maxVisibles = computed(() => maxPorNivel.value.filter((grupo) => seVe(idMax(grupo))))
 const huevosVisibles = computed(() => live.eggsByType.filter((grupo) => seVe(idHuevo(grupo))))
 const tareasVisibles = computed(() => researchGroups.value.filter((grupo) => seVe(idTarea(grupo))))
+const rocketVisibles = computed(() => rocketGrupos.value.filter((grupo) => seVe(idRocket(grupo))))
 
 /** La leyenda del final: las marcas Max solo en la pestaña que tiene combates Max. */
 const marcasLeyenda = computed(() =>
@@ -569,6 +586,33 @@ onMounted(() => {
               />
             </div>
           </section>
+        </template>
+
+        <!-- ---------- Team GO Rocket ---------- -->
+        <template v-else-if="tab === 'rocket'">
+          <base-empty-state v-if="rocketGrupos.length === 0" :message="$t('raids.noRocket')" />
+          <template v-else>
+            <p class="mb-3 text-mini text-gray-600 dark:text-gray-300">
+              {{ $t('raids.rocket.intro') }}
+            </p>
+            <section
+              v-for="grupo in rocketVisibles"
+              :id="idRocket(grupo)"
+              :key="grupo.grupo"
+              class="mb-5 scroll-mt-36"
+            >
+              <h2 class="text-sm font-bold mb-2">{{ $t(`raids.rocket.groups.${grupo.grupo}`) }}</h2>
+              <div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 items-start">
+                <rocket-lineup
+                  v-for="lineup in grupo.list"
+                  :key="lineup.name"
+                  :lineup="lineup"
+                  :open="openRocket === lineup.name"
+                  @toggle="openRocket = openRocket === lineup.name ? null : lineup.name"
+                />
+              </div>
+            </section>
+          </template>
         </template>
 
         <!-- ---------- Tareas ---------- -->
