@@ -72,9 +72,9 @@
     "fastMoves": "Ataques rápidos",
     "chargedMoves": "Ataques cargados",
     "yourMoves": {
-      "title": "¿Y con tus ataques?",
+      "title": "¿Y con otros ataques?",
       "overall": "General",
-      "hint": "Toca un rápido y un cargado.",
+      "hint": "Toca arriba un rápido y un cargado.",
       "noData": "Ese ataque aún no tiene datos de daño en incursiones: no se puede calcular el puesto.",
       "beyond": "más allá del #{n}",
       "dropHelp": "{n} puestos por debajo de su mejor conjunto",
@@ -96,8 +96,6 @@
     "shadowShort": "Oscuro",
     "superMega": "Supermega",
     "shinyLegend": "Shiny liberado",
-    "released": "Liberado",
-    "releasedShiny": "Shiny",
     "category": {
       "legendary": "Legendario",
       "mythical": "Singular",

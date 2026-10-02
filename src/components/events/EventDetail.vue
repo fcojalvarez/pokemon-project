@@ -134,6 +134,33 @@ const agrupar = (bloques) => {
       <event-card ref="tarjeta" :event="event" detalle :bonus="bonusOficial" />
 
       <div class="px-4 pb-4">
+        <!--
+          Justo debajo de cuándo es, que es cuando se piensa en apuntarlo. Antes
+          iba al final, debajo de toda la noticia oficial, junto a los enlaces.
+        -->
+        <button
+          v-if="calendario"
+          type="button"
+          aria-haspopup="dialog"
+          class="mb-4 w-full sm:w-auto flex items-center justify-center gap-2 h-11 sm:h-10 px-4 text-sm font-semibold rounded-xl bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-white"
+          @click="eligiendoCalendario = true"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            class="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" />
+          </svg>
+          {{ $t('events.addToCalendar') }}
+        </button>
+
         <p v-if="cargando" class="text-xs text-gray-600 dark:text-gray-300">
           {{ $t('common.loading') }}
         </p>
@@ -170,28 +197,6 @@ const agrupar = (bloques) => {
         </p>
 
         <div class="mt-4 flex flex-wrap gap-2">
-          <button
-            v-if="calendario"
-            type="button"
-            aria-haspopup="dialog"
-            class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
-            @click="eligiendoCalendario = true"
-          >
-            <svg
-              aria-hidden="true"
-              viewBox="0 0 24 24"
-              class="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <rect x="3" y="4" width="18" height="18" rx="2" />
-              <path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" />
-            </svg>
-            {{ $t('events.addToCalendar') }}
-          </button>
           <a
             v-if="noticia?.url"
             :href="noticia.url"

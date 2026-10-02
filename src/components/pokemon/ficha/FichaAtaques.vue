@@ -14,6 +14,7 @@ import { computed, ref, watch } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import MoveTag from '../MoveTag.vue'
 import MoveLegend from '../MoveLegend.vue'
+import BaseChevron from '../../base/BaseChevron.vue'
 import { useTranslate } from '../../../composables/useTranslate'
 import { useGameDataStore } from '../../../stores/gameData'
 import { puestoDeConjunto } from '../../../utils/puestoAtaques'
@@ -38,10 +39,25 @@ const LIMITE = 500
 const rapido = ref(null)
 const cargado = ref(null)
 
-// En la ficha de otro Pokémon (u otra forma) se empieza sin elegir.
+/**
+ * «¿Y con otros ataques?» va plegado y empieza siempre cerrado: no se guarda,
+ * es una consulta de un momento. Cerrado, las listas son solo informativas;
+ * abierto, sus ataques se eligen. Al cerrarlo se olvida lo elegido.
+ */
+const abiertoOtros = ref(false)
+const alternarOtros = () => {
+  abiertoOtros.value = !abiertoOtros.value
+  if (!abiertoOtros.value) {
+    rapido.value = null
+    cargado.value = null
+  }
+}
+
+// En la ficha de otro Pokémon (u otra forma) se empieza cerrado y sin elegir.
 watch(
   () => props.entrada?.id,
   () => {
+    abiertoOtros.value = false
     rapido.value = null
     cargado.value = null
   }
@@ -57,10 +73,11 @@ const elegirCargado = (id) => {
 }
 
 /**
- * Solo se puede elegir si hay conjuntos que puntuar: con Applin, que solo
- * tiene Forcejeo, no habría nada que decir.
+ * Solo hay desplegable si hay conjuntos que puntuar: con Applin, que solo
+ * tiene Forcejeo, no habría nada que decir. Y solo se elige con él abierto.
  */
-const elegible = computed(() => Boolean(props.entrada) && props.bestMovesets.length > 0)
+const puedeElegir = computed(() => Boolean(props.entrada) && props.bestMovesets.length > 0)
+const elegible = computed(() => puedeElegir.value && abiertoOtros.value)
 
 /** Con los dos elegidos: el conjunto, su puesto y el de su mejor conjunto. */
 const conTusAtaques = computed(() => {
@@ -151,12 +168,6 @@ const resumen = computed(() => {
         bestMovesets.length ? 'mt-3 pt-3 border-t border-gray-300 dark:border-gray-700' : 'mt-2'
       "
     >
-      <p v-if="elegible" class="mb-2 text-xs font-semibold">
-        {{ $t('pokemon.yourMoves.title') }}
-        <span class="font-normal text-gray-600 dark:text-gray-300">{{
-          $t('pokemon.yourMoves.hint')
-        }}</span>
-      </p>
       <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.fastMoves') }}</span>
       <div class="flex flex-wrap gap-1 mt-1">
         <component
@@ -202,6 +213,21 @@ const resumen = computed(() => {
           />
         </component>
       </div>
+
+      <!-- El desplegable: cerrado no ocupa más que esta línea. -->
+      <button
+        v-if="puedeElegir"
+        type="button"
+        class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-gray-800 dark:text-gray-100 hover:underline"
+        :aria-expanded="abiertoOtros"
+        @click="alternarOtros"
+      >
+        {{ $t('pokemon.yourMoves.title') }}
+        <base-chevron :open="abiertoOtros" size="w-3.5 h-3.5" />
+      </button>
+      <p v-if="elegible" class="mt-1 text-mini text-gray-600 dark:text-gray-300">
+        {{ $t('pokemon.yourMoves.hint') }}
+      </p>
 
       <!-- role=status: al elegir el segundo, el lector de pantalla lee el puesto. -->
       <div role="status">

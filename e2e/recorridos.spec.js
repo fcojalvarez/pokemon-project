@@ -247,11 +247,17 @@ test('la ficha dice en qué puesto queda con tus ataques', async ({ page }) => {
   await page.goto('/pokemon/150')
   const seccion = page.locator('#ficha-ataques')
   await expect(seccion).toBeVisible()
-  const plegada = seccion.locator('button[aria-expanded="false"]')
+  // La sección, plegada en móvil y tablet (su botón es el del título).
+  const plegada = seccion.locator('h2 button[aria-expanded="false"]')
   if (await plegada.count()) await plegada.click()
   // El nombre del botón lleva delante el del tipo (el icono): se busca por el final.
   const ataque = (nombre) =>
     seccion.locator('button[aria-pressed]').filter({ hasText: new RegExp(`^\\W*${nombre}$`) })
+  // «¿Y con otros ataques?» empieza cerrado: los ataques no se pueden tocar.
+  const otros = seccion.getByRole('button', { name: '¿Y con otros ataques?' })
+  await expect(otros).toHaveAttribute('aria-expanded', 'false')
+  await expect(seccion.locator('button[aria-pressed]')).toHaveCount(0)
+  await otros.click()
   await ataque('Psicocorte').click()
   await expect(ataque('Psicocorte')).toHaveAttribute('aria-pressed', 'true')
   await ataque('Psíquico').click()
@@ -262,6 +268,12 @@ test('la ficha dice en qué puesto queda con tus ataques', async ({ page }) => {
   // Tocar otra vez el elegido lo quita, y sin los dos no hay resultado.
   await ataque('Psíquico').click()
   await expect(resultado).toBeEmpty()
+  // Al cerrarlo se olvida lo elegido.
+  await ataque('Psíquico').click()
+  await otros.click()
+  await expect(seccion.locator('button[aria-pressed]')).toHaveCount(0)
+  await otros.click()
+  await expect(ataque('Psicocorte')).toHaveAttribute('aria-pressed', 'false')
 })
 
 test('una sugerencia demasiado corta no sale; una buena, sí', async ({ page }) => {

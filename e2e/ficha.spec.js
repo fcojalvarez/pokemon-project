@@ -34,25 +34,31 @@ test('las megas X e Y de Charizard van juntas en su grupo', async ({ page }) => 
   await expect(cadena(page).locator('[aria-current="page"]')).toContainText('Mega Charizard Y')
 })
 
-/** La línea de la cabecera que dice qué tiene liberado. */
-const liberado = (page) => page.locator('main p', { hasText: /^Liberado:/ })
+/**
+ * Las marcas del sprite de la cabecera, como en su tarjeta de la Pokédex. Ya
+ * no hay línea «Liberado: …»: la leyenda va al final de la ficha.
+ */
+const cabecera = (page) => page.locator('main header').first()
+const marca = (page, nombre) => cabecera(page).getByRole('img', { name: nombre, exact: true })
 
-test('la cabecera dice qué tiene liberado cada Pokémon', async ({ page }) => {
+test('el sprite de la cabecera lleva las marcas de lo que tiene liberado', async ({ page }) => {
   await page.goto('/pokemon/6')
-  await expect(liberado(page)).toHaveText(/Shiny,\s*Dinamax,\s*Gigamax/, { useInnerText: true })
-  // Solo texto: ninguna de las tres lleva a otra sección.
-  await expect(liberado(page).getByRole('button')).toHaveCount(0)
+  await expect(marca(page, 'Shiny liberado')).toBeVisible()
+  await expect(marca(page, 'Puede dinamaxizar')).toBeVisible()
+  await expect(marca(page, 'Puede gigamaxizar')).toBeVisible()
+  await expect(page.locator('main p', { hasText: /^Liberado:/ })).toHaveCount(0)
+  // La leyenda, al final de la ficha.
+  await expect(page.getByRole('list', { name: 'Leyenda' })).toBeVisible()
 
   // Dinamax sí, Gigamax no.
   await page.goto('/pokemon/1')
-  await expect(liberado(page)).toHaveText(/Shiny,\s*Dinamax/, { useInnerText: true })
-  await expect(liberado(page)).not.toContainText('Gigamax', { useInnerText: true })
+  await expect(marca(page, 'Puede dinamaxizar')).toBeVisible()
+  await expect(marca(page, 'Puede gigamaxizar')).toHaveCount(0)
 
-  // Sin combates Max: solo el shiny, y nada que lleve a una sección que no hay.
+  // Sin combates Max: solo el shiny.
   await page.goto('/pokemon/151')
-  await expect(liberado(page)).toHaveText(/Shiny/, { useInnerText: true })
-  await expect(liberado(page)).not.toContainText('Dinamax', { useInnerText: true })
-  await expect(liberado(page).getByRole('button')).toHaveCount(0)
+  await expect(marca(page, 'Shiny liberado')).toBeVisible()
+  await expect(marca(page, 'Puede dinamaxizar')).toHaveCount(0)
 })
 
 /** A 1024 px, el escritorio más estrecho, las megas X e Y se montaban. */

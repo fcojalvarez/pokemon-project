@@ -17,6 +17,7 @@ import { localName } from '../composables/useTranslate'
 import NotFoundView from '../views/NotFoundView.vue'
 import FormasGaleria from './pokemon/FormasGaleria.vue'
 import MaxMark from './pokemon/MaxMark.vue'
+import MarkLegend from './pokemon/MarkLegend.vue'
 
 const pokemon = ref(null)
 // La consulta acabó y no hay ningún Pokémon con ese número (/pokemon/99999):
@@ -104,10 +105,10 @@ const categoria = computed(() => {
 })
 
 /**
- * Las marcas Max que tiene liberadas, para la línea «Liberado:» de la
- * cabecera: la sección Combates Max está abajo y plegada, y es de lo primero
- * que se mira. Sale de la misma forma que esa sección (la de la URL o
- * `fichaBase`): el Gigamax va por forma.
+ * Las marcas Max que tiene liberadas, sobre el sprite de la cabecera como en
+ * su tarjeta de la Pokédex: la sección Combates Max está abajo y plegada, y
+ * es de lo primero que se mira. Sale de la misma forma que esa sección (la de
+ * la URL o `fichaBase`): el Gigamax va por forma.
  */
 const maxLiberado = computed(() => {
   const p = pokemon.value
@@ -116,7 +117,6 @@ const maxLiberado = computed(() => {
   if (!info) return []
   return info.gigantamax ? ['dynamax', 'gigantamax'] : ['dynamax']
 })
-const MAX_TEXTO = { dynamax: 'max.legendDynamax', gigantamax: 'max.legendGigantamax' }
 
 // El título de la pestaña lo pone el router para las páginas fijas; aquí
 // depende de qué Pokémon se cargue.
@@ -204,12 +204,33 @@ watch(
       <header
         class="flex items-center gap-4 pb-3 border-b border-gray-300 dark:border-gray-700 lg:flex-1 lg:min-w-0 lg:pb-0 lg:border-b-0"
       >
-        <base-sprite
-          :src="hero.image"
-          :lazy="false"
-          class="w-20 h-20 lg:w-28 lg:h-28 shrink-0"
-          img-class="drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
-        />
+        <!--
+          Con las mismas marcas que su tarjeta de la Pokédex (shiny arriba a la
+          derecha, Dinamax y Gigamax abajo), que explica la leyenda del final.
+          Antes lo decía una línea «Liberado: …» que repetía esa leyenda.
+        -->
+        <span class="relative w-20 h-20 lg:w-28 lg:h-28 shrink-0">
+          <base-sprite
+            :src="hero.image"
+            :lazy="false"
+            class="w-full h-full"
+            img-class="drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
+          />
+          <shiny-mark
+            v-if="pokemon.is_shiny_released"
+            variant="dex"
+            :label="$t('pokemon.shinyLegend')"
+            class="absolute top-0 right-0 z-10 scale-[0.8] origin-top-right"
+          />
+          <max-mark
+            v-for="(marca, i) in maxLiberado"
+            :key="marca"
+            :variant="marca"
+            :size="18"
+            :class="i === 0 ? 'left-0' : 'right-0'"
+            class="absolute bottom-0 z-10 text-gray-800 dark:text-gray-200"
+          />
+        </span>
         <div class="min-w-0">
           <span class="block text-xs text-gray-600 dark:text-gray-300">#{{ hero.number }}</span>
           <h1 class="text-2xl lg:text-3xl font-bold leading-tight text-gray-900 dark:text-gray-100">
@@ -260,38 +281,10 @@ watch(
         </div>
       </header>
 
-      <!--
-                En móvil, la leyenda a la izquierda y los botones a la derecha,
-                misma línea. Desde lg, la leyenda encima de los botones: al lado
-                ocupaba tanto que se montaba sobre el nombre del Pokémon.
-            -->
+      <!-- Los botones, a la derecha; desde lg, en la misma fila que el Pokémon. -->
       <div
         class="mt-3 lg:mt-0 lg:shrink-0 flex flex-wrap items-center justify-between gap-3 lg:flex-col lg:items-end lg:gap-2"
       >
-        <!--
-                    «Liberado: ✦ Shiny, ✕ Dinamax, ✕ Gigamax», cada uno con la
-                    misma marca que lleva en la cadena y en la rejilla, así que
-                    además sirve de leyenda de la estrella de la cadena.
-                -->
-        <p
-          v-if="pokemon.is_shiny_released || maxLiberado.length"
-          class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-mini text-gray-600 dark:text-gray-300"
-        >
-          <span>{{ $t('pokemon.released') }}:</span>
-          <span v-if="pokemon.is_shiny_released" class="flex items-center gap-1">
-            <shiny-mark variant="evolution" size="text-mini" inline :scale="0.65" />
-            {{ $t('pokemon.releasedShiny') }}<template v-if="maxLiberado.length">,</template>
-          </span>
-          <!--
-                        Solo texto, como el shiny: Dinamax y Gigamax llevaban a
-                        Combates Max y el shiny a ningún sitio, y la línea se
-                        leía rara.
-                    -->
-          <span v-for="(marca, i) in maxLiberado" :key="marca" class="flex items-center gap-1">
-            <max-mark :variant="marca" :size="15" class="shrink-0" aria-hidden="true" />
-            {{ $t(MAX_TEXTO[marca]) }}<template v-if="i < maxLiberado.length - 1">,</template>
-          </span>
-        </p>
         <!-- Los botones a su ancho, a la derecha, y bajan de línea si no caben
                      junto a la leyenda: antes «Ver shiny» se salía de la tarjeta. -->
         <div class="ml-auto flex flex-wrap items-center justify-end gap-2">
@@ -336,6 +329,9 @@ watch(
     </base-card>
 
     <pokemon-extra-info :pokemon="pokemon" :form-id="formId" />
+
+    <!-- La misma leyenda que la Pokédex, abierta y al final: explica las marcas del sprite y de la línea evolutiva. -->
+    <mark-legend class="mt-2" />
   </div>
 
   <not-found-view v-else-if="noExiste" />

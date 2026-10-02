@@ -72,9 +72,9 @@
     "fastMoves": "Fast moves",
     "chargedMoves": "Charged moves",
     "yourMoves": {
-      "title": "What about your moves?",
+      "title": "What about other moves?",
       "overall": "Overall",
-      "hint": "Tap one fast and one charged move.",
+      "hint": "Tap one fast and one charged move above.",
       "noData": "That move has no raid damage data yet, so its rank can't be worked out.",
       "beyond": "beyond #{n}",
       "dropHelp": "{n} places below its best moveset",
@@ -96,8 +96,6 @@
     "shadowShort": "Shadow",
     "superMega": "Super Mega",
     "shinyLegend": "Shiny released",
-    "released": "Released",
-    "releasedShiny": "Shiny",
     "category": {
       "legendary": "Legendary",
       "mythical": "Mythical",
