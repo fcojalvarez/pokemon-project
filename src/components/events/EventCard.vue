@@ -5,7 +5,7 @@ import { useGameDataStore } from '../../stores/gameData'
 import { formatDuration } from '../../utils/time'
 import { useTranslate } from '../../composables/useTranslate'
 import { useEventos } from '../../composables/useEventos'
-import { parseEventName, parseMaxBattle, quitarTipo, splitPokemonList } from '../../utils/eventName'
+import { parseMaxBattle } from '../../utils/eventName'
 import { spriteUrl } from '../../utils/sprites'
 import { eventImageSrc, eventImageSrcset } from '../../utils/eventImage'
 import { summarizeEvent } from '../../utils/eventSummary'
@@ -24,9 +24,9 @@ const emit = defineEmits(['abrir'])
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
-const { t, te, localName, intlLocale } = useTranslate()
+const { t, localName, intlLocale } = useTranslate()
 
-const { tipoDeEvento } = useEventos()
+const { tipoDeEvento, tituloDeEvento } = useEventos()
 const typeLabel = computed(() => tipoDeEvento(props.event))
 
 /**
@@ -68,39 +68,8 @@ const horario = computed(() => {
   return `${hora(inicio)} → ${dia}, ${hora(fin)}`
 })
 
-/**
- * El título llega en inglés desde LeekDuck ("Mega Malamar in Mega Raids").
- * Si sigue uno de los patrones conocidos se arma en el idioma de la interfaz,
- * con el nombre del Pokémon traducido. Si no (eventos con nombre propio como
- * «Harvest Festival 2026: Applin Picking»), se usa la traducción automática
- * que deja `pnpm traducir`, y mientras no la haya, el inglés.
- */
-const displayName = computed(() => {
-  const parts = parseEventName(props.event.name)
-  if (!parts) return gameData.autoTranslate(props.event.name)
-
-  const key = `events.names.${parts.key}`
-  if (!te(key)) return gameData.autoTranslate(props.event.name)
-
-  // Hay eventos con varios protagonistas: se traduce cada uno y se unen con
-  // la conjunción del idioma, que el "and" inglés en mitad de una frase en
-  // español canta mucho.
-  const nombres = splitPokemonList(parts.pokemon).map((uno) => gameData.nombreEs(uno))
-  const pokemon =
-    nombres.length > 1
-      ? `${nombres.slice(0, -1).join(', ')} ${t('and')} ${nombres.at(-1)}`
-      : nombres[0] ?? parts.pokemon
-
-  return t(key, { pokemon, tier: parts.tier })
-})
-
-/**
- * El título sin el tipo delante cuando lo repite: la etiqueta ya dice «Lunes
- * MAX» encima, y «Lunes MAX: Sobble Dinamax» debajo era decirlo dos veces.
- * Solo si empieza exactamente por el tipo seguido de dos puntos; si no, el
- * título se deja entero.
- */
-const titulo = computed(() => quitarTipo(displayName.value, typeLabel.value))
+/** El título en el idioma de la app, sin el tipo delante si lo repite (useEventos). */
+const titulo = computed(() => tituloDeEvento(props.event))
 
 // El detalle lo usa para el calendario: el mismo título traducido que se ve.
 defineExpose({ titulo })

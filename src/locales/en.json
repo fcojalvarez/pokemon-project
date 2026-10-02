@@ -236,6 +236,17 @@
     },
     "active": "Active",
     "upcoming": "Upcoming",
+    "week": "Week",
+    "weekView": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "now": "Now",
+      "until": "until {when}",
+      "nothing": "Nothing new that day.",
+      "startToday": "Starting today",
+      "more": "and {n} more active",
+      "less": "show less"
+    },
     "past": "Past",
     "inProgress": "Active",
     "endsIn": "ends in",

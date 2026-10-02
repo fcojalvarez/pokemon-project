@@ -236,6 +236,17 @@
     },
     "active": "En marcha",
     "upcoming": "Próximos",
+    "week": "Semana",
+    "weekView": {
+      "today": "Hoy",
+      "tomorrow": "Mañana",
+      "now": "Ya",
+      "until": "hasta {when}",
+      "nothing": "Nada nuevo ese día.",
+      "startToday": "Empiezan hoy",
+      "more": "y {n} más en marcha",
+      "less": "ver menos"
+    },
     "past": "Pasados",
     "inProgress": "En marcha",
     "endsIn": "quedan",

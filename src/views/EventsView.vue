@@ -13,6 +13,7 @@ import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import EventCard from '../components/events/EventCard.vue'
 import EventDetail from '../components/events/EventDetail.vue'
 import AvisosEventos from '../components/events/AvisosEventos.vue'
+import EventosSemana from '../components/events/EventosSemana.vue'
 import { cargarNoticias } from '../stores/gameData'
 import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
@@ -36,8 +37,9 @@ const abierto = ref(null)
 const noticias = ref(null)
 
 // Ni pasados ni sin fecha: uno que ya terminó no sirve para nada, y los que
-// LeekDuck publica sin fechas no se pueden ni situar en el tiempo.
-const TABS = ['active', 'upcoming']
+// LeekDuck publica sin fechas no se pueden ni situar en el tiempo. «Semana»
+// (F10) junta los dos por día, para planear los próximos siete.
+const TABS = ['active', 'upcoming', 'week']
 
 // En la URL, para volver de un evento con la misma pestaña y el mismo tipo.
 // Antes del watch de abajo: si no, al leer la pestaña de la URL se borraría el
@@ -51,7 +53,10 @@ useFiltrosEnUrl({
   }
 })
 
-const source = computed(() => live[tab.value] ?? [])
+const semana = computed(() => tab.value === 'week')
+const source = computed(() =>
+  semana.value ? [...live.active, ...live.upcoming] : live[tab.value] ?? []
+)
 
 /** Los tipos de la pestaña, con cuántos hay de cada uno, y «Todos» delante. */
 const typeOptions = computed(() => {
@@ -124,7 +129,8 @@ onMounted(async () => {
     -->
     <div :class="ancho ? 'grid grid-cols-[240px_minmax(0,1fr)] gap-6 items-start' : ''">
       <base-sidebar :activa="ancho">
-        <div v-if="ancho" class="grid grid-cols-2 gap-2">
+        <!-- Tres pestañas no caben en fila en la barra: una debajo de otra, como en «Ahora». -->
+        <div v-if="ancho" class="flex flex-col gap-2">
           <base-pill-button
             v-for="name in TABS"
             :key="name"
@@ -136,7 +142,8 @@ onMounted(async () => {
         </div>
         <base-segmented v-else v-model="tab" :options="tabOptions" class="mb-3" />
 
-        <div v-if="ancho" role="group" aria-labelledby="eventos-tipo">
+        <!-- La semana va por día, sin filtrar por tipo: es para verla entera. -->
+        <div v-if="ancho && !semana" role="group" aria-labelledby="eventos-tipo">
           <span
             id="eventos-tipo"
             class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
@@ -148,7 +155,7 @@ onMounted(async () => {
 
         <!-- top-16 / sm:top-14: justo debajo de la cabecera fija (64 px en móvil, 56 desde sm). -->
         <div
-          v-else-if="typeOptions.length > 2"
+          v-else-if="!ancho && !semana && typeOptions.length > 2"
           role="group"
           :aria-label="$t('events.filterType')"
           class="sticky top-16 sm:top-14 z-10 -mx-4 px-4 py-2 mb-3 flex gap-2 overflow-x-auto bg-gray-100 dark:bg-gray-700 [scrollbar-width:none]"
@@ -220,6 +227,14 @@ onMounted(async () => {
         />
 
         <base-empty-state v-else-if="list.length === 0" :message="$t('common.empty')" />
+
+        <eventos-semana
+          v-else-if="semana"
+          :eventos="source"
+          :ahora="live.statusClock"
+          :columnas="ancho"
+          @abrir="abierto = $event"
+        />
 
         <div v-else :class="rejilla">
           <event-card

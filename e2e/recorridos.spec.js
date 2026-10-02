@@ -185,6 +185,18 @@ test('la pestaña Rocket enseña las alineaciones y los counters de un recluta',
   await expect(recluta.getByText('Débil a')).toBeVisible()
 })
 
+test('la semana de Eventos va por días y cada fila abre su detalle', async ({ page }) => {
+  await page.goto('/events')
+  await page.getByRole('button', { name: 'Semana', exact: true }).first().click()
+  await expect(page).toHaveURL(/view=week/)
+  await expect(page.getByRole('heading', { name: /^Hoy/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: /^Mañana/ })).toBeVisible()
+  // La semana no se filtra por tipo.
+  await expect(page.getByRole('group', { name: 'Tipo de evento' })).toHaveCount(0)
+  await page.locator('section[aria-labelledby^="semana-"] li button').first().click()
+  await expect(page.getByRole('dialog', { name: 'Detalle del evento' })).toBeVisible()
+})
+
 test('una sugerencia demasiado corta no sale; una buena, sí', async ({ page }) => {
   // Nunca se escribe en la tabla de verdad: el insert se contesta aquí.
   const enviadas = []
