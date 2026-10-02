@@ -13,7 +13,7 @@ import { cargarNoticias } from '../../stores/gameData'
 import { useTranslate } from '../../composables/useTranslate'
 import { useEventos } from '../../composables/useEventos'
 import { enlaceSeguro } from '../../utils/safeUrl'
-import { descargarIcs, eventoIcs, nombreIcs } from '../../utils/ics'
+import { esApple, urlGoogleCalendar, urlIcs } from '../../utils/ics'
 import BaseModal from '../base/BaseModal.vue'
 import EventCard from './EventCard.vue'
 
@@ -62,29 +62,44 @@ const noticia = computed(() => {
 const enlaceLeekDuck = computed(() => enlaceSeguro(props.event?.link))
 
 /**
- * Al calendario del móvil, para que avise él: con el título que se ve y, de
- * descripción, el enlace a la noticia (o a LeekDuck). Solo si aún no ha acabado.
+ * Al calendario, para que avise él, con el título que se ve. Solo si aún no ha
+ * acabado.
+ *
+ * Antes se descargaba un .ics, y descargar un fichero no es lo que se espera
+ * al pulsar «Añadir al calendario». Ahora el botón abre un modal con las tres
+ * formas: Google Calendar (el evento ya relleno), el Calendario de Apple (un
+ * enlace a /api/calendario, que Safari abre con «Añadir al calendario») y el
+ * fichero, para Outlook u otro. Primero la del sistema de cada uno.
  */
 const tarjeta = ref(null)
-const alCalendario = computed(() => {
+const eligiendoCalendario = ref(false)
+// Al cerrar el detalle o abrir otro, el selector no se queda abierto.
+watch(
+  () => props.event,
+  () => {
+    eligiendoCalendario.value = false
+  }
+)
+const apple = typeof navigator !== 'undefined' && esApple(navigator)
+const calendario = computed(() => {
   const evento = props.event
-  if (!evento?.startDate || evento.status === 'past') return false
-  return !evento.endDate || evento.endDate.getTime() > Date.now()
-})
-const anadirAlCalendario = () => {
-  const evento = props.event
+  if (!evento?.startDate || evento.status === 'past' || !evento.eventID) return null
+  if (evento.endDate && evento.endDate.getTime() <= Date.now()) return null
   const titulo = tarjeta.value?.titulo ?? evento.name
-  const url = noticia.value?.url ?? enlaceLeekDuck.value ?? undefined
-  const ics = eventoIcs({
-    id: evento.eventID ?? titulo,
+  const google = urlGoogleCalendar({
     titulo,
-    inicio: evento.startDate,
-    fin: evento.endDate ?? undefined,
-    url,
-    descripcion: url
+    inicio: evento.start,
+    fin: evento.end,
+    detalles: noticia.value?.url ?? enlaceLeekDuck.value ?? undefined
   })
-  descargarIcs(nombreIcs(titulo), ics)
-}
+  const googleOpcion = { clave: 'google', url: google }
+  const appleOpcion = { clave: 'apple', url: urlIcs({ id: evento.eventID, titulo }) }
+  const fichero = { clave: 'file', url: urlIcs({ id: evento.eventID, titulo, descargar: true }) }
+  // Primero la del sistema de cada uno; el fichero, siempre al final.
+  return (
+    apple ? [appleOpcion, googleOpcion, fichero] : [googleOpcion, appleOpcion, fichero]
+  ).filter((opcion) => opcion.url)
+})
 
 /** Los bonus de la noticia: con ellos, la tarjeta no los repite. */
 const bonusOficial = computed(() => bonusDeEvento(datos.value, props.event))
@@ -156,10 +171,11 @@ const agrupar = (bloques) => {
 
         <div class="mt-4 flex flex-wrap gap-2">
           <button
-            v-if="alCalendario"
+            v-if="calendario"
             type="button"
+            aria-haspopup="dialog"
             class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
-            @click="anadirAlCalendario"
+            @click="eligiendoCalendario = true"
           >
             <svg
               aria-hidden="true"
@@ -195,5 +211,34 @@ const agrupar = (bloques) => {
         </div>
       </div>
     </template>
+  </base-modal>
+
+  <!--
+    Encima del detalle: Escape y «atrás» cierran solo este (BaseModal mira
+    dónde está el foco, y el «atrás» va por pila). Cada opción se abre aparte
+    (target=_blank: con la app instalada, el calendario sale por encima y al
+    cerrarlo se sigue en la app), y al elegir se cierra.
+  -->
+  <base-modal
+    :open="eligiendoCalendario && Boolean(calendario)"
+    :title="$t('events.calendar.title')"
+    @close="eligiendoCalendario = false"
+  >
+    <ul class="p-4 flex flex-col gap-2">
+      <li v-for="opcion in calendario" :key="opcion.clave">
+        <a
+          :href="opcion.url"
+          target="_blank"
+          rel="noopener"
+          class="flex flex-col gap-0.5 px-4 py-3 rounded-xl border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-700"
+          @click="eligiendoCalendario = false"
+        >
+          <span class="text-sm font-semibold">{{ $t(`events.calendar.${opcion.clave}`) }}</span>
+          <span class="text-mini text-gray-600 dark:text-gray-300">{{
+            $t(`events.calendar.${opcion.clave}Help`)
+          }}</span>
+        </a>
+      </li>
+    </ul>
   </base-modal>
 </template>

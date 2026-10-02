@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/((?!_next|assets|icons|data|.*\\..*).*)",
+      "source": "/((?!_next|assets|icons|data|api/|.*\\..*).*)",
       "destination": "/"
     }
   ],

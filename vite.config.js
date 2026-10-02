@@ -114,6 +114,9 @@ export default defineConfig({
         // roster.json y pvp.json pasan de 800 KB: sin esto quedan fuera del precache.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
+        // /api va a Vercel (el .ics del calendario): sin esto, con la app instalada,
+        // el service worker contestaba con la app y el Calendario no se abría.
+        navigateFallbackDenylist: [/^\/api\//],
         // Al activarse una versión nueva, fuera la precaché de las anteriores:
         // que no quede ningún fichero viejo sirviéndose.
         cleanupOutdatedCaches: true,

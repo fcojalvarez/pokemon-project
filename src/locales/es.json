@@ -224,6 +224,15 @@
     "openOfficial": "Ver la noticia oficial",
     "openLeekDuck": "Ver en LeekDuck",
     "addToCalendar": "Añadir al calendario",
+    "calendar": {
+      "title": "Añadir al calendario",
+      "google": "Google Calendar",
+      "googleHelp": "Se abre con el evento ya relleno.",
+      "apple": "Calendario de Apple",
+      "appleHelp": "En iPhone, iPad y Mac.",
+      "file": "Descargar el archivo (.ics)",
+      "fileHelp": "Para Outlook u otro calendario."
+    },
     "alerts": {
       "button": "Avisarme",
       "on": "Avisos activados",

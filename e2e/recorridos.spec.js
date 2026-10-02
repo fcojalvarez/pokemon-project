@@ -121,15 +121,32 @@ test('el detalle de un evento se cierra con Escape y con «atrás», sin salir d
   await expect(page).toHaveURL(/\/events/)
 })
 
-test('un evento en marcha se descarga como .ics para el calendario', async ({ page }) => {
+test('«Añadir al calendario» ofrece Google, Apple o el archivo, y se cierra solo', async ({
+  page
+}) => {
   await page.goto('/events')
   await page.locator('article h2 button').first().click()
   const detalle = page.getByRole('dialog', { name: 'Detalle del evento' })
-  const [descarga] = await Promise.all([
-    page.waitForEvent('download'),
-    detalle.getByRole('button', { name: 'Añadir al calendario' }).click()
-  ])
-  expect(descarga.suggestedFilename()).toMatch(/\.ics$/)
+  await detalle.getByRole('button', { name: 'Añadir al calendario' }).click()
+  const elegir = page.getByRole('dialog', { name: 'Añadir al calendario' })
+  await expect(elegir).toBeVisible()
+
+  // Los tres proyectos son Chrome fuera de Apple: Google va primero.
+  const opciones = elegir.getByRole('link')
+  await expect(opciones).toHaveCount(3)
+  await expect(opciones.first()).toContainText('Google Calendar')
+  const google = new URL(await opciones.nth(0).getAttribute('href'))
+  expect(google.origin + google.pathname).toBe('https://calendar.google.com/calendar/render')
+  expect(google.searchParams.get('dates')).toMatch(/^\d{8}T\d{6}Z?\/\d{8}T\d{6}Z?$/)
+  await expect(opciones.nth(1)).toContainText('Calendario de Apple')
+  await expect(opciones.nth(1)).toHaveAttribute('href', /^\/api\/calendario\?id=[\w-]+&titulo=/)
+  await expect(opciones.nth(2)).toContainText('Descargar el archivo')
+  await expect(opciones.nth(2)).toHaveAttribute('href', /&descargar=1$/)
+
+  // Escape cierra solo el de elegir; el detalle sigue abierto.
+  await page.keyboard.press('Escape')
+  await expect(elegir).toBeHidden()
+  await expect(detalle).toBeVisible()
 })
 
 test('la ficha compara con otro Pokémon elegido por su nombre', async ({ page }) => {
