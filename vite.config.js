@@ -106,6 +106,8 @@ export default defineConfig({
         // que en cuanto entre tome el control de la pestaña sin otra recarga.
         clientsClaim: true,
         skipWaiting: false,
+        // Los avisos en el móvil (F14): qué hacer al llegar uno y al tocarlo.
+        importScripts: ['push-sw.js'],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json}'],
         // El de la versión se pide siempre a la red: es la que manda.
         globIgnores: ['version.json'],

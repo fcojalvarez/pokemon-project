@@ -12,6 +12,7 @@ import DataFreshness from '../components/shared/DataFreshness.vue'
 import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import EventCard from '../components/events/EventCard.vue'
 import EventDetail from '../components/events/EventDetail.vue'
+import AvisosEventos from '../components/events/AvisosEventos.vue'
 import { cargarNoticias } from '../stores/gameData'
 import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
@@ -111,6 +112,8 @@ onMounted(async () => {
     </h1>
     <!-- Como el Top y «Ahora»: el título y qué hay en la página. -->
     <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">{{ $t('events.intro') }}</p>
+    <!-- Avisos en el móvil: sin soporte o sin configurar no pinta nada (y el hueco tampoco). -->
+    <div class="mb-3 empty:hidden"><avisos-eventos /></div>
 
     <!--
       En escritorio ancho, como en el Top: barra lateral fija con las pestañas y

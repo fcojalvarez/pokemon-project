@@ -68,7 +68,7 @@ const enlaceLeekDuck = computed(() => enlaceSeguro(props.event?.link))
 const tarjeta = ref(null)
 const alCalendario = computed(() => {
   const evento = props.event
-  if (!evento?.startDate || evento.status === 'ended') return false
+  if (!evento?.startDate || evento.status === 'past') return false
   return !evento.endDate || evento.endDate.getTime() > Date.now()
 })
 const anadirAlCalendario = () => {

@@ -214,6 +214,26 @@
     "openOfficial": "Read the official news",
     "openLeekDuck": "View on LeekDuck",
     "addToCalendar": "Add to calendar",
+    "alerts": {
+      "button": "Notify me",
+      "on": "Alerts on",
+      "title": "Event alerts",
+      "intro": "We'll notify you on your phone one hour before it starts, in your local time.",
+      "which": "What should we notify you about?",
+      "categories": {
+        "community": "Community Days",
+        "hours": "Spotlight and Raid Hours",
+        "raids": "Raid Days and Max Battle days",
+        "events": "Events and GO Tour"
+      },
+      "enable": "Turn on alerts",
+      "save": "Save",
+      "disable": "Turn off alerts",
+      "saved": "Done: we'll notify you.",
+      "removed": "We won't notify you anymore.",
+      "denied": "Notifications are blocked for PoGoDex in this browser. To turn them on, allow them in the site settings.",
+      "error": "Couldn't save your alerts. Please try again later."
+    },
     "active": "Active",
     "upcoming": "Upcoming",
     "past": "Past",

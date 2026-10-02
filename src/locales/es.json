@@ -214,6 +214,26 @@
     "openOfficial": "Ver la noticia oficial",
     "openLeekDuck": "Ver en LeekDuck",
     "addToCalendar": "Añadir al calendario",
+    "alerts": {
+      "button": "Avisarme",
+      "on": "Avisos activados",
+      "title": "Avisos de eventos",
+      "intro": "Te avisamos en el móvil una hora antes de que empiece, a la hora de tu zona.",
+      "which": "¿De qué quieres que te avisemos?",
+      "categories": {
+        "community": "Días de la Comunidad",
+        "hours": "Horas del Pokémon destacado y de incursiones",
+        "raids": "Días de incursiones y de combates Max",
+        "events": "Eventos y GO Tour"
+      },
+      "enable": "Activar avisos",
+      "save": "Guardar",
+      "disable": "Quitar los avisos",
+      "saved": "Listo: te avisaremos.",
+      "removed": "Ya no te avisaremos.",
+      "denied": "Los avisos están bloqueados para PoGoDex en este navegador. Para activarlos, permítelos en los ajustes del sitio.",
+      "error": "No se han podido guardar los avisos. Inténtalo de nuevo en un rato."
+    },
     "active": "En marcha",
     "upcoming": "Próximos",
     "past": "Pasados",

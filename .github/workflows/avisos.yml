@@ -1,0 +1,49 @@
+# Avisos en el móvil (F14): cada 15 minutos, `pnpm avisos` manda a cada
+# suscripción los eventos de sus categorías que empiezan dentro de una hora a
+# la hora de su zona (scripts/send-push.mjs).
+#
+# Necesita tres secretos: SUPABASE_DB_URL (el del rol pogodex_pipeline, como
+# los demás workflows), VAPID_PUBLIC_KEY y VAPID_PRIVATE_KEY. Sin las claves,
+# el script avisa y sale sin error.
+name: Avisos
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: avisos
+  cancel-in-progress: false
+
+jobs:
+  avisos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      # Sin dejar el token en .git/config: aquí nadie hace push, y así los
+      # scripts de las dependencias no lo tienen a mano.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Sin `version`: la lee de `packageManager` en package.json.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Mandar los avisos
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          VAPID_PUBLIC_KEY: ${{ secrets.VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+        run: pnpm avisos
