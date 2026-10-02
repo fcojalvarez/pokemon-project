@@ -167,6 +167,7 @@
         "legendaryHelp": "Legendarios y míticos: solo salen en combates Max de cinco estrellas y en fechas concretas."
     },
     "events": {
+        "intro": "Lo que está en marcha y lo que viene, a la hora de tu zona.",
         "bonus": "Bonus",
         "moreBonus": "y {n} más | y {n} más",
         "detail": "Detalle del evento",

@@ -259,6 +259,7 @@ watch(esperandoPvp, (esperando) => { if (esperando) gameData.cargarPvp() }, { im
               v-for="opcion in incluir"
               :key="opcion.clave"
               :class="boton"
+              casilla
               :active="opcion.valor.value"
               :title="opcion.ayuda ? $t(opcion.ayuda) : undefined"
               @click="opcion.valor.value = !opcion.valor.value"

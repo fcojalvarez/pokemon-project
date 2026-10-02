@@ -81,13 +81,15 @@ const moverVisible = (id, paso) => {
 </script>
 
 <template>
-  <div class="text-gray-800 dark:text-gray-200">
+  <div class="flex flex-col text-gray-800 dark:text-gray-200">
     <!--
       Cada uno ordena los bloques a su gusto; se guarda en el navegador (ver
-      useOrdenFicha). El botón queda discreto a la derecha: es una preferencia
-      que se toca una vez, no algo de cada visita.
+      useOrdenFicha). Es una preferencia que se toca una vez, no algo de cada
+      visita: en móvil y tablet va al final, como enlace, para que las
+      secciones empiecen justo debajo de la línea evolutiva; en escritorio,
+      discreto arriba a la derecha, sobre las dos columnas.
     -->
-    <div class="flex flex-wrap items-center justify-end gap-2 mb-2">
+    <div class="order-last mt-3 lg:order-first lg:mt-0 lg:mb-2 flex flex-wrap items-center justify-end gap-2">
       <template v-if="ordenando">
         <p class="mr-auto text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.reorderHelp') }}</p>
         <button type="button" class="px-3 py-1 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-800" @click="restablecer">
@@ -99,7 +101,7 @@ const moverVisible = (id, paso) => {
         class="px-3 py-1 text-xs rounded-xl border transition-colors"
         :class="ordenando
           ? 'bg-gray-700 dark:bg-gray-600 text-white border-gray-700 dark:border-gray-600'
-          : 'border-gray-400 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'"
+          : 'border-transparent lg:border-gray-400 lg:dark:border-gray-600 underline underline-offset-4 lg:no-underline text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'"
         :aria-pressed="ordenando"
         @click="ordenando = !ordenando"
       >
@@ -109,12 +111,13 @@ const moverVisible = (id, paso) => {
 
     <!--
       Una lista de bloques en el orden elegido: en una columna en móvil y en dos
-      desde lg, que se llenan de arriba abajo. Antes eran dos columnas fijas (a
-      la izquierda cómo se consigue, a la derecha cómo combate), que es también
-      el orden de fábrica.
+      desde md, que se llenan de arriba abajo. En tablet, a una columna, cada
+      sección plegada dejaba media pantalla libre a la derecha de su resumen.
+      Antes eran dos columnas fijas (a la izquierda cómo se consigue, a la
+      derecha cómo combate), que es también el orden de fábrica.
     -->
-    <div class="flex flex-col gap-3 lg:block lg:columns-2 lg:gap-4">
-      <div v-for="(id, indice) in bloquesVisibles" :key="id" class="min-w-0 lg:break-inside-avoid lg:mb-4">
+    <div class="flex flex-col gap-3 md:block md:columns-2 lg:gap-4">
+      <div v-for="(id, indice) in bloquesVisibles" :key="id" class="min-w-0 md:break-inside-avoid md:mb-3 lg:mb-4">
         <div
           v-if="ordenando"
           class="flex items-center gap-2 mb-1 px-3 py-1.5 rounded-xl border border-dashed border-gray-400 dark:border-gray-600"

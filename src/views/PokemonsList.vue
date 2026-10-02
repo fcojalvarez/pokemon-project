@@ -137,11 +137,13 @@ onUnmounted(() => {
             Rejilla de verdad: antes cada tarjeta medía lo que su contenido y
             el flex-wrap metía las que cupieran, así que en un móvil de 375 px
             salía una por fila. Ahora, tres en móvil (como la Pokédex del
-            juego) y las que quepan de ahí para arriba.
+            juego) y las que quepan de ahí para arriba: columnas de 140 px en
+            tablet y de 168 en escritorio (cuatro y siete), que con más anchas
+            se veían 20 Pokémon por pantalla en escritorio.
         -->
         <div
             v-if="pokemons.length > 0 || isLoading"
-            class="w-full grid grid-cols-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(176px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(224px,1fr))] gap-x-1 gap-y-2 sm:gap-y-4 md:p-2"
+            class="w-full grid grid-cols-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-x-1 gap-y-2 sm:gap-y-4 md:p-2"
         >
         <template v-if="pokemons.length > 0">
             <div

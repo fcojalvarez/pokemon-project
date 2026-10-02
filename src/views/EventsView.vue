@@ -4,10 +4,10 @@ import { useLiveStore } from '../stores/live'
 import { useGameDataStore } from '../stores/gameData'
 import BaseEmptyState from '../components/base/BaseEmptyState.vue'
 import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
-import BaseDropdown from '../components/base/BaseDropdown.vue'
 import BasePillButton from '../components/base/BasePillButton.vue'
 import BaseSidebar from '../components/base/BaseSidebar.vue'
 import BaseFilterList from '../components/base/BaseFilterList.vue'
+import BaseSegmented from '../components/base/BaseSegmented.vue'
 import DataFreshness from '../components/shared/DataFreshness.vue'
 import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import EventCard from '../components/events/EventCard.vue'
@@ -66,10 +66,8 @@ const typeOptions = computed(() => {
   ]
 })
 
-/** En el desplegable, la cuenta solo en «Todos»: al lado de cada tipo sobraba. */
-const typeDropdown = computed(() =>
-  typeOptions.value.map((option) => (option.value === 'all' ? { ...option, label: `${option.label} (${option.count})` } : option))
-)
+/** Las pestañas, para el selector segmentado de móvil y tablet. */
+const tabOptions = computed(() => TABS.map((name) => ({ value: name, label: t(`events.${name}`) })))
 
 // Al cambiar de pestaña el tipo elegido puede no existir ahí.
 watch(tab, () => {
@@ -103,15 +101,19 @@ onMounted(async () => {
 <template>
   <section class="text-gray-800 dark:text-gray-200">
     <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1 sm:mb-2">{{ $t('nav.events') }}</h1>
+    <!-- Como el Top y «Ahora»: el título y qué hay en la página. -->
+    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">{{ $t('events.intro') }}</p>
 
     <!--
       En escritorio ancho, como en el Top: barra lateral fija con las pestañas y
       los tipos (un clic, con cuántos hay de cada uno) y las tarjetas a su
-      derecha. Por debajo, pestañas y desplegable encima de la lista.
+      derecha. Por debajo, el selector de pestañas y los tipos en una fila de
+      chips, como los grupos de «Ahora»: el desplegable eran dos renglones y un
+      toque de más para ver qué tipos había.
     -->
     <div :class="ancho ? 'grid grid-cols-[240px_minmax(0,1fr)] gap-6 items-start' : ''">
       <base-sidebar :activa="ancho">
-        <div :class="ancho ? 'grid grid-cols-2 gap-2' : 'flex flex-wrap gap-2 mb-3'">
+        <div v-if="ancho" class="grid grid-cols-2 gap-2">
           <base-pill-button
             v-for="name in TABS"
             :key="name"
@@ -121,6 +123,7 @@ onMounted(async () => {
             {{ $t(`events.${name}`) }}
           </base-pill-button>
         </div>
+        <base-segmented v-else v-model="tab" :options="tabOptions" class="mb-3" />
 
         <div v-if="ancho" role="group" aria-labelledby="eventos-tipo">
           <span
@@ -132,13 +135,27 @@ onMounted(async () => {
           <base-filter-list v-model="typeFilter" :options="typeOptions" />
         </div>
 
-        <div v-else class="flex flex-wrap items-end gap-3 mb-4">
-          <base-dropdown
-            v-model="typeFilter"
-            :label="$t('events.filterType')"
-            :options="typeDropdown"
-            class="flex-1 min-w-[180px] max-w-xs"
-          />
+        <!-- top-16 / sm:top-14: justo debajo de la cabecera fija (64 px en móvil, 56 desde sm). -->
+        <div
+          v-else-if="typeOptions.length > 2"
+          role="group"
+          :aria-label="$t('events.filterType')"
+          class="sticky top-16 sm:top-14 z-10 -mx-4 px-4 py-2 mb-3 flex gap-2 overflow-x-auto bg-gray-100 dark:bg-gray-700 [scrollbar-width:none]"
+        >
+          <button
+            v-for="option in typeOptions"
+            :key="option.value"
+            type="button"
+            class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500"
+            :class="typeFilter === option.value
+              ? 'bg-gray-500 dark:bg-gray-600 text-white'
+              : 'bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'"
+            :aria-pressed="typeFilter === option.value"
+            @click="typeFilter = option.value"
+          >
+            {{ option.label }}
+            <span class="text-mini tabular-nums" :class="typeFilter === option.value ? 'text-white' : 'text-gray-600 dark:text-gray-300'">({{ option.count }})</span>
+          </button>
         </div>
       </base-sidebar>
 

@@ -17,7 +17,12 @@ const props = defineProps({
   open: Boolean,
   title: { type: String, required: true },
   /** Ancho máximo del panel desde sm. */
-  size: { type: String, default: 'sm:max-w-lg' }
+  size: { type: String, default: 'sm:max-w-lg' },
+  /**
+   * Selector de lo que se enfoca al abrir (el campo de un formulario). Sin él,
+   * el propio panel, para que el lector de pantalla lea el título.
+   */
+  enfocar: { type: String, default: null }
 })
 const emit = defineEmits(['close'])
 
@@ -59,7 +64,8 @@ watch(
       origen = document.activeElement
       capa.alAbrir()
       await nextTick()
-      panel.value?.focus()
+      const destino = props.enfocar ? panel.value?.querySelector(props.enfocar) : null
+      ;(destino ?? panel.value)?.focus()
     } else {
       capa.alCerrar({ navegando: porNavegacion })
       porNavegacion = false

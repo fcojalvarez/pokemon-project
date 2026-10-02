@@ -2,22 +2,25 @@
 /**
  * Botón de sugerencias del menú lateral, con su formulario.
  *
- * El diálogo va en `Teleport` porque el botón vive dentro del cajón del menú,
- * que se cierra al abrirlo: si el formulario colgara de ahí, se iría con él.
+ * El diálogo es BaseModal, como el detalle de un evento o la galería de
+ * formas: misma cabecera, mismo cierre (✕, Escape, pulsar fuera, «atrás») y
+ * va en `Teleport`, que hace falta porque el botón vive dentro del cajón del
+ * menú, que se cierra al abrirlo.
  */
 import { computed, nextTick, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { CATEGORIES, MAX_MESSAGE, useSuggestionsStore } from '../../stores/suggestions'
 import { useTranslate } from '../../composables/useTranslate'
-import { useCapa } from '../../composables/useCapa'
 import BaseIcon from '../base/BaseIcon.vue'
 import BasePillButton from '../base/BasePillButton.vue'
+import BaseModal from '../base/BaseModal.vue'
+import BaseErrorMessage from '../base/BaseErrorMessage.vue'
 
 // `open` lo escucha el menú para cerrarse y dejar el diálogo a la vista;
 // `close` para recoger el foco cuando este botón ya no puede recibirlo.
 const emit = defineEmits(['open', 'close'])
 
-// La plantilla tiene dos raíces (el botón y el `Teleport`), así que Vue no
+// La plantilla tiene dos raíces (el botón y el diálogo), así que Vue no
 // sabe a cuál llevar las clases que le pasen de fuera. Se le dice a mano: van
 // al botón, que es lo único que ocupa sitio donde se coloque el componente.
 defineOptions({ inheritAttrs: false })
@@ -35,7 +38,6 @@ const errorKey = ref(null)
 const errorSeconds = ref(0)
 
 const trigger = ref(null)
-const campoMensaje = ref(null)
 
 const restante = computed(() => MAX_MESSAGE - message.value.trim().length)
 
@@ -46,29 +48,22 @@ const errorText = computed(() => {
     : t(`suggestions.errors.${errorKey.value}`)
 })
 
-// Si se navega con el diálogo abierto (por ejemplo desde el historial del
-// navegador), se cierra para no dejar la página bloqueada con el scroll fijo.
-const capa = useCapa((opciones) => close(opciones))
-
-const open = async () => {
+const open = () => {
   isOpen.value = true
-  capa.alAbrir()
   isSent.value = false
   errorKey.value = null
   emit('open')
-  await nextTick()
-  campoMensaje.value?.focus()
 }
 
-const close = ({ restoreFocus = true, navegando = false } = {}) => {
+/**
+ * BaseModal devuelve el foco al botón. Pero al abrir el diálogo el menú se
+ * cierra, y un menú cerrado es `inert`: el foco no entra ahí. Cuando pasa,
+ * quien lo recoloca es el menú.
+ */
+const close = async () => {
   isOpen.value = false
-  capa.alCerrar({ navegando })
-  if (!restoreFocus) return
-
-  // Al abrir el diálogo el menú se cierra, y un menú cerrado es `inert`: el
-  // foco no entra ahí. Cuando pasa, quien lo recoloca es el menú.
-  if (trigger.value && !trigger.value.closest('[inert]')) trigger.value.focus()
-  else emit('close')
+  await nextTick()
+  if (trigger.value?.closest('[inert]')) emit('close')
 }
 
 const reset = () => {
@@ -97,10 +92,9 @@ const submit = async () => {
   reset()
 }
 
+// Enviar con Ctrl/Cmd+Enter: en un textarea, Enter a secas hace falta para
+// escribir párrafos.
 const onKeydown = (event) => {
-  if (event.key === 'Escape') close()
-  // Enviar con Ctrl/Cmd+Enter: en un textarea, Enter a secas hace falta para
-  // escribir párrafos.
   if (event.key === 'Enter' && (event.metaKey || event.ctrlKey) && !isSent.value) submit()
 }
 </script>
@@ -124,33 +118,8 @@ const onKeydown = (event) => {
     <span class="text-xs md:text-sm whitespace-nowrap">{{ $t('suggestions.button') }}</span>
   </button>
 
-  <Teleport to="body">
-    <div
-      v-if="isOpen"
-      class="fixed inset-0 z-[60] bg-gray-900/60 flex items-end sm:items-center justify-center sm:p-4"
-      @click.self="close()"
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="titulo-sugerencia"
-        class="w-full sm:max-w-lg max-h-[90vh] overflow-y-auto bg-gray-100 dark:bg-gray-800 border border-gray-400 dark:border-gray-600 rounded-t-xl sm:rounded-xl shadow-md"
-        @keydown="onKeydown"
-      >
-        <div class="flex items-center gap-3 px-4 py-4 border-b border-gray-300 dark:border-gray-600">
-          <h2 id="titulo-sugerencia" class="font-bold text-gray-800 dark:text-gray-200">
-            {{ $t('suggestions.title') }}
-          </h2>
-          <button
-            type="button"
-            class="zona-tactil ml-auto w-9 h-9 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-700 text-gray-600 dark:text-gray-200"
-            :aria-label="$t('suggestions.close')"
-            @click="close()"
-          >
-            ✕
-          </button>
-        </div>
-
+  <base-modal :open="isOpen" :title="$t('suggestions.title')" enfocar="#mensaje-sugerencia" @close="close">
+    <div @keydown="onKeydown">
         <!-- Enviada: el formulario se cambia entero por el acuse, para que no
              quede duda de si hace falta volver a darle. -->
         <div v-if="isSent" class="p-6 text-center">
@@ -196,7 +165,6 @@ const onKeydown = (event) => {
           </label>
           <textarea
             id="mensaje-sugerencia"
-            ref="campoMensaje"
             v-model="message"
             rows="5"
             :maxlength="MAX_MESSAGE"
@@ -225,13 +193,7 @@ const onKeydown = (event) => {
             {{ $t('suggestions.contactHint') }}
           </p>
 
-          <p
-            v-if="errorText"
-            role="alert"
-            class="p-3 mb-4 rounded-xl border border-red-400 bg-red-50 dark:bg-red-900/30 text-sm text-gray-800 dark:text-gray-200"
-          >
-            {{ errorText }}
-          </p>
+          <base-error-message v-if="errorText" :message="errorText" class="mb-4 text-gray-800 dark:text-gray-200" />
 
           <div class="flex justify-end gap-2">
             <base-pill-button type="button" @click="close()">
@@ -246,7 +208,6 @@ const onKeydown = (event) => {
             </button>
           </div>
         </form>
-      </div>
     </div>
-  </Teleport>
+  </base-modal>
 </template>

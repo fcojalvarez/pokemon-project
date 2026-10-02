@@ -19,6 +19,7 @@ import BaseIcon from '../base/BaseIcon.vue'
 import BasePillButton from '../base/BasePillButton.vue'
 import BaseDropdown from '../base/BaseDropdown.vue'
 import BaseChevron from '../base/BaseChevron.vue'
+import BaseCard from '../base/BaseCard.vue'
 
 const store = usePokemonsStore()
 const { filters, activeFilterCount, totalCount } = storeToRefs(store)
@@ -106,11 +107,13 @@ const rarityOptions = computed(() => [
     </div>
 
     <transition name="desplegar">
-      <div
+      <base-card
         v-if="isOpen"
         :id="panelId"
-      class="mt-2 p-3 flex flex-col gap-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
-    >
+        as="div"
+        padding="p-3"
+        class="mt-2 flex flex-col gap-3"
+      >
       <div>
         <span class="block text-mini text-gray-600 dark:text-gray-300 mb-1">
           {{ $t('filters.type') }}
@@ -185,7 +188,7 @@ const rarityOptions = computed(() => [
         </base-pill-button>
       </div>
       </div>
-      </div>
+      </base-card>
     </transition>
   </section>
 </template>

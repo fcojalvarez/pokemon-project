@@ -1,6 +1,6 @@
 <script setup>
     import { computed } from 'vue';
-    import BaseIcon from './base/BaseIcon.vue';
+    import TypeIcons from './base/TypeIcons.vue';
     import ShinyMark from './pokemon/ShinyMark.vue';
     import MaxMark from './pokemon/MaxMark.vue';
     import BaseSprite from './base/BaseSprite.vue';
@@ -79,17 +79,7 @@
             </span>
         </div>
 
-        <div v-if="liberado && tipos.length" class="mt-1 flex items-center justify-center gap-1">
-            <base-icon
-                v-for="tipo in tipos"
-                :key="tipo"
-                view-box="0 0 512 512"
-                width="14"
-                height="14"
-                icon-class="drop-shadow-svg"
-                :fill-path="typesSVG[tipo].color"
-                :d="typesSVG[tipo].icon"
-            />
-        </div>
+        <!-- Con TypeIcons, como en el resto de la app: cada icono dice su tipo al lector de pantalla. -->
+        <type-icons v-if="liberado && tipos.length" :types="tipos" size="14" class="mt-1 justify-center" />
     </component>
 </template>

@@ -58,7 +58,7 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
   <component
     :is="to ? 'router-link' : 'div'"
     :to="to ?? undefined"
-    class="flex flex-wrap items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+    class="flex flex-wrap md:flex-nowrap items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
     :class="[
       to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : '',
       highlight ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950' : ''
@@ -110,8 +110,11 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
 
     <slot />
 
-    <!-- Una fila más abajo, a todo el ancho de la tarjeta: deja la de arriba para el nombre. -->
-    <span v-if="$slots.pie" class="basis-full">
+    <!--
+      En móvil, una fila más abajo, a todo el ancho: deja la de arriba para el
+      nombre. Desde md cabe a la derecha, en la misma fila.
+    -->
+    <span v-if="$slots.pie" class="basis-full md:basis-auto md:ml-auto shrink-0">
       <slot name="pie" />
     </span>
   </component>

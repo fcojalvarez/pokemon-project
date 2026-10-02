@@ -9,6 +9,7 @@ import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
 import BasePillButton from '../components/base/BasePillButton.vue'
 import BaseSidebar from '../components/base/BaseSidebar.vue'
 import BaseFilterList from '../components/base/BaseFilterList.vue'
+import BaseSegmented from '../components/base/BaseSegmented.vue'
 import DataFreshness from '../components/shared/DataFreshness.vue'
 import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import MaxMark from '../components/pokemon/MaxMark.vue'
@@ -100,6 +101,8 @@ watch(tab, () => {
 const ancho = useMedia('(min-width: 1280px)')
 
 const tabLabel = (name) => t(`raids.tab${name.charAt(0).toUpperCase()}${name.slice(1)}`)
+/** Las pestañas, para el selector segmentado de móvil y tablet. */
+const tabOptions = computed(() => TABS.map((name) => ({ value: name, label: tabLabel(name) })))
 
 const slug = (texto) => String(texto).toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
@@ -320,16 +323,7 @@ onMounted(() => {
       </base-sidebar>
 
       <div class="min-w-0">
-        <div v-if="!ancho" class="flex flex-wrap gap-2 mb-4">
-          <base-pill-button
-            v-for="name in TABS"
-            :key="name"
-            :active="tab === name"
-            @click="tab = name"
-          >
-            {{ tabLabel(name) }}
-          </base-pill-button>
-        </div>
+        <base-segmented v-if="!ancho" v-model="tab" :options="tabOptions" class="mb-3" />
 
         <!--
           En móvil no hay barra lateral y las pestañas son listas largas: una

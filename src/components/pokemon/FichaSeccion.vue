@@ -9,6 +9,7 @@
  */
 import { computed } from 'vue'
 import BaseChevron from '../base/BaseChevron.vue'
+import BaseCard from '../base/BaseCard.vue'
 import { useFichaSecciones } from '../../composables/useFichaSecciones'
 
 const props = defineProps({
@@ -28,10 +29,11 @@ const panelId = computed(() => `seccion-${props.id}`)
     El id y el tabindex dejan saltar aquí con un enlace a #ficha-…: el
     scroll-mt deja la sección por debajo de la cabecera fija.
   -->
-  <section
+  <base-card
     :id="`ficha-${id}`"
     tabindex="-1"
-    class="scroll-mt-28 focus:outline-none border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+    padding=""
+    class="scroll-mt-28 focus:outline-none"
   >
     <h2 class="text-sm font-bold">
       <span v-if="esEscritorio" class="flex items-center gap-2 px-4 pt-4">
@@ -59,5 +61,5 @@ const panelId = computed(() => `seccion-${props.id}`)
     <div v-show="abierta" :id="panelId" class="px-4 pb-4" :class="esEscritorio ? '' : '-mt-1'">
       <slot />
     </div>
-  </section>
+  </base-card>
 </template>

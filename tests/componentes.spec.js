@@ -207,3 +207,27 @@ describe('router', () => {
     expect(scroll({ path: '/top' }, { path: '/' }, null)).toEqual({ top: 0 })
   })
 })
+
+describe('BaseSegmented y la casilla de BasePillButton', async () => {
+  const { default: BaseSegmented } = await import('../src/components/base/BaseSegmented.vue')
+  const { default: BasePillButton } = await import('../src/components/base/BasePillButton.vue')
+
+  it('el selector marca la parte elegida y emite la que se pulsa', async () => {
+    const opciones = [{ value: 'raids', label: 'Incursiones' }, { value: 'eggs', label: 'Huevos' }]
+    const w = mount(BaseSegmented, { props: { modelValue: 'raids', options: opciones } })
+    const [a, b] = w.findAll('button')
+    expect(a.attributes('aria-pressed')).toBe('true')
+    expect(b.attributes('aria-pressed')).toBe('false')
+    await b.trigger('click')
+    expect(w.emitted('update:modelValue')).toEqual([['eggs']])
+  })
+
+  it('la casilla lleva ✓ solo encendida, y el nombre accesible no cambia', () => {
+    const on = mount(BasePillButton, { props: { casilla: true, active: true }, slots: { default: 'Élite' } })
+    const off = mount(BasePillButton, { props: { casilla: true, active: false }, slots: { default: 'Élite' } })
+    expect(on.text()).toBe('✓Élite')
+    expect(on.find('[aria-hidden="true"]').text()).toBe('✓')
+    expect(off.text()).toBe('Élite')
+    expect(off.classes()).toContain('border-dashed')
+  })
+})

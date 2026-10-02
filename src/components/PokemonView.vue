@@ -159,7 +159,7 @@ watch(() => route.params.id, async(id) => {
     <!--
         La ficha son tarjetas sueltas sobre el fondo, sin una tarjeta grande que
         las envuelva: cabecera, cadena evolutiva y las secciones de datos. Desde
-        lg las secciones van en dos columnas (ver <pokemon-extra-info>).
+        md las secciones van en dos columnas (ver <pokemon-extra-info>).
     -->
     <div v-if="pokemon" class="flex flex-col gap-3 lg:gap-4">
         <!--
@@ -250,6 +250,8 @@ watch(() => route.params.id, async(id) => {
                     Es un interruptor, así que es un <button> con aria-pressed.
                     Activado va en gris-700 sobre blanco (10,3:1); en gris-500 se
                     quedaba en 4,39:1 y el texto no se leía bien en modo claro.
+                    Mismo alto y letra que «Formas»: al lado, distintos, parecía
+                    que uno mandaba sobre el otro.
                 -->
                 <button
                     type="button"
@@ -259,7 +261,7 @@ watch(() => route.params.id, async(id) => {
                         isShowShiny
                             ? 'bg-gray-700 dark:bg-gray-600 text-white border-gray-700 dark:border-gray-600'
                             : 'text-gray-800 dark:text-gray-200 border-gray-400 dark:border-gray-600',
-                        'shrink-0 border w-28 rounded-xl py-1 px-2 text-center cursor-pointer transition-colors'
+                        'shrink-0 border rounded-xl h-[34px] px-3 text-xs text-center cursor-pointer transition-colors'
                     ]"
                 >
                     {{ $t('viewShiny') }}
@@ -311,12 +313,12 @@ watch(() => route.params.id, async(id) => {
                 </template>
             </div>
         </base-card>
-        <div v-for="n in 4" :key="`s${n}`" class="border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 px-4 py-3.5 flex items-center gap-3">
+        <base-card v-for="n in 4" :key="`s${n}`" as="div" padding="px-4 py-3.5" class="flex items-center gap-3">
             <span class="flex-1 flex flex-col gap-1.5">
                 <span class="esqueleto h-3.5 w-32 rounded-full"></span>
                 <span class="esqueleto h-3 w-48 rounded-full"></span>
             </span>
             <span class="esqueleto w-5 h-5 rounded-full"></span>
-        </div>
+        </base-card>
     </skeleton-loader>
 </template>

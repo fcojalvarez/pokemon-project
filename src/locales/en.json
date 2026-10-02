@@ -167,6 +167,7 @@
         "legendaryHelp": "Legendary and Mythical Pokémon: only in five-star Max Battles on set dates."
     },
     "events": {
+        "intro": "What is on now and what is coming, in your local time.",
         "bonus": "Bonuses",
         "moreBonus": "and {n} more | and {n} more",
         "detail": "Event details",

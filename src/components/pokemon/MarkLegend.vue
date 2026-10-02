@@ -14,9 +14,9 @@
  * vería nadie); en «Ahora», al final. Con `marcas` se eligen las que salen:
  * solo las que aparecen en esa página.
  *
- * Con `plegable` se queda en un botón con solo las marcas que la despliega
- * debajo, con «Leyenda» de título, en móvil y en escritorio: abierta, las
- * líneas ocupaban sitio antes del primer Pokémon.
+ * Con `plegable` se queda en un botón («Leyenda» y las marcas) que la
+ * despliega debajo, en móvil y en escritorio: abierta, las líneas ocupaban
+ * sitio antes del primer Pokémon.
  *
  * Las marcas son los mismos componentes que las pintan sobre el sprite, al
  * tamaño de la leyenda: si cambia el símbolo, cambia en los dos sitios.
@@ -53,11 +53,12 @@ const onKeydown = (event) => {
       v-if="plegable"
       type="button"
       class="zona-tactil [--zona:-8px_-3px] flex items-center gap-2 px-3 py-1.5 text-xs rounded-xl border border-gray-400 shadow-md bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
-      :aria-label="$t('legend.title')"
       :aria-expanded="abierta"
       aria-controls="leyenda-marcas"
       @click="abierta = !abierta"
     >
+      <!-- Con el nombre a la vista: solo con los símbolos no se sabía qué era. -->
+      <span>{{ $t('legend.title') }}</span>
       <span class="flex items-center gap-1.5" aria-hidden="true">
         <template v-for="marca in marcas" :key="marca">
           <shiny-mark v-if="marca === 'shiny'" variant="dex" size="text-mini" inline :scale="0.65" />
@@ -77,8 +78,6 @@ const onKeydown = (event) => {
         ? [abierta ? 'flex' : 'hidden', 'absolute left-0 top-full z-20 mt-2 w-max p-3 rounded-xl border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 shadow-lg']
         : 'flex'"
     >
-      <!-- El título, en el desplegable: el botón no lleva texto. -->
-      <p v-if="plegable" class="text-xs font-semibold text-gray-800 dark:text-gray-100">{{ $t('legend.title') }}</p>
       <ul :aria-label="$t('legend.title')" class="flex flex-col gap-1.5">
         <li v-for="marca in marcas" :key="marca" class="flex items-center gap-2">
           <!-- Todas en una caja del mismo ancho: así los textos quedan alineados. -->

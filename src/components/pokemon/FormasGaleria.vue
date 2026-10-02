@@ -97,7 +97,7 @@ const fecha = (texto) => new Date(texto).toLocaleDateString(intlLocale(), { day:
   <button
     v-if="total >= minimo"
     type="button"
-    class="shrink-0 border border-gray-400 dark:border-gray-600 rounded-xl py-1 px-2 text-xs text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+    class="shrink-0 border border-gray-400 dark:border-gray-600 rounded-xl h-[34px] px-3 text-xs text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
     @click="abierta = true"
   >
     <template v-if="soloDisfraces">{{ $t('forms.costumesButton', { n: total }) }}</template>
