@@ -20,6 +20,7 @@ import FichaIvPvp from './ficha/FichaIvPvp.vue'
 import FichaAtaques from './ficha/FichaAtaques.vue'
 import FichaEfectos from './ficha/FichaEfectos.vue'
 import FichaDebilidades from './ficha/FichaDebilidades.vue'
+import FichaGanarle from './ficha/FichaGanarle.vue'
 
 const props = defineProps({
   pokemon: { type: Object, required: true },
@@ -35,6 +36,7 @@ const {
   esMax,
   maxInfo,
   matchups,
+  counters,
   bestMovesets,
   movepool,
   moveEffects,
@@ -59,7 +61,8 @@ const TITULOS = {
   pvpIv: 'pokemon.pvpIv.title',
   ataques: 'pokemon.bestMoves',
   efectos: 'moves.effectsTitle',
-  debilidades: 'pokemon.weaknesses'
+  debilidades: 'pokemon.weaknesses',
+  ganarle: 'pokemon.howToBeat'
 }
 
 /**
@@ -78,7 +81,8 @@ const tiene = computed(() => ({
   pvpIv: Boolean(entrada.value?.stats?.atk),
   ataques: bestMovesets.value.length > 0 || movepool.value.fast.length > 0,
   efectos: moveEffects.value.length > 0,
-  debilidades: matchups.value.weak.length > 0 || matchups.value.resist.length > 0
+  debilidades: matchups.value.weak.length > 0 || matchups.value.resist.length > 0,
+  ganarle: counters.value.length > 0
 }))
 
 const bloquesVisibles = computed(() => orden.value.filter((id) => tiene.value[id]))
@@ -193,6 +197,7 @@ const moverVisible = (id, paso) => {
         />
         <ficha-efectos v-else-if="id === 'efectos'" :efectos="moveEffects" />
         <ficha-debilidades v-else-if="id === 'debilidades'" :matchups="matchups" />
+        <ficha-ganarle v-else-if="id === 'ganarle'" :counters="counters" />
       </div>
     </div>
   </div>

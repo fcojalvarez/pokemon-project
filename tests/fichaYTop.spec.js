@@ -102,6 +102,15 @@ describe('datos de la ficha', () => {
     expect(base.pveRanks.value.slice(0, 2).map((forma) => forma.id)).toEqual(['charizard', 'charizard_shadow'])
   })
 
+  it('cómo ganarle: counters contra sus tipos, los de Roca arriba contra Fuego y Volador', () => {
+    const d = ficha(charizard)
+    expect(d.counters.value).toHaveLength(8)
+    expect(d.counters.value[0].charged.type).toBe('rock')
+    // De más a menos DPS.
+    const dps = d.counters.value.map((c) => c.dps)
+    expect(dps).toEqual([...dps].sort((a, b) => b - a))
+  })
+
   it('los puestos PvP van por liga, de la Súper a la Master', () => {
     const d = ficha(charizard)
     const ligas = d.pvpPorLiga.value.map((liga) => liga.league)

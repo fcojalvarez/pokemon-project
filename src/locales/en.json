@@ -134,7 +134,9 @@
       "def": "Defense",
       "hp": "HP",
       "master": "Master League has no cap: the best is the 100% at level 50."
-    }
+    },
+    "howToBeat": "How to beat it",
+    "howToBeatHelp": "The ones that deal it the most damage per second, with their best moves: the same as for a raid boss."
   },
   "top": {
     "pokemonColumn": "Pokémon",

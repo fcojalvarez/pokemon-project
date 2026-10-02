@@ -20,7 +20,8 @@ export const BLOQUES_FICHA = [
   'pvpIv',
   'ataques',
   'efectos',
-  'debilidades'
+  'debilidades',
+  'ganarle'
 ]
 
 const CLAVE = 'pogodex.fichaOrden'

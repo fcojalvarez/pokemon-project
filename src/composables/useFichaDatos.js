@@ -132,10 +132,22 @@ export function useFichaDatos({ pokemon, formId }) {
   )
 
   // ---------- Debilidades ----------
-  const matchups = computed(() => {
-    const types = form.value?.types ?? fila()?.types
-    return gameData.isReady && types?.length ? gameData.matchups(types) : { weak: [], resist: [] }
-  })
+  /** Los tipos de lo que se ve: los de la forma de la URL o los de la especie. */
+  const tipos = computed(() => form.value?.types ?? fila()?.types ?? [])
+
+  const matchups = computed(() =>
+    gameData.isReady && tipos.value.length
+      ? gameData.matchups(tipos.value)
+      : { weak: [], resist: [] }
+  )
+
+  /**
+   * Los mejores counters contra este Pokémon, como los de un jefe de
+   * incursión: hasta ahora solo salían para los jefes que estaban activos.
+   */
+  const counters = computed(() =>
+    gameData.isReady && tipos.value.length ? gameData.counters(tipos.value, { limit: 8 }) : []
+  )
 
   // ---------- Ataques ----------
   const bestMovesets = computed(() =>
@@ -335,6 +347,7 @@ export function useFichaDatos({ pokemon, formId }) {
     esMax,
     maxInfo,
     matchups,
+    counters,
     bestMovesets,
     movepool,
     moveEffects,

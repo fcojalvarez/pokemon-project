@@ -134,7 +134,9 @@
       "def": "Defensa",
       "hp": "PS",
       "master": "En la Master Liga no hay tope: el mejor es el 100 % a nivel 50."
-    }
+    },
+    "howToBeat": "Cómo ganarle",
+    "howToBeatHelp": "Los que más daño le hacen por segundo, con sus mejores ataques: los mismos que para un jefe de incursión."
   },
   "top": {
     "pokemonColumn": "Pokémon",
