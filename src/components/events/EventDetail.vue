@@ -13,6 +13,7 @@ import { cargarNoticias } from '../../stores/gameData'
 import { useTranslate } from '../../composables/useTranslate'
 import { useEventos } from '../../composables/useEventos'
 import { enlaceSeguro } from '../../utils/safeUrl'
+import { descargarIcs, eventoIcs, nombreIcs } from '../../utils/ics'
 import BaseModal from '../base/BaseModal.vue'
 import EventCard from './EventCard.vue'
 
@@ -60,6 +61,31 @@ const noticia = computed(() => {
 /** La página del evento en LeekDuck; llega de ScrapedDuck, así que se filtra. */
 const enlaceLeekDuck = computed(() => enlaceSeguro(props.event?.link))
 
+/**
+ * Al calendario del móvil, para que avise él: con el título que se ve y, de
+ * descripción, el enlace a la noticia (o a LeekDuck). Solo si aún no ha acabado.
+ */
+const tarjeta = ref(null)
+const alCalendario = computed(() => {
+  const evento = props.event
+  if (!evento?.startDate || evento.status === 'ended') return false
+  return !evento.endDate || evento.endDate.getTime() > Date.now()
+})
+const anadirAlCalendario = () => {
+  const evento = props.event
+  const titulo = tarjeta.value?.titulo ?? evento.name
+  const url = noticia.value?.url ?? enlaceLeekDuck.value ?? undefined
+  const ics = eventoIcs({
+    id: evento.eventID ?? titulo,
+    titulo,
+    inicio: evento.startDate,
+    fin: evento.endDate ?? undefined,
+    url,
+    descripcion: url
+  })
+  descargarIcs(nombreIcs(titulo), ics)
+}
+
 /** Los bonus de la noticia: con ellos, la tarjeta no los repite. */
 const bonusOficial = computed(() => bonusDeEvento(datos.value, props.event))
 
@@ -90,7 +116,7 @@ const agrupar = (bloques) => {
     @close="emit('close')"
   >
     <template v-if="event">
-      <event-card :event="event" detalle :bonus="bonusOficial" />
+      <event-card ref="tarjeta" :event="event" detalle :bonus="bonusOficial" />
 
       <div class="px-4 pb-4">
         <p v-if="cargando" class="text-xs text-gray-600 dark:text-gray-300">
@@ -129,6 +155,27 @@ const agrupar = (bloques) => {
         </p>
 
         <div class="mt-4 flex flex-wrap gap-2">
+          <button
+            v-if="alCalendario"
+            type="button"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
+            @click="anadirAlCalendario"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4" />
+            </svg>
+            {{ $t('events.addToCalendar') }}
+          </button>
           <a
             v-if="noticia?.url"
             :href="noticia.url"

@@ -121,6 +121,17 @@ test('el detalle de un evento se cierra con Escape y con «atrás», sin salir d
   await expect(page).toHaveURL(/\/events/)
 })
 
+test('un evento en marcha se descarga como .ics para el calendario', async ({ page }) => {
+  await page.goto('/events')
+  await page.locator('article h2 button').first().click()
+  const detalle = page.getByRole('dialog', { name: 'Detalle del evento' })
+  const [descarga] = await Promise.all([
+    page.waitForEvent('download'),
+    detalle.getByRole('button', { name: 'Añadir al calendario' }).click()
+  ])
+  expect(descarga.suggestedFilename()).toMatch(/\.ics$/)
+})
+
 test('una sugerencia demasiado corta no sale; una buena, sí', async ({ page }) => {
   // Nunca se escribe en la tabla de verdad: el insert se contesta aquí.
   const enviadas = []

@@ -102,6 +102,9 @@ const displayName = computed(() => {
  */
 const titulo = computed(() => quitarTipo(displayName.value, typeLabel.value))
 
+// El detalle lo usa para el calendario: el mismo título traducido que se ve.
+defineExpose({ titulo })
+
 /**
  * Combate Max: qué Pokémon sale y si es Dinamax o Gigamax.
  *
