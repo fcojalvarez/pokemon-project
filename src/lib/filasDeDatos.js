@@ -12,6 +12,11 @@ import { supabase } from './supabaseClient'
  * misma, y en cuanto un workflow la reescribe cambia su `updated_at` y se baja
  * la nueva. Así no puede quedarse nada viejo. Si IndexedDB no está (modo
  * privado, navegador raro) o falla, se baja todo como antes.
+ *
+ * Sin red (o si Supabase no responde), se usa lo guardado aunque no se pueda
+ * comprobar si sigue al día: es la copia más reciente que hay. Antes se
+ * lanzaba el error y la app tiraba de los JSON del despliegue, que pueden
+ * ser de varios días antes.
  */
 
 const BASE_DE_DATOS = 'pogodex-datos'
@@ -85,16 +90,34 @@ async function guardar(filas) {
   }
 }
 
+/** Lo guardado en el dispositivo, como { nombre: payload }; si no hay nada, el error. */
+function soloGuardadas(guardadas, error) {
+  if (!guardadas.size) throw error
+  return Object.fromEntries(
+    [...guardadas]
+      .filter(([, fila]) => fila.payload != null)
+      .map(([nombre, fila]) => [nombre, fila.payload])
+  )
+}
+
 /**
  * Las filas de `game_data` con esos nombres: { nombre: payload }. Las que no
- * existen en la tabla no vienen. Si Supabase falla, lanza el error.
+ * existen en la tabla no vienen. Si Supabase falla, las guardadas en el
+ * dispositivo; si tampoco hay, lanza el error.
  */
 export async function leerFilas(nombres) {
   const [versiones, guardadas] = await Promise.all([
-    supabase.from('game_data').select('name,updated_at').in('name', nombres),
+    supabase
+      .from('game_data')
+      .select('name,updated_at')
+      .in('name', nombres)
+      .then(
+        (respuesta) => respuesta,
+        (error) => ({ error })
+      ),
     leerGuardadas(nombres)
   ])
-  if (versiones.error) throw new Error(versiones.error.message)
+  if (versiones.error) return soloGuardadas(guardadas, new Error(versiones.error.message))
 
   const filas = {}
   const faltan = []
@@ -110,7 +133,16 @@ export async function leerFilas(nombres) {
       .from('game_data')
       .select('name,payload,updated_at')
       .in('name', faltan)
-    if (error) throw new Error(error.message)
+    if (error) {
+      // La consulta de versiones fue bien pero la de contenidos no: lo guardado
+      // de las que faltan, aunque esté por detrás.
+      for (const nombre of faltan) {
+        const guardada = guardadas.get(nombre)
+        if (guardada?.payload != null) filas[nombre] = guardada.payload
+      }
+      if (!Object.keys(filas).length) throw new Error(error.message)
+      return filas
+    }
     for (const fila of data ?? []) filas[fila.name] = fila.payload
     guardar(data ?? [])
   }

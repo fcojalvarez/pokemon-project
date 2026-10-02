@@ -109,8 +109,9 @@ export default defineConfig({
         // Los avisos en el móvil (F14): qué hacer al llegar uno y al tocarlo.
         importScripts: ['push-sw.js'],
         globPatterns: ['**/*.{js,css,html,svg,png,ico,json}'],
-        // El de la versión se pide siempre a la red: es la que manda.
-        globIgnores: ['version.json'],
+        // El de la versión se pide siempre a la red: es la que manda. Los datos
+        // de respaldo, aparte (ver runtimeCaching): no bajan con cada versión.
+        globIgnores: ['version.json', 'data/**'],
         // roster.json y pvp.json pasan de 800 KB: sin esto quedan fuera del precache.
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         navigateFallback: '/index.html',
@@ -121,18 +122,26 @@ export default defineConfig({
         // que no quede ningún fichero viejo sirviéndose.
         cleanupOutdatedCaches: true,
         runtimeCaching: [
+          // Eventos, incursiones, huevos, tareas y Rocket (ScrapedDuck) no pasan
+          // por aquí. Antes iban con NetworkFirst: sin red, o si tardaba más de
+          // 8 s, se servía una copia de hasta 7 días y la app la tomaba por
+          // recién bajada, sin avisar de que era vieja. La app ya guarda la suya
+          // (localStorage, pogodex:live), sabe de cuándo es y lo dice.
           {
-            // Eventos, incursiones, huevos y tareas: primero la red y, si no hay
-            // cobertura, lo último que se descargó.
-            urlPattern: /^https:\/\/raw\.githubusercontent\.com\/bigfoott\/ScrapedDuck\/.*/i,
+            // Los JSON de respaldo (public/data): solo se piden si Supabase no
+            // responde y el dispositivo no tiene copia. Antes iban en la
+            // precaché y cada versión nueva bajaba unos 2,8 MB que casi nunca
+            // se usaban. Primero la red; sin ella, lo último que se bajó.
+            urlPattern: /\/data\/[\w-]+\.json$/i,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'scrapedduck',
-              networkTimeoutSeconds: 8,
-              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 7 },
+              cacheName: 'datos-respaldo-v1',
+              networkTimeoutSeconds: 10,
+              expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [200] }
             }
           },
+
           // Imágenes: caché primero, para no volver a bajarlas en cada visita.
           //
           // Las cachés llevan versión (-v2): las de antes guardaban respuestas

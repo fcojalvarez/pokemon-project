@@ -73,8 +73,11 @@ async function desdeSupabase() {
   // Solo las filas que se usan al arrancar: en la tabla hay más (las formas y
   // disfraces, la memoria de Max liberados) y no hace falta bajarlas siempre.
   const porNombre = await leerFilas([...FICHEROS, ...OPCIONALES])
+  // Si falta alguna imprescindible (sin red y sin copia de esa en el
+  // dispositivo), solo esa sale de los ficheros: el resto sigue siendo lo más
+  // reciente que hay.
   const faltan = FICHEROS.filter((nombre) => !porNombre[nombre])
-  if (faltan.length) throw new Error(`faltan en game_data: ${faltan.join(', ')}`)
+  if (faltan.length) Object.assign(porNombre, await desdeFicheros(faltan))
 
   return porNombre
 }

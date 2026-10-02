@@ -2,12 +2,12 @@
 #
 # `pnpm data` los baja de PokeMiners, pvpoke, LeekDuck, PokeAPI y
 # pokemon-go-api y los sube a la tabla `game_data` de Supabase, que es de
-# donde los lee la app. Por eso NO hace falta redesplegar ni commitear nada:
-# en cuanto la tabla cambia, la app lo ve.
+# donde los lee la app. En cuanto la tabla cambia, la app lo ve.
 #
-# Los JSON de public/data siguen viajando con el despliegue como respaldo por
-# si Supabase no responde; quedan en la foto del último despliegue, que para
-# ese uso es suficiente.
+# Los JSON de public/data viajan con el despliegue como respaldo por si
+# Supabase no responde, y los leen otros workflows (combates Max, noticias).
+# Antes se quedaban en la foto del último commit (días o semanas atrás); ahora
+# el segundo job los guarda en main cuando cambian.
 name: Datos del juego
 
 on:
@@ -18,7 +18,7 @@ on:
   # Para poder lanzarlo a mano desde la pestaña Actions.
   workflow_dispatch:
 
-# Solo lee el repo: los datos van a Supabase, no a un commit.
+# Por defecto, solo leer. El job que guarda en main pide escribir para él solo.
 permissions:
   contents: read
 
@@ -32,8 +32,8 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      # Sin dejar el token en .git/config: aquí nadie hace push, y así los
-      # scripts de las dependencias no lo tienen a mano.
+      # Sin dejar el token en .git/config: este job instala dependencias de
+      # npm, y así sus scripts no tienen nada con lo que escribir en el repo.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
@@ -55,3 +55,47 @@ jobs:
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: pnpm data --must-upload
+
+      # Los JSON recién generados, para el job de abajo.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: datos
+          path: public/data/*.json
+          retention-days: 1
+          if-no-files-found: error
+
+  # Guarda en main el respaldo de public/data. Va aparte para que el permiso de
+  # escribir lo tenga un job que no instala nada de npm: solo git y los JSON.
+  guardar:
+    needs: actualizar
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: datos
+          path: public/data
+
+      # meta.json cambia en cada pasada (lleva la hora): solo con él no se
+      # guarda nada, que sería un commit al día sin datos nuevos.
+      # «[sin versión]»: no sube la versión de la app (ver version.yml), y no
+      # empieza por «chore(version):», así que no avisa de versión nueva.
+      - name: Guardar en main si han cambiado
+        run: |
+          if git diff --quiet -- public/data ':!public/data/meta.json'; then
+            echo "Los datos no han cambiado: nada que guardar."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data
+          git commit -m "chore(datos): respaldo de public/data al día [sin versión]"
+          git pull --rebase origin main
+          git push origin HEAD:main

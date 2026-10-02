@@ -63,7 +63,8 @@ Promise.allSettled([idiomaInicial(), router.isReady()]).then(() => {
  * ya no se leen (las nuevas llevan otro nombre, ver vite.config.js) y solo
  * ocupan sitio. Se borran al arrancar.
  */
-const CACHES_VIEJAS = ['pokeapi-sprites', 'leekduck-img', 'formas', 'noticias-img']
+// scrapedduck: la de los feeds en vivo, que se dejó de usar (ver vite.config.js).
+const CACHES_VIEJAS = ['pokeapi-sprites', 'leekduck-img', 'formas', 'noticias-img', 'scrapedduck']
 if (typeof caches !== 'undefined') {
   for (const nombre of CACHES_VIEJAS) caches.delete(nombre).catch(() => {})
 }
