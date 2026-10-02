@@ -118,6 +118,16 @@ describe('datos de la ficha', () => {
     expect(ligas.length).toBeGreaterThan(0)
   })
 
+  it('cada liga trae su conjunto con la cuenta de rápidos, y a quién gana y con quién pierde', () => {
+    const d = ficha(charizard)
+    for (const liga of d.pvpPorLiga.value) {
+      expect(liga.conjunto.rapido.id).toBeTruthy()
+      for (const c of liga.conjunto.cargados) expect(c.cuenta.veces).toBeGreaterThan(0)
+      expect(liga.gana.length).toBeGreaterThan(0)
+      expect(liga.pierde.length).toBeGreaterThan(0)
+    }
+  })
+
   it('el nombre de la forma solo se pone si hace falta', () => {
     const d = ficha(charizard)
     // Charizard tiene una sola forma base: con un solo puesto, sobra.

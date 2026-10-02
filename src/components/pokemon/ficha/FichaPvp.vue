@@ -1,11 +1,16 @@
 <script setup>
-/** Puestos en PvP, por liga. */
+/**
+ * Puestos en PvP, por liga, y con el mejor de cada una: su conjunto
+ * recomendado con cuántos rápidos hacen falta para cada cargado (contar
+ * rápidos es la base del PvP) y a quién gana y con quién pierde.
+ */
 import { computed } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
+import MoveTag from '../MoveTag.vue'
 import { useTranslate } from '../../../composables/useTranslate'
 
 const props = defineProps({
-  /** pvpPorLiga de useFichaDatos: [{ league, entries }]. */
+  /** pvpPorLiga de useFichaDatos: [{ league, entries, conjunto, gana, pierde }]. */
   porLiga: { type: Array, required: true },
   /** conNombre de useFichaDatos. */
   conNombre: { type: Function, required: true },
@@ -52,6 +57,49 @@ const resumen = computed(() => {
             #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
           </span>
         </span>
+
+        <template v-if="liga.conjunto">
+          <span class="block mt-2 text-mini text-gray-600 dark:text-gray-300">
+            {{ $t('pokemon.pvpCombat.fastPerCharged') }}
+          </span>
+          <ul class="mt-1 flex flex-col gap-1">
+            <li
+              v-for="cargado in liga.conjunto.cargados"
+              :key="cargado.id"
+              class="flex flex-wrap items-center gap-x-1.5 gap-y-1"
+            >
+              <move-tag
+                chip
+                :name="localName(liga.conjunto.rapido)"
+                :type="liga.conjunto.rapido.type"
+              />
+              <span aria-hidden="true" class="text-gray-500">→</span>
+              <move-tag chip :name="localName(cargado)" :type="cargado.type" />
+              <span v-if="cargado.cuenta" class="ml-auto shrink-0">
+                {{
+                  $t('pokemon.pvpCombat.count', {
+                    n: cargado.cuenta.veces,
+                    turnos: cargado.cuenta.turnos
+                  })
+                }}
+              </span>
+            </li>
+          </ul>
+        </template>
+        <dl v-if="liga.gana.length || liga.pierde.length" class="mt-2 flex flex-col gap-0.5">
+          <div v-if="liga.gana.length" class="flex gap-1.5">
+            <dt class="shrink-0 text-gray-600 dark:text-gray-300">
+              {{ $t('pokemon.pvpCombat.wins') }}:
+            </dt>
+            <dd>{{ liga.gana.map(localName).join(' · ') }}</dd>
+          </div>
+          <div v-if="liga.pierde.length" class="flex gap-1.5">
+            <dt class="shrink-0 text-gray-600 dark:text-gray-300">
+              {{ $t('pokemon.pvpCombat.loses') }}:
+            </dt>
+            <dd>{{ liga.pierde.map(localName).join(' · ') }}</dd>
+          </div>
+        </dl>
       </li>
     </ul>
   </ficha-seccion>

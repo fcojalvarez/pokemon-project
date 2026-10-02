@@ -4,6 +4,7 @@ import { useTranslate } from './useTranslate'
 import { describeMoveEffect, effectChanceLabel } from '../utils/moveEffect'
 import { calcCP } from '../utils/formulas'
 import { origenDe, origenesPresentes } from '../utils/moveOrigins'
+import { conjuntoPvp } from '../utils/pvpCombate'
 
 /** Los niveles de la tabla de PC 100 %: misiones, incursiones, clima, tope sin XL y con XL. */
 const NIVELES_PC = [15, 20, 25, 30, 35, 40, 50]
@@ -326,10 +327,20 @@ export function useFichaDatos({ pokemon, formId }) {
    * «Hiper #103 · Hiper #125» sin aclarar que el segundo era el oscuro.
    */
   const pvpPorLiga = computed(() =>
-    LIGAS.map((league) => ({
-      league,
-      entries: pvpRanks.value.filter((entry) => entry.league === league)
-    })).filter((liga) => liga.entries.length)
+    LIGAS.map((league) => {
+      const entries = pvpRanks.value.filter((entry) => entry.league === league)
+      const mejor = entries[0]
+      return {
+        league,
+        entries,
+        // Del mejor puesto de la liga: su conjunto recomendado, con cuántos
+        // rápidos hacen falta para cada cargado, y a quién gana y con quién
+        // pierde (de pvpoke).
+        conjunto: mejor ? conjuntoPvp(mejor.moveset, gameData.moves) : null,
+        gana: (mejor?.wins ?? []).slice(0, 4),
+        pierde: (mejor?.counters ?? []).slice(0, 4)
+      }
+    }).filter((liga) => liga.entries.length)
   )
 
   /**
