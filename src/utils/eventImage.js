@@ -27,3 +27,9 @@ export function eventImageSrc(url) {
   if (typeof url !== 'string' || !url.startsWith(CDN)) return url
   return redimensionada(url, 800)
 }
+
+/** Una miniatura del cartel (la semana de Eventos), o la original si no es del CDN. */
+export function eventImageMini(url) {
+  if (typeof url !== 'string' || !url.startsWith(CDN)) return url
+  return redimensionada(url, 160)
+}

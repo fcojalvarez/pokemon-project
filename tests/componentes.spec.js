@@ -169,12 +169,16 @@ describe('secciones de la ficha', () => {
   it('PC: incursión con y sin clima, y el huevo marca el combate Max si puede dinamaxizar', () => {
     const cpTable = [15, 20, 25, 30, 35, 40, 50].map((level) => ({ level, cp: level * 100 }))
     const w = mount(FichaPc, { props: { cpTable, esMax: true }, ...conPlugins() })
-    const filas = w.findAll('tbody tr')
-    expect(filas).toHaveLength(3)
-    expect(filas[0].text()).toContain('2000')
-    expect(filas[0].text()).toContain('2500')
-    expect(filas[1].text()).toContain(i18n.global.t('pokemon.cpFromEggMax'))
-    expect(w.findAll('dd').map((dd) => dd.text())).toEqual(['4000', '5000'])
+    const [atrapar, subir] = w.findAll('ul')
+    // Una pastilla por cifra: incursión, incursión con clima, huevo y misión.
+    const pastillas = atrapar.findAll('li')
+    expect(pastillas).toHaveLength(4)
+    expect(pastillas[0].text()).toContain('2000')
+    expect(pastillas[1].text()).toContain('2500')
+    expect(pastillas[1].attributes('title')).toContain(i18n.global.t('pokemon.cpWeather').toLowerCase())
+    expect(pastillas[2].text()).toContain(i18n.global.t('pokemon.cpFromEggMax'))
+    expect(pastillas[3].text()).toContain('1500')
+    expect(subir.findAll('strong').map((n) => n.text())).toEqual(['4000', '5000'])
   })
 
   it('debilidades y resistencias, con su multiplicador', () => {

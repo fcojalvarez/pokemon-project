@@ -1,7 +1,7 @@
 <script setup>
 /**
  * El PC de un 100 % en dos grupos: lo que sale al atraparlo y lo que se saca
- * subiéndolo.
+ * subiéndolo, cada cifra en una pastilla con su icono y su nivel.
  */
 import { computed } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
@@ -62,6 +62,27 @@ const pcAtrapar = computed(() => [
   }
 ])
 
+/** Las pastillas de «Al atraparlo»: la del clima, detrás de la de incursión. */
+const pastillasAtrapar = computed(() =>
+  pcAtrapar.value.flatMap((fila) => {
+    const normal = { clave: fila.clave, iconos: fila.iconos, texto: fila.texto, ...fila.normal }
+    if (!fila.clima) return [normal]
+    const clima = {
+      clave: `${fila.clave}-clima`,
+      iconos: ['clima'],
+      texto: `${fila.texto}, ${t('pokemon.cpWeather').toLowerCase()}`,
+      ...fila.clima
+    }
+    return [normal, clima]
+  })
+)
+
+/** Las mismas etiquetas que el resto de la ficha, y la pastilla de cada cifra. */
+const ETIQUETA =
+  'mb-1.5 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300'
+const PASTILLA =
+  'inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'
+
 const pcSubir = computed(() => [
   { ...nivelPc(40), xl: false, texto: t('pokemon.cpNoXl') },
   { ...nivelPc(50), xl: true, texto: t('pokemon.cpXl') }
@@ -80,98 +101,54 @@ const resumen = computed(() => {
 <template>
   <ficha-seccion id="pc" :title="$t('pokemon.cp100')" :summary="resumen">
     <!--
-      Los orígenes van con iconos y no con texto (antes todo eran letras y
-      números del mismo color y grosor); sin clima y con clima, en columnas,
-      que es lo que se compara. Cada icono lleva su texto para lectores de
-      pantalla y en el title.
+      Cada cifra en una pastilla, con el icono de qué te la da y su nivel, como
+      los chips del resto de la ficha. Antes era una tabla con una fila alta
+      por origen, y la columna de los iconos dejaba un hueco enorme hasta los
+      números. El clima solo potencia las incursiones: va en su propia
+      pastilla, detrás de la de incursión. Cada pastilla lleva su texto para
+      lectores de pantalla y en el title.
     -->
-    <h3
-      class="mt-2 mb-1 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300"
-    >
-      {{ $t('pokemon.cpCatch') }}
-    </h3>
-    <table class="w-full border-separate [border-spacing:0_6px] -my-1.5 tabular-nums">
-      <thead>
-        <tr class="text-mini text-gray-600 dark:text-gray-300">
-          <th scope="col">
-            <span class="sr-only">{{ $t('pokemon.cpOrigin') }}</span>
-          </th>
-          <th scope="col" class="w-24 pr-2 font-normal text-right">{{ $t('pokemon.cpNormal') }}</th>
-          <th scope="col" class="w-24 pr-2 font-normal">
-            <span class="flex items-center justify-end gap-1">
-              <icono-mascara :src="iconoClima" class="w-4 h-4 text-sky-600 dark:text-sky-400" />
-              {{ $t('pokemon.cpWeather') }}
-            </span>
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="fila in pcAtrapar" :key="fila.clave">
-          <th scope="row" class="text-left font-normal">
-            <span class="sr-only">{{ fila.texto }}</span>
-            <span
-              class="flex items-center gap-1.5 text-gray-700 dark:text-gray-200"
-              :title="fila.texto"
-              aria-hidden="true"
-            >
-              <template v-for="icono in fila.iconos" :key="icono">
-                <max-mark v-if="icono === 'max'" variant="dynamax" :size="16" class="shrink-0" />
-                <icono-mascara v-else :src="ICONOS_PC[icono]" class="w-5 h-5" />
-              </template>
-            </span>
-          </th>
-          <td class="p-0 pl-1.5">
-            <span class="flex flex-col items-end px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800">
-              <span class="text-base font-bold leading-tight">{{ fila.normal.cp }}</span>
-              <span class="text-mini text-gray-600 dark:text-gray-300"
-                >{{ $t('common.levelShort') }} {{ fila.normal.level }}</span
-              >
-            </span>
-          </td>
-          <td class="p-0 pl-1.5">
-            <span
-              v-if="fila.clima"
-              class="flex flex-col items-end px-2 py-1 rounded-xl bg-gray-100 dark:bg-gray-800"
-            >
-              <span class="text-base font-bold leading-tight">{{ fila.clima.cp }}</span>
-              <span class="text-mini text-gray-600 dark:text-gray-300"
-                >{{ $t('common.levelShort') }} {{ fila.clima.level }}</span
-              >
-            </span>
-            <!-- Huevos, combates Max y misiones no se potencian con el clima -->
-            <span v-else class="block pr-2 text-right text-gray-500 dark:text-gray-400">
-              <span aria-hidden="true">—</span>
-              <span class="sr-only">{{ $t('pokemon.cpNoWeather') }}</span>
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <h3
-      class="mt-3 mb-1.5 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300"
-    >
-      {{ $t('pokemon.cpPowerUp') }}
-    </h3>
-    <dl class="grid grid-cols-2 gap-1.5 tabular-nums">
-      <div
-        v-for="fila in pcSubir"
-        :key="fila.level"
-        class="flex items-center justify-between gap-2 px-2 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800"
+    <h3 :class="ETIQUETA" class="mt-2">{{ $t('pokemon.cpCatch') }}</h3>
+    <ul class="flex flex-wrap gap-1.5 tabular-nums">
+      <li
+        v-for="pastilla in pastillasAtrapar"
+        :key="pastilla.clave"
+        :class="PASTILLA"
+        :title="pastilla.texto"
       >
-        <dt
-          class="flex items-center gap-1.5 whitespace-nowrap text-mini text-gray-600 dark:text-gray-300"
-          :title="fila.texto"
+        <span class="flex items-center gap-0.5 text-gray-700 dark:text-gray-200" aria-hidden="true">
+          <template v-for="icono in pastilla.iconos" :key="icono">
+            <max-mark v-if="icono === 'max'" variant="dynamax" :size="14" class="shrink-0" />
+            <icono-mascara
+              v-else-if="icono === 'clima'"
+              :src="iconoClima"
+              class="w-[18px] h-[18px] text-sky-600 dark:text-sky-400"
+            />
+            <icono-mascara v-else :src="ICONOS_PC[icono]" class="w-[18px] h-[18px]" />
+          </template>
+        </span>
+        <span class="sr-only">{{ pastilla.texto }}:</span>
+        <strong class="text-sm">{{ pastilla.cp }}</strong>
+        <span class="text-mini text-gray-600 dark:text-gray-300"
+          >{{ $t('common.levelShort') }} {{ pastilla.level }}</span
         >
-          <icono-mascara
-            :src="fila.xl ? iconoCarameloXl : iconoCaramelo"
-            class="w-4 h-4 text-gray-600 dark:text-gray-300"
-          />
-          <span class="sr-only">{{ fila.texto }},</span>
-          {{ $t('common.levelShort') }} {{ fila.level }}
-        </dt>
-        <dd class="text-base font-bold">{{ fila.cp }}</dd>
-      </div>
-    </dl>
+      </li>
+    </ul>
+
+    <h3 :class="ETIQUETA" class="mt-3">{{ $t('pokemon.cpPowerUp') }}</h3>
+    <ul class="flex flex-wrap gap-1.5 tabular-nums">
+      <li v-for="fila in pcSubir" :key="fila.level" :class="PASTILLA" :title="fila.texto">
+        <icono-mascara
+          :src="fila.xl ? iconoCarameloXl : iconoCaramelo"
+          class="w-[18px] h-[18px] text-gray-600 dark:text-gray-300"
+          aria-hidden="true"
+        />
+        <span class="sr-only">{{ fila.texto }}:</span>
+        <strong class="text-sm">{{ fila.cp }}</strong>
+        <span class="text-mini text-gray-600 dark:text-gray-300"
+          >{{ $t('common.levelShort') }} {{ fila.level }}</span
+        >
+      </li>
+    </ul>
   </ficha-seccion>
 </template>

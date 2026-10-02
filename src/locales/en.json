@@ -122,8 +122,6 @@
     "inMaxBattles": "In Max Battles",
     "cpCatch": "When caught",
     "cpPowerUp": "Powered up",
-    "cpOrigin": "Source",
-    "cpNormal": "Normal",
     "cpWeather": "Weather",
     "cpFromRaid": "Raid",
     "cpNoXl": "Without XL Candy",
@@ -131,7 +129,6 @@
     "cpFromEgg": "Egg",
     "cpFromEggMax": "Egg or Max Battle",
     "cpFromResearch": "Research",
-    "cpNoWeather": "Not weather boosted",
     "pvpIv": {
       "title": "PvP IVs",
       "intro": "In a league with a CP cap, the bulkiest under the cap wins, not the 100%. Type your IVs to see where yours ranks.",
@@ -255,12 +252,11 @@
     "upcoming": "Upcoming",
     "week": "Week",
     "weekView": {
+      "starting": "{n} starts | {n} start",
       "today": "Today",
       "tomorrow": "Tomorrow",
-      "now": "Now",
       "until": "until {when}",
-      "nothing": "Nothing new that day.",
-      "startToday": "Starting today",
+      "nothing": "Nothing new",
       "more": "and {n} more active",
       "less": "show less"
     },

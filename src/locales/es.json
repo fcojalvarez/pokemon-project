@@ -122,8 +122,6 @@
     "inMaxBattles": "En combates Max",
     "cpCatch": "Al atraparlo",
     "cpPowerUp": "Al subirlo",
-    "cpOrigin": "Origen",
-    "cpNormal": "Normal",
     "cpWeather": "Con clima",
     "cpFromRaid": "Incursión",
     "cpNoXl": "Sin caramelos XL",
@@ -131,7 +129,6 @@
     "cpFromEgg": "Huevo",
     "cpFromEggMax": "Huevo o combate Max",
     "cpFromResearch": "Misión",
-    "cpNoWeather": "No se potencia con el clima",
     "pvpIv": {
       "title": "IV para PvP",
       "intro": "En una liga con tope de PC gana el que más aguanta bajo el tope, no el 100 %. Escribe los IV del tuyo para ver en qué puesto queda.",
@@ -255,12 +252,11 @@
     "upcoming": "Próximos",
     "week": "Semana",
     "weekView": {
+      "starting": "{n} empieza | {n} empiezan",
       "today": "Hoy",
       "tomorrow": "Mañana",
-      "now": "Ya",
       "until": "hasta {when}",
-      "nothing": "Nada nuevo ese día.",
-      "startToday": "Empiezan hoy",
+      "nothing": "Nada nuevo",
       "more": "y {n} más en marcha",
       "less": "ver menos"
     },
