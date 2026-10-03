@@ -28,6 +28,7 @@ import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { formatDuration } from '../utils/time'
 import { plainText } from '../utils/gameText'
+import { vDifuminado } from '../composables/useDifuminado'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
@@ -201,6 +202,13 @@ const climaAbierto = computed(() =>
 )
 
 const bossTypes = (boss) => (boss.types ?? []).map((type) => type.name)
+
+/** Tipos de un jefe Max: el feed no los trae, salen de su especie. */
+const tiposMax = (dex) => gameData.baseByDex(dex)?.types ?? []
+
+/** A qué es débil, de más a menos daño, para la tarjeta del jefe. */
+const debilDe = (tipos) =>
+  tipos.length && gameData.isReady ? gameData.matchups(tipos).weak.map((entry) => entry.type) : []
 
 /**
  * A quién llevar contra el jefe Max abierto.
@@ -397,21 +405,24 @@ onMounted(() => {
         <nav
           v-else-if="live.status === 'ready' && !ancho && atajos.length > 1"
           :aria-label="tabLabel(tab)"
-          class="sticky top-16 sm:top-14 z-10 -mx-4 px-4 py-2 mb-3 flex gap-2 overflow-x-auto bg-gray-100 dark:bg-gray-700 [scrollbar-width:none]"
+          class="sticky top-16 sm:top-14 z-10 -mx-4 py-2 mb-3 bg-gray-100 dark:bg-gray-700"
         >
-          <button
-            v-for="atajo in atajos"
-            :key="atajo.value"
-            type="button"
-            class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
-            @click="irACategoria(atajo.value)"
-          >
-            {{ atajo.label }}
-            <!-- Entre paréntesis: con «Nivel 1» o «5 km» delante, «Nivel 1 4» no se leía. -->
-            <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums"
-              >({{ atajo.count }})</span
+          <!-- Lo que se desliza va dentro: la máscara del difuminado no puede tapar el fondo fijo. -->
+          <div v-difuminado class="px-4 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+            <button
+              v-for="atajo in atajos"
+              :key="atajo.value"
+              type="button"
+              class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+              @click="irACategoria(atajo.value)"
             >
-          </button>
+              {{ atajo.label }}
+              <!-- Entre paréntesis: con «Nivel 1» o «5 km» delante, «Nivel 1 4» no se leía. -->
+              <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums"
+                >({{ atajo.count }})</span
+              >
+            </button>
+          </div>
         </nav>
 
         <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
@@ -477,9 +488,12 @@ onMounted(() => {
                   :can-be-shiny="gameData.shinyReleased(dexFromImage(boss.image), boss.canBeShiny)"
                   :shadow="group.shadow"
                   :badge="group.shadow ? tierLabel(boss.tier) : null"
+                  :tipos="bossTypes(boss)"
+                  :debil="debilDe(bossTypes(boss))"
                 >
                   <template #pie>
                     <counters-toggle
+                      icono
                       :open="openBoss === boss.name"
                       :boss-name="gameData.nombreEs(boss.name)"
                       @toggle="toggleBoss(boss)"
@@ -538,6 +552,8 @@ onMounted(() => {
                     :dex="uno.dex"
                     :combat-power="uno.cp"
                     :can-be-shiny="uno.canBeShiny"
+                    :tipos="tiposMax(uno.dex)"
+                    :debil="debilDe(tiposMax(uno.dex))"
                     ancha
                   >
                     <max-mark
@@ -547,6 +563,7 @@ onMounted(() => {
                     />
                     <template #pie>
                       <counters-toggle
+                        icono
                         :open="openMax === uno.dex"
                         :boss-name="localName(uno)"
                         @toggle="openMax = openMax === uno.dex ? null : uno.dex"

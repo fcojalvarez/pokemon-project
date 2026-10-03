@@ -146,10 +146,11 @@ const rarityOptions = computed(() => [
               :key="type"
               type="button"
               :aria-pressed="filters.types.includes(type)"
+              :style="{ '--tipo': typesSVG[type].color }"
               :class="[
                 'zona-tactil flex items-center gap-1 px-2 py-1 text-mini rounded-xl border transition-colors',
                 filters.types.includes(type)
-                  ? 'bg-gray-600 dark:bg-gray-600 border-gray-600 text-white'
+                  ? 'tinte-tipo font-semibold text-gray-900 dark:text-white'
                   : 'bg-white dark:bg-gray-900 border-gray-400 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
               ]"
               @click="toggleType(type)"
@@ -163,6 +164,7 @@ const rarityOptions = computed(() => [
                 :d="typesSVG[type].icon"
               />
               {{ $t(`types.${type}`) }}
+              <span v-if="filters.types.includes(type)" aria-hidden="true">✓</span>
             </button>
           </div>
         </div>

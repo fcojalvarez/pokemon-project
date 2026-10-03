@@ -12,6 +12,8 @@ import TypeIcons from './base/TypeIcons.vue'
 import { spriteUrl } from '../utils/sprites'
 import { formatDex } from '../utils/dex'
 import BaseSprite from './base/BaseSprite.vue'
+import BasePillButton from './base/BasePillButton.vue'
+import { typesSVG } from '../utils/Settings'
 import SkeletonLoader from './base/SkeletonLoader.vue'
 import { localName } from '../composables/useTranslate'
 import NotFoundView from '../views/NotFoundView.vue'
@@ -61,6 +63,21 @@ const hero = computed(() => {
       ? p.sprites?.male_shiny
       : p.sprites?.male
   }
+})
+
+/**
+ * Luz de sus tipos detrás de la cabecera: el primero desde la esquina del
+ * sprite y el segundo, si lo hay, desde la opuesta. Va como imagen de fondo,
+ * así que el blanco o el gray-900 de la tarjeta siguen debajo.
+ */
+const heroLuz = computed(() => {
+  const [uno, dos] = (hero.value?.types || [])
+    .filter((t) => typesSVG[t])
+    .map((t) => typesSVG[t].color)
+  if (!uno) return undefined
+  const capas = [`radial-gradient(120% 140% at 0% 0%, ${uno}40, transparent 55%)`]
+  if (dos) capas.push(`radial-gradient(90% 120% at 100% 100%, ${dos}33, transparent 60%)`)
+  return { backgroundImage: capas.join(', ') }
 })
 
 /**
@@ -196,7 +213,7 @@ watch(
             botones a la derecha. En dos filas, la tarjeta ocupaba el ancho entero
             con casi nada dentro.
         -->
-    <base-card class="!pb-3 lg:!py-4 lg:!px-6 lg:flex lg:items-center lg:gap-6">
+    <base-card class="!pb-3 lg:!py-4 lg:!px-6 lg:flex lg:items-center lg:gap-6" :style="heroLuz">
       <!--
                 Cabecera con el nombre: antes la ficha empezaba por la cadena
                 evolutiva y el Pokémon actual solo se distinguía por un fondo gris.
@@ -209,7 +226,7 @@ watch(
           derecha, Dinamax y Gigamax abajo), que explica la leyenda del final.
           Antes lo decía una línea «Liberado: …» que repetía esa leyenda.
         -->
-        <span class="relative w-20 h-20 lg:w-28 lg:h-28 shrink-0">
+        <span class="relative w-24 h-24 lg:w-32 lg:h-32 shrink-0">
           <base-sprite
             :src="hero.image"
             :lazy="false"
@@ -295,25 +312,19 @@ watch(
           />
 
           <!--
-                    Es un interruptor, así que es un <button> con aria-pressed.
-                    Activado va en gris-700 sobre blanco (10,3:1); en gris-500 se
-                    quedaba en 4,39:1 y el texto no se leía bien en modo claro.
-                    Mismo alto y letra que «Formas»: al lado, distintos, parecía
-                    que uno mandaba sobre el otro.
+                    Es un interruptor: la casilla de los filtros, con su ✓ al
+                    encenderlo, para que se vea si está puesto sin adivinarlo
+                    por el relleno. Mismo alto que «Formas»: al lado, distintos,
+                    parecía que uno mandaba sobre el otro.
                 -->
-          <button
-            type="button"
-            :aria-pressed="isShowShiny"
+          <base-pill-button
+            casilla
+            class="shrink-0 h-[34px]"
+            :active="isShowShiny"
             @click="isShowShiny = !isShowShiny"
-            :class="[
-              isShowShiny
-                ? 'bg-gray-700 dark:bg-gray-600 text-white border-gray-700 dark:border-gray-600'
-                : 'text-gray-800 dark:text-gray-200 border-gray-400 dark:border-gray-600',
-              'shrink-0 border rounded-xl h-[34px] px-3 text-xs text-center cursor-pointer transition-colors'
-            ]"
           >
             {{ $t('viewShiny') }}
-          </button>
+          </base-pill-button>
         </div>
       </div>
     </base-card>
@@ -348,7 +359,7 @@ watch(
       <div
         class="flex items-center gap-4 pb-3 border-b border-gray-300 dark:border-gray-700 lg:flex-1 lg:pb-0 lg:border-b-0"
       >
-        <span class="w-20 h-20 lg:w-28 lg:h-28 shrink-0 flex items-center justify-center"
+        <span class="w-24 h-24 lg:w-32 lg:h-32 shrink-0 flex items-center justify-center"
           ><span class="esqueleto block w-[76%] h-[76%] rounded-full"></span
         ></span>
         <span class="flex flex-col">

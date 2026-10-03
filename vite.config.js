@@ -168,10 +168,10 @@ export default defineConfig({
             }
           },
           {
-            // La fuente (src/assets/fonts). Lleva el hash en el nombre, así que
+            // Las fuentes (src/assets/fonts). Llevan el hash en el nombre, así que
             // una versión nueva es otra URL y nunca se sirve una vieja. No va
             // en la precaché: latin-ext solo lo necesita quien lo usa.
-            urlPattern: /\/assets\/source-code-pro-.*\.woff2$/i,
+            urlPattern: /\/assets\/(source-code-pro|atkinson)-.*\.woff2$/i,
             handler: 'CacheFirst',
             options: {
               cacheName: 'fuentes-v1',

@@ -15,6 +15,8 @@
 import { computed } from 'vue'
 import ShinyMark from './ShinyMark.vue'
 import BaseSprite from '../base/BaseSprite.vue'
+import TypeIcons from '../base/TypeIcons.vue'
+import { typesSVG } from '../../utils/Settings'
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -34,8 +36,19 @@ const props = defineProps({
    * Va a todo el ancho también en móvil (los combates Max, a una columna):
    * hay sitio para «PC» delante del rango y el nombre no hace falta partirlo.
    */
-  ancha: Boolean
+  ancha: Boolean,
+  /**
+   * Tipos del jefe (incursiones y combates Max). Con ellos la tarjeta es la
+   * de jefe: luz de su primer tipo, sprite grande arriba a la derecha y, abajo,
+   * su tipo y a qué es débil junto al botón de counters (el slot `pie`).
+   */
+  tipos: { type: Array, default: () => [] },
+  /** Tipos que le hacen más daño, de más a menos. */
+  debil: { type: Array, default: () => [] }
 })
+
+const colorTipo = computed(() => typesSVG[props.tipos.find((t) => typesSVG[t])]?.color ?? null)
+const esJefe = computed(() => Boolean(colorTipo.value))
 
 const cpLabel = computed(() => {
   const cp = props.combatPower
@@ -55,8 +68,74 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
 </script>
 
 <template>
+  <!--
+    Tarjeta de jefe. Todo en columna: en móvil, a dos por fila, no cabían
+    sprite grande, nombre y botón en la misma línea.
+  -->
   <component
     :is="to ? 'router-link' : 'div'"
+    v-if="esJefe"
+    :to="to ?? undefined"
+    class="luz-tipo relative isolate flex flex-col p-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+    :style="{ '--tipo': colorTipo }"
+    :class="[
+      to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : '',
+      highlight
+        ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950'
+        : ''
+    ]"
+  >
+    <shiny-mark
+      v-if="canBeShiny"
+      variant="dex"
+      size="text-mini"
+      class="absolute top-2 left-2 z-10 scale-[0.8] origin-top-left"
+      :title="$t('pokemon.shinyLegend')"
+      :label="$t('pokemon.shinyLegend')"
+    />
+    <base-sprite
+      v-if="image"
+      :src="image"
+      :oscuro="shadow"
+      class="self-end w-14 h-14 sm:w-16 sm:h-16"
+      :img-class="['drop-shadow-contorno dark:drop-shadow-none', conMargen ? 'scale-125' : '']"
+    />
+    <span class="flex items-center gap-1.5 min-w-0">
+      <span class="text-xs font-semibold line-clamp-2 break-words hyphens-auto" :title="name">{{
+        name
+      }}</span>
+      <slot />
+    </span>
+    <span
+      v-if="cpLabel"
+      class="block text-mini text-gray-600 dark:text-gray-300 truncate"
+      :title="`${$t('raids.cpRange')} ${cpLabel}`"
+    >
+      <span class="hidden sm:inline">{{ $t('raids.cpRange') }}&nbsp;</span>{{ cpLabel }}
+    </span>
+    <span v-if="badge" class="block text-mini text-gray-600 dark:text-gray-300">{{ badge }}</span>
+    <!--
+      Abajo, bajo una raya y como una ficha técnica, lo que hace falta para
+      preparar el equipo: su tipo y a qué es débil (hasta cuatro, los que más
+      daño le hacen), cada uno con su rótulo. Sin rótulos, los iconos sueltos
+      no se entendían. El botón de counters, a la derecha, ocupa las dos líneas.
+    -->
+    <span
+      class="mt-auto pt-1.5 border-t border-gray-300/70 dark:border-gray-700 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1"
+    >
+      <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('filters.type') }}</span>
+      <type-icons :types="tipos" size="14" class="!gap-1 min-w-0" />
+      <span class="row-span-2 col-start-3 row-start-1 self-center"><slot name="pie" /></span>
+      <template v-if="debil.length">
+        <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('raids.weak') }}</span>
+        <type-icons :types="debil.slice(0, 4)" size="14" class="!gap-1 min-w-0" />
+      </template>
+    </span>
+  </component>
+
+  <component
+    :is="to ? 'router-link' : 'div'"
+    v-else
     :to="to ?? undefined"
     class="flex flex-wrap md:flex-nowrap items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
     :class="[

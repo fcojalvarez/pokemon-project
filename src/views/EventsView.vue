@@ -19,6 +19,7 @@ import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useMedia } from '../composables/useMedia'
 import { useEventos } from '../composables/useEventos'
+import { vDifuminado } from '../composables/useDifuminado'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
@@ -188,30 +189,33 @@ onMounted(async () => {
           v-else-if="!ancho && !semana && typeOptions.length > 2"
           role="group"
           :aria-label="$t('events.filterType')"
-          class="sticky top-16 sm:top-14 z-10 -mx-4 px-4 py-2 mb-3 flex gap-2 overflow-x-auto bg-gray-100 dark:bg-gray-700 [scrollbar-width:none]"
+          class="sticky top-16 sm:top-14 z-10 -mx-4 py-2 mb-3 bg-gray-100 dark:bg-gray-700"
         >
-          <button
-            v-for="option in typeOptions"
-            :key="option.value"
-            type="button"
-            class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500"
-            :class="
-              typeFilter === option.value
-                ? 'bg-gray-500 dark:bg-gray-600 text-white'
-                : 'bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'
-            "
-            :aria-pressed="typeFilter === option.value"
-            @click="typeFilter = option.value"
-          >
-            {{ option.label }}
-            <span
-              class="text-mini tabular-nums"
+          <!-- Lo que se desliza va dentro: la máscara del difuminado no puede tapar el fondo fijo. -->
+          <div v-difuminado class="px-4 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+            <button
+              v-for="option in typeOptions"
+              :key="option.value"
+              type="button"
+              class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500"
               :class="
-                typeFilter === option.value ? 'text-white' : 'text-gray-600 dark:text-gray-300'
+                typeFilter === option.value
+                  ? 'bg-gray-500 dark:bg-gray-600 text-white'
+                  : 'bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'
               "
-              >({{ option.count }})</span
+              :aria-pressed="typeFilter === option.value"
+              @click="typeFilter = option.value"
             >
-          </button>
+              {{ option.label }}
+              <span
+                class="text-mini tabular-nums"
+                :class="
+                  typeFilter === option.value ? 'text-white' : 'text-gray-600 dark:text-gray-300'
+                "
+                >({{ option.count }})</span
+              >
+            </button>
+          </div>
         </div>
       </base-sidebar>
 

@@ -27,6 +27,47 @@
     inset: var(--zona, -5px);
   }
 
+  /*
+     * Tinte del color de un tipo sobre el fondo de tarjeta (blanco o
+     * gray-900). El color llega en --tipo: así vale para los 18 tipos sin
+     * escribir 18 clases. Al 22 % el texto gris fuerte se sigue leyendo
+     * en los dos modos.
+     */
+  .tinte-tipo {
+    border-color: var(--tipo);
+    background-color: color-mix(in srgb, var(--tipo) 22%, #fff);
+  }
+  .dark .tinte-tipo {
+    background-color: color-mix(in srgb, var(--tipo) 22%, #111827);
+  }
+
+  /* Luz del tipo que entra por arriba a la izquierda: tarjetas de jefe. */
+  .luz-tipo {
+    background-image: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--tipo) 30%, transparent),
+      transparent 70%
+    );
+  }
+
+  /* Bordes que se funden en las filas deslizables: ver composables/useDifuminado. */
+  .difuminado {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--difumina-izq, 0px),
+      #000 calc(100% - var(--difumina-dcha, 0px)),
+      transparent
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--difumina-izq, 0px),
+      #000 calc(100% - var(--difumina-dcha, 0px)),
+      transparent
+    );
+  }
+
   .campo {
     @apply block w-full rounded-xl px-3 py-2 text-sm bg-white text-gray-900 border border-gray-400 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600 dark:focus:ring-blue-300;
   }
