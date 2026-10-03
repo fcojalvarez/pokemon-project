@@ -68,6 +68,8 @@
     "cp100": "100 % CP",
     "weaknesses": "Weaknesses",
     "resistances": "Resistances",
+    "weakDouble": "Very weak",
+    "weakSingle": "Weak",
     "bestMoves": "Best moves",
     "fastMoves": "Fast moves",
     "chargedMoves": "Charged moves",
@@ -169,6 +171,10 @@
     }
   },
   "top": {
+    "short": {
+      "pve": "PvE",
+      "max": "Max"
+    },
     "pokemonColumn": "Pokémon",
     "score": "Score",
     "moves": "Moves",
@@ -391,6 +397,7 @@
     "countersButton": "Counters"
   },
   "filters": {
+    "more": "More filters",
     "type": "Type",
     "generation": "Generation",
     "allGenerations": "All",

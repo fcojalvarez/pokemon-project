@@ -10,6 +10,22 @@ async function abrirFiltrosTop(page) {
 }
 
 /**
+ * Cambia el modo del Top. En móvil va a la vista, en el selector segmentado
+ * (PvE · Max · Súper · Hiper · Master); en el resto, en el desplegable «Modo».
+ */
+async function elegirModoTop(page, { boton, opcion }) {
+  await page.getByRole('heading', { level: 1, name: 'Top' }).waitFor()
+  const segmentado = page.getByRole('group', { name: /modo/i })
+  if (await segmentado.isVisible()) {
+    await segmentado.getByRole('button', { name: boton, exact: true }).click()
+    return
+  }
+  await abrirFiltrosTop(page)
+  await page.getByRole('combobox', { name: /modo/i }).click()
+  await page.getByRole('option', { name: opcion }).click()
+}
+
+/**
  * En móvil y tablet las secciones de la ficha empiezan plegadas: para mirar
  * lo que hay dentro, antes hay que abrirlas. En escritorio van siempre
  * abiertas y no hay botón, así que no hace nada.
@@ -27,7 +43,8 @@ async function etiquetaDeMetrica(page, filas, texto) {
 async function abrirSecciones(page, ...titulos) {
   for (const titulo of titulos) {
     const boton = page.getByRole('button', { name: new RegExp(`^${titulo}`) })
-    if ((await boton.count()) && (await boton.getAttribute('aria-expanded')) === 'false') await boton.click()
+    if ((await boton.count()) && (await boton.getAttribute('aria-expanded')) === 'false')
+      await boton.click()
   }
 }
 
@@ -93,11 +110,9 @@ test('el Top cambia entre PvE y PvP sin romperse', async ({ page }) => {
 
   // Ya no es un <select> nativo: es el desplegable propio, que se abre y se
   // elige con clics como haría cualquiera.
-  await abrirFiltrosTop(page)
-  await page.getByRole('combobox', { name: /modo/i }).click()
-  await page.getByRole('option', { name: /pvp/i }).click()
+  await elegirModoTop(page, { boton: 'Súper', opcion: /pvp/i })
 
-  await expect(page.getByRole('combobox', { name: /modo/i })).toContainText(/pvp/i)
+  await expect(page).toHaveURL(/mode=pvp/)
   await expect(filas.first()).toBeVisible()
   expect(await filas.count()).toBeGreaterThan(5)
 })
@@ -161,8 +176,9 @@ test('los eventos se listan con el título en español', async ({ page }) => {
   )
 
   // El título llega en inglés desde LeekDuck y se arma en español por patrón.
-  await expect(page.getByText(/incursiones|Hora destacada|Día de la Comunidad/i).first())
-    .toBeVisible()
+  await expect(
+    page.getByText(/incursiones|Hora destacada|Día de la Comunidad/i).first()
+  ).toBeVisible()
 })
 
 /**
@@ -179,8 +195,10 @@ test('si game_data no responde, tira de los ficheros desplegados', async ({ page
   await expect(filas.first()).toBeVisible()
   expect(await filas.count()).toBeGreaterThan(5)
 
-  const usados = await page.evaluate(() =>
-    performance.getEntriesByType('resource').filter((r) => /\/data\/\w+\.json/.test(r.name)).length
+  const usados = await page.evaluate(
+    () =>
+      performance.getEntriesByType('resource').filter((r) => /\/data\/\w+\.json/.test(r.name))
+        .length
   )
   expect(usados).toBeGreaterThan(0)
 })
@@ -193,10 +211,7 @@ test('si game_data no responde, tira de los ficheros desplegados', async ({ page
  */
 test('el Top Dinamax ordena por ataque y enseña el Ataque Max', async ({ page }) => {
   await page.goto('/top')
-  await abrirFiltrosTop(page)
-
-  await page.getByRole('combobox', { name: /modo/i }).click()
-  await page.getByRole('option', { name: /· max$/i }).click()
+  await elegirModoTop(page, { boton: 'Max', opcion: /· max$/i })
 
   const filas = page.locator('[data-fila-top]')
   await expect(filas.first()).toBeVisible()
@@ -244,7 +259,8 @@ test('el botón Élite quita los ataques élite del ranking', async ({ page }) =
   await page.goto('/top')
   const filas = page.locator('[data-fila-top]')
   await expect(filas.first()).toBeVisible()
-  const conElite = () => filas.filter({ has: page.locator('[title="Solo se aprende con MT Élite"]') })
+  const conElite = () =>
+    filas.filter({ has: page.locator('[title="Solo se aprende con MT Élite"]') })
   expect(await conElite().count()).toBeGreaterThan(0)
 
   await abrirFiltrosTop(page)
@@ -271,7 +287,9 @@ test.describe('volver desde la ficha', () => {
     await page.evaluate(() => window.scrollTo(0, 800))
     const scrollAntes = await page.evaluate(() => window.scrollY)
     expect(scrollAntes).toBeGreaterThan(100)
-    const indice = await filas.evaluateAll((ls) => ls.findIndex((li) => li.getBoundingClientRect().top > 120))
+    const indice = await filas.evaluateAll((ls) =>
+      ls.findIndex((li) => li.getBoundingClientRect().top > 120)
+    )
 
     await filas.nth(indice).getByRole('link').click()
     await expect(page).toHaveURL(/\/pokemon\/\d+/)
@@ -300,9 +318,15 @@ test.describe('volver desde la ficha', () => {
     await page.goto('/')
     await page.locator('main a[href="/pokemon/6"]').first().click()
     await expect(page).toHaveURL(/\/pokemon\/6$/)
-    await page.getByRole('link', { name: /Charmander/ }).first().click()
+    await page
+      .getByRole('link', { name: /Charmander/ })
+      .first()
+      .click()
     await expect(page).toHaveURL(/\/pokemon\/4$/)
-    await page.getByRole('link', { name: /Charmeleon/ }).first().click()
+    await page
+      .getByRole('link', { name: /Charmeleon/ })
+      .first()
+      .click()
     await expect(page).toHaveURL(/\/pokemon\/5$/)
     await volver(page).click()
     await expect(page).toHaveURL(/\/$/)
@@ -350,7 +374,9 @@ test.describe('Top en escritorio ancho', () => {
  * sale con la misma selección.
  */
 test.describe('filtros en la URL', () => {
-  test('el Top conserva tipo e «Incluir» al volver de una ficha y al recargar', async ({ page }) => {
+  test('el Top conserva tipo e «Incluir» al volver de una ficha y al recargar', async ({
+    page
+  }) => {
     await page.goto('/top')
     await abrirFiltrosTop(page)
     await page.getByRole('combobox', { name: /tipo/i }).click()
@@ -365,7 +391,10 @@ test.describe('filtros en la URL', () => {
     await expect(page).toHaveURL(/\/top\?.*kind=fire/)
     await abrirFiltrosTop(page)
     await expect(page.getByRole('combobox', { name: /tipo/i })).toContainText('Fuego')
-    await expect(page.getByRole('button', { name: 'Legacy', exact: true })).toHaveAttribute('aria-pressed', 'false')
+    await expect(page.getByRole('button', { name: 'Legacy', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    )
 
     await page.reload()
     await abrirFiltrosTop(page)
@@ -381,7 +410,10 @@ test.describe('filtros en la URL', () => {
     if (await abrir.isVisible()) {
       await expect(abrir).toContainText('2')
     } else {
-      await expect(page.getByRole('button', { name: /Fuego/ })).toHaveAttribute('aria-pressed', 'true')
+      await expect(page.getByRole('button', { name: /Fuego/ })).toHaveAttribute(
+        'aria-pressed',
+        'true'
+      )
       await expect(page.getByRole('button', { name: 'Gigamax', exact: true })).toHaveAttribute(
         'aria-pressed',
         'true'
@@ -394,7 +426,10 @@ test.describe('filtros en la URL', () => {
 test('las rutas antiguas en español redirigen a las nuevas', async ({ page }) => {
   await page.goto('/ahora?tab=eggs')
   await expect(page).toHaveURL(/\/live\?tab=eggs$/)
-  await expect(page.getByRole('button', { name: /huevos/i })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('button', { name: /huevos/i })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  )
   await page.goto('/eventos')
   await expect(page).toHaveURL(/\/events$/)
   await page.goto('/incursiones')

@@ -604,12 +604,28 @@ onMounted(() => {
             :key="group.name"
             class="mb-5 scroll-mt-36"
           >
-            <h2 class="text-sm font-bold mb-2">{{ group.name }}</h2>
-            <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2">
+            <h2 class="text-sm font-bold mb-2">
+              {{ group.name }}
+              <span class="font-normal text-gray-600 dark:text-gray-300 tabular-nums"
+                >· {{ group.list.length }}</span
+              >
+            </h2>
+            <!--
+              Un carrusel por distancia: cada huevo es una fila que se desliza
+              y se ven todas las distancias sin bajar mucho. Antes, solo 1 km
+              eran 27 tarjetas a dos columnas. Desde md hay sitio y bajan de
+              línea.
+            -->
+            <div
+              v-difuminado
+              class="-mx-4 px-4 py-1 flex gap-2 overflow-x-auto snap-x scroll-px-4 [scrollbar-width:none] md:mx-0 md:px-0 md:flex-wrap md:overflow-visible"
+            >
               <live-mon-card
                 v-for="egg in group.list"
                 :key="`${group.name}-${egg.name}`"
                 :id="`mon-${dexFromImage(egg.image)}`"
+                class="snap-start"
+                vertical
                 :highlight="destacado === dexFromImage(egg.image)"
                 :name="gameData.nombreEs(egg.name)"
                 :image="egg.image"
@@ -666,9 +682,12 @@ onMounted(() => {
                 :key="`${group.type}-${index}`"
                 class="p-2.5 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900"
               >
-                <p class="text-xs font-semibold mb-2">{{ taskText(task.text) }}</p>
-                <div class="grid grid-cols-[repeat(auto-fill,minmax(135px,1fr))] gap-1.5">
+                <p class="text-xs font-semibold mb-1">{{ taskText(task.text) }}</p>
+                <!-- Las recompensas, sin caja: antes eran tarjetas dentro de la tarjeta. -->
+                <div class="flex flex-wrap gap-1">
                   <live-mon-card
+                    vertical
+                    sin-caja
                     v-for="reward in task.rewards"
                     :key="reward.name"
                     :id="`mon-${dexFromImage(reward.image)}`"

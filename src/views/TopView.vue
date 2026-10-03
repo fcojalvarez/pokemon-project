@@ -13,6 +13,7 @@ import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
 import StabBadge from '../components/base/StabBadge.vue'
 import BaseChevron from '../components/base/BaseChevron.vue'
+import BaseSegmented from '../components/base/BaseSegmented.vue'
 import { useMedia } from '../composables/useMedia'
 import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useTranslate } from '../composables/useTranslate'
@@ -146,8 +147,29 @@ const filtrosAbiertos = ref(false)
 const etiqueta = (opciones, valor) =>
   opciones.find((opcion) => opcion.value === valor)?.label ?? valor
 
+/**
+ * En móvil, lo que más se cambia (PvE, Max o una liga PvP) va a la vista en un
+ * selector segmentado; tipo, orden e «Incluir» quedan en «Más filtros». Antes
+ * el modo iba dentro, y pasar de PvE a la Súper era abrir, elegir y cerrar.
+ */
+const vista = computed({
+  get: () => (mode.value === 'pvp' ? `pvp-${league.value}` : mode.value),
+  set: (valor) => {
+    if (valor.startsWith('pvp-')) {
+      league.value = valor.slice(4)
+      mode.value = 'pvp'
+    } else mode.value = valor
+  }
+})
+const vistaOptions = computed(() => [
+  { value: 'pve', label: t('top.short.pve') },
+  { value: 'max', label: t('top.short.max') },
+  ...['great', 'ultra', 'master'].map((liga) => ({ value: `pvp-${liga}`, label: t(`top.${liga}`) }))
+])
+
+/** Lo que queda en «Más filtros», en una línea: el modo y la liga ya se ven arriba. */
 const resumenFiltros = computed(() => {
-  const partes = [etiqueta(modeOptions.value, mode.value), etiqueta(typeOptions.value, type.value)]
+  const partes = [etiqueta(typeOptions.value, type.value)]
   if (mode.value === 'pve') {
     // La sigla: «Daño por segundo (DPS)» entero no cabe en la línea.
     partes.push(sortBy.value.toUpperCase())
@@ -160,8 +182,6 @@ const resumenFiltros = computed(() => {
     if (quitados.length) partes.push(t('top.without', { list: quitados.join(', ') }))
   } else if (mode.value === 'max') {
     if (!includeLegendary.value) partes.push(t('top.without', { list: t('top.legendaries') }))
-  } else if (mode.value === 'pvp') {
-    partes.push(t(`top.${league.value}`))
   }
   return partes.join(' · ')
 })
@@ -171,7 +191,8 @@ const filtrosCambiados = computed(
   () =>
     (type.value !== 'all' ? 1 : 0) +
     (mode.value === 'pve' && sortBy.value !== 'dps' ? 1 : 0) +
-    (mode.value === 'pvp' && league.value !== 'great' ? 1 : 0) +
+    // La liga no cuenta en móvil: va a la vista, en el selector de arriba.
+    (!movil.value && mode.value === 'pvp' && league.value !== 'great' ? 1 : 0) +
     (mode.value === 'pve'
       ? excluidos.value.filter((quitado) => quitado !== 'legendary').length
       : 0) +
@@ -239,7 +260,15 @@ watch(
     -->
     <div :class="ancho ? 'grid grid-cols-[280px_minmax(0,1fr)] gap-6 items-start' : ''">
       <base-sidebar :activa="ancho">
-        <!-- Móvil: una línea con lo elegido y el botón que abre los filtros. -->
+        <!-- Móvil: el modo a la vista y, debajo, lo demás en una línea con su botón. -->
+        <base-segmented
+          v-if="movil"
+          v-model="vista"
+          role="group"
+          :aria-label="$t('top.mode')"
+          :options="vistaOptions"
+          class="mb-2"
+        />
         <div v-if="movil" class="flex items-center gap-3 mb-3">
           <p
             class="flex-1 min-w-0 text-mini text-gray-600 dark:text-gray-300 truncate"
@@ -254,7 +283,7 @@ watch(
             aria-controls="filtros-top"
             @click="filtrosAbiertos = !filtrosAbiertos"
           >
-            {{ $t('filters.title') }}
+            {{ $t('filters.more') }}
             <span
               v-if="filtrosCambiados"
               class="px-1.5 rounded-full bg-gray-600 dark:bg-gray-500 text-white text-mini"
@@ -282,7 +311,12 @@ watch(
                 : 'grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mb-3'
             "
           >
-            <base-dropdown v-model="mode" :label="$t('top.mode')" :options="modeOptions" />
+            <base-dropdown
+              v-if="!movil"
+              v-model="mode"
+              :label="$t('top.mode')"
+              :options="modeOptions"
+            />
             <base-dropdown v-model="type" buscable :label="$t('top.type')" :options="typeOptions" />
             <!--
             En la tabla también se ordena pulsando las cabeceras; los dos van a
@@ -294,7 +328,7 @@ watch(
               <p class="mt-1.5 text-mini text-gray-600 dark:text-gray-300">{{ sortHelp }}</p>
             </div>
             <base-dropdown
-              v-else-if="mode === 'pvp'"
+              v-else-if="mode === 'pvp' && !movil"
               v-model="league"
               :label="$t('top.league')"
               :options="leagueOptions"

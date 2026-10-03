@@ -68,6 +68,8 @@
     "cp100": "PC 100 %",
     "weaknesses": "Debilidades",
     "resistances": "Resistencias",
+    "weakDouble": "Muy débil",
+    "weakSingle": "Débil",
     "bestMoves": "Mejores ataques",
     "fastMoves": "Ataques rápidos",
     "chargedMoves": "Ataques cargados",
@@ -169,6 +171,10 @@
     }
   },
   "top": {
+    "short": {
+      "pve": "PvE",
+      "max": "Max"
+    },
     "pokemonColumn": "Pokémon",
     "score": "Puntuación",
     "moves": "Ataques",
@@ -391,6 +397,7 @@
     "countersButton": "Counters"
   },
   "filters": {
+    "more": "Más filtros",
     "type": "Tipo",
     "generation": "Generación",
     "allGenerations": "Todas",

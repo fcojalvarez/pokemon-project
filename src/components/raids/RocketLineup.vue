@@ -52,6 +52,13 @@ const puestos = computed(() =>
   )
 )
 
+/**
+ * Si se atrapa algo en ese puesto: toda la fila, en verde; solo alguno, un
+ * anillo verde en ese sprite.
+ */
+const atrapables = (lista) => lista.filter((mon) => mon.isEncounter).length
+const todosAtrapables = (lista) => lista.length > 0 && atrapables(lista) === lista.length
+
 const tipo = computed(() => props.lineup.type || null)
 
 const counters = computed(() =>
@@ -66,9 +73,9 @@ const debilidades = computed(() =>
 
 <template>
   <article
-    class="p-2.5 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900"
+    class="overflow-hidden border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900"
   >
-    <div class="flex flex-wrap items-center gap-2 mb-2">
+    <div class="flex flex-wrap items-center gap-2 px-2.5 pt-2.5 pb-2">
       <h3 class="flex-1 min-w-0 text-xs font-semibold">{{ nombre }}</h3>
       <counters-toggle
         v-if="tipo"
@@ -79,42 +86,64 @@ const debilidades = computed(() =>
       />
     </div>
 
-    <ol class="flex flex-col gap-1.5">
-      <li v-for="(lista, i) in puestos" :key="i" class="flex items-start gap-2">
+    <!--
+      Una fila fina por puesto, como una tabla: el número, los sprites en línea
+      (cada uno lleva a su ficha) y sus nombres. Antes cada Pokémon tenía su
+      casilla en una rejilla de tres y Giovanni ocupaba casi una pantalla. La
+      fila de lo que se atrapa va en verde, con «Se atrapa» a la derecha.
+    -->
+    <ol
+      class="divide-y divide-gray-300 dark:divide-gray-700 border-t border-gray-300 dark:border-gray-700"
+    >
+      <li
+        v-for="(lista, i) in puestos"
+        :key="i"
+        class="flex items-center gap-2 px-2.5 py-1.5"
+        :class="todosAtrapables(lista) ? 'bg-green-50 dark:bg-green-900/30' : ''"
+      >
         <span
-          class="shrink-0 w-5 pt-2.5 text-mini font-semibold text-gray-600 dark:text-gray-300 tabular-nums"
+          class="shrink-0 w-4 text-mini font-semibold text-gray-600 dark:text-gray-300 tabular-nums"
           :aria-label="$t('raids.rocket.slot', { n: i + 1 })"
           >{{ i + 1 }}</span
         >
-        <ul class="flex-1 min-w-0 grid grid-cols-3 gap-1">
+        <ul class="shrink-0 flex">
           <li v-for="mon in lista" :key="mon.name">
             <component
               :is="mon.dex ? 'router-link' : 'div'"
               :to="mon.dex ? `/pokemon/${mon.dex}` : undefined"
-              class="flex flex-col items-center gap-0.5 p-1 rounded-lg text-center"
-              :class="mon.dex ? 'hover:bg-gray-150 hover:dark:bg-gray-800' : ''"
+              class="block rounded-lg"
+              :class="[
+                mon.dex ? 'hover:bg-gray-150 hover:dark:bg-gray-800' : '',
+                mon.isEncounter && !todosAtrapables(lista)
+                  ? 'ring-2 ring-green-600 dark:ring-green-400'
+                  : ''
+              ]"
+              :title="mon.nombre"
+              :aria-label="mon.nombre"
             >
               <base-sprite
                 v-if="mon.image"
                 :src="mon.image"
-                class="w-9 h-9"
+                class="w-8 h-8"
                 img-class="drop-shadow-contorno dark:drop-shadow-none"
               />
-              <span class="text-mini leading-tight line-clamp-2 break-words">{{ mon.nombre }}</span>
-              <span
-                v-if="mon.isEncounter"
-                class="text-mini leading-tight font-semibold text-green-700 dark:text-green-400"
-                >{{ $t('raids.rocket.catchable') }}</span
-              >
             </component>
           </li>
         </ul>
+        <span class="flex-1 min-w-0 text-mini leading-tight line-clamp-2" aria-hidden="true">{{
+          lista.map((mon) => mon.nombre).join(' · ')
+        }}</span>
+        <span
+          v-if="atrapables(lista)"
+          class="shrink-0 text-mini font-semibold text-green-700 dark:text-green-400"
+          >{{ $t('raids.rocket.catchable') }}</span
+        >
       </li>
     </ol>
 
     <raid-counters-panel
       v-if="open && tipo"
-      class="mt-2 pt-2 border-t border-gray-300 dark:border-gray-700"
+      class="p-2.5 border-t border-gray-300 dark:border-gray-700"
       :weaknesses="debilidades"
       :counters="counters"
     />

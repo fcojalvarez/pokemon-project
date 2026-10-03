@@ -181,14 +181,27 @@ describe('secciones de la ficha', () => {
     expect(subir.findAll('strong').map((n) => n.text())).toEqual(['4000', '5000'])
   })
 
-  it('debilidades y resistencias, con su multiplicador', () => {
+  it('debilidades por intensidad y resistencias, con su multiplicador', () => {
     const w = mount(FichaDebilidades, {
-      props: { matchups: { weak: [{ type: 'rock', mult: 2.56 }], resist: [{ type: 'grass', mult: 0.39 }] } },
+      props: {
+        matchups: {
+          weak: [
+            { type: 'rock', mult: 2.56 },
+            { type: 'water', mult: 1.6 }
+          ],
+          resist: [{ type: 'grass', mult: 0.39 }]
+        }
+      },
       ...conPlugins()
     })
-    expect(w.text()).toContain('×2.56')
+    // Un rótulo por nivel, de más a menos daño, y al final las resistencias.
+    const t = i18n.global.t
+    expect(w.findAll('h3').map((h) => h.text())).toEqual([
+      `${t('pokemon.weakDouble')} ×2.56`,
+      `${t('pokemon.weakSingle')} ×1.60`,
+      t('pokemon.resistances')
+    ])
     expect(w.text()).toContain('×0.39')
-    expect(w.find('h3').text()).toBe(i18n.global.t('pokemon.resistances'))
   })
 })
 

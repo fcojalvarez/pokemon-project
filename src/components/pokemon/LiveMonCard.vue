@@ -44,7 +44,15 @@ const props = defineProps({
    */
   tipos: { type: Array, default: () => [] },
   /** Tipos que le hacen más daño, de más a menos. */
-  debil: { type: Array, default: () => [] }
+  debil: { type: Array, default: () => [] },
+  /**
+   * En columna y estrecha: sprite grande arriba y nombre y PC debajo. Para
+   * los carruseles de huevos y las recompensas de las misiones, donde manda
+   * la imagen.
+   */
+  vertical: Boolean,
+  /** Sin borde ni fondo: va dentro de otra tarjeta (la de su misión). */
+  sinCaja: Boolean
 })
 
 const colorTipo = computed(() => typesSVG[props.tipos.find((t) => typesSVG[t])]?.color ?? null)
@@ -131,6 +139,47 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
         <type-icons :types="debil.slice(0, 4)" size="14" class="!gap-1 min-w-0" />
       </template>
     </span>
+  </component>
+
+  <component
+    :is="to ? 'router-link' : 'div'"
+    v-else-if="vertical"
+    :to="to ?? undefined"
+    class="relative isolate shrink-0 w-[5.5rem] flex flex-col items-center p-1.5 rounded-xl text-center text-gray-800 dark:text-gray-200"
+    :class="[
+      sinCaja ? '' : 'border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900',
+      to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : '',
+      highlight
+        ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950'
+        : ''
+    ]"
+  >
+    <shiny-mark
+      v-if="canBeShiny"
+      variant="dex"
+      size="text-mini"
+      class="absolute top-1 right-1 z-10 scale-[0.7] origin-top-right"
+      :title="$t('pokemon.shinyLegend')"
+      :label="$t('pokemon.shinyLegend')"
+    />
+    <base-sprite
+      v-if="image"
+      :src="image"
+      :oscuro="shadow"
+      class="w-14 h-14"
+      :img-class="['drop-shadow-contorno dark:drop-shadow-none', conMargen ? 'scale-125' : '']"
+    />
+    <span
+      class="mt-0.5 w-full text-xs font-semibold leading-tight line-clamp-2 break-words hyphens-auto"
+      :title="name"
+      >{{ name }}</span
+    >
+    <span
+      v-if="cpLabel"
+      class="text-mini text-gray-600 dark:text-gray-300 tabular-nums"
+      :title="`${$t('raids.cpRange')} ${cpLabel}`"
+      >{{ cpLabel }}</span
+    >
   </component>
 
   <component

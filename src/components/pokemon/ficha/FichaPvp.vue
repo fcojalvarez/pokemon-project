@@ -86,16 +86,23 @@ const resumen = computed(() => {
             </li>
           </ul>
         </template>
-        <dl v-if="liga.gana.length || liga.pierde.length" class="mt-2 flex flex-col gap-0.5">
+        <!--
+          A quién gana y con quién pierde: un ✓ verde y un ✕ rojo delante. Con
+          los rótulos en el mismo gris que los nombres no se distinguía lo bueno
+          de lo malo. El rótulo sigue ahí para el lector de pantalla.
+        -->
+        <dl v-if="liga.gana.length || liga.pierde.length" class="mt-2 flex flex-col gap-1">
           <div v-if="liga.gana.length" class="flex gap-1.5">
-            <dt class="shrink-0 text-gray-600 dark:text-gray-300">
-              {{ $t('pokemon.pvpCombat.wins') }}:
+            <dt class="shrink-0 w-4 text-center font-bold text-green-700 dark:text-green-400">
+              <span aria-hidden="true">✓</span
+              ><span class="sr-only">{{ $t('pokemon.pvpCombat.wins') }}</span>
             </dt>
             <dd>{{ liga.gana.map(localName).join(' · ') }}</dd>
           </div>
           <div v-if="liga.pierde.length" class="flex gap-1.5">
-            <dt class="shrink-0 text-gray-600 dark:text-gray-300">
-              {{ $t('pokemon.pvpCombat.loses') }}:
+            <dt class="shrink-0 w-4 text-center font-bold text-red-700 dark:text-red-400">
+              <span aria-hidden="true">✕</span
+              ><span class="sr-only">{{ $t('pokemon.pvpCombat.loses') }}</span>
             </dt>
             <dd>{{ liga.pierde.map(localName).join(' · ') }}</dd>
           </div>
