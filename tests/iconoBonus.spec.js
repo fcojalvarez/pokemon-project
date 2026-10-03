@@ -20,3 +20,17 @@ describe('indiceEstrella', () => {
     expect(indiceEstrella([])).toBe(-1)
   })
 })
+
+describe('aShiny', () => {
+  it('cambia variocolor por shiny en toda una noticia', async () => {
+    const { aShiny, aShinyEnTodo } = await import('../src/utils/gameText.js')
+    expect(aShiny('Más probabilidades de encontraros un Smoliv variocolor.')).toBe(
+      'Más probabilidades de encontraros un Smoliv shiny.'
+    )
+    expect(aShiny('Variocolores liberados')).toBe('Shiny liberados')
+    const noticia = {
+      secciones: [{ titulo: 'Variocolor', bloques: [{ t: 'li', x: 'Un Applin variocolor' }] }]
+    }
+    expect(aShinyEnTodo(noticia).secciones[0].bloques[0].x).toBe('Un Applin shiny')
+  })
+})

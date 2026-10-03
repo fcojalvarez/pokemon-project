@@ -10,9 +10,16 @@
  * Es lógica pura (sin red) para poder probarla: si Niantic rehace la web,
  * salta en tests/noticias.spec.js.
  */
-import { normalizeName } from '../../src/utils/gameText.js'
+import { aShinyEnTodo, normalizeName } from '../../src/utils/gameText.js'
 
-const ENTIDADES = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'", '&nbsp;': ' ' }
+const ENTIDADES = {
+  '&amp;': '&',
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': "'",
+  '&nbsp;': ' '
+}
 const texto = (html) =>
   String(html ?? '')
     .replace(/<br\s*\/?>/gi, ' ')
@@ -51,7 +58,13 @@ export function leerNoticia(html) {
 
   // El cuerpo: de la primera sección al pie.
   const inicio = doc.search(/<h2[^>]*>/)
-  if (inicio < 0) return { titulo, imagen: meta('og:image'), publicada: marca ? new Date(Number(marca)).toISOString() : null, secciones: [] }
+  if (inicio < 0)
+    return {
+      titulo,
+      imagen: meta('og:image'),
+      publicada: marca ? new Date(Number(marca)).toISOString() : null,
+      secciones: []
+    }
   const finPie = doc.indexOf('<footer', inicio)
   const cuerpo = doc.slice(inicio, finPie > 0 ? finPie : undefined)
 
@@ -63,7 +76,8 @@ export function leerNoticia(html) {
     const bloques = []
     for (const m of resto.matchAll(/<(p|li|h3|h4)[^>]*>([\s\S]*?)<\/\1>/g)) {
       const x = texto(m[2])
-      if (!x || /^—\s*El equipo de Pokémon GO/i.test(x) || /^—\s*The Pokémon GO team/i.test(x)) continue
+      if (!x || /^—\s*El equipo de Pokémon GO/i.test(x) || /^—\s*The Pokémon GO team/i.test(x))
+        continue
       bloques.push({ t: m[1] === 'h4' ? 'h3' : m[1], x })
     }
     const nombre = texto(cabecera[1])
@@ -91,7 +105,8 @@ const SECCIONES_FUERA = [
 ]
 
 /** «Sábado 10 de octubre de 2026 de 14:00 a 17:00…» / «Saturday, October 10, 2026…». */
-const FECHA = /^(lunes|martes|miércoles|jueves|viernes|sábado|domingo|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b.*\b20\d\d\b/i
+const FECHA =
+  /^(lunes|martes|miércoles|jueves|viernes|sábado|domingo|monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b.*\b20\d\d\b/i
 
 /** Frases de relleno o del pie de la web que se cuelan al final. */
 const FRASES_FUERA = [
@@ -145,7 +160,8 @@ export function depurar(secciones) {
     if (i === 0 && bloques.length <= 1 && bloques.every((b) => b.t === 'p')) return
     if (bloques.length) salida.push({ ...seccion, bloques })
   })
-  return salida
+  // «shiny», no «variocolor», como en el resto de la app.
+  return aShinyEnTodo(salida)
 }
 
 /** Los bonus de la noticia, para enseñarlos en la tarjeta sin abrir el detalle. */
@@ -161,9 +177,36 @@ export function bonusDe(noticia) {
 
 /** Palabras que no distinguen un evento de otro. */
 const COMUNES = new Set([
-  'pokemon', 'go', 'the', 'and', 'in', 'of', 'a', 'to', 'with', 'event', 'events', 'day', 'hour',
-  'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september',
-  'october', 'november', 'december', 'season', 'celebration', 'part', 'i', 'ii'
+  'pokemon',
+  'go',
+  'the',
+  'and',
+  'in',
+  'of',
+  'a',
+  'to',
+  'with',
+  'event',
+  'events',
+  'day',
+  'hour',
+  'january',
+  'february',
+  'march',
+  'april',
+  'may',
+  'june',
+  'july',
+  'august',
+  'september',
+  'october',
+  'november',
+  'december',
+  'season',
+  'celebration',
+  'part',
+  'i',
+  'ii'
 ])
 
 /** Palabras que LeekDuck escribe pegadas y la web oficial por separado. */
@@ -183,7 +226,9 @@ const PEGADAS = {
 /** Palabras con peso de un identificador: sin comunes, años ni números. */
 export function palabras(textoLibre) {
   const salida = new Set()
-  for (const trozo of String(textoLibre ?? '').toLowerCase().split(/[^a-z0-9]+/)) {
+  for (const trozo of String(textoLibre ?? '')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)) {
     // «communityday2026» o «raidhour20261007»: letras por un lado, cifras por otro.
     for (const parte of trozo.split(/(\d+)/).filter(Boolean)) {
       if (/^\d+$/.test(parte)) continue
@@ -225,7 +270,11 @@ export function asociarEventos(eventos, noticias, especies = new Set()) {
     slug,
     n,
     palabras: palabras(slug),
-    contenido: sinTildes(`${n.titulo} ${n.secciones.map((s) => `${s.titulo} ${s.bloques.map((b) => b.x).join(' ')}`).join(' ')}`)
+    contenido: sinTildes(
+      `${n.titulo} ${n.secciones
+        .map((s) => `${s.titulo} ${s.bloques.map((b) => b.x).join(' ')}`)
+        .join(' ')}`
+    )
   }))
 
   for (const evento of eventos) {
@@ -249,7 +298,10 @@ export function asociarEventos(eventos, noticias, especies = new Set()) {
     let mejor = null
     if (evento.eventType === 'go-battle-league') {
       const temporada = lista.filter((c) => c.slug.startsWith('go-battle-league') && aTiempo(c.n))
-      mejor = temporada.find((c) => [...c.palabras].some((p) => p !== 'battle' && p !== 'league' && suyas.has(p))) ?? null
+      mejor =
+        temporada.find((c) =>
+          [...c.palabras].some((p) => p !== 'battle' && p !== 'league' && suyas.has(p))
+        ) ?? null
     } else {
       let nota = 0
       for (const c of lista) {

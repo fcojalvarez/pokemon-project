@@ -4,7 +4,7 @@ import { leerFilas } from '../lib/filasDeDatos'
 import { computeCounters, computeTypeRankings, typeMatchups, evaluatePokemon } from '../utils/pve'
 import { calcCP } from '../utils/formulas'
 import { gigamaxDe, opcionesMax } from '../utils/maxBattle'
-import { normalizeName, translateGameText } from '../utils/gameText'
+import { aShinyEnTodo, normalizeName, translateGameText } from '../utils/gameText'
 import { stripFormPrefix, translatePokemonName } from '../utils/eventName'
 import { useTranslate } from '../composables/useTranslate'
 
@@ -29,7 +29,9 @@ const APARTE = ['pvp', 'texts']
 let noticiasPendientes = null
 export function cargarNoticias() {
   noticiasPendientes ??= leerFilas(['noticias'])
-    .then((filas) => filas.noticias ?? { eventos: {}, noticias: {} })
+    // «shiny» y no «variocolor» también en lo guardado antes de que el script
+    // lo cambiara al guardar (scripts/lib/noticias.mjs).
+    .then((filas) => aShinyEnTodo(filas.noticias ?? { eventos: {}, noticias: {} }))
     .catch((err) => {
       console.warn('noticias no disponibles:', err.message)
       noticiasPendientes = null

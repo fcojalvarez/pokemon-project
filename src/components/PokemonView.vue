@@ -14,6 +14,9 @@ import { formatDex } from '../utils/dex'
 import BaseSprite from './base/BaseSprite.vue'
 import BasePillButton from './base/BasePillButton.vue'
 import { typesSVG } from '../utils/Settings'
+import { calcCP } from '../utils/formulas'
+import IconoMascara from './base/IconoMascara.vue'
+import iconoClima from '../assets/weather/partly_cloudy.png'
 import SkeletonLoader from './base/SkeletonLoader.vue'
 import { localName } from '../composables/useTranslate'
 import NotFoundView from '../views/NotFoundView.vue'
@@ -62,6 +65,24 @@ const hero = computed(() => {
       : isShowShiny.value
       ? p.sprites?.male_shiny
       : p.sprites?.male
+  }
+})
+
+/**
+ * El PC al 100 % en la cabecera, que es lo que más se mira de un Pokémon: el
+ * de incursión y huevo (nivel 20) y con clima (25). Antes había que bajar a
+ * «PC 100 %» y abrirla. Las megas no: lo que se atrapa en su incursión es la
+ * forma base, que ya tiene su ficha.
+ */
+const IV_PERFECTOS = { atk: 15, def: 15, hp: 15 }
+const pc100 = computed(() => {
+  const p = pokemon.value
+  if (!p || !gameData.isReady) return null
+  const entrada = form.value || gameData.fichaBase(p.pokemon_id, p.name)
+  if (!entrada?.stats || entrada.mega) return null
+  return {
+    normal: calcCP(entrada.stats, IV_PERFECTOS, 20),
+    clima: calcCP(entrada.stats, IV_PERFECTOS, 25)
   }
 })
 
@@ -259,6 +280,23 @@ watch(
             with-label
             class="mt-1.5 flex-wrap text-gray-800 dark:text-gray-200"
           />
+          <p v-if="pc100" class="mt-2 flex flex-wrap gap-1.5 text-xs tabular-nums">
+            <span
+              class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 font-semibold text-gray-900 dark:text-gray-100"
+              :title="$t('pokemon.cp100')"
+            >
+              <span class="font-normal text-gray-600 dark:text-gray-300">100 %</span>
+              {{ pc100.normal }}
+            </span>
+            <span
+              class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 font-semibold text-gray-900 dark:text-gray-100"
+              :title="`${$t('pokemon.cp100')} · ${$t('pokemon.cpWeather')}`"
+            >
+              <icono-mascara :src="iconoClima" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+              <span class="sr-only">{{ $t('pokemon.cpWeather') }}:</span>
+              {{ pc100.clima }}
+            </span>
+          </p>
           <span
             v-if="categoria"
             class="inline-block mt-2 px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-amber-500 text-amber-700 dark:text-amber-400"

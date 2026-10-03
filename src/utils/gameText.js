@@ -94,3 +94,22 @@ export function plainText(html) {
     .replace(/<[^>]*>/g, '')
     .trim()
 }
+
+/**
+ * La app dice «shiny», nunca «variocolor» como el juego y las noticias en
+ * español. Lo usa el script de noticias al guardarlas y la app al leerlas,
+ * para lo que ya estuviera guardado.
+ */
+export function aShiny(texto) {
+  if (typeof texto !== 'string') return texto
+  return texto.replace(/\b(v)ariocolor(es)?\b/gi, (_, v) => (v === 'V' ? 'Shiny' : 'shiny'))
+}
+
+/** aShiny en todos los textos de un objeto (una noticia con sus secciones). */
+export function aShinyEnTodo(valor) {
+  if (typeof valor === 'string') return aShiny(valor)
+  if (Array.isArray(valor)) return valor.map(aShinyEnTodo)
+  if (valor && typeof valor === 'object')
+    return Object.fromEntries(Object.entries(valor).map(([k, v]) => [k, aShinyEnTodo(v)]))
+  return valor
+}
