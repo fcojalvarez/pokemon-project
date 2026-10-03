@@ -3,6 +3,7 @@
 import { computed } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import { useTranslate } from '../../../composables/useTranslate'
+import iconoCaramelo from '../../../assets/icons/candy_icon.png'
 
 const props = defineProps({
   /** Claves de pokemon.flags.* (useFichaDatos). */
@@ -21,6 +22,26 @@ const costeTexto = (row) => {
     }`
   if (row.energy) return `${formatNumber(row.energy)} ${t('megaenergy')}`
   return `${formatNumber(row.km)} ${t('unitDistance')}`
+}
+
+/**
+ * El valor de una fila en piezas, cada una con su icono: el caramelo del
+ * juego, ✧ para el polvo y ⚡ para la megaenergía. La palabra va aparte, para
+ * el lector de pantalla. Antes iba todo escrito («25 caramelos · 10.000
+ * polvo») y las seis filas eran cajas iguales que costaba comparar.
+ */
+const piezas = (row) => {
+  if (row.texto) return [{ texto: row.texto }]
+  if (row.candy) {
+    const lista = [
+      { n: formatNumber(row.candy), icono: 'candy', palabra: tc('candy', row.candy).toLowerCase() }
+    ]
+    if (row.dust)
+      lista.push({ n: formatNumber(row.dust), signo: '✧', palabra: t('pokemon.stardust') })
+    return lista
+  }
+  if (row.energy) return [{ n: formatNumber(row.energy), signo: '⚡', palabra: t('megaenergy') }]
+  return [{ texto: `${formatNumber(row.km)} ${t('unitDistance')}` }]
 }
 
 const titulo = computed(() => {
@@ -59,19 +80,38 @@ const resumen = computed(() => {
       <h3 v-if="flags.length" class="text-xs font-bold text-gray-600 dark:text-gray-300">
         {{ $t('pokemon.costs') }}
       </h3>
-      <ul class="mt-2 flex flex-col gap-1.5">
-        <!--
-          flex-wrap: si etiqueta y valor no caben en una línea, el valor baja
-          a la siguiente, a la derecha. Antes la etiqueta se encogía hasta
-          cero y «Purificar» acababa debajo de «3 caramelos».
-        -->
+      <ul class="mt-1 divide-y divide-gray-300 dark:divide-gray-700">
+        <!-- flex-wrap: si etiqueta y valor no caben, el valor baja, a la derecha. -->
         <li
           v-for="row in costs"
           :key="row.key"
-          class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+          class="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 py-2 text-xs"
         >
           <span>{{ $t(`pokemon.costLabels.${row.key}`) }}</span>
-          <strong class="ml-auto text-right whitespace-nowrap">{{ costeTexto(row) }}</strong>
+          <strong
+            class="ml-auto flex items-center gap-2.5 text-right whitespace-nowrap tabular-nums"
+          >
+            <span v-for="(pieza, i) in piezas(row)" :key="i" class="flex items-center gap-1">
+              <template v-if="pieza.texto">{{ pieza.texto }}</template>
+              <template v-else>
+                {{ pieza.n }}
+                <img
+                  v-if="pieza.icono === 'candy'"
+                  :src="iconoCaramelo"
+                  alt=""
+                  aria-hidden="true"
+                  class="w-3.5 h-3.5 object-contain"
+                />
+                <span
+                  v-else
+                  aria-hidden="true"
+                  class="font-normal text-gray-600 dark:text-gray-300"
+                  >{{ pieza.signo }}</span
+                >
+                <span class="sr-only">{{ pieza.palabra }}</span>
+              </template>
+            </span>
+          </strong>
         </li>
       </ul>
     </div>

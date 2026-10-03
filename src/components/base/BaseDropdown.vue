@@ -221,8 +221,13 @@ useDetectOutsideClick(root, () => close())
     <button
       ref="boton"
       type="button"
-      :class="compacto ? 'lg:h-9 lg:text-xs' : ''"
-      class="w-full h-11 flex items-center gap-2 pl-3 pr-3 cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-300"
+      :class="[
+        compacto ? 'lg:h-9 lg:text-xs' : '',
+        // Con varias, las etiquetas bajan de línea y el botón crece: en la
+        // barra lateral del Top se cortaban («Megas Oscuros Legacy É…»).
+        multiple ? 'min-h-11 py-1.5' : 'h-11'
+      ]"
+      class="w-full flex items-center gap-2 pl-3 pr-3 cursor-pointer border border-gray-400 rounded-xl shadow-md bg-white dark:bg-gray-900 text-sm text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:focus:ring-blue-300"
       role="combobox"
       :aria-expanded="isOpen"
       :aria-controls="listId"
@@ -235,7 +240,7 @@ useDetectOutsideClick(root, () => close())
       @keydown="onKeydown"
     >
       <span v-if="!multiple" class="flex-1 min-w-0 truncate text-left">{{ selectedLabel }}</span>
-      <span v-else class="flex-1 min-w-0 flex gap-1 overflow-hidden text-left">
+      <span v-else class="flex-1 min-w-0 flex flex-wrap gap-1 text-left">
         <span
           v-for="option in marcadas"
           :key="option.value"

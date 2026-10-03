@@ -43,7 +43,7 @@ const origins = computed(() =>
 
     <ol class="mt-2 grid gap-1.5 grid-cols-[repeat(auto-fill,minmax(230px,1fr))]">
       <li
-        v-for="counter in counters"
+        v-for="(counter, i) in counters"
         :key="`${counter.id}-${counter.fast.id}-${counter.charged.id}`"
       >
         <component
@@ -51,6 +51,11 @@ const origins = computed(() =>
           :to="counter.dex ? `/pokemon/${counter.dex}` : undefined"
           class="flex items-center gap-2 p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-150 hover:dark:bg-gray-700"
         >
+          <!-- El puesto, como en el Top: la lista va del que más daño hace al que menos. -->
+          <span
+            class="shrink-0 min-w-[1.25rem] px-1 rounded-md bg-gray-200 dark:bg-gray-700 text-center text-mini font-bold tabular-nums text-gray-700 dark:text-gray-200"
+            >{{ i + 1 }}</span
+          >
           <base-sprite
             :src="spriteUrl(counter.spriteId)"
             :oscuro="counter.shadow"
@@ -77,7 +82,11 @@ const origins = computed(() =>
               />
             </div>
           </div>
-          <span class="text-xs font-bold shrink-0">{{ counter.dps.toFixed(1) }}</span>
+          <!-- Con su unidad: la cifra sola no decía que era el DPS contra él. -->
+          <span class="shrink-0 flex flex-col items-end leading-tight tabular-nums">
+            <span class="text-xs font-bold">{{ counter.dps.toFixed(1) }}</span>
+            <span class="text-mini text-gray-600 dark:text-gray-300">DPS</span>
+          </span>
         </component>
       </li>
     </ol>

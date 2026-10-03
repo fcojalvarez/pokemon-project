@@ -11,6 +11,7 @@ import { eventImageSrc, eventImageSrcset } from '../../utils/eventImage'
 import { summarizeEvent } from '../../utils/eventSummary'
 import MaxMark from '../pokemon/MaxMark.vue'
 import EventMon from './EventMon.vue'
+import BonusIcono from './BonusIcono.vue'
 import EventDateBlock from './EventDateBlock.vue'
 
 const props = defineProps({
@@ -378,11 +379,19 @@ defineExpose({ titulo, todosLosBonus })
           v-if="bonusVisibles.length"
           class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
         >
-          <p class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
-            {{ $t('events.bonus') }}
-          </p>
-          <ul class="mt-1 flex flex-col gap-0.5 pl-4 list-disc text-xs">
-            <li v-for="uno in bonusVisibles" :key="uno">{{ uno }}</li>
+          <!--
+            Sin el rótulo «BONUS»: el icono de cada uno (el mismo que en el
+            detalle) ya dice qué es y hace de viñeta.
+          -->
+          <ul class="flex flex-col gap-1 text-xs" :aria-label="$t('events.bonus')">
+            <li v-for="uno in bonusVisibles" :key="uno" class="flex items-start gap-2">
+              <bonus-icono
+                :texto="uno"
+                circulo="w-5 h-5 bg-gray-150 dark:bg-gray-800 text-[10px]"
+                imagen="w-3.5 h-3.5"
+              />
+              <span class="min-w-0 pt-0.5">{{ uno }}</span>
+            </li>
           </ul>
           <button
             v-if="bonusOcultos > 0"

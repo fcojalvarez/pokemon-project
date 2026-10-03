@@ -532,57 +532,58 @@ onMounted(() => {
             >
               <h3 class="text-sm font-bold mb-2">
                 {{ $t('max.tier', { n: grupo.tier }) }}
-                <span class="font-normal text-gray-600 dark:text-gray-300"
-                  >({{ grupo.list.length }})</span
+                <span class="font-normal text-gray-600 dark:text-gray-300 tabular-nums"
+                  >· {{ grupo.list.length }}</span
                 >
               </h3>
               <!--
-                A una columna en móvil estrecho: con la marca Max y el botón al
-                lado, a dos no cabían ni el nombre («Arti-cuno») ni el PC.
+                Un carrusel por nivel, como los huevos: solo el nivel 1 eran 32
+                tarjetas a una columna, unas veinte pantallas. Desde md hay
+                sitio y van en rejilla. El equipo del jefe abierto sale debajo
+                de su nivel, a todo el ancho.
               -->
               <div
-                class="grid grid-cols-1 min-[420px]:grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2"
+                v-difuminado
+                class="-mx-4 px-4 py-1 flex gap-2 overflow-x-auto snap-x scroll-px-4 [scrollbar-width:none] md:mx-0 md:px-0 md:grid md:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] md:overflow-visible"
               >
-                <template v-for="uno in grupo.list" :key="`${grupo.tier}-${uno.dex}`">
-                  <live-mon-card
-                    :id="`mon-${uno.dex}`"
-                    :highlight="destacado === uno.dex"
-                    :name="localName(uno)"
-                    :image="uno.image"
-                    :dex="uno.dex"
-                    :combat-power="uno.cp"
-                    :can-be-shiny="uno.canBeShiny"
-                    :tipos="tiposMax(uno.dex)"
-                    :debil="debilDe(tiposMax(uno.dex))"
-                    ancha
-                  >
-                    <max-mark
-                      :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
-                      :size="15"
-                      class="shrink-0 text-gray-600 dark:text-gray-300"
-                    />
-                    <template #pie>
-                      <counters-toggle
-                        icono
-                        :open="openMax === uno.dex"
-                        :boss-name="localName(uno)"
-                        @toggle="openMax = openMax === uno.dex ? null : uno.dex"
-                      />
-                    </template>
-                  </live-mon-card>
-
-                  <!--
-                    El equipo ocupa la fila entera: al lado de una tarjeta de 160px
-                    no cabría, y así queda debajo del jefe al que pertenece.
-                  -->
-                  <max-team-panel
-                    v-if="openMax === uno.dex && equipoMax"
-                    class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
-                    :boss-name="localName(uno)"
-                    :team="equipoMax"
+                <live-mon-card
+                  v-for="uno in grupo.list"
+                  :id="`mon-${uno.dex}`"
+                  :key="`${grupo.tier}-${uno.dex}`"
+                  class="shrink-0 w-44 snap-start md:w-auto"
+                  :highlight="destacado === uno.dex"
+                  :name="localName(uno)"
+                  :image="uno.image"
+                  :dex="uno.dex"
+                  :combat-power="uno.cp"
+                  :can-be-shiny="uno.canBeShiny"
+                  :tipos="tiposMax(uno.dex)"
+                  :debil="debilDe(tiposMax(uno.dex))"
+                  ancha
+                >
+                  <max-mark
+                    :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
+                    :size="15"
+                    class="shrink-0 text-gray-600 dark:text-gray-300"
                   />
-                </template>
+                  <template #pie>
+                    <counters-toggle
+                      icono
+                      :open="openMax === uno.dex"
+                      :boss-name="localName(uno)"
+                      @toggle="openMax = openMax === uno.dex ? null : uno.dex"
+                    />
+                  </template>
+                </live-mon-card>
               </div>
+              <template v-for="uno in grupo.list" :key="`equipo-${grupo.tier}-${uno.dex}`">
+                <max-team-panel
+                  v-if="openMax === uno.dex && equipoMax"
+                  class="mt-2 p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-950"
+                  :boss-name="localName(uno)"
+                  :team="equipoMax"
+                />
+              </template>
             </section>
 
             <p class="text-mini text-gray-600 dark:text-gray-300">

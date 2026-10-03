@@ -159,7 +159,10 @@ describe('secciones de la ficha', () => {
       ...conPlugins()
     })
     const texto = w.text()
-    expect(texto).toContain('25 caramelos · 10.000')
+    // Cifras con su icono; la palabra («caramelos», «polvo») va para el lector de pantalla.
+    expect(w.find('li img').exists()).toBe(true)
+    expect(texto).toMatch(/25\s*caramelos/)
+    expect(texto).toContain('10.000')
     expect(texto).toContain('200')
     expect(texto).toContain('3 km')
     expect(texto).toContain(i18n.global.t('pokemon.flags.canBeShadow'))
