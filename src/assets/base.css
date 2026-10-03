@@ -32,7 +32,9 @@
  * Atkinson Hyperlegible (SIL Open Font License), la letra de la app. Está
  * hecha para leerse bien en pantallas pequeñas: con Source Code Pro, de ancho
  * fijo, tres bonus de un evento llenaban la pantalla del móvil. Solo tiene
- * 400 y 700; `font-semibold` toma la de 700.
+ * 400 y 700; `font-semibold` toma la de 700. Trae cifras de ancho fijo, así
+ * que `tabular-nums` alinea las columnas sin cambiar de letra (con Source
+ * Code Pro solo para ellas, «14:00 · Combates Max» salía con dos letras).
  */
 @font-face {
   font-family: 'Atkinson Hyperlegible';
@@ -109,10 +111,3 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/*
- * Las cifras que van en columna (PC, DPS, costes) siguen en Source Code Pro:
- * Atkinson no tiene números de ancho fijo y `tabular-nums` no los alineaba.
- */
-.tabular-nums {
-  font-family: 'Source Code Pro', ui-monospace, monospace;
-}
