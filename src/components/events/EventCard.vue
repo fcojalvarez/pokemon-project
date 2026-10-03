@@ -71,9 +71,6 @@ const horario = computed(() => {
 /** El título en el idioma de la app, sin el tipo delante si lo repite (useEventos). */
 const titulo = computed(() => tituloDeEvento(props.event))
 
-// El detalle lo usa para el calendario: el mismo título traducido que se ve.
-defineExpose({ titulo })
-
 /**
  * Combate Max: qué Pokémon sale y si es Dinamax o Gigamax.
  *
@@ -176,8 +173,8 @@ const communityDay = computed(() => props.event.extraData?.communityday ?? null)
  * Antes el Día de la Comunidad los pintaba como pastillas verdes, y las largas
  * se volvían bloques de cuatro líneas: la tarjeta medía una pantalla.
  *
- * En la tarjeta, los tres primeros y cuántos más hay; en el detalle, todos,
- * salvo que haya noticia, que ya los da en su sección.
+ * En la tarjeta, los tres primeros y cuántos más hay. En el detalle, ninguno:
+ * van en su propio bloque, con iconos (EventBonus).
  */
 const MAX_BONUS = 3
 const oficial = computed(() => props.bonus.length > 0)
@@ -187,13 +184,17 @@ const todosLosBonus = computed(() =>
     : (communityDay.value?.bonuses ?? []).map((uno) => gameData.translateText(uno.text))
 )
 const bonusVisibles = computed(() => {
-  if (props.detalle) return oficial.value ? [] : todosLosBonus.value
+  if (props.detalle) return []
   return todosLosBonus.value.slice(0, MAX_BONUS)
 })
 const bonusOcultos = computed(() =>
   props.detalle ? 0 : todosLosBonus.value.length - bonusVisibles.value.length
 )
 const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? [])
+
+// El detalle usa el título para el calendario (el mismo traducido que se ve)
+// y los bonus para su bloque propio (EventBonus).
+defineExpose({ titulo, todosLosBonus })
 </script>
 
 <template>
@@ -398,8 +399,9 @@ const raidBosses = computed(() => props.event.extraData?.raidbattles?.bosses ?? 
           («generic») esto es lo único que hay: LeekDuck no publica descripción,
           solo si hay apariciones en libertad y si hay tareas de campo.
         -->
+        <!-- En el detalle no: ahí están los Pokémon del evento, con su sprite. -->
         <div
-          v-if="resumen && (resumen.hasSpawns || resumen.hasResearch)"
+          v-if="!detalle && resumen && (resumen.hasSpawns || resumen.hasResearch)"
           class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
         >
           <div v-if="resumen.hasSpawns || resumen.hasResearch" class="flex flex-wrap gap-1.5">

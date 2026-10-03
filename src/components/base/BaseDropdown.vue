@@ -17,13 +17,20 @@
  * opción (el tipo en el Top, que son diecinueve). Entonces el foco sí pasa al
  * campo mientras está abierta, y vuelve al botón al cerrar. Escribir con el
  * desplegable cerrado lo abre con esa letra ya puesta.
+ *
+ * Cada opción puede traer `description`: una línea debajo, solo con la lista
+ * abierta, que es cuando se está eligiendo (qué significa cada orden del Top).
+ *
+ * Con `multiple`, el valor es una lista y cada opción se marca o desmarca sin
+ * cerrar, con el mismo ✓ de la elegida. Cerrado enseña lo marcado como
+ * etiquetas y abajo lleva «Marcar todo» y «Quitar todo» («Incluir» del Top).
  */
 import { computed, nextTick, ref, useId, watch } from 'vue'
 import BaseChevron from './BaseChevron.vue'
 import useDetectOutsideClick from '../../composables/useDetectOutsideClick'
 
 const props = defineProps({
-  modelValue: { type: [String, Number], default: '' },
+  modelValue: { type: [String, Number, Array], default: '' },
   options: { type: Array, required: true },
   label: { type: String, default: '' },
   /** Para cuando no hay etiqueta visible. */
@@ -31,7 +38,17 @@ const props = defineProps({
   /** Más bajo en escritorio (lg), para filas de filtros donde sobra altura. */
   compacto: Boolean,
   /** Con un campo para escribir y filtrar las opciones. */
-  buscable: Boolean
+  buscable: Boolean,
+  /** Varias a la vez: modelValue es la lista de valores marcados. */
+  multiple: Boolean,
+  /** Lo que dice cerrado cuando no hay nada marcado (con `multiple`). */
+  vacio: { type: String, default: '' },
+  /**
+   * La lista se abre en línea, empujando lo de debajo, en vez de flotar. Para
+   * cuando va dentro de un panel con scroll propio (los filtros de la
+   * Pokédex en móvil): flotando, el panel la recortaba y no crecía.
+   */
+  enLinea: Boolean
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -61,14 +78,18 @@ const uid = useId()
 const listId = `lista-${uid}`
 const optionId = (index) => `opcion-${uid}-${index}`
 
-const selectedIndex = computed(() =>
-  visibles.value.findIndex((option) => option.value === props.modelValue)
-)
+const elegida = (value) =>
+  props.multiple ? (props.modelValue ?? []).includes(value) : value === props.modelValue
+
+const selectedIndex = computed(() => visibles.value.findIndex((option) => elegida(option.value)))
 
 const selectedLabel = computed(() => {
-  const elegida = props.options.find((option) => option.value === props.modelValue)
-  return elegida?.label ?? props.options[0]?.label ?? ''
+  const opcion = props.options.find((option) => option.value === props.modelValue)
+  return opcion?.label ?? props.options[0]?.label ?? ''
 })
+
+/** Con `multiple`: las marcadas, en el orden de la lista. */
+const marcadas = computed(() => props.options.filter((option) => elegida(option.value)))
 
 const open = async (inicial = '') => {
   query.value = inicial
@@ -77,6 +98,8 @@ const open = async (inicial = '') => {
   await nextTick()
   if (props.buscable) buscador.value?.focus()
   scrollActiveIntoView()
+  // En línea, el panel crece hacia abajo: que se vea la lista entera.
+  if (props.enLinea) list.value?.parentElement?.scrollIntoView?.({ block: 'nearest' })
 }
 
 const close = ({ devolverFoco = false } = {}) => {
@@ -89,9 +112,27 @@ const close = ({ devolverFoco = false } = {}) => {
 const pick = (index) => {
   const option = visibles.value[index]
   if (!option) return
+  if (props.multiple) {
+    // Se queda abierta: se suelen tocar varias seguidas.
+    const lista = props.modelValue ?? []
+    emit(
+      'update:modelValue',
+      elegida(option.value)
+        ? lista.filter((v) => v !== option.value)
+        : props.options.map((o) => o.value).filter((v) => v === option.value || lista.includes(v))
+    )
+    return
+  }
   emit('update:modelValue', option.value)
   close({ devolverFoco: props.buscable })
 }
+
+const marcarTodo = () =>
+  emit(
+    'update:modelValue',
+    props.options.map((option) => option.value)
+  )
+const quitarTodo = () => emit('update:modelValue', [])
 
 const move = (delta) => {
   if (!visibles.value.length) return
@@ -193,7 +234,18 @@ useDetectOutsideClick(root, () => close())
       @click="isOpen ? close() : open()"
       @keydown="onKeydown"
     >
-      <span class="flex-1 min-w-0 truncate text-left">{{ selectedLabel }}</span>
+      <span v-if="!multiple" class="flex-1 min-w-0 truncate text-left">{{ selectedLabel }}</span>
+      <span v-else class="flex-1 min-w-0 flex gap-1 overflow-hidden text-left">
+        <span
+          v-for="option in marcadas"
+          :key="option.value"
+          class="shrink-0 px-2 py-0.5 rounded-full bg-gray-150 dark:bg-gray-800 text-mini font-semibold"
+          >{{ option.label }}</span
+        >
+        <span v-if="!marcadas.length" class="truncate text-gray-600 dark:text-gray-300">{{
+          vacio
+        }}</span>
+      </span>
       <!-- Como hijo del flex y no en absoluto: así siempre respeta el padding. -->
       <base-chevron :open="isOpen" size="w-3 h-3" class="text-gray-600 dark:text-gray-300" />
     </button>
@@ -207,7 +259,8 @@ useDetectOutsideClick(root, () => close())
     -->
     <div
       v-if="isOpen"
-      class="absolute z-40 mt-1 w-full border border-gray-400 rounded-xl shadow-xl bg-white dark:bg-gray-900 overflow-hidden"
+      :class="enLinea ? 'relative' : 'absolute z-40'"
+      class="mt-1 w-full border border-gray-400 rounded-xl shadow-xl bg-white dark:bg-gray-900 overflow-hidden"
     >
       <div v-if="buscable" class="p-2 border-b border-gray-300 dark:border-gray-700">
         <input
@@ -224,13 +277,19 @@ useDetectOutsideClick(root, () => close())
           @keydown="onKeydown"
         />
       </div>
-      <ul :id="listId" ref="list" role="listbox" class="max-h-60 overflow-y-auto py-1">
+      <ul
+        :id="listId"
+        ref="list"
+        role="listbox"
+        :aria-multiselectable="multiple || undefined"
+        class="max-h-72 overflow-y-auto py-1"
+      >
         <li
           v-for="(option, index) in visibles"
           :id="optionId(index)"
           :key="option.value"
           role="option"
-          :aria-selected="option.value === modelValue"
+          :aria-selected="elegida(option.value)"
           class="flex items-center gap-2 px-3 py-2 text-sm cursor-pointer"
           :class="
             /*
@@ -239,7 +298,7 @@ useDetectOutsideClick(root, () => close())
               de la activa se iba con el ratón. Si además es la activa, un
               punto más, para que el teclado se note también al pasar por ella.
             */
-            option.value === modelValue
+            elegida(option.value)
               ? [
                   'font-bold text-gray-900 dark:text-gray-50',
                   index === activeIndex
@@ -251,12 +310,20 @@ useDetectOutsideClick(root, () => close())
                   index === activeIndex ? 'bg-gray-150 dark:bg-gray-800' : ''
                 ]
           "
+          @mousedown.prevent
           @click="pick(index)"
           @mousemove="activeIndex = index"
         >
-          <span class="flex-1 min-w-0">{{ option.label }}</span>
+          <span class="flex-1 min-w-0">
+            {{ option.label }}
+            <span
+              v-if="option.description"
+              class="block mt-0.5 text-mini font-normal leading-snug text-gray-600 dark:text-gray-300"
+              >{{ option.description }}</span
+            >
+          </span>
           <svg
-            v-if="option.value === modelValue"
+            v-if="elegida(option.value)"
             aria-hidden="true"
             viewBox="0 0 24 24"
             class="w-4 h-4 shrink-0"
@@ -277,6 +344,28 @@ useDetectOutsideClick(root, () => close())
           {{ $t('common.empty') }}
         </li>
       </ul>
+      <!-- mousedown.prevent: el foco se queda en el botón y Escape sigue cerrando. -->
+      <div
+        v-if="multiple"
+        class="flex justify-between gap-2 px-3 py-2 border-t border-gray-300 dark:border-gray-700 text-xs"
+      >
+        <button
+          type="button"
+          class="underline underline-offset-4 text-gray-700 dark:text-gray-200"
+          @mousedown.prevent
+          @click="marcarTodo"
+        >
+          {{ $t('common.selectAll') }}
+        </button>
+        <button
+          type="button"
+          class="underline underline-offset-4 text-gray-700 dark:text-gray-200"
+          @mousedown.prevent
+          @click="quitarTodo"
+        >
+          {{ $t('common.clearAll') }}
+        </button>
+      </div>
     </div>
   </div>
 </template>

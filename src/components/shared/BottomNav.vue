@@ -2,7 +2,10 @@
 /**
  * Barra de secciones abajo, solo en móvil: una isla que flota separada de
  * los bordes, con el mismo aspecto que las tarjetas de la app. La sección
- * abierta es un bloque entero, icono y nombre.
+ * abierta es un bloque entero, icono y nombre, con un tinte suave del azul de
+ * la Poké Ball del logo y el icono en ese azul (más claro en oscuro). En gris
+ * con borde parecía un botón más; rellena de azul llamaba demasiado la
+ * atención y en oscuro era lo más claro de la pantalla.
  *
  * En el móvil las cuatro secciones vivían dentro del menú: cambiar de una a
  * otra eran dos toques, y el botón del menú está arriba, lejos del pulgar. El
@@ -59,7 +62,7 @@ onUnmounted(() => {
       class="flex flex-col items-center justify-center gap-0.5 min-h-[52px] rounded-xl border text-[11px] leading-tight transition-colors"
       :class="
         esSeccionActiva(route.path, link.to)
-          ? 'border-gray-400 dark:border-gray-500 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white font-semibold'
+          ? 'border-transparent bg-blue-600/10 dark:bg-blue-400/15 text-gray-900 dark:text-white font-semibold'
           : 'border-transparent text-gray-600 dark:text-gray-300'
       "
     >
@@ -68,7 +71,8 @@ onUnmounted(() => {
         currentColor salía negro también en modo oscuro.
       -->
       <base-icon
-        :stroke-width="1.5"
+        :class="esSeccionActiva(route.path, link.to) ? 'text-blue-600 dark:text-blue-400' : ''"
+        :stroke-width="esSeccionActiva(route.path, link.to) ? 2 : 1.5"
         width="22"
         height="22"
         color="currentColor"

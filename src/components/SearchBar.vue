@@ -12,8 +12,32 @@ import useDetectOutsideClick from '../composables/useDetectOutsideClick'
 import { usePokemonsStore } from '@/stores/pokemons'
 import { useMainStore } from '../stores/main'
 import { storeToRefs } from 'pinia'
+import { useGameDataStore } from '../stores/gameData'
+import { calcCP } from '../utils/formulas'
+import IconoMascara from './base/IconoMascara.vue'
+import iconoClima from '../assets/weather/partly_cloudy.png'
 
 const mainStore = useMainStore()
+const gameData = useGameDataStore()
+
+/**
+ * Lo que más se mira de un Pokémon, en el propio resultado: el PC al 100 % de
+ * incursión y huevo (nivel 20) y con clima (25) y, debajo, su mejor puesto
+ * PvE. Sin otra línea: la fila mide lo mismo. Si los datos del juego aún no
+ * han llegado, no sale nada, y el resultado sigue valiendo para ir a la ficha.
+ */
+const IV_PERFECTOS = { atk: 15, def: 15, hp: 15 }
+const datosClave = (dex) => {
+  if (!gameData.isReady) return null
+  const base = gameData.baseByDex(dex)
+  if (!base?.stats) return null
+  const mejor = gameData.pveRanksFor(dex).find((forma) => forma.id === base.id)?.byType[0]
+  return {
+    pc: calcCP(base.stats, IV_PERFECTOS, 20),
+    clima: calcCP(base.stats, IV_PERFECTOS, 25),
+    puesto: mejor ? { tipo: mejor.type, rank: mejor.rank } : null
+  }
+}
 const { isDarkMode } = storeToRefs(mainStore)
 const { filterPokemons, setIsSearching } = usePokemonsStore()
 const route = useRoute()
@@ -67,12 +91,19 @@ const cerrar = ({ devolverFoco = false } = {}) => {
   if (devolverFoco) lupaRef.value?.focus({ preventScroll: true })
   nextTick(alPlegarse)
 }
-// La ✕ vacía y pliega. En la Pokédex además deja la rejilla sin filtro.
-const vaciarYCerrar = () => {
+/**
+ * La ✕ vacía y pliega. En la Pokédex además deja la rejilla sin filtro.
+ * Con teclado el foco vuelve a la lupa, para no perder el sitio; con el dedo
+ * o el ratón (detail > 0) se suelta, y no se queda el anillo de foco en la
+ * lupa como si siguiera activa.
+ */
+const vaciarYCerrar = (event) => {
   const habiaTexto = Boolean(inputValue.value)
   inputValue.value = null
   if (habiaTexto && isListView.value) inputSearch()
-  cerrar({ devolverFoco: true })
+  const conTeclado = !event || event.detail === 0
+  cerrar({ devolverFoco: conTeclado })
+  if (!conTeclado) document.activeElement?.blur?.()
 }
 const alSalir = (event) => {
   if (inputValue.value) return
@@ -95,6 +126,8 @@ let ultimaBusqueda = 0
 const inputSearchModal = async () => {
   setIsSearching(true)
   isShowModalSearch.value = true
+  // Fuera del Top y la ficha puede que aún no estén: hacen falta para el 100 %.
+  gameData.load()
   isLoadingPokemonNames.value = true
 
   const esta = ++ultimaBusqueda
@@ -301,6 +334,32 @@ router.isReady().then(leerDeLaUrl)
                 </span>
               </span>
             </span>
+            <span
+              v-if="datosClave(pokemon.pokemon_id)"
+              class="shrink-0 flex flex-col items-end leading-tight tabular-nums"
+            >
+              <span
+                class="flex items-center gap-1 text-sm font-semibold"
+                :title="`${$t('pokemon.cp100')}: ${datosClave(pokemon.pokemon_id).pc} · ${$t(
+                  'pokemon.cpWeather'
+                )}: ${datosClave(pokemon.pokemon_id).clima}`"
+              >
+                {{ datosClave(pokemon.pokemon_id).pc }}
+                <span class="flex items-center gap-0.5 font-normal text-gray-600 dark:text-gray-300"
+                  >/ {{ datosClave(pokemon.pokemon_id).clima }}
+                  <icono-mascara
+                    :src="iconoClima"
+                    class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"
+                /></span>
+              </span>
+              <span
+                v-if="datosClave(pokemon.pokemon_id).puesto"
+                class="text-mini text-gray-600 dark:text-gray-300"
+                >{{ $t(`types.${datosClave(pokemon.pokemon_id).puesto.tipo}`) }} #{{
+                  datosClave(pokemon.pokemon_id).puesto.rank
+                }}</span
+              >
+            </span>
           </li>
         </ul>
       </div>
@@ -318,9 +377,19 @@ router.isReady().then(leerDeLaUrl)
   left: 0;
   z-index: 10;
   width: 50px;
-  transition: width 0.25s ease, background-color 0.15s, color 0.15s;
+  /*
+   * Al plegarse, la caja sigue a la vista mientras encoge y se funde al final
+   * (retraso de 0,2 s), ya del tamaño de la lupa. Antes borde y sombra se
+   * iban de golpe y el fondo a la vez que empezaba a encoger: parecía que se
+   * desvanecía en vez de recogerse como se abre.
+   */
+  transition: width 0.25s ease, left 0.25s ease, background-color 0.1s ease 0.2s,
+    border-color 0.1s ease 0.2s, box-shadow 0.1s ease 0.2s, color 0.15s;
 }
 .buscador-abierto {
+  /* Al abrir, la caja aparece ya y luego crece. */
+  transition: width 0.25s ease, left 0.25s ease, background-color 0s, border-color 0s, box-shadow 0s,
+    color 0.15s;
   width: 100%;
   /* En escritorio llenaba el hueco entero hasta el menú: un campo de más
        de 1000 px para escribir un nombre. */

@@ -3,8 +3,12 @@
  * Puestos en PvP, por liga, y con el mejor de cada una: su conjunto
  * recomendado con cuántos rápidos hacen falta para cada cargado (contar
  * rápidos es la base del PvP) y a quién gana y con quién pierde.
+ *
+ * De entrada, solo los puestos de las tres ligas, que se comparan de un
+ * vistazo. Ataques y rivales, tras «Ver ataques y rivales»: con todo abierto
+ * la sección ocupaba tres pantallas y casi siempre interesa una liga.
  */
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import MoveTag from '../MoveTag.vue'
 import { useTranslate } from '../../../composables/useTranslate'
@@ -19,6 +23,11 @@ const props = defineProps({
 })
 
 const { t, localName } = useTranslate()
+
+const conDetalles = ref(false)
+const hayDetalles = computed(() =>
+  props.porLiga.some((liga) => liga.conjunto || liga.gana.length || liga.pierde.length)
+)
 
 /** Plegada: el mejor puesto de cada liga, del mejor al peor. */
 const resumen = computed(() => {
@@ -58,7 +67,7 @@ const resumen = computed(() => {
           </span>
         </span>
 
-        <template v-if="liga.conjunto">
+        <template v-if="conDetalles && liga.conjunto">
           <span class="block mt-2 text-mini text-gray-600 dark:text-gray-300">
             {{ $t('pokemon.pvpCombat.fastPerCharged') }}
           </span>
@@ -91,7 +100,10 @@ const resumen = computed(() => {
           los rótulos en el mismo gris que los nombres no se distinguía lo bueno
           de lo malo. El rótulo sigue ahí para el lector de pantalla.
         -->
-        <dl v-if="liga.gana.length || liga.pierde.length" class="mt-2 flex flex-col gap-1">
+        <dl
+          v-if="conDetalles && (liga.gana.length || liga.pierde.length)"
+          class="mt-2 flex flex-col gap-1"
+        >
           <div v-if="liga.gana.length" class="flex gap-1.5">
             <dt class="shrink-0 w-4 text-center font-bold text-green-700 dark:text-green-400">
               <span aria-hidden="true">✓</span
@@ -109,5 +121,14 @@ const resumen = computed(() => {
         </dl>
       </li>
     </ul>
+    <button
+      v-if="listo && hayDetalles"
+      type="button"
+      class="mt-2 text-xs underline underline-offset-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 hover:dark:text-white"
+      :aria-expanded="conDetalles"
+      @click="conDetalles = !conDetalles"
+    >
+      {{ $t(conDetalles ? 'pokemon.pvpCombat.hideDetails' : 'pokemon.pvpCombat.showDetails') }}
+    </button>
   </ficha-seccion>
 </template>

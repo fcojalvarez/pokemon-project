@@ -27,10 +27,10 @@ import { usePokemonsStore } from '../../stores/pokemons'
 import { useMedia } from '../../composables/useMedia'
 import { typesSVG } from '../../utils/Settings'
 import BaseIcon from '../base/BaseIcon.vue'
-import BasePillButton from '../base/BasePillButton.vue'
 import BaseDropdown from '../base/BaseDropdown.vue'
 import BaseChevron from '../base/BaseChevron.vue'
 import BaseSidebar from '../base/BaseSidebar.vue'
+import useDetectOutsideClick from '../../composables/useDetectOutsideClick'
 
 const store = usePokemonsStore()
 const { filters, activeFilterCount, totalCount } = storeToRefs(store)
@@ -48,7 +48,39 @@ const RARITIES = ['standard', 'legendary', 'mythic', 'ultra_beast']
 /** Los interruptores «Solo…», por su clave en los filtros (y en filters.* de los idiomas). */
 const SOLO = ['onlyShiny', 'onlyShadow', 'onlyDynamax', 'onlyGigantamax']
 
+/**
+ * «Filtrar» es un desplegable de varias, como el «Incluir» del Top: cerrado
+ * enseña lo marcado como etiquetas, y abierto, qué deja cada opción. Antes
+ * eran cuatro casillas en dos filas.
+ */
+const soloOptions = computed(() =>
+  SOLO.map((clave) => ({
+    value: clave,
+    label: t(`filters.${clave}`),
+    description: t(`filters.onlyHelp.${clave}`)
+  }))
+)
+const soloMarcados = computed({
+  get: () => SOLO.filter((clave) => filters.value[clave]),
+  set: (lista) =>
+    setFilters(Object.fromEntries(SOLO.map((clave) => [clave, lista.includes(clave)])))
+})
+
 const panelId = 'filtros-pokedex'
+
+/**
+ * Por debajo de xl, la fila de la leyenda y «Filtros» se queda fija bajo la
+ * cabecera, para filtrar sin volver arriba con media Pokédex bajada. El panel
+ * flota encima de la rejilla y se cierra al tocar fuera o con Escape.
+ */
+const barra = ref(null)
+const barraEl = computed(() => barra.value?.$el ?? null)
+useDetectOutsideClick(barraEl, () => {
+  if (!ancho.value) isOpen.value = false
+})
+const alPulsarTecla = (event) => {
+  if (event.key === 'Escape' && isOpen.value && !ancho.value) isOpen.value = false
+}
 
 const hasFilters = computed(() => activeFilterCount.value > 0)
 
@@ -77,7 +109,16 @@ const rarityOptions = computed(() => [
 </script>
 
 <template>
-  <base-sidebar :activa="ancho" class="w-full">
+  <base-sidebar
+    ref="barra"
+    :activa="ancho"
+    :class="
+      ancho
+        ? 'w-full'
+        : 'sticky top-16 sm:top-14 z-20 -mx-4 px-4 pt-2 pb-1 bg-gray-100 dark:bg-gray-700'
+    "
+    @keydown="alPulsarTecla"
+  >
     <!-- Por debajo de xl: la leyenda a la izquierda y el botón de Filtros a la derecha. -->
     <div v-if="!ancho" class="flex items-center gap-3">
       <slot :ancho="false" />
@@ -135,7 +176,7 @@ const rarityOptions = computed(() => [
         :class="
           ancho
             ? ''
-            : 'mt-2 p-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900'
+            : 'absolute inset-x-4 top-full z-20 max-h-[calc(100dvh-15rem)] sm:max-h-[calc(100dvh-10rem)] overflow-y-auto p-3 border border-gray-300 dark:border-gray-700 rounded-xl shadow-xl bg-white dark:bg-gray-900'
         "
       >
         <div role="group" aria-labelledby="filtro-tipo">
@@ -172,6 +213,7 @@ const rarityOptions = computed(() => [
         <!-- Como los selectores del Top: uno debajo de otro en la barra, a la par por debajo. -->
         <div class="grid gap-3" :class="ancho ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-4'">
           <base-dropdown
+            :en-linea="!ancho"
             class="min-w-0"
             :label="$t('filters.generation')"
             :model-value="filters.generation ?? ''"
@@ -179,34 +221,23 @@ const rarityOptions = computed(() => [
             @update:model-value="setFilters({ generation: $event === '' ? null : Number($event) })"
           />
           <base-dropdown
+            :en-linea="!ancho"
             class="min-w-0"
             :label="$t('filters.rarity')"
             :model-value="filters.rarity ?? ''"
             :options="rarityOptions"
             @update:model-value="setFilters({ rarity: $event === '' ? null : $event })"
           />
-        </div>
-
-        <!-- Mismo trato que el «Incluir» del Top: etiqueta encima y casillas en rejilla. -->
-        <div>
-          <span id="filtro-solo" :class="ETIQUETA">{{ $t('filters.only') }}</span>
-          <div
-            role="group"
-            aria-labelledby="filtro-solo"
-            class="grid gap-2"
-            :class="ancho ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'"
-          >
-            <base-pill-button
-              v-for="clave in SOLO"
-              :key="clave"
-              :class="ancho ? 'h-9 w-full text-xs' : 'h-11 w-full text-sm'"
-              casilla
-              :active="filters[clave]"
-              @click="setFilters({ [clave]: !filters[clave] })"
-            >
-              {{ $t(`filters.${clave}`) }}
-            </base-pill-button>
-          </div>
+          <base-dropdown
+            :en-linea="!ancho"
+            v-model="soloMarcados"
+            multiple
+            class="min-w-0"
+            :class="ancho ? '' : 'col-span-2 lg:col-span-2'"
+            :label="$t('filters.only')"
+            :vacio="$t('filters.onlyNone')"
+            :options="soloOptions"
+          />
         </div>
 
         <!-- En la barra, los resultados y «Limpiar» al final de los filtros. -->

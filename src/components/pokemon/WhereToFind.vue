@@ -97,18 +97,23 @@ const resumen = computed(() => {
       {{ $t('pokemon.notAvailableNow') }}
     </p>
 
+    <!--
+      Cada apartado con su título en negrita y color fuerte, y lo de dentro en
+      gris: antes título y tareas iban en el mismo gris y casi del mismo tamaño,
+      y no se sabía qué era qué.
+    -->
     <template v-else>
       <div v-if="esDitto" class="mt-3">
-        <span class="text-mini text-gray-600 dark:text-gray-300">{{
-          $t('pokemon.dittoWild')
-        }}</span>
-        <p class="mt-1 text-xs text-gray-800 dark:text-gray-200">{{ $t('pokemon.dittoHelp') }}</p>
+        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
+          {{ $t('pokemon.dittoWild') }}
+        </h3>
+        <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">{{ $t('pokemon.dittoHelp') }}</p>
       </div>
 
       <div v-if="enCombatesMax.length" class="mt-3">
-        <span class="text-mini text-gray-600 dark:text-gray-300">
+        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
           {{ $t('pokemon.inMaxBattles') }}
-        </span>
+        </h3>
         <div class="flex flex-wrap gap-2 mt-1">
           <router-link
             v-for="uno in enCombatesMax"
@@ -130,7 +135,9 @@ const resumen = computed(() => {
       </div>
 
       <div v-if="whereToFind.raids.length" class="mt-3">
-        <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.inRaids') }}</span>
+        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
+          {{ $t('pokemon.inRaids') }}
+        </h3>
         <div class="flex flex-wrap gap-2 mt-1">
           <router-link
             v-for="boss in whereToFind.raids"
@@ -146,7 +153,9 @@ const resumen = computed(() => {
       </div>
 
       <div v-if="whereToFind.eggs.length" class="mt-3">
-        <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.inEggs') }}</span>
+        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
+          {{ $t('pokemon.inEggs') }}
+        </h3>
         <div class="flex flex-wrap gap-2 mt-1">
           <router-link
             v-for="egg in whereToFind.eggs"
@@ -160,10 +169,10 @@ const resumen = computed(() => {
       </div>
 
       <div v-if="whereToFind.research.length" class="mt-3">
-        <span class="text-mini text-gray-600 dark:text-gray-300">
+        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
           {{ $t('pokemon.inResearch') }}
-        </span>
-        <ul class="mt-1 flex flex-col gap-1">
+        </h3>
+        <ul class="mt-1 flex flex-col gap-1 pl-4 list-disc">
           <li
             v-for="(task, index) in whereToFind.research"
             :key="index"

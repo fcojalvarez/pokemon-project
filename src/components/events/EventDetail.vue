@@ -2,11 +2,11 @@
 /**
  * Detalle de un evento, en un modal.
  *
- * Arriba, la propia tarjeta en grande (cartel, fecha, horario, Pokémon y
- * bonificaciones que ya da LeekDuck). Debajo, la noticia oficial de Pokémon GO
- * cuando la hay: es la que trae todo —bonus con sus notas, investigaciones,
- * horarios— y ya en español con los nombres del juego. Si no la hay, queda lo
- * de LeekDuck y el enlace a su página.
+ * Primero lo útil: la propia tarjeta en grande (cartel, fecha, horario y
+ * bonus) y los Pokémon que nombra la noticia, con su sprite. La noticia
+ * oficial de Pokémon GO va al final y plegada: entera eran tres o cuatro
+ * pantallas de texto y lo que se busca quedaba enterrado. Si no la hay, queda
+ * lo de LeekDuck y el enlace a su página.
  */
 import { computed, ref, watch } from 'vue'
 import { cargarNoticias } from '../../stores/gameData'
@@ -15,7 +15,14 @@ import { useEventos } from '../../composables/useEventos'
 import { enlaceSeguro } from '../../utils/safeUrl'
 import { esApple, urlGoogleCalendar, urlIcs } from '../../utils/ics'
 import BaseModal from '../base/BaseModal.vue'
+import BaseSprite from '../base/BaseSprite.vue'
+import BaseChevron from '../base/BaseChevron.vue'
 import EventCard from './EventCard.vue'
+import EventBonus from './EventBonus.vue'
+import { useGameDataStore } from '../../stores/gameData'
+import { localName } from '../../composables/useTranslate'
+import { pokemonEnTexto } from '../../utils/pokemonEnTexto'
+import { spriteUrl } from '../../utils/sprites'
 
 const props = defineProps({
   /** El evento abierto, o null con el modal cerrado. */
@@ -57,6 +64,32 @@ const noticia = computed(() => {
     )
   }
 })
+
+/**
+ * Los Pokémon que nombra la noticia, en su orden: es lo que sale en el
+ * evento, y la noticia no lo da en lista. Como mucho una veintena, que una
+ * noticia larga (un Pase de GO) nombra muchos de pasada.
+ */
+const gameData = useGameDataStore()
+const pokemonDelEvento = computed(() => {
+  if (!noticia.value || !gameData.isReady) return []
+  const texto = noticia.value.secciones
+    .flatMap((seccion) => [
+      seccion.titulo,
+      ...seccion.bloques.flatMap((b) => (b.t === 'ul' ? b.items : [b.x]))
+    ])
+    .join(' ')
+  return pokemonEnTexto(texto, gameData.roster).slice(0, 20)
+})
+
+/** La noticia va plegada; al abrir otro evento, vuelve a plegarse. */
+const noticiaAbierta = ref(false)
+watch(
+  () => props.event,
+  () => {
+    noticiaAbierta.value = false
+  }
+)
 
 /** La página del evento en LeekDuck; llega de ScrapedDuck, así que se filtra. */
 const enlaceLeekDuck = computed(() => enlaceSeguro(props.event?.link))
@@ -161,33 +194,79 @@ const agrupar = (bloques) => {
           {{ $t('events.addToCalendar') }}
         </button>
 
+        <event-bonus :bonus="tarjeta?.todosLosBonus ?? []" />
+
         <p v-if="cargando" class="text-xs text-gray-600 dark:text-gray-300">
           {{ $t('common.loading') }}
         </p>
 
-        <article v-else-if="noticia" class="pt-3 border-t border-gray-300 dark:border-gray-700">
-          <p class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
-            {{ $t('events.official') }}
-          </p>
-          <section v-for="(seccion, i) in noticia.secciones" :key="i" class="mt-3">
-            <h3 class="text-sm font-bold">{{ seccion.titulo }}</h3>
-            <template v-for="(bloque, j) in seccion.bloques" :key="j">
-              <ul
-                v-if="bloque.t === 'ul'"
-                class="mt-1.5 flex flex-col gap-1 pl-4 list-disc text-sm"
-              >
-                <li v-for="(item, k) in bloque.items" :key="k">{{ item }}</li>
-              </ul>
-              <h4
-                v-else-if="bloque.t === 'h3'"
-                class="mt-2 text-xs font-bold text-gray-600 dark:text-gray-300"
-              >
-                {{ bloque.x }}
-              </h4>
-              <p v-else class="mt-1.5 text-sm">{{ bloque.x }}</p>
-            </template>
+        <template v-else-if="noticia">
+          <section
+            v-if="pokemonDelEvento.length"
+            class="mb-4 pt-3 border-t border-gray-300 dark:border-gray-700"
+          >
+            <h3 class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
+              {{ $t('events.eventPokemon') }}
+            </h3>
+            <ul class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(4.5rem,1fr))] gap-1">
+              <li v-for="mon in pokemonDelEvento" :key="mon.dex">
+                <router-link
+                  :to="`/pokemon/${mon.dex}`"
+                  class="flex flex-col items-center gap-0.5 p-1 rounded-lg text-center hover:bg-gray-150 hover:dark:bg-gray-800"
+                >
+                  <base-sprite
+                    :src="spriteUrl(mon.spriteId)"
+                    class="w-12 h-12"
+                    img-class="drop-shadow-contorno dark:drop-shadow-none"
+                  />
+                  <span class="text-mini leading-tight line-clamp-2 break-words">{{
+                    localName(mon)
+                  }}</span>
+                </router-link>
+              </li>
+            </ul>
           </section>
-        </article>
+
+          <!-- La noticia entera, plegada: se abre si se quiere leer. -->
+          <button
+            type="button"
+            class="w-full flex items-center justify-between gap-2 pt-3 pb-1 border-t border-gray-300 dark:border-gray-700 text-left"
+            :aria-expanded="noticiaAbierta"
+            aria-controls="noticia-oficial"
+            @click="noticiaAbierta = !noticiaAbierta"
+          >
+            <span>
+              <span
+                class="block text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+                >{{ $t('events.official') }}</span
+              >
+              <span class="text-sm font-semibold">{{
+                $t(noticiaAbierta ? 'events.hideNews' : 'events.readNews')
+              }}</span>
+            </span>
+            <base-chevron :open="noticiaAbierta" class="text-gray-600 dark:text-gray-300" />
+          </button>
+          <article v-show="noticiaAbierta" id="noticia-oficial">
+            <section v-for="(seccion, i) in noticia.secciones" :key="i" class="mt-3">
+              <h3 class="text-sm font-bold">{{ seccion.titulo }}</h3>
+              <template v-for="(bloque, j) in seccion.bloques" :key="j">
+                <ul
+                  v-if="bloque.t === 'ul'"
+                  class="mt-1.5 flex flex-col gap-1 pl-4 list-disc text-sm"
+                >
+                  <li v-for="(item, k) in bloque.items" :key="k">{{ item }}</li>
+                </ul>
+                <h4
+                  v-else-if="bloque.t === 'h3'"
+                  class="mt-2 text-xs font-bold text-gray-600 dark:text-gray-300"
+                >
+                  {{ bloque.x }}
+                </h4>
+                <p v-else class="mt-1.5 text-sm">{{ bloque.x }}</p>
+              </template>
+            </section>
+          </article>
+        </template>
 
         <p
           v-else

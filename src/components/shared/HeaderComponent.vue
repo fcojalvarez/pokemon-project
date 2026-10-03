@@ -138,7 +138,11 @@ const volver = () => {
     </div>
 
     <!-- En móvil, Ajustes en vez del menú: las secciones ya están en la barra de abajo. -->
-    <settings-menu class="sm:hidden shrink-0 ml-auto" />
+    <settings-menu
+      class="sm:hidden shrink-0 ml-auto"
+      :inert="buscadorTapa || undefined"
+      :aria-hidden="buscadorTapa || undefined"
+    />
     <nav-menu class="hidden sm:flex shrink-0" />
   </header>
 </template>
@@ -172,7 +176,6 @@ const volver = () => {
 .buscar-sobre-volver.buscador-abierto {
   left: -36px;
   width: calc(100% + 36px);
-  transition: width 0.25s ease, left 0.25s ease, background-color 0.15s, color 0.15s;
 }
 /*
  * La lupa de SearchBar, en la ficha, en un hueco de 36 px como el de volver y
@@ -184,6 +187,20 @@ const volver = () => {
 }
 .buscar-sobre-volver:not(.buscador-abierto) :deep(> button:first-child) {
   width: 100%;
+}
+/*
+ * En móvil, abierto ocupa la cabecera entera: tapa también Ajustes (44 px más
+ * los 12 del hueco). Hasta Ajustes, en 375 px quedaban 287 px para escribir y
+ * los resultados, que van debajo con el mismo ancho, salían apretados.
+ */
+@media (max-width: 639px) {
+  .buscador-abierto {
+    width: calc(100% + 3.5rem);
+    max-width: none;
+  }
+  .buscar-sobre-volver.buscador-abierto {
+    width: calc(100% + 36px + 3.5rem);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .back-btn {

@@ -30,6 +30,8 @@
     "sections": "Sections"
   },
   "common": {
+    "selectAll": "Select all",
+    "clearAll": "Clear all",
     "loading": "Loading…",
     "error": "Could not load the data.",
     "empty": "Nothing to show.",
@@ -164,6 +166,8 @@
     "howToBeat": "How to beat it",
     "howToBeatHelp": "The ones that deal it the most damage per second, with their best moves: the same as for a raid boss.",
     "pvpCombat": {
+      "showDetails": "Show moves and matchups",
+      "hideDetails": "Hide moves and matchups",
       "fastPerCharged": "Fast moves for each charged move, with its recommended moveset",
       "count": "{n} fast · {turnos} turns",
       "wins": "Beats",
@@ -171,7 +175,18 @@
     }
   },
   "top": {
+    "pveKind": "PvE mode",
+    "raids": "Raids",
+    "includeNone": "Nothing",
+    "includeHelp": {
+      "mega": "Mega and Primal Evolutions",
+      "shadow": "Shadow Pokémon",
+      "legacy": "Moves that can no longer be learned",
+      "elite": "Moves only from an Elite TM",
+      "legendary": "Only in 5★ Max Battles and on set dates"
+    },
     "short": {
+      "pvp": "PvP",
       "pve": "PvE",
       "max": "Max"
     },
@@ -221,6 +236,10 @@
     "moreBonus": "and {n} more | and {n} more",
     "detail": "Event details",
     "official": "Official Pokémon GO news",
+    "eventBonus": "Event bonuses",
+    "eventPokemon": "Event Pokémon",
+    "readNews": "Read the full news",
+    "hideNews": "Hide the news",
     "noOfficial": "This event has no official news post on the Pokémon GO website: above is what LeekDuck publishes.",
     "openOfficial": "Read the official news",
     "openLeekDuck": "View on LeekDuck",
@@ -339,6 +358,27 @@
     "noResearch": "No tasks published.",
     "noRocket": "No Team GO Rocket data right now.",
     "rocket": {
+      "quote": "“{text}”",
+      "quotes": {
+        "bug": "Go, my super bug Pokémon!",
+        "dark": "Wherever there is light, there is also shadow.",
+        "dragon": "ROAR! ...How’d that sound?",
+        "electric": "Get ready to be shocked!",
+        "fairy": "Check out my cute Pokémon!",
+        "fighting": "This buff physique isn’t just for show!",
+        "fire": "Do you know how hot Pokémon fire breath can get?",
+        "flying": "Battle against my Flying-type Pokémon!",
+        "ghost": "Ke...ke...ke...ke...ke...ke!",
+        "grass": "Don’t tangle with us!",
+        "ground": "You’ll be defeated into the ground!",
+        "ice": "You’re gonna be frozen in your tracks.",
+        "normal": "Normal does not mean weak.",
+        "poison": "Coiled and ready to strike!",
+        "psychic": "Are you scared of psychics that use unseen power?",
+        "rock": "Let’s rock and roll!",
+        "steel": "You’re no match for my iron will!",
+        "water": "These waters are treacherous!"
+      },
       "intro": "What each one can use in their three slots. “Catchable”: the Shadow Pokémon you get for beating them.",
       "groups": {
         "boss": "Giovanni",
@@ -403,7 +443,14 @@
     "allGenerations": "All",
     "onlyShiny": "Shiny",
     "title": "Filters",
-    "only": "Only",
+    "only": "Filter",
+    "onlyNone": "No filter",
+    "onlyHelp": {
+      "onlyShiny": "Shiny already released",
+      "onlyShadow": "With a Shadow form",
+      "onlyDynamax": "Can Dynamax",
+      "onlyGigantamax": "With a Gigantamax form"
+    },
     "clear": "Clear",
     "results": "{count} results",
     "rarity": "Rarity",

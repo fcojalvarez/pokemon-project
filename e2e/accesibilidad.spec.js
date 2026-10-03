@@ -122,8 +122,9 @@ test('el botón de modo oscuro está en un solo sitio', async ({ page }) => {
 
 /**
  * El buscador es una lupa, en todos los anchos: al tocarla se abre con el foco dentro y
- * tapa el modo oscuro, que sale del tabulador. La ✕ lo vacía, lo pliega y
- * devuelve el foco a la lupa.
+ * tapa el modo oscuro, que sale del tabulador. La ✕ lo vacía y lo pliega.
+ * Pulsada con el ratón o el dedo suelta el foco (sin anillo en la lupa); con
+ * el teclado lo devuelve a la lupa, para no perder el sitio.
  */
 test('el buscador se abre desde la lupa y se pliega con la ✕', async ({ page }) => {
   await page.goto('/')
@@ -139,8 +140,14 @@ test('el buscador se abre desde la lupa y se pliega con la ✕', async ({ page }
   await expect(page).toHaveURL(/q=bulba/)
   await page.getByRole('button', { name: 'Cerrar el buscador' }).click()
   await expect(page).not.toHaveURL(/q=/)
-  await expect(lupa).toBeFocused()
+  await expect(lupa).not.toBeFocused()
   await expect(oscuro).not.toHaveAttribute('inert', '')
+
+  await lupa.click()
+  await page.locator('#input-search').fill('bulba')
+  await page.getByRole('button', { name: 'Cerrar el buscador' }).focus()
+  await page.keyboard.press('Enter')
+  await expect(lupa).toBeFocused()
 })
 
 test('los resultados del buscador se recorren con las flechas y se abren con Enter', async ({ page }) => {

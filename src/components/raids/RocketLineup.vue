@@ -61,6 +61,17 @@ const todosAtrapables = (lista) => lista.length > 0 && atrapables(lista) === lis
 
 const tipo = computed(() => props.lineup.type || null)
 
+/**
+ * Lo que dice el recluta al empezar, que en el juego es la pista de su tipo
+ * («¡Prepárate para alucinar!» = Eléctrico). Sale de los textos del juego
+ * (combat_grunt_quote_<tipo>) y va en las traducciones. Los demás (Giovanni,
+ * líderes, señuelos) dicen una al azar, que no ayuda a reconocerlos.
+ */
+const frase = computed(() => {
+  const clave = `raids.rocket.quotes.${tipo.value}`
+  return tipo.value && te(clave) ? t(clave) : null
+})
+
 const counters = computed(() =>
   props.open && tipo.value && gameData.isReady ? gameData.counters([tipo.value], { limit: 10 }) : []
 )
@@ -76,7 +87,12 @@ const debilidades = computed(() =>
     class="overflow-hidden border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900"
   >
     <div class="flex flex-wrap items-center gap-2 px-2.5 pt-2.5 pb-2">
-      <h3 class="flex-1 min-w-0 text-xs font-semibold">{{ nombre }}</h3>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-xs font-semibold">{{ nombre }}</h3>
+        <p v-if="frase" class="mt-0.5 text-xs italic text-gray-700 dark:text-gray-200">
+          {{ $t('raids.rocket.quote', { text: frase }) }}
+        </p>
+      </div>
       <counters-toggle
         v-if="tipo"
         class="!w-auto !h-7 px-3"

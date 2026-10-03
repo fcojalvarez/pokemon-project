@@ -49,7 +49,7 @@ const cargando = computed(
 // Ni pasados ni sin fecha: uno que ya terminó no sirve para nada, y los que
 // LeekDuck publica sin fechas no se pueden ni situar en el tiempo. «Semana»
 // (F10) junta los dos por día, para planear los próximos siete.
-const TABS = ['active', 'upcoming', 'week']
+const TABS = ['active', 'week', 'upcoming']
 
 // En la URL, para volver de un evento con la misma pestaña y el mismo tipo.
 // Antes del watch de abajo: si no, al leer la pestaña de la URL se borraría el

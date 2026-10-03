@@ -10,19 +10,28 @@ async function abrirFiltrosTop(page) {
 }
 
 /**
- * Cambia el modo del Top. En móvil va a la vista, en el selector segmentado
- * (PvE · Max · Súper · Hiper · Master); en el resto, en el desplegable «Modo».
+ * Cambia el modo del Top: PvE o PvP, siempre a la vista, y si hace falta su
+ * variante (Incursiones o Max; la liga), que va lo primero de los filtros.
  */
-async function elegirModoTop(page, { boton, opcion }) {
+async function elegirModoTop(page, { familia, variante }) {
   await page.getByRole('heading', { level: 1, name: 'Top' }).waitFor()
-  const segmentado = page.getByRole('group', { name: /modo/i })
-  if (await segmentado.isVisible()) {
-    await segmentado.getByRole('button', { name: boton, exact: true }).click()
-    return
-  }
+  await page
+    .getByRole('group', { name: 'Modo', exact: true })
+    .getByRole('button', { name: familia, exact: true })
+    .click()
+  if (!variante) return
   await abrirFiltrosTop(page)
-  await page.getByRole('combobox', { name: /modo/i }).click()
-  await page.getByRole('option', { name: opcion }).click()
+  await page
+    .getByRole('group', { name: /^(liga|modo pve)$/i })
+    .getByRole('button', { name: variante, exact: true })
+    .click()
+}
+
+/** Marca o desmarca una opción de «Incluir», el desplegable de varias del Top. */
+async function alternarIncluir(page, opcion) {
+  await page.getByRole('combobox', { name: /incluir/i }).click()
+  await page.getByRole('option', { name: new RegExp(`^${opcion}`) }).click()
+  await page.keyboard.press('Escape')
 }
 
 /**
@@ -110,7 +119,7 @@ test('el Top cambia entre PvE y PvP sin romperse', async ({ page }) => {
 
   // Ya no es un <select> nativo: es el desplegable propio, que se abre y se
   // elige con clics como haría cualquiera.
-  await elegirModoTop(page, { boton: 'Súper', opcion: /pvp/i })
+  await elegirModoTop(page, { familia: 'PvP' })
 
   await expect(page).toHaveURL(/mode=pvp/)
   await expect(filas.first()).toBeVisible()
@@ -211,7 +220,7 @@ test('si game_data no responde, tira de los ficheros desplegados', async ({ page
  */
 test('el Top Dinamax ordena por ataque y enseña el Ataque Max', async ({ page }) => {
   await page.goto('/top')
-  await elegirModoTop(page, { boton: 'Max', opcion: /· max$/i })
+  await elegirModoTop(page, { familia: 'PvE', variante: 'Max' })
 
   const filas = page.locator('[data-fila-top]')
   await expect(filas.first()).toBeVisible()
@@ -240,8 +249,11 @@ test('el filtro de Gigamax recorta la Pokédex', async ({ page }) => {
   // Desde 1280 px los filtros van a la vista, en la barra lateral.
   const abrir = page.getByRole('button', { name: /filtros/i })
   if (await abrir.isVisible()) await abrir.click()
-  await page.getByRole('button', { name: 'Gigamax', exact: true }).click()
-  await page.waitForResponse((res) => res.url().includes('can_gigantamax'))
+  // «Filtrar» es un desplegable de varias: se abre y se marca Gigamax.
+  await page.getByRole('combobox', { name: /filtrar/i }).click()
+  const respuesta = page.waitForResponse((res) => res.url().includes('can_gigantamax'))
+  await page.getByRole('option', { name: /^Gigamax/ }).click()
+  await respuesta
 
   await expect(page.getByText('Venusaur')).toBeVisible()
   // Con `count()` a secas se leía el DOM antes de que Vue repintara y el test
@@ -252,10 +264,10 @@ test('el filtro de Gigamax recorta la Pokédex', async ({ page }) => {
 })
 
 /**
- * El botón Élite del Top: apagado, el ranking enseña solo lo que se aprende
+ * La opción Élite de «Incluir»: desmarcada, el ranking enseña solo lo que se aprende
  * con MT normales. Se combina con el de Legacy.
  */
-test('el botón Élite quita los ataques élite del ranking', async ({ page }) => {
+test('desmarcar Élite quita los ataques élite del ranking', async ({ page }) => {
   await page.goto('/top')
   const filas = page.locator('[data-fila-top]')
   await expect(filas.first()).toBeVisible()
@@ -264,9 +276,8 @@ test('el botón Élite quita los ataques élite del ranking', async ({ page }) =
   expect(await conElite().count()).toBeGreaterThan(0)
 
   await abrirFiltrosTop(page)
-  const boton = page.getByRole('button', { name: 'Élite', exact: true })
-  await boton.click()
-  await expect(boton).toHaveAttribute('aria-pressed', 'false')
+  await alternarIncluir(page, 'Élite')
+  await expect(page.getByRole('combobox', { name: /incluir/i })).not.toContainText('Élite')
   await expect(conElite()).toHaveCount(0)
   await expect(filas.first()).toBeVisible()
 })
@@ -351,7 +362,7 @@ test.describe('Top en escritorio ancho', () => {
     await page.goto('/top')
     await expect(page.locator('table [data-fila-top]').first()).toBeVisible()
     await page.evaluate(() => window.scrollTo(0, 1500))
-    await expect(page.getByRole('combobox', { name: /modo/i })).toBeInViewport()
+    await expect(page.getByRole('group', { name: 'Modo', exact: true })).toBeInViewport()
   })
 
   test('cabecera y selector ordenan a la par', async ({ page }) => {
@@ -381,7 +392,7 @@ test.describe('filtros en la URL', () => {
     await abrirFiltrosTop(page)
     await page.getByRole('combobox', { name: /tipo/i }).click()
     await page.getByRole('option', { name: 'Fuego', exact: true }).click()
-    await page.getByRole('button', { name: 'Legacy', exact: true }).click()
+    await alternarIncluir(page, 'Legacy')
     await expect(page).toHaveURL(/kind=fire/)
     await expect(page).toHaveURL(/without=legacy/)
 
@@ -391,10 +402,7 @@ test.describe('filtros en la URL', () => {
     await expect(page).toHaveURL(/\/top\?.*kind=fire/)
     await abrirFiltrosTop(page)
     await expect(page.getByRole('combobox', { name: /tipo/i })).toContainText('Fuego')
-    await expect(page.getByRole('button', { name: 'Legacy', exact: true })).toHaveAttribute(
-      'aria-pressed',
-      'false'
-    )
+    await expect(page.getByRole('combobox', { name: /incluir/i })).not.toContainText('Legacy')
 
     await page.reload()
     await abrirFiltrosTop(page)
@@ -414,10 +422,7 @@ test.describe('filtros en la URL', () => {
         'aria-pressed',
         'true'
       )
-      await expect(page.getByRole('button', { name: 'Gigamax', exact: true })).toHaveAttribute(
-        'aria-pressed',
-        'true'
-      )
+      await expect(page.getByRole('combobox', { name: /filtrar/i })).toContainText('Gigamax')
     }
   })
 })

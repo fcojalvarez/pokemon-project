@@ -30,6 +30,8 @@
     "sections": "Secciones"
   },
   "common": {
+    "selectAll": "Marcar todo",
+    "clearAll": "Quitar todo",
     "loading": "Cargando…",
     "error": "No se han podido cargar los datos.",
     "empty": "No hay nada que mostrar.",
@@ -164,6 +166,8 @@
     },
     "howToBeatHelp": "Los que más daño le hacen por segundo, con sus mejores ataques: los mismos que para un jefe de incursión.",
     "pvpCombat": {
+      "showDetails": "Ver ataques y rivales",
+      "hideDetails": "Ocultar ataques y rivales",
       "fastPerCharged": "Rápidos para cada cargado, con su conjunto recomendado",
       "count": "{n} rápidos · {turnos} turnos",
       "wins": "Gana a",
@@ -171,7 +175,18 @@
     }
   },
   "top": {
+    "pveKind": "Modo PvE",
+    "raids": "Incursiones",
+    "includeNone": "Nada",
+    "includeHelp": {
+      "mega": "Megaevoluciones y primigenias",
+      "shadow": "Pokémon oscuros",
+      "legacy": "Ataques que ya no se aprenden",
+      "elite": "Ataques que solo da la MT Élite",
+      "legendary": "Solo en combates Max de 5★ y en fechas concretas"
+    },
     "short": {
+      "pvp": "PvP",
       "pve": "PvE",
       "max": "Max"
     },
@@ -221,6 +236,10 @@
     "moreBonus": "y {n} más | y {n} más",
     "detail": "Detalle del evento",
     "official": "Noticia oficial de Pokémon GO",
+    "eventBonus": "Bonus del evento",
+    "eventPokemon": "Pokémon del evento",
+    "readNews": "Leer la noticia completa",
+    "hideNews": "Plegar la noticia",
     "noOfficial": "Este evento no tiene noticia oficial en la web de Pokémon GO: arriba va lo que publica LeekDuck.",
     "openOfficial": "Ver la noticia oficial",
     "openLeekDuck": "Ver en LeekDuck",
@@ -339,6 +358,27 @@
     "noResearch": "No hay misiones publicadas.",
     "noRocket": "No hay datos del Team GO Rocket ahora mismo.",
     "rocket": {
+      "quote": "«{text}»",
+      "quotes": {
+        "bug": "¡Vamos, mi poderoso Pokémon de tipo Bicho!",
+        "dark": "Ya sé que es una frase manida, pero... Donde quiera que hay luz, también hay sombras...",
+        "dragon": "¡GRRR! ¿Qué te pareció eso?",
+        "electric": "¡Prepárate para alucinar!",
+        "fairy": "¡Mira a mi Pokémon tan mono!",
+        "fighting": "Estos músculos no son solo para impresionar.",
+        "fire": "¿Sabes lo caliente que puede llegar a ser el aliento de fuego de los Pokémon?",
+        "flying": "¡Mis Pokémon pájaro quieren combatir contigo!",
+        "ghost": "Ja, ja, ja...",
+        "grass": "¡No nos vaciles!",
+        "ground": "¡Haré que te comas el polvo!",
+        "ice": "El frío puede paralizarte, ¿no lo sabes?",
+        "normal": "Normal no significa débil.",
+        "poison": "¡En posición y listo para atacar!",
+        "psychic": "¿Te asustan los psíquicos que usan un poder invisible?",
+        "rock": "¡Soy fuerte como una roca!",
+        "steel": "¡No eres rival para mi voluntad de hierro!",
+        "water": "¡Estas aguas son traicioneras!"
+      },
       "intro": "Qué puede sacar cada uno en sus tres puestos. «Se atrapa»: el Pokémon oscuro que te llevas al ganarle.",
       "groups": {
         "boss": "Giovanni",
@@ -403,7 +443,14 @@
     "allGenerations": "Todas",
     "onlyShiny": "Shiny",
     "title": "Filtros",
-    "only": "Solo",
+    "only": "Filtrar",
+    "onlyNone": "Sin filtrar",
+    "onlyHelp": {
+      "onlyShiny": "Con el shiny ya liberado",
+      "onlyShadow": "Que tienen forma oscura",
+      "onlyDynamax": "Que pueden Dinamax",
+      "onlyGigantamax": "Con forma Gigamax"
+    },
     "clear": "Limpiar",
     "results": "{count} resultados",
     "rarity": "Rareza",

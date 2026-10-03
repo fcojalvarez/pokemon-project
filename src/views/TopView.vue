@@ -4,7 +4,6 @@ import { useGameDataStore } from '../stores/gameData'
 import BaseEmptyState from '../components/base/BaseEmptyState.vue'
 import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
 import BaseDropdown from '../components/base/BaseDropdown.vue'
-import BasePillButton from '../components/base/BasePillButton.vue'
 import BaseSidebar from '../components/base/BaseSidebar.vue'
 import SkeletonLoader from '../components/base/SkeletonLoader.vue'
 import AttackerList from '../components/rankings/AttackerList.vue'
@@ -28,8 +27,6 @@ const sortBy = ref('dps')
 const league = ref('great')
 // Desde xl, barra lateral fija con los filtros y el ranking en tabla.
 const ancho = useMedia('(min-width: 1280px)')
-// Los botones de «Incluir»: más bajos en la barra lateral, que es estrecha.
-const boton = computed(() => (ancho.value ? 'h-9 w-full text-xs' : 'h-11 w-full text-sm'))
 const includeMega = ref(true)
 const includeShadow = ref(true)
 /**
@@ -109,32 +106,23 @@ useFiltrosEnUrl({
   }
 })
 
-// Dinamax va justo detrás de incursiones: las dos son PvE, y el PvP es lo
-// que se sale del grupo.
-const modeOptions = computed(() => [
-  { value: 'pve', label: t('top.pve') },
-  { value: 'max', label: t('max.tabTitle') },
-  { value: 'pvp', label: t('top.pvp') }
-])
-
 const typeOptions = computed(() => [
   { value: 'all', label: t('common.all') },
   ...gameData.types.map((type) => ({ value: type, label: t(`types.${type}`) }))
 ])
 
-const sortOptions = computed(() => [
-  { value: 'dps', label: t('top.dps') },
-  { value: 'tdo', label: t('top.tdo') },
-  { value: 'er', label: t('top.er') }
-])
-
-const leagueOptions = computed(() => [
-  { value: 'great', label: `${t('top.great')} · ${t('top.capGreat')}` },
-  { value: 'ultra', label: `${t('top.ultra')} · ${t('top.capUltra')}` },
-  { value: 'master', label: `${t('top.master')} · ${t('top.capMaster')}` }
-])
-
-const sortHelp = computed(() => t(`top.${sortBy.value}Help`))
+/**
+ * Qué significa cada orden va dentro del desplegable, bajo cada opción: es
+ * cuando se está eligiendo. Debajo del selector lo descuadraba frente a Tipo
+ * e Incluir.
+ */
+const sortOptions = computed(() =>
+  ['dps', 'tdo', 'er'].map((valor) => ({
+    value: valor,
+    label: t(`top.${valor}`),
+    description: t(`top.${valor}Help`)
+  }))
+)
 
 /**
  * En móvil los filtros van plegados, como en la Pokédex: abiertos se comían
@@ -148,28 +136,59 @@ const etiqueta = (opciones, valor) =>
   opciones.find((opcion) => opcion.value === valor)?.label ?? valor
 
 /**
- * En móvil, lo que más se cambia (PvE, Max o una liga PvP) va a la vista en un
- * selector segmentado; tipo, orden e «Incluir» quedan en «Más filtros». Antes
- * el modo iba dentro, y pasar de PvE a la Súper era abrir, elegir y cerrar.
+ * Arriba, a la vista, solo PvE o PvP. Dentro de los filtros, lo primero es su
+ * variante: Incursiones o Max con PvE, la liga con PvP. Antes eran cinco
+ * botones al mismo nivel que mezclaban las dos cosas. Al volver a PvE se
+ * vuelve a lo último que había (Incursiones o Max); la liga ya se recuerda.
  */
-const vista = computed({
-  get: () => (mode.value === 'pvp' ? `pvp-${league.value}` : mode.value),
+const ultimoPve = ref(mode.value === 'max' ? 'max' : 'pve')
+watch(mode, (nuevo) => {
+  if (nuevo !== 'pvp') ultimoPve.value = nuevo
+})
+const familia = computed({
+  get: () => (mode.value === 'pvp' ? 'pvp' : 'pve'),
   set: (valor) => {
-    if (valor.startsWith('pvp-')) {
-      league.value = valor.slice(4)
-      mode.value = 'pvp'
-    } else mode.value = valor
+    mode.value = valor === 'pvp' ? 'pvp' : ultimoPve.value
   }
 })
-const vistaOptions = computed(() => [
+const familiaOptions = computed(() => [
   { value: 'pve', label: t('top.short.pve') },
-  { value: 'max', label: t('top.short.max') },
-  ...['great', 'ultra', 'master'].map((liga) => ({ value: `pvp-${liga}`, label: t(`top.${liga}`) }))
+  { value: 'pvp', label: t('top.short.pvp') }
 ])
+const pveKindOptions = computed(() => [
+  { value: 'pve', label: t('top.raids') },
+  { value: 'max', label: t('top.short.max') }
+])
+const leagueOptions = computed(() =>
+  ['great', 'ultra', 'master'].map((liga) => ({ value: liga, label: t(`top.${liga}`) }))
+)
 
-/** Lo que queda en «Más filtros», en una línea: el modo y la liga ya se ven arriba. */
+/**
+ * «Incluir» como desplegable de varias: la lista de lo marcado. Cada opción
+ * lleva al lado qué es («Ataques que ya no se aprenden»), que antes iba en un
+ * title que en el móvil no se veía.
+ */
+const incluirOptions = computed(() =>
+  incluir.value.map((opcion) => ({
+    value: opcion.clave,
+    label: t(opcion.texto),
+    description: t(`top.includeHelp.${opcion.clave}`)
+  }))
+)
+const incluidos = computed({
+  get: () => incluir.value.filter((opcion) => opcion.valor.value).map((opcion) => opcion.clave),
+  set: (lista) => {
+    for (const opcion of incluir.value) opcion.valor.value = lista.includes(opcion.clave)
+  }
+})
+
+/** Lo que hay en los filtros, en una línea: primero la variante (Incursiones, Max o la liga). */
 const resumenFiltros = computed(() => {
-  const partes = [etiqueta(typeOptions.value, type.value)]
+  const variante =
+    mode.value === 'pvp'
+      ? etiqueta(leagueOptions.value, league.value)
+      : etiqueta(pveKindOptions.value, mode.value)
+  const partes = [variante, etiqueta(typeOptions.value, type.value)]
   if (mode.value === 'pve') {
     // La sigla: «Daño por segundo (DPS)» entero no cabe en la línea.
     partes.push(sortBy.value.toUpperCase())
@@ -186,13 +205,15 @@ const resumenFiltros = computed(() => {
   return partes.join(' · ')
 })
 
-/** Cuántos filtros no están como vienen, para el contador del botón. */
+/**
+ * Cuántos filtros no están como vienen, para el contador del botón. La
+ * variante (Incursiones, Max, la liga) no cuenta: es qué ranking se ve, no
+ * un filtro sobre él, y ya la dice el resumen.
+ */
 const filtrosCambiados = computed(
   () =>
     (type.value !== 'all' ? 1 : 0) +
     (mode.value === 'pve' && sortBy.value !== 'dps' ? 1 : 0) +
-    // La liga no cuenta en móvil: va a la vista, en el selector de arriba.
-    (!movil.value && mode.value === 'pvp' && league.value !== 'great' ? 1 : 0) +
     (mode.value === 'pve'
       ? excluidos.value.filter((quitado) => quitado !== 'legendary').length
       : 0) +
@@ -260,14 +281,13 @@ watch(
     -->
     <div :class="ancho ? 'grid grid-cols-[280px_minmax(0,1fr)] gap-6 items-start' : ''">
       <base-sidebar :activa="ancho">
-        <!-- Móvil: el modo a la vista y, debajo, lo demás en una línea con su botón. -->
+        <!-- PvE o PvP, siempre a la vista; en móvil, debajo, el resumen y el botón. -->
         <base-segmented
-          v-if="movil"
-          v-model="vista"
+          v-model="familia"
           role="group"
           :aria-label="$t('top.mode')"
-          :options="vistaOptions"
-          class="mb-2"
+          :options="familiaOptions"
+          :class="ancho ? '' : 'mb-2'"
         />
         <div v-if="movil" class="flex items-center gap-3 mb-3">
           <p
@@ -304,6 +324,29 @@ watch(
               : ''
           "
         >
+          <!-- La variante, lo primero: Incursiones o Max, o la liga. -->
+          <div :class="ancho ? '' : 'mb-3'">
+            <span
+              id="variante-top"
+              class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+              >{{ $t(mode === 'pvp' ? 'top.league' : 'top.pveKind') }}</span
+            >
+            <base-segmented
+              v-if="mode === 'pvp'"
+              v-model="league"
+              role="group"
+              aria-labelledby="variante-top"
+              :options="leagueOptions"
+            />
+            <base-segmented
+              v-else
+              v-model="mode"
+              role="group"
+              aria-labelledby="variante-top"
+              :options="pveKindOptions"
+            />
+          </div>
+
           <div
             :class="
               ancho
@@ -311,59 +354,23 @@ watch(
                 : 'grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 gap-2 mb-3'
             "
           >
-            <base-dropdown
-              v-if="!movil"
-              v-model="mode"
-              :label="$t('top.mode')"
-              :options="modeOptions"
-            />
             <base-dropdown v-model="type" buscable :label="$t('top.type')" :options="typeOptions" />
-            <!--
-            En la tabla también se ordena pulsando las cabeceras; los dos van a
-            la par. Lo que significa cada orden va justo debajo del selector.
-          -->
-            <!-- A dos columnas va solo en su fila: a media anchura se cortaba («Daño por segundo (…»). -->
-            <div v-if="mode === 'pve'" class="min-w-0 xs:col-span-2 sm:col-span-1">
-              <base-dropdown v-model="sortBy" :label="$t('top.sortBy')" :options="sortOptions" />
-              <p class="mt-1.5 text-mini text-gray-600 dark:text-gray-300">{{ sortHelp }}</p>
-            </div>
+            <!-- En la tabla también se ordena pulsando las cabeceras; los dos van a la par. -->
             <base-dropdown
-              v-else-if="mode === 'pvp' && !movil"
-              v-model="league"
-              :label="$t('top.league')"
-              :options="leagueOptions"
+              v-if="mode === 'pve'"
+              v-model="sortBy"
+              :label="$t('top.sortBy')"
+              :options="sortOptions"
             />
-          </div>
-
-          <!--
-          Mismo trato que los selectores: etiqueta encima y botones del mismo
-          alto repartidos en rejilla.
-        -->
-          <div v-if="incluir.length" :class="ancho ? '' : 'mb-3'">
-            <span
-              id="incluir-top"
-              class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
-              >{{ $t('top.include') }}</span
-            >
-
-            <div
-              role="group"
-              aria-labelledby="incluir-top"
-              class="grid gap-2"
-              :class="ancho ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-4'"
-            >
-              <base-pill-button
-                v-for="opcion in incluir"
-                :key="opcion.clave"
-                :class="boton"
-                casilla
-                :active="opcion.valor.value"
-                :title="opcion.ayuda ? $t(opcion.ayuda) : undefined"
-                @click="opcion.valor.value = !opcion.valor.value"
-              >
-                {{ $t(opcion.texto) }}
-              </base-pill-button>
-            </div>
+            <base-dropdown
+              v-if="incluir.length"
+              v-model="incluidos"
+              multiple
+              :label="$t('top.include')"
+              :vacio="$t('top.includeNone')"
+              :options="incluirOptions"
+              :class="mode === 'pve' ? 'xs:col-span-2 sm:col-span-1' : ''"
+            />
           </div>
         </div>
 
