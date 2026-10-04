@@ -104,14 +104,14 @@ const resumen = computed(() => {
     -->
     <template v-else>
       <div v-if="esDitto" class="mt-3">
-        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
+        <h3 class="subtitulo">
           {{ $t('pokemon.dittoWild') }}
         </h3>
         <p class="mt-1 text-xs text-gray-600 dark:text-gray-300">{{ $t('pokemon.dittoHelp') }}</p>
       </div>
 
       <div v-if="enCombatesMax.length" class="mt-3">
-        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
+        <h3 class="subtitulo">
           {{ $t('pokemon.inMaxBattles') }}
         </h3>
         <div class="flex flex-wrap gap-2 mt-1">
@@ -128,14 +128,17 @@ const resumen = computed(() => {
             />
             {{ $t('max.tier', { n: uno.tier }) }}
             <template v-if="uno.cp">
-              · {{ $t('raids.cpRange') }} {{ uno.cp.min }}–{{ uno.cp.max }}
+              · {{ uno.cp.min }}–{{ uno.cp.max }}
+              <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+                $t('raids.cpRange')
+              }}</span>
             </template>
           </router-link>
         </div>
       </div>
 
       <div v-if="whereToFind.raids.length" class="mt-3">
-        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
+        <h3 class="subtitulo">
           {{ $t('pokemon.inRaids') }}
         </h3>
         <div class="flex flex-wrap gap-2 mt-1">
@@ -153,7 +156,7 @@ const resumen = computed(() => {
       </div>
 
       <div v-if="whereToFind.eggs.length" class="mt-3">
-        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
+        <h3 class="subtitulo">
           {{ $t('pokemon.inEggs') }}
         </h3>
         <div class="flex flex-wrap gap-2 mt-1">
@@ -163,13 +166,16 @@ const resumen = computed(() => {
             :to="irA('eggs')"
             class="px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
           >
-            {{ egg.eggType }} · {{ $t('raids.cpRange') }} {{ egg.combatPower.min }}
+            {{ egg.eggType }} · {{ egg.combatPower.min }}
+            <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+              $t('raids.cpRange')
+            }}</span>
           </router-link>
         </div>
       </div>
 
       <div v-if="whereToFind.research.length" class="mt-3">
-        <h3 class="text-xs font-bold text-gray-900 dark:text-gray-100">
+        <h3 class="subtitulo">
           {{ $t('pokemon.inResearch') }}
         </h3>
         <ul class="mt-1 flex flex-col gap-1 pl-4 list-disc">

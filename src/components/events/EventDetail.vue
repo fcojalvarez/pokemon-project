@@ -205,7 +205,7 @@ const agrupar = (bloques) => {
             v-if="pokemonDelEvento.length"
             class="mb-4 pt-3 border-t border-gray-300 dark:border-gray-700"
           >
-            <h3 class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
+            <h3 class="subtitulo">
               {{ $t('events.eventPokemon') }}
             </h3>
             <ul class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(4.5rem,1fr))] gap-1">
@@ -228,24 +228,19 @@ const agrupar = (bloques) => {
           </section>
 
           <!-- La noticia entera, plegada: se abre si se quiere leer. -->
-          <button
-            type="button"
-            class="w-full flex items-center justify-between gap-2 pt-3 pb-1 border-t border-gray-300 dark:border-gray-700 text-left"
-            :aria-expanded="noticiaAbierta"
-            aria-controls="noticia-oficial"
-            @click="noticiaAbierta = !noticiaAbierta"
-          >
-            <span>
-              <span
-                class="block text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
-                >{{ $t('events.official') }}</span
-              >
-              <span class="text-sm font-semibold">{{
-                $t(noticiaAbierta ? 'events.hideNews' : 'events.readNews')
-              }}</span>
-            </span>
-            <base-chevron :open="noticiaAbierta" class="text-gray-600 dark:text-gray-300" />
-          </button>
+          <div class="pt-3 border-t border-gray-300 dark:border-gray-700">
+            <h3 class="subtitulo">{{ $t('events.official') }}</h3>
+            <button
+              type="button"
+              class="mt-1 ver-mas"
+              :aria-expanded="noticiaAbierta"
+              aria-controls="noticia-oficial"
+              @click="noticiaAbierta = !noticiaAbierta"
+            >
+              {{ $t(noticiaAbierta ? 'events.hideNews' : 'events.readNews') }}
+              <base-chevron :open="noticiaAbierta" size="w-3.5 h-3.5" />
+            </button>
+          </div>
           <article v-show="noticiaAbierta" id="noticia-oficial">
             <section v-for="(seccion, i) in noticia.secciones" :key="i" class="mt-3">
               <h3 class="text-sm font-bold">{{ seccion.titulo }}</h3>

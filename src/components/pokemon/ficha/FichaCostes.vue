@@ -62,7 +62,7 @@ const resumen = computed(() => {
 <template>
   <ficha-seccion id="costes" :title="titulo" :summary="resumen">
     <div v-if="flags.length" :class="costs.length ? 'mb-4' : ''">
-      <h3 v-if="costs.length" class="text-xs font-bold text-gray-600 dark:text-gray-300">
+      <h3 v-if="costs.length" class="subtitulo">
         {{ $t('pokemon.status') }}
       </h3>
       <div class="flex flex-wrap gap-1.5 mt-2">
@@ -77,7 +77,7 @@ const resumen = computed(() => {
     </div>
 
     <div v-if="costs.length">
-      <h3 v-if="flags.length" class="text-xs font-bold text-gray-600 dark:text-gray-300">
+      <h3 v-if="flags.length" class="subtitulo">
         {{ $t('pokemon.costs') }}
       </h3>
       <ul class="mt-1 divide-y divide-gray-300 dark:divide-gray-700">

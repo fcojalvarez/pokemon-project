@@ -112,12 +112,18 @@ const resumen = computed(() =>
         <span class="flex flex-wrap items-center gap-x-2 mt-0.5 text-gray-600 dark:text-gray-300">
           {{ $t('pokemon.pvpIv.best') }}:
           <strong class="text-gray-800 dark:text-gray-100">{{ ivTexto(fila.mejor.ivs) }}</strong> ·
-          {{ $t('common.levelShort') }} {{ nivel(fila.mejor.level) }} · PC {{ fila.mejor.cp }}
+          {{ $t('common.levelShort') }} {{ nivel(fila.mejor.level) }} · {{ fila.mejor.cp }}
+          <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+            $t('raids.cpRange')
+          }}</span>
         </span>
         <span v-if="fila.mio" class="flex items-center gap-2 mt-0.5">
           <span class="text-gray-600 dark:text-gray-300">
             {{ $t('pokemon.pvpIv.yoursShort') }}: {{ $t('common.levelShort') }}
-            {{ nivel(fila.mio.level) }} · PC {{ fila.mio.cp }}
+            {{ nivel(fila.mio.level) }} · {{ fila.mio.cp }}
+            <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+              $t('raids.cpRange')
+            }}</span>
           </span>
           <span class="ml-auto shrink-0">
             #{{ fila.mio.rank }} ·

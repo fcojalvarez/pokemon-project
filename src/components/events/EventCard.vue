@@ -12,6 +12,7 @@ import { summarizeEvent } from '../../utils/eventSummary'
 import MaxMark from '../pokemon/MaxMark.vue'
 import EventMon from './EventMon.vue'
 import BonusIcono from './BonusIcono.vue'
+import BaseChevron from '../base/BaseChevron.vue'
 import EventDateBlock from './EventDateBlock.vue'
 
 const props = defineProps({
@@ -396,10 +397,12 @@ defineExpose({ titulo, todosLosBonus })
           <button
             v-if="bonusOcultos > 0"
             type="button"
-            class="mt-1 text-mini text-gray-600 dark:text-gray-300 underline"
+            class="mt-1.5 ver-mas"
             @click="emit('abrir', event)"
           >
             {{ $tc('events.moreBonus', bonusOcultos, { n: bonusOcultos }) }}
+            <!-- Abre el detalle: la flecha apunta hacia allí, no hacia abajo. -->
+            <base-chevron size="w-3.5 h-3.5" class="-rotate-90" />
           </button>
         </div>
 

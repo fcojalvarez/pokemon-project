@@ -168,7 +168,7 @@ const resumen = computed(() => {
         bestMovesets.length ? 'mt-3 pt-3 border-t border-gray-300 dark:border-gray-700' : 'mt-2'
       "
     >
-      <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.fastMoves') }}</span>
+      <h3 class="subtitulo">{{ $t('pokemon.fastMoves') }}</h3>
       <div class="flex flex-wrap gap-1 mt-1">
         <component
           :is="elegible ? 'button' : 'span'"
@@ -189,9 +189,7 @@ const resumen = computed(() => {
           />
         </component>
       </div>
-      <span class="block mt-2 text-mini text-gray-600 dark:text-gray-300">
-        {{ $t('pokemon.chargedMoves') }}
-      </span>
+      <h3 class="mt-2 subtitulo">{{ $t('pokemon.chargedMoves') }}</h3>
       <div class="flex flex-wrap gap-1 mt-1">
         <component
           :is="elegible ? 'button' : 'span'"
@@ -218,7 +216,7 @@ const resumen = computed(() => {
       <button
         v-if="puedeElegir"
         type="button"
-        class="mt-3 flex items-center gap-1.5 text-xs font-semibold text-gray-800 dark:text-gray-100 hover:underline"
+        class="mt-3 ver-mas"
         :aria-expanded="abiertoOtros"
         @click="alternarOtros"
       >

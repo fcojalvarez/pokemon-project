@@ -468,6 +468,9 @@ onMounted(() => {
           >
             <h2 class="text-sm font-bold mb-2">
               {{ group.shadow ? $t('raids.tiers.shadow') : tierLabel(group.name) }}
+              <span class="font-normal text-gray-600 dark:text-gray-300 tabular-nums"
+                >({{ group.list.length }})</span
+              >
             </h2>
 
             <!--
@@ -533,7 +536,7 @@ onMounted(() => {
               <h3 class="text-sm font-bold mb-2">
                 {{ $t('max.tier', { n: grupo.tier }) }}
                 <span class="font-normal text-gray-600 dark:text-gray-300 tabular-nums"
-                  >· {{ grupo.list.length }}</span
+                  >({{ grupo.list.length }})</span
                 >
               </h3>
               <!--
@@ -608,7 +611,7 @@ onMounted(() => {
             <h2 class="text-sm font-bold mb-2">
               {{ group.name }}
               <span class="font-normal text-gray-600 dark:text-gray-300 tabular-nums"
-                >· {{ group.list.length }}</span
+                >({{ group.list.length }})</span
               >
             </h2>
             <!--
@@ -651,7 +654,12 @@ onMounted(() => {
               :key="grupo.grupo"
               class="mb-5 scroll-mt-36"
             >
-              <h2 class="text-sm font-bold mb-2">{{ $t(`raids.rocket.groups.${grupo.grupo}`) }}</h2>
+              <h2 class="text-sm font-bold mb-2">
+                {{ $t(`raids.rocket.groups.${grupo.grupo}`) }}
+                <span class="font-normal text-gray-600 dark:text-gray-300 tabular-nums"
+                  >({{ grupo.list.length }})</span
+                >
+              </h2>
               <div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 items-start">
                 <rocket-lineup
                   v-for="lineup in grupo.list"
@@ -676,7 +684,12 @@ onMounted(() => {
             :key="group.type"
             class="mb-5 scroll-mt-36"
           >
-            <h2 class="text-sm font-bold mb-2">{{ group.label }}</h2>
+            <h2 class="text-sm font-bold mb-2">
+              {{ group.label }}
+              <span class="font-normal text-gray-600 dark:text-gray-300 tabular-nums"
+                >({{ group.list.length }})</span
+              >
+            </h2>
             <div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 items-start">
               <article
                 v-for="(task, index) in group.list"

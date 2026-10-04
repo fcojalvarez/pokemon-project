@@ -11,6 +11,7 @@
 import { computed, ref } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import MoveTag from '../MoveTag.vue'
+import BaseChevron from '../../base/BaseChevron.vue'
 import { useTranslate } from '../../../composables/useTranslate'
 
 const props = defineProps({
@@ -124,11 +125,12 @@ const resumen = computed(() => {
     <button
       v-if="listo && hayDetalles"
       type="button"
-      class="mt-2 text-xs underline underline-offset-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 hover:dark:text-white"
+      class="mt-2 ver-mas"
       :aria-expanded="conDetalles"
       @click="conDetalles = !conDetalles"
     >
       {{ $t(conDetalles ? 'pokemon.pvpCombat.hideDetails' : 'pokemon.pvpCombat.showDetails') }}
+      <base-chevron :open="conDetalles" size="w-3.5 h-3.5" />
     </button>
   </ficha-seccion>
 </template>

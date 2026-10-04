@@ -615,7 +615,6 @@
     "canGigantamax": "Can Gigantamax",
     "cp100": "100% CP (level 20)",
     "cp100Short": "100%: {cp} CP",
-    "cpValue": "{cp} CP",
     "gmaxMove": "G-Max Move",
     "slotAttack": "Max Attack",
     "slotGuard": "Max Guard",

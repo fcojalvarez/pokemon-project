@@ -136,7 +136,10 @@ const resumen = computed(() => {
       >
         <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.cp100') }}</dt>
         <dd class="text-sm font-semibold tabular-nums">
-          {{ $t('max.cpValue', { cp: formatNumber(pc100) }) }}
+          {{ formatNumber(pc100) }}
+          <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+            $t('raids.cpRange')
+          }}</span>
         </dd>
       </div>
     </dl>
@@ -146,7 +149,7 @@ const resumen = computed(() => {
       uno. El STAB, marcado, y explicado debajo.
     -->
     <template v-if="deRapidos.length">
-      <h3 class="mt-3 mb-1.5 text-xs font-bold text-gray-600 dark:text-gray-300">
+      <h3 class="mt-3 mb-1.5 subtitulo">
         {{ $t('max.byFastMove') }}
       </h3>
       <ul class="flex flex-col gap-1.5">
@@ -207,7 +210,7 @@ const resumen = computed(() => {
       merece la pena gastarse las partículas en este Pokémon.
     -->
     <div v-if="upgradeRows.length" class="mt-4 pt-3 border-t border-gray-300 dark:border-gray-700">
-      <h3 class="text-xs font-bold text-gray-600 dark:text-gray-300">
+      <h3 class="subtitulo">
         {{ $t('max.upgradeTitle') }}
       </h3>
       <!--
@@ -251,7 +254,7 @@ const resumen = computed(() => {
     </div>
 
     <div v-if="equipo" class="mt-4 pt-3 border-t border-gray-300 dark:border-gray-700">
-      <h3 class="text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">
+      <h3 class="subtitulo mb-2">
         {{ $t('max.teamAgainst', { pokemon: localName(entry) }) }}
       </h3>
       <max-team-panel :boss-name="localName(entry)" :team="equipo" />

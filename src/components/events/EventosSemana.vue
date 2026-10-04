@@ -15,6 +15,7 @@ import { useTranslate } from '../../composables/useTranslate'
 import { useEventos } from '../../composables/useEventos'
 import { diasDeLaSemana } from '../../utils/semana'
 import { eventImageMini } from '../../utils/eventImage'
+import BaseChevron from '../base/BaseChevron.vue'
 
 const props = defineProps({
   /** Los en marcha y los próximos, con startDate y endDate. */
@@ -133,13 +134,14 @@ const quitarCartel = (id) => {
           <button
             v-if="fila.mas"
             type="button"
-            class="py-1.5 text-mini text-gray-600 dark:text-gray-300 underline"
+            class="py-1.5 ver-mas"
             :aria-expanded="verTodos"
             @click="verTodos = !verTodos"
           >
             {{
               verTodos ? $t('events.weekView.less') : $t('events.weekView.more', { n: fila.mas })
             }}
+            <base-chevron :open="verTodos" size="w-3.5 h-3.5" />
           </button>
           <button
             v-else

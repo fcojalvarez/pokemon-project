@@ -97,7 +97,7 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
       v-if="canBeShiny"
       variant="dex"
       size="text-mini"
-      class="absolute top-2 left-2 z-10 scale-[0.8] origin-top-left"
+      class="absolute top-2 right-2 z-10 scale-[0.8] origin-top-right"
       :title="$t('pokemon.shinyLegend')"
       :label="$t('pokemon.shinyLegend')"
     />
@@ -119,7 +119,10 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
       class="block text-mini text-gray-600 dark:text-gray-300 truncate"
       :title="`${$t('raids.cpRange')} ${cpLabel}`"
     >
-      <span class="hidden sm:inline">{{ $t('raids.cpRange') }}&nbsp;</span>{{ cpLabel }}
+      {{ cpLabel }}
+      <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+        $t('raids.cpRange')
+      }}</span>
     </span>
     <span v-if="badge" class="block text-mini text-gray-600 dark:text-gray-300">{{ badge }}</span>
     <!--
@@ -178,7 +181,10 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
       v-if="cpLabel"
       class="text-mini text-gray-600 dark:text-gray-300 tabular-nums"
       :title="`${$t('raids.cpRange')} ${cpLabel}`"
-      >{{ cpLabel }}</span
+      >{{ cpLabel }}
+      <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+        $t('raids.cpRange')
+      }}</span></span
     >
   </component>
 
@@ -239,10 +245,15 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
         class="block text-mini text-gray-600 dark:text-gray-300 truncate"
         :title="`${$t('raids.cpRange')} ${cpLabel}`"
       >
-        <!-- &nbsp;: el espacio normal al final del span se perdía («PC529–574»). -->
-        <span :class="ancha ? 'min-[420px]:hidden sm:inline' : 'hidden sm:inline'"
-          >{{ $t('raids.cpRange') }}&nbsp;</span
-        >{{ cpLabel }}
+        <!--
+          La cifra y «PC» pequeño detrás, en todas partes y en todos los
+          anchos, como «29.7 DPS» en el Top. Antes «PC» iba delante y solo
+          desde tablet.
+        -->
+        {{ cpLabel }}
+        <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+          $t('raids.cpRange')
+        }}</span>
       </span>
       <span v-if="badge" class="block text-mini text-gray-600 dark:text-gray-300">{{ badge }}</span>
     </span>

@@ -26,7 +26,7 @@ const resto = computed(() => {
 
 <template>
   <section v-if="estrella" class="mb-4 pt-3 border-t border-gray-300 dark:border-gray-700">
-    <h3 class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
+    <h3 class="subtitulo">
       {{ $t('events.eventBonus') }}
     </h3>
 

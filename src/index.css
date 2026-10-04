@@ -68,6 +68,24 @@
     );
   }
 
+  /*
+     * Subtítulo dentro de una sección (En incursiones, Avisos, Muy débil…):
+     * el mismo en toda la app. Antes convivían cuatro: versalitas grises,
+     * negrita gris, negrita blanca y texto gris.
+     */
+  .subtitulo {
+    @apply text-xs font-bold text-gray-900 dark:text-gray-100;
+  }
+
+  /*
+     * «Ver más» y desplegar: texto en negrita con la flecha, que gira al abrir
+     * (BaseChevron). Antes había un enlace subrayado, otro pequeño, este y una
+     * fila con raya, según la pantalla.
+     */
+  .ver-mas {
+    @apply inline-flex items-center gap-1.5 text-xs font-semibold text-gray-800 dark:text-gray-100 hover:underline underline-offset-4;
+  }
+
   .campo {
     @apply block w-full rounded-xl px-3 py-2 text-sm bg-white text-gray-900 border border-gray-400 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600 dark:focus:ring-blue-300;
   }

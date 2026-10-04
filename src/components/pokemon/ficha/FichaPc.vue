@@ -78,8 +78,7 @@ const pastillasAtrapar = computed(() =>
 )
 
 /** Las mismas etiquetas que el resto de la ficha, y la pastilla de cada cifra. */
-const ETIQUETA =
-  'mb-1.5 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300'
+const ETIQUETA = 'mb-1.5 subtitulo'
 const PASTILLA =
   'inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'
 

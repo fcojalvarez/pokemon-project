@@ -57,7 +57,7 @@ const estiloRelleno = (tipo) => {
 <template>
   <ficha-seccion id="debilidades" :title="$t('pokemon.weaknesses')" :summary="resumen">
     <div v-for="nivel in niveles" :key="nivel.mult" class="mt-2 first:mt-0">
-      <h3 class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
+      <h3 class="subtitulo">
         {{ $t(nivel.doble ? 'pokemon.weakDouble' : 'pokemon.weakSingle') }}
         <span class="tabular-nums">×{{ nivel.mult.toFixed(2) }}</span>
       </h3>
@@ -83,7 +83,7 @@ const estiloRelleno = (tipo) => {
     </div>
 
     <template v-if="matchups.resist.length">
-      <h3 class="mt-4 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
+      <h3 class="mt-4 subtitulo">
         {{ $t('pokemon.resistances') }}
       </h3>
       <div class="flex flex-wrap gap-2 mt-1.5">
