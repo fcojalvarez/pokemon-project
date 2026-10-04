@@ -200,11 +200,11 @@ describe('secciones de la ficha', () => {
     // Un rótulo por nivel, de más a menos daño, y al final las resistencias.
     const t = i18n.global.t
     expect(w.findAll('h3').map((h) => h.text())).toEqual([
-      `${t('pokemon.weakDouble')} ×2.56`,
-      `${t('pokemon.weakSingle')} ×1.60`,
+      `${t('pokemon.weakDouble')} ×2,56`,
+      `${t('pokemon.weakSingle')} ×1,60`,
       t('pokemon.resistances')
     ])
-    expect(w.text()).toContain('×0.39')
+    expect(w.text()).toContain('×0,39')
   })
 })
 
@@ -248,6 +248,9 @@ describe('BaseSegmented y la casilla de BasePillButton', async () => {
     expect(on.text()).toBe('✓Élite')
     expect(on.find('[aria-hidden="true"]').text()).toBe('✓')
     expect(off.text()).toBe('Élite')
-    expect(off.classes()).toContain('border-dashed')
+    // Apagada es un botón normal (sin borde discontinuo); encendida, .boton-activo.
+    expect(off.classes()).toContain('boton')
+    expect(off.classes()).not.toContain('boton-activo')
+    expect(on.classes()).toContain('boton-activo')
   })
 })

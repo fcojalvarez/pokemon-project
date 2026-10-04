@@ -357,7 +357,7 @@ watch(
                 -->
           <base-pill-button
             casilla
-            class="shrink-0 h-[34px]"
+            class="shrink-0"
             :active="isShowShiny"
             @click="isShowShiny = !isShowShiny"
           >
@@ -415,8 +415,8 @@ watch(
       >
         <span class="esqueleto h-3.5 w-64 max-w-full rounded-full"></span>
         <span class="ml-auto flex gap-2">
-          <span class="esqueleto h-[34px] w-24 rounded-xl"></span>
-          <span class="esqueleto h-[34px] w-[5.5rem] rounded-xl"></span>
+          <span class="esqueleto h-9 w-24 rounded-xl"></span>
+          <span class="esqueleto h-9 w-[5.5rem] rounded-xl"></span>
         </span>
       </div>
     </base-card>

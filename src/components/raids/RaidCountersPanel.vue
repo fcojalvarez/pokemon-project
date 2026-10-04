@@ -10,7 +10,7 @@ import TypeIcons from '../base/TypeIcons.vue'
 import MoveLegend from '../pokemon/MoveLegend.vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import { spriteUrl } from '../../utils/sprites'
-import { useTranslate } from '../../composables/useTranslate'
+import { useTranslate, formatDecimal } from '../../composables/useTranslate'
 import { origenesPresentes } from '../../utils/moveOrigins'
 
 const props = defineProps({
@@ -84,7 +84,7 @@ const origins = computed(() =>
           </div>
           <!-- Con su unidad: la cifra sola no decía que era el DPS contra él. -->
           <span class="shrink-0 flex flex-col items-end leading-tight tabular-nums">
-            <span class="text-xs font-bold">{{ counter.dps.toFixed(1) }}</span>
+            <span class="text-xs font-bold">{{ formatDecimal(counter.dps) }}</span>
             <span class="text-mini text-gray-600 dark:text-gray-300">DPS</span>
           </span>
         </component>

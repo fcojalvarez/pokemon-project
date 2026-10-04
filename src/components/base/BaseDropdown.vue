@@ -303,7 +303,14 @@ useDetectOutsideClick(root, () => close())
               de la activa se iba con el ratón. Si además es la activa, un
               punto más, para que el teclado se note también al pasar por ella.
             */
-            elegida(option.value)
+            // Con varias, la marcada solo lleva el ✓ y la negrita, sin fondo:
+            // con varias marcadas, la lista entera quedaba gris.
+            elegida(option.value) && multiple
+              ? [
+                  'font-bold text-gray-900 dark:text-gray-50',
+                  index === activeIndex ? 'bg-gray-150 dark:bg-gray-800' : ''
+                ]
+              : elegida(option.value)
               ? [
                   'font-bold text-gray-900 dark:text-gray-50',
                   index === activeIndex

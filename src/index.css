@@ -86,6 +86,24 @@
     @apply inline-flex items-center gap-1.5 text-xs font-semibold text-gray-800 dark:text-gray-100 hover:underline underline-offset-4;
   }
 
+  /*
+     * El botón de la app: todo lo que se pulsa para hacer algo (Formas, Ver
+     * shiny, Filtros, Leyenda, Comparar con otro, Ver la noticia…) se ve igual.
+     * Antes había una decena de variantes: con y sin sombra, de 28 a 44 px de
+     * alto y con letra de 12 a 14 px. `.boton-activo` es el encendido de un
+     * interruptor (Ver shiny, Ordenar secciones) y `.boton-principal`, la
+     * acción principal de un diálogo (Enviar, Añadir al calendario).
+     */
+  .boton {
+    @apply inline-flex items-center justify-center gap-1.5 h-9 px-3 rounded-xl border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 text-xs font-medium text-gray-800 dark:text-gray-100 shadow-sm whitespace-nowrap transition-colors hover:bg-gray-150 hover:dark:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .boton-activo {
+    @apply border-gray-700 dark:border-gray-300 bg-gray-100 dark:bg-gray-800 font-semibold text-gray-900 dark:text-white;
+  }
+  .boton-principal {
+    @apply border-gray-800 dark:border-gray-100 bg-gray-800 dark:bg-gray-100 font-semibold text-white dark:text-gray-900 hover:bg-gray-700 hover:dark:bg-white;
+  }
+
   .campo {
     @apply block w-full rounded-xl px-3 py-2 text-sm bg-white text-gray-900 border border-gray-400 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600 dark:focus:ring-blue-300;
   }

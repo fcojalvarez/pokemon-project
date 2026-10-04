@@ -118,22 +118,14 @@ const moverVisible = (id, paso) => {
         <p class="mr-auto text-mini text-gray-600 dark:text-gray-300">
           {{ $t('pokemon.reorderHelp') }}
         </p>
-        <button
-          type="button"
-          class="px-3 py-1 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-800"
-          @click="restablecer"
-        >
+        <button type="button" class="boton" @click="restablecer">
           {{ $t('pokemon.reorderReset') }}
         </button>
       </template>
       <button
         type="button"
-        class="px-3 py-1 text-xs rounded-xl border transition-colors"
-        :class="
-          ordenando
-            ? 'bg-gray-700 dark:bg-gray-600 text-white border-gray-700 dark:border-gray-600'
-            : 'border-transparent lg:border-gray-400 lg:dark:border-gray-600 underline underline-offset-4 lg:no-underline text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800'
-        "
+        class="boton"
+        :class="ordenando ? 'boton-activo' : ''"
         :aria-pressed="ordenando"
         @click="ordenando = !ordenando"
       >

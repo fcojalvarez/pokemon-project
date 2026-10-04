@@ -32,12 +32,8 @@ const emit = defineEmits(['toggle'])
   <button
     v-if="icono"
     type="button"
-    class="zona-tactil shrink-0 w-8 h-8 flex items-center justify-center rounded-xl border transition-colors"
-    :class="
-      open
-        ? 'bg-gray-700 dark:bg-gray-200 border-gray-700 dark:border-gray-200 text-white dark:text-gray-900'
-        : 'bg-white/70 dark:bg-gray-900/70 border-gray-400 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-700'
-    "
+    class="zona-tactil shrink-0 boton w-9 !px-0"
+    :class="open ? 'boton-activo' : ''"
     :aria-expanded="open"
     :aria-label="`${$t('raids.countersButton')}: ${bossName}`"
     :title="$t('raids.countersButton')"
@@ -61,7 +57,8 @@ const emit = defineEmits(['toggle'])
   <button
     v-else
     type="button"
-    class="w-full h-7 md:w-auto md:h-8 md:px-3 flex items-center justify-center gap-1.5 rounded-xl border border-transparent md:border-gray-300 md:dark:border-gray-600 bg-gray-100 dark:bg-gray-800 md:bg-transparent md:dark:bg-transparent text-xs font-medium md:font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-700"
+    class="boton"
+    :class="open ? 'boton-activo' : ''"
     :aria-expanded="open"
     :aria-label="`${$t('raids.countersButton')}: ${bossName}`"
     @click.prevent.stop="emit('toggle')"

@@ -79,8 +79,8 @@ useDetectOutsideClick(root, () => close({ restoreFocus: false }))
       :aria-expanded="isOpen"
       aria-controls="lista-idiomas"
       :aria-label="$t('language.choose', { language: $t(`language.names.${actual}`) })"
-      class="flex items-center justify-center px-2.5 py-2 rounded-xl border border-gray-400 bg-white dark:bg-gray-900 shadow-md transition-colors hover:bg-gray-150 hover:dark:bg-gray-700"
-      :class="{ 'bg-gray-150 dark:bg-gray-700': isOpen }"
+      class="boton"
+      :class="{ 'boton-activo': isOpen }"
       @click="isOpen ? close() : open()"
     >
       <flag-icon :locale="actual" class="w-[22px] h-4" />

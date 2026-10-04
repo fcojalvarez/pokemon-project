@@ -83,7 +83,7 @@ test.describe('secciones plegables (móvil y tablet)', () => {
     const debilidades = page.getByRole('button', { name: /^Debilidades/ })
     await expect(debilidades).toHaveAttribute('aria-expanded', 'false')
     // Cerrada, dice lo importante sin abrirla.
-    await expect(debilidades).toContainText('Roca ×2.56')
+    await expect(debilidades).toContainText('Roca ×2,56')
 
     const ataques = page.getByRole('button', { name: /^Mejores ataques/ })
     await ataques.click()

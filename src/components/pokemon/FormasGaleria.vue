@@ -106,12 +106,7 @@ const fecha = (texto) =>
 </script>
 
 <template>
-  <button
-    v-if="total >= minimo"
-    type="button"
-    class="shrink-0 border border-gray-400 dark:border-gray-600 rounded-xl h-[34px] px-3 text-xs text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
-    @click="abierta = true"
-  >
+  <button v-if="total >= minimo" type="button" class="shrink-0 boton" @click="abierta = true">
     <template v-if="soloDisfraces">{{ $t('forms.costumesButton', { n: total }) }}</template>
     <template v-else>
       <span class="sm:hidden">{{ $t('forms.buttonShort', { n: total }) }}</span>
@@ -127,11 +122,9 @@ const fecha = (texto) =>
   >
     <div class="p-4">
       <div class="flex flex-wrap items-center gap-2 mb-3">
-        <base-pill-button :active="!shiny" @click="shiny = false">{{
-          $t('forms.normal')
-        }}</base-pill-button>
-        <base-pill-button :active="shiny" @click="shiny = true">{{
-          $t('forms.shiny')
+        <!-- El mismo interruptor que en la cabecera de la ficha: «Ver shiny» con su ✓. -->
+        <base-pill-button casilla :active="shiny" @click="shiny = !shiny">{{
+          $t('viewShiny')
         }}</base-pill-button>
         <p class="basis-full sm:basis-auto sm:ml-auto text-mini text-gray-600 dark:text-gray-300">
           {{ $t('forms.note') }}

@@ -48,12 +48,7 @@ const SECCIONES = NAV_LINKS.map(({ to, key }) => ({ to, key: `nav.${key}` }))
       <code>{{ ruta }}</code>
     </p>
     <nav :aria-label="$t('notFound.sections')" class="mt-5 grid grid-cols-2 gap-2">
-      <router-link
-        v-for="seccion in SECCIONES"
-        :key="seccion.to"
-        :to="seccion.to"
-        class="px-3 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-sm hover:bg-gray-150 hover:dark:bg-gray-800"
-      >
+      <router-link v-for="seccion in SECCIONES" :key="seccion.to" :to="seccion.to" class="boton">
         {{ $t(seccion.key) }}
       </router-link>
     </nav>

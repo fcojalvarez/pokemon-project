@@ -9,7 +9,7 @@
 import { computed } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import TypeIcons from '../../base/TypeIcons.vue'
-import { useTranslate } from '../../../composables/useTranslate'
+import { useTranslate, formatDecimal } from '../../../composables/useTranslate'
 import { typesSVG } from '../../../utils/Settings'
 
 const props = defineProps({
@@ -23,7 +23,7 @@ const { t } = useTranslate()
 const resumen = computed(() =>
   props.matchups.weak
     .slice(0, 3)
-    .map((entry) => `${t(`types.${entry.type}`)} ×${entry.mult.toFixed(2)}`)
+    .map((entry) => `${t(`types.${entry.type}`)} ×${formatDecimal(entry.mult, 2)}`)
     .join(' · ')
 )
 
@@ -59,7 +59,7 @@ const estiloRelleno = (tipo) => {
     <div v-for="nivel in niveles" :key="nivel.mult" class="mt-2 first:mt-0">
       <h3 class="subtitulo">
         {{ $t(nivel.doble ? 'pokemon.weakDouble' : 'pokemon.weakSingle') }}
-        <span class="tabular-nums">×{{ nivel.mult.toFixed(2) }}</span>
+        <span class="tabular-nums">×{{ formatDecimal(nivel.mult, 2) }}</span>
       </h3>
       <div class="flex flex-wrap gap-2 mt-1.5">
         <span
@@ -94,7 +94,7 @@ const estiloRelleno = (tipo) => {
         >
           <type-icons :types="[entry.type]" size="13" with-label />
           <span class="tabular-nums text-gray-600 dark:text-gray-300"
-            >×{{ entry.mult.toFixed(2) }}</span
+            >×{{ formatDecimal(entry.mult, 2) }}</span
           >
         </span>
       </div>

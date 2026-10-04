@@ -93,13 +93,7 @@ const debilidades = computed(() =>
           {{ $t('raids.rocket.quote', { text: frase }) }}
         </p>
       </div>
-      <counters-toggle
-        v-if="tipo"
-        class="!w-auto !h-7 px-3"
-        :open="open"
-        :boss-name="nombre"
-        @toggle="emit('toggle')"
-      />
+      <counters-toggle v-if="tipo" :open="open" :boss-name="nombre" @toggle="emit('toggle')" />
     </div>
 
     <!--

@@ -175,7 +175,7 @@ const agrupar = (bloques) => {
           v-if="calendario"
           type="button"
           aria-haspopup="dialog"
-          class="mb-4 w-full sm:w-auto flex items-center justify-center gap-2 h-11 sm:h-10 px-4 text-sm font-semibold rounded-xl bg-gray-800 text-white dark:bg-gray-100 dark:text-gray-900 hover:bg-gray-700 dark:hover:bg-white"
+          class="mb-4 w-full sm:w-auto boton boton-principal gap-2"
           @click="eligiendoCalendario = true"
         >
           <svg
@@ -271,20 +271,15 @@ const agrupar = (bloques) => {
         </p>
 
         <div class="mt-4 flex flex-wrap gap-2">
-          <a
-            v-if="noticia?.url"
-            :href="noticia.url"
-            target="_blank"
-            rel="noopener"
-            class="px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
-            >{{ $t('events.openOfficial') }}</a
-          >
+          <a v-if="noticia?.url" :href="noticia.url" target="_blank" rel="noopener" class="boton">{{
+            $t('events.openOfficial')
+          }}</a>
           <a
             v-if="enlaceLeekDuck"
             :href="enlaceLeekDuck"
             target="_blank"
             rel="noopener"
-            class="px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
+            class="boton"
             >{{ $t('events.openLeekDuck') }}</a
           >
         </div>

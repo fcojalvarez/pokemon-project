@@ -15,7 +15,7 @@ import StabBadge from '../base/StabBadge.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import { spriteUrl } from '../../utils/sprites'
-import { useTranslate } from '../../composables/useTranslate'
+import { useTranslate, formatDecimal } from '../../composables/useTranslate'
 import MaxMoveLines from './MaxMoveLines.vue'
 import { movesOf, rowKey } from '../../utils/rankingRows'
 
@@ -36,7 +36,7 @@ const valor = (row, clave) => row[clave] ?? row.value ?? 0
 const tope = computed(() => (props.rows.length ? valor(props.rows[0], principal.value) || 1 : 1))
 const porcentaje = (row) => Math.round((valor(row, principal.value) / tope.value) * 100)
 const formato = (clave, v) =>
-  clave === 'tdo' || props.mode === 'max' ? Math.round(v) : Number(v).toFixed(1)
+  clave === 'tdo' || props.mode === 'max' ? Math.round(v) : formatDecimal(Number(v))
 
 const tituloValor = computed(() => (props.mode === 'max' ? t('max.damageUnit') : t('top.score')))
 const ordenar = (metrica) => {

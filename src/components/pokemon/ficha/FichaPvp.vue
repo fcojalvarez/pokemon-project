@@ -12,7 +12,7 @@ import { computed, ref } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import MoveTag from '../MoveTag.vue'
 import BaseChevron from '../../base/BaseChevron.vue'
-import { useTranslate } from '../../../composables/useTranslate'
+import { useTranslate, formatDecimal } from '../../../composables/useTranslate'
 
 const props = defineProps({
   /** pvpPorLiga de useFichaDatos: [{ league, entries, conjunto, gana, pierde }]. */
@@ -64,7 +64,7 @@ const resumen = computed(() => {
             >{{ localName(entry) }}</span
           >
           <span class="ml-auto shrink-0">
-            #{{ entry.rank }} · <strong>{{ entry.score.toFixed(1) }}</strong>
+            #{{ entry.rank }} · <strong>{{ formatDecimal(entry.score) }}</strong>
           </span>
         </span>
 

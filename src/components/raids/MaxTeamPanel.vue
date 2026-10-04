@@ -3,9 +3,15 @@
  * Equipo recomendado contra un jefe Max: uno que aguante con Maxibarrera y
  * dos pegando, y de dónde sacar cada uno hoy. Sale desplegado bajo el jefe
  * (Incursiones) y en la ficha (MaxBattlePanel).
+ *
+ * Se ve como los counters de una incursión (RaidCountersPanel): filas
+ * numeradas con el sprite, el nombre y los ataques en pastillas. Antes eran
+ * tarjetas con el ataque escrito con flechas («Hoja Afilada → Gigarredoble ·
+ * evolucionando a Grookey»), y siendo lo mismo se veían distinto.
  */
 import BaseEmptyState from '../base/BaseEmptyState.vue'
-import LiveMonCard from '../pokemon/LiveMonCard.vue'
+import BaseSprite from '../base/BaseSprite.vue'
+import MoveTag from '../pokemon/MoveTag.vue'
 import { spriteUrl } from '../../utils/sprites'
 import { useTranslate } from '../../composables/useTranslate'
 
@@ -25,18 +31,10 @@ const howToGet = (quien) => {
   return null
 }
 
-/**
- * A los que pegan, además, con qué llevarlos: el Ataque Max depende del
- * ataque rápido, así que se dice cuál poner («Disparo Lodo → Maxitemblor»).
- */
-const conAtaque = (quien) => {
-  const ataque = quien.maxMove
-    ? quien.fastMove
-      ? `${localName(quien.fastMove)} → ${localName(quien.maxMove)}`
-      : localName(quien.maxMove)
-    : null
-  return [ataque, howToGet(quien)].filter(Boolean).join(' · ') || null
-}
+const GRUPOS = [
+  { clave: 'tanks', titulo: 'max.tank' },
+  { clave: 'attackers', titulo: 'max.attackers', vacio: 'max.noAttackers' }
+]
 </script>
 
 <template>
@@ -46,33 +44,49 @@ const conAtaque = (quien) => {
     </p>
 
     <div class="grid gap-4 grid-cols-1 md:grid-cols-2">
-      <div>
-        <h4 class="text-xs font-bold mb-2">{{ $t('max.tank') }}</h4>
-        <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1.5">
-          <live-mon-card
-            v-for="quien in team.tanks"
-            :key="`t-${quien.id}`"
-            :name="localName(quien)"
-            :image="spriteUrl(quien.spriteId)"
-            :dex="quien.dex"
-            :badge="howToGet(quien)"
-          />
-        </div>
-      </div>
-
-      <div>
-        <h4 class="text-xs font-bold mb-2">{{ $t('max.attackers') }}</h4>
-        <base-empty-state v-if="team.attackers.length === 0" :message="$t('max.noAttackers')" />
-        <div v-else class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-1.5">
-          <live-mon-card
-            v-for="quien in team.attackers"
-            :key="`a-${quien.id}`"
-            :name="localName(quien)"
-            :image="spriteUrl(quien.spriteId)"
-            :dex="quien.dex"
-            :badge="conAtaque(quien)"
-          />
-        </div>
+      <div v-for="grupo in GRUPOS" :key="grupo.clave">
+        <h4 class="subtitulo mb-2">{{ $t(grupo.titulo) }}</h4>
+        <base-empty-state
+          v-if="grupo.vacio && team[grupo.clave].length === 0"
+          :message="$t(grupo.vacio)"
+        />
+        <ol v-else class="grid gap-1.5">
+          <li v-for="(quien, i) in team[grupo.clave]" :key="`${grupo.clave}-${quien.id}`">
+            <component
+              :is="quien.dex ? 'router-link' : 'div'"
+              :to="quien.dex ? `/pokemon/${quien.dex}` : undefined"
+              class="flex items-center gap-2 p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-150 hover:dark:bg-gray-700"
+            >
+              <span
+                class="shrink-0 min-w-[1.25rem] px-1 rounded-md bg-gray-200 dark:bg-gray-700 text-center text-mini font-bold tabular-nums text-gray-700 dark:text-gray-200"
+                >{{ i + 1 }}</span
+              >
+              <base-sprite
+                :src="spriteUrl(quien.spriteId)"
+                class="w-8 h-8 shrink-0"
+                img-class="drop-shadow-contorno dark:drop-shadow-none"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="text-xs font-semibold truncate">{{ localName(quien) }}</div>
+                <div
+                  v-if="quien.maxMove"
+                  class="flex flex-wrap gap-1.5 text-mini text-gray-600 dark:text-gray-300"
+                >
+                  <move-tag
+                    v-if="quien.fastMove"
+                    chip
+                    :name="localName(quien.fastMove)"
+                    hide-icon
+                  />
+                  <move-tag chip :name="localName(quien.maxMove)" hide-icon />
+                </div>
+                <div v-if="howToGet(quien)" class="text-mini text-gray-600 dark:text-gray-300">
+                  {{ howToGet(quien) }}
+                </div>
+              </div>
+            </component>
+          </li>
+        </ol>
       </div>
     </div>
 

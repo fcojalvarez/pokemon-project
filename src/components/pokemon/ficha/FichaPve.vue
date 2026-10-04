@@ -3,7 +3,7 @@
 import { computed } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import TypeIcons from '../../base/TypeIcons.vue'
-import { useTranslate } from '../../../composables/useTranslate'
+import { useTranslate, formatDecimal } from '../../../composables/useTranslate'
 
 const props = defineProps({
   /** pveRanks de useFichaDatos. */
@@ -42,26 +42,29 @@ const resumen = computed(() => {
       {{ $t('pokemon.noPveRank') }}
     </p>
     <template v-else>
-      <div v-for="forma in ranks" :key="forma.id" class="mt-2">
-        <p v-if="conNombre(forma.id, ranks.length > 1)" class="text-xs font-semibold">
+      <!--
+        Cada forma con su subtítulo y sus tipos en pastillas, con el puesto
+        (el DPS, al pasar por encima). Antes era una caja por forma y tipo:
+        en Charizard, doce cajas y casi una pantalla.
+      -->
+      <div v-for="forma in ranks" :key="forma.id" class="mt-3 first:mt-2">
+        <h3 v-if="conNombre(forma.id, ranks.length > 1)" class="subtitulo">
           {{ localName(forma.entry) }}
-        </p>
+        </h3>
         <p v-if="forma.overall" class="mt-0.5 text-mini text-gray-600 dark:text-gray-300">
           {{ $t('top.overall') }}: <strong>#{{ forma.overall.rank }}</strong>
         </p>
-        <ul class="mt-1.5 flex flex-col gap-1.5">
+        <ul class="mt-1.5 flex flex-wrap gap-1.5">
           <li
             v-for="entry in forma.byType"
             :key="`${entry.type}-${entry.id}`"
-            class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs tabular-nums"
+            :title="`${$t(`types.${entry.type}`)}: #${entry.rank} · ${formatDecimal(
+              entry.dps
+            )} DPS`"
           >
-            <span class="flex items-center gap-2">
-              <type-icons :types="[entry.type]" size="13" />
-              <span class="font-semibold">{{ $t(`types.${entry.type}`) }}</span>
-              <span class="ml-auto shrink-0">
-                #{{ entry.rank }} · <strong>{{ entry.dps.toFixed(1) }}</strong>
-              </span>
-            </span>
+            <type-icons :types="[entry.type]" size="13" />
+            <strong>#{{ entry.rank }}</strong>
           </li>
         </ul>
       </div>

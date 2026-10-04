@@ -31,6 +31,7 @@ import BaseDropdown from '../base/BaseDropdown.vue'
 import BaseChevron from '../base/BaseChevron.vue'
 import BaseSidebar from '../base/BaseSidebar.vue'
 import useDetectOutsideClick from '../../composables/useDetectOutsideClick'
+import { useEscribiendo } from '../../composables/useEscribiendo'
 
 const store = usePokemonsStore()
 const { filters, activeFilterCount, totalCount } = storeToRefs(store)
@@ -73,7 +74,13 @@ const panelId = 'filtros-pokedex'
  * cabecera, para filtrar sin volver arriba con media Pokédex bajada. El panel
  * flota encima de la rejilla y se cierra al tocar fuera o con Escape.
  */
+// Sin fondo: los Pokémon pasan por detrás y se ven. La barra no se queda los
+// toques (pointer-events-none); solo sus botones y el panel abierto, y el
+// resto llega al Pokémon que haya debajo.
 const barra = ref(null)
+// Mientras se escribe en el buscador se esconde, como la barra de secciones:
+// tapaba los resultados que van apareciendo.
+const escribiendo = useEscribiendo()
 const barraEl = computed(() => barra.value?.$el ?? null)
 useDetectOutsideClick(barraEl, () => {
   if (!ancho.value) isOpen.value = false
@@ -115,7 +122,10 @@ const rarityOptions = computed(() => [
     :class="
       ancho
         ? 'w-full'
-        : 'sticky top-16 sm:top-14 z-20 -mx-4 px-4 pt-2 pb-1 bg-gray-100 dark:bg-gray-700'
+        : [
+            'sticky top-16 sm:top-14 z-20 -mx-4 px-4 pt-2 pb-1 pointer-events-none [&>div>*]:pointer-events-auto [&>#filtros-pokedex]:pointer-events-auto',
+            escribiendo ? 'hidden' : ''
+          ]
     "
     @keydown="alPulsarTecla"
   >
@@ -125,7 +135,7 @@ const rarityOptions = computed(() => [
 
       <button
         type="button"
-        class="zona-tactil [--zona:-8px_-3px] ml-auto shrink-0 flex items-center gap-2 px-3 py-1.5 text-xs md:h-10 md:px-4 md:text-sm rounded-xl border border-gray-400 shadow-md transition-colors bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
+        class="zona-tactil [--zona:-8px_-3px] ml-auto shrink-0 boton gap-2"
         :aria-expanded="isOpen"
         :aria-controls="panelId"
         @click="isOpen = !isOpen"

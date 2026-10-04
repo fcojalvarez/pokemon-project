@@ -121,12 +121,7 @@ onMounted(async () => {
   <section class="text-gray-800 dark:text-gray-200">
     <!-- Salir, arriba a la izquierda: donde en la ficha está «Volver», que
          aquí queda libre. -->
-    <button
-      v-if="isSignedIn"
-      type="button"
-      class="mb-3 h-9 px-3 flex items-center gap-1.5 rounded-xl border border-gray-400 dark:border-gray-600 shadow-md bg-white dark:bg-gray-900 text-xs text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
-      @click="signOut"
-    >
+    <button v-if="isSignedIn" type="button" class="mb-3 boton" @click="signOut">
       <base-icon
         :d="ICONO_SALIR"
         width="16"
@@ -176,11 +171,7 @@ onMounted(async () => {
           :message="$t('suggestions.signInError')"
         />
 
-        <button
-          type="submit"
-          :disabled="isBusy"
-          class="px-4 py-2 text-sm rounded-xl border border-gray-500 shadow-md bg-gray-500 dark:bg-gray-600 text-white transition-colors hover:bg-gray-600 hover:dark:bg-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <button type="submit" :disabled="isBusy" class="boton boton-principal">
           {{ $t(isBusy ? 'suggestions.signingIn' : 'suggestions.signIn') }}
         </button>
       </form>

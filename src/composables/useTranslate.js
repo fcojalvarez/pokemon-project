@@ -24,6 +24,18 @@ export function formatNumber(value) {
 }
 
 /**
+ * Un decimal con la coma o el punto del idioma («15,6» en español, «15.6» en
+ * inglés), siempre con `digitos` cifras detrás. Antes salía con toFixed, que
+ * pone punto siempre, y en Comparar con coma: dos formas para lo mismo.
+ */
+export function formatDecimal(value, digitos = 1) {
+  return new Intl.NumberFormat(intlLocale(), {
+    minimumFractionDigits: digitos,
+    maximumFractionDigits: digitos
+  }).format(value)
+}
+
+/**
  * Acceso a las traducciones desde `<script setup>`.
  *
  * El proyecto arranca vue-i18n en modo legacy, donde `useI18n()` lanza un
@@ -46,6 +58,7 @@ export function useTranslate() {
     locale: () => global.locale,
     localName,
     intlLocale,
-    formatNumber
+    formatNumber,
+    formatDecimal
   }
 }

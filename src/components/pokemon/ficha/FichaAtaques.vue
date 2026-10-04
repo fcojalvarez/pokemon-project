@@ -15,7 +15,7 @@ import FichaSeccion from '../FichaSeccion.vue'
 import MoveTag from '../MoveTag.vue'
 import MoveLegend from '../MoveLegend.vue'
 import BaseChevron from '../../base/BaseChevron.vue'
-import { useTranslate } from '../../../composables/useTranslate'
+import { useTranslate, formatDecimal } from '../../../composables/useTranslate'
 import { useGameDataStore } from '../../../stores/gameData'
 import { puestoDeConjunto } from '../../../utils/puestoAtaques'
 
@@ -129,7 +129,9 @@ const baja = (puesto, mejor) => (puesto && mejor && puesto > mejor ? puesto - me
 const resumen = computed(() => {
   const mejor = props.bestMovesets[0]
   if (mejor)
-    return `${localName(mejor.fast)} + ${localName(mejor.charged)} · ${mejor.dps.toFixed(1)} DPS`
+    return `${localName(mejor.fast)} + ${localName(mejor.charged)} · ${formatDecimal(
+      mejor.dps
+    )} DPS`
   return [...props.movepool.fast, ...props.movepool.charged].map(localName).join(' · ')
 })
 </script>
@@ -159,7 +161,7 @@ const resumen = computed(() => {
           :legacy="set.charged.legacy"
           :mega="set.charged.mega"
         />
-        <span class="ml-auto font-bold">{{ set.dps.toFixed(1) }} DPS</span>
+        <span class="ml-auto font-bold">{{ formatDecimal(set.dps) }} DPS</span>
       </li>
     </ol>
 
@@ -244,7 +246,9 @@ const resumen = computed(() => {
               >{{ localName(conTusAtaques.conjunto.fast) }} +
               {{ localName(conTusAtaques.conjunto.charged) }}</span
             >
-            <span class="shrink-0 font-bold">{{ conTusAtaques.conjunto.dps.toFixed(1) }} DPS</span>
+            <span class="shrink-0 font-bold"
+              >{{ formatDecimal(conTusAtaques.conjunto.dps) }} DPS</span
+            >
           </div>
           <dl class="mt-2 grid grid-cols-2 gap-2">
             <div

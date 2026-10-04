@@ -27,7 +27,7 @@ import {
       <div class="flex sm:justify-end">
         <button
           type="button"
-          class="w-full sm:w-auto px-4 py-2 rounded-xl border border-gray-800 dark:border-gray-100 bg-gray-800 dark:bg-gray-100 text-white dark:text-gray-900 font-semibold text-sm hover:bg-gray-700 hover:dark:bg-white"
+          class="w-full sm:w-auto boton boton-principal"
           @click="actualizarAhora"
         >
           {{ $t('update.now') }}

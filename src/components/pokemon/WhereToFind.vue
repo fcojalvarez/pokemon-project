@@ -119,7 +119,7 @@ const resumen = computed(() => {
             v-for="uno in enCombatesMax"
             :key="`max-${uno.tier}`"
             :to="irA('max')"
-            class="flex items-center gap-1.5 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
+            class="boton px-2"
           >
             <max-mark
               :variant="uno.gigantamax ? 'gigantamax' : 'dynamax'"
@@ -146,7 +146,7 @@ const resumen = computed(() => {
             v-for="boss in whereToFind.raids"
             :key="boss.name"
             :to="irA('raids')"
-            class="flex items-center gap-1 px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
+            class="boton px-2"
           >
             <!-- BaseSprite y no un <img>: si el icono de LeekDuck falla, lo reintenta. -->
             <base-sprite :src="boss.image" class="w-6 h-6" />
@@ -164,7 +164,7 @@ const resumen = computed(() => {
             v-for="egg in whereToFind.eggs"
             :key="`${egg.eggType}-${egg.name}`"
             :to="irA('eggs')"
-            class="px-2 py-1 text-xs rounded-xl border border-gray-300 dark:border-gray-600 hover:bg-gray-100 hover:dark:bg-gray-800"
+            class="boton px-2"
           >
             {{ egg.eggType }} · {{ egg.combatPower.min }}
             <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{

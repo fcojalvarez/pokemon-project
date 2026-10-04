@@ -54,7 +54,7 @@ const onKeydown = (event) => {
     <button
       v-if="plegable"
       type="button"
-      class="zona-tactil [--zona:-8px_-3px] flex items-center gap-2 px-3 py-1.5 text-xs md:h-10 md:px-4 md:text-sm rounded-xl border border-gray-400 shadow-md bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
+      class="zona-tactil [--zona:-8px_-3px] boton gap-2"
       :aria-expanded="abierta"
       aria-controls="leyenda-marcas"
       @click="abierta = !abierta"

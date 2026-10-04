@@ -213,11 +213,7 @@ const resumen = computed(() =>
       <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">
         {{ $t('pokemon.compare.help') }}
       </p>
-      <button
-        type="button"
-        class="mt-2 px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700"
-        @click="elegido = null"
-      >
+      <button type="button" class="mt-2 boton" @click="elegido = null">
         {{ $t('pokemon.compare.other') }}
       </button>
     </template>

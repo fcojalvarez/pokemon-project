@@ -33,14 +33,14 @@ describe('tabla del Top', () => {
     expect(w.emitted('update:sortBy')).toHaveLength(1)
   })
 
-  it('cada dato en su columna, con el formato de siempre', () => {
+  it('cada dato en su columna, con la coma decimal del español', () => {
     const w = montar({ mode: 'pve', sortBy: 'dps', rows: [fila(1, 'Charizard', 20.54, 900.4, 60.12)] })
     const celdas = w.get('tbody tr').findAll('td').map((td) => td.text())
     expect(celdas[0]).toBe('1')
     expect(celdas[1]).toContain('Charizard')
     expect(celdas[2]).toContain('Ascuas')
     expect(celdas[3]).toContain('Llamarada')
-    expect(celdas.slice(4)).toEqual(['20.5', '900', '60.1'])
+    expect(celdas.slice(4)).toEqual(['20,5', '900', '60,1'])
     // Toda la fila es el enlace a la ficha.
     expect(w.get('tbody a').attributes('href')).toBe('/pokemon/1')
   })
@@ -63,6 +63,6 @@ describe('tabla del Top', () => {
     })
     expect(w.findAll('th button')).toHaveLength(0)
     expect(w.findAll('th').at(-1).text()).toBe('Puntuación')
-    expect(w.findAll('tbody td').at(-1).text()).toBe('94.3')
+    expect(w.findAll('tbody td').at(-1).text()).toBe('94,3')
   })
 })

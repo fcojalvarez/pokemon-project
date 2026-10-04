@@ -17,7 +17,7 @@ import TypeIcons from '../base/TypeIcons.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import { spriteUrl } from '../../utils/sprites'
 import BaseSprite from '../base/BaseSprite.vue'
-import { localName } from '../../composables/useTranslate'
+import { localName, formatDecimal } from '../../composables/useTranslate'
 import StabBadge from '../base/StabBadge.vue'
 import MaxMoveLines from './MaxMoveLines.vue'
 import { movesOf, rowKey } from '../../utils/rankingRows'
@@ -44,7 +44,9 @@ const max = computed(() => (props.rows.length ? valueOf(props.rows[0]) || 1 : 1)
 const mainValue = (row) => {
   const value = valueOf(row)
   // El TDO y el ataque base (Dinamax) van enteros: «306.0» no dice más que «306».
-  return props.sortBy === 'tdo' || props.sortBy === 'value' ? Math.round(value) : value.toFixed(1)
+  return props.sortBy === 'tdo' || props.sortBy === 'value'
+    ? Math.round(value)
+    : formatDecimal(value)
 }
 
 const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
@@ -141,7 +143,7 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
             ></span>
           </div>
           <div v-if="showSecondary" class="mt-0.5 text-mini text-gray-600 dark:text-gray-300">
-            <template v-if="sortBy !== 'dps'">{{ row.dps.toFixed(1) }} DPS</template>
+            <template v-if="sortBy !== 'dps'">{{ formatDecimal(row.dps) }} DPS</template>
             <template v-else>{{ Math.round(row.tdo) }} TDO</template>
           </div>
           <!-- El STAB va con la cifra, que es lo que multiplica: junto al nombre bajaba de línea. -->

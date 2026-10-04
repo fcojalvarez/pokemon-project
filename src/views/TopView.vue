@@ -262,7 +262,12 @@ watch(
       {{ $t('nav.top') }}
     </h1>
 
-    <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">
+    <!--
+      Siempre el alto de dos líneas en móvil: la de PvE ocupa dos y la de PvP
+      una, y al cambiar de pestaña todo lo de debajo saltaba. Desde sm caben
+      todas en una.
+    -->
+    <p class="min-h-[2lh] sm:min-h-0 text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">
       {{
         mode === 'max'
           ? $t('max.tabIntro')
@@ -298,7 +303,7 @@ watch(
           </p>
           <button
             type="button"
-            class="zona-tactil [--zona:-8px_-3px] shrink-0 flex items-center gap-2 px-3 py-1.5 text-xs rounded-xl border border-gray-400 shadow-md transition-colors bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-150 hover:dark:bg-gray-800"
+            class="zona-tactil [--zona:-8px_-3px] shrink-0 boton gap-2"
             :aria-expanded="filtrosAbiertos"
             aria-controls="filtros-top"
             @click="filtrosAbiertos = !filtrosAbiertos"

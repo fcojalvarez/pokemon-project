@@ -47,12 +47,7 @@ onMounted(comprobar)
 
 <template>
   <template v-if="soportado">
-    <button
-      type="button"
-      class="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-700"
-      :aria-pressed="estado === 'on'"
-      @click="abrir"
-    >
+    <button type="button" class="boton" :aria-pressed="estado === 'on'" @click="abrir">
       <svg
         aria-hidden="true"
         viewBox="0 0 24 24"
@@ -122,7 +117,7 @@ onMounted(comprobar)
             <button
               v-if="estado === 'on'"
               type="button"
-              class="px-3 py-1.5 text-xs rounded-xl border border-gray-400 dark:border-gray-600 hover:bg-gray-150 hover:dark:bg-gray-700 disabled:opacity-50"
+              class="boton"
               :disabled="ocupado"
               @click="quitar"
             >

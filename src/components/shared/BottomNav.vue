@@ -16,36 +16,13 @@
  * encoge la ventana y la barra subía a pegarse al teclado, tapando justo los
  * resultados del buscador.
  */
-import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import BaseIcon from '../base/BaseIcon.vue'
 import { NAV_LINKS, esSeccionActiva } from './navLinks'
+import { useEscribiendo } from '../../composables/useEscribiendo'
 
 const route = useRoute()
-
-const escribiendo = ref(false)
-const esCampo = (el) =>
-  el?.matches?.(
-    'input:not([type=checkbox]):not([type=radio]), textarea, select, [contenteditable="true"]'
-  )
-const alEnfocar = (event) => {
-  escribiendo.value = Boolean(esCampo(event.target))
-}
-const alSalir = () => {
-  // El foco pasa de un campo a otro sin quedarse en el body: se mira después.
-  setTimeout(() => {
-    escribiendo.value = Boolean(esCampo(document.activeElement))
-  })
-}
-
-onMounted(() => {
-  document.addEventListener('focusin', alEnfocar)
-  document.addEventListener('focusout', alSalir)
-})
-onUnmounted(() => {
-  document.removeEventListener('focusin', alEnfocar)
-  document.removeEventListener('focusout', alSalir)
-})
+const escribiendo = useEscribiendo()
 </script>
 
 <template>
