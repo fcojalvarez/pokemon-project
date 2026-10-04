@@ -119,7 +119,7 @@ describe('BaseFilterList', () => {
 describe('MoveTag y MoveLegend', () => {
   it('manda la procedencia más restrictiva y la explica en el title', () => {
     const w = mount(MoveTag, { props: { name: 'Hidrocañón', chip: true, elite: true, legacy: true }, ...conPlugins() })
-    expect(w.classes()).toContain('border-violet-600')
+    expect(w.classes()).toContain('bg-violet-100')
     expect(w.attributes('title')).toBe(i18n.global.t('moves.legacyHelp'))
     const mega = mount(MoveTag, { props: { name: 'Ascenso Draco', mega: true, legacy: true }, ...conPlugins() })
     expect(mega.classes()).toContain('border-fuchsia-600')
@@ -127,7 +127,7 @@ describe('MoveTag y MoveLegend', () => {
 
   it('sin procedencia, píldora gris y sin title', () => {
     const w = mount(MoveTag, { props: { name: 'Placaje', chip: true }, ...conPlugins() })
-    expect(w.classes()).toContain('border-gray-300')
+    expect(w.classes()).toContain('bg-gray-200')
     expect(w.attributes('title')).toBeUndefined()
   })
 

@@ -77,10 +77,12 @@ const pastillasAtrapar = computed(() =>
   })
 )
 
-/** Las mismas etiquetas que el resto de la ficha, y la pastilla de cada cifra. */
+/**
+ * Las mismas etiquetas que el resto de la ficha, y cada cifra en línea: icono,
+ * número y nivel, sin caja (el borde es de lo que se pulsa, y esto informa).
+ */
 const ETIQUETA = 'mb-1.5 subtitulo'
-const PASTILLA =
-  'inline-flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900'
+const PASTILLA = 'inline-flex items-center gap-1.5'
 
 const pcSubir = computed(() => [
   { ...nivelPc(40), xl: false, texto: t('pokemon.cpNoXl') },
@@ -108,7 +110,7 @@ const resumen = computed(() => {
       lectores de pantalla y en el title.
     -->
     <h3 :class="ETIQUETA" class="mt-2">{{ $t('pokemon.cpCatch') }}</h3>
-    <ul class="flex flex-wrap gap-1.5 tabular-nums">
+    <ul class="flex flex-wrap gap-x-5 gap-y-1.5 tabular-nums">
       <li
         v-for="pastilla in pastillasAtrapar"
         :key="pastilla.clave"
@@ -135,7 +137,7 @@ const resumen = computed(() => {
     </ul>
 
     <h3 :class="ETIQUETA" class="mt-3">{{ $t('pokemon.cpPowerUp') }}</h3>
-    <ul class="flex flex-wrap gap-1.5 tabular-nums">
+    <ul class="flex flex-wrap gap-x-5 gap-y-1.5 tabular-nums">
       <li v-for="fila in pcSubir" :key="fila.level" :class="PASTILLA" :title="fila.texto">
         <icono-mascara
           :src="fila.xl ? iconoCarameloXl : iconoCaramelo"

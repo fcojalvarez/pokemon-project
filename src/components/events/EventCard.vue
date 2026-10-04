@@ -360,15 +360,16 @@ defineExpose({ titulo, todosLosBonus })
           </div>
         </div>
 
-        <div v-if="raidBosses.length" class="flex flex-wrap gap-2 mt-3">
+        <!-- Sprite y nombre, sin caja: aquí no se pulsan (se pulsa la tarjeta entera). -->
+        <div v-if="raidBosses.length" class="flex flex-wrap gap-x-4 gap-y-1.5 mt-3">
           <event-mon
             v-for="boss in raidBosses"
             :key="boss.name"
             :name="boss.name"
             :image="boss.image"
             :can-be-shiny="esVariocolor(boss)"
-            sprite-class="w-5 h-5"
-            class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600"
+            sprite-class="w-6 h-6"
+            class="text-xs"
           />
         </div>
 

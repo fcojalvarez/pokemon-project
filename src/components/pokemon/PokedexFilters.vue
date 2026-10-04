@@ -77,14 +77,19 @@ const panelId = 'filtros-pokedex'
 // Sin fondo: los Pokémon pasan por detrás y se ven. La barra no se queda los
 // toques (pointer-events-none); solo sus botones y el panel abierto, y el
 // resto llega al Pokémon que haya debajo.
-const barra = ref(null)
 // Mientras se escribe en el buscador se esconde, como la barra de secciones:
 // tapaba los resultados que van apareciendo.
 const escribiendo = useEscribiendo()
-const barraEl = computed(() => barra.value?.$el ?? null)
-useDetectOutsideClick(barraEl, () => {
-  if (!ancho.value) isOpen.value = false
-})
+// Dentro es el botón de Filtros y su panel, no la barra entera: en ella va
+// también la Leyenda, y al abrirla el panel de filtros se quedaba abierto.
+const botonFiltros = ref(null)
+const panelFiltros = ref(null)
+useDetectOutsideClick(
+  computed(() => [botonFiltros.value, panelFiltros.value]),
+  () => {
+    if (!ancho.value) isOpen.value = false
+  }
+)
 const alPulsarTecla = (event) => {
   if (event.key === 'Escape' && isOpen.value && !ancho.value) isOpen.value = false
 }
@@ -117,7 +122,6 @@ const rarityOptions = computed(() => [
 
 <template>
   <base-sidebar
-    ref="barra"
     :activa="ancho"
     :class="
       ancho
@@ -134,6 +138,7 @@ const rarityOptions = computed(() => [
       <slot :ancho="false" />
 
       <button
+        ref="botonFiltros"
         type="button"
         class="zona-tactil [--zona:-8px_-3px] ml-auto shrink-0 boton gap-2"
         :aria-expanded="isOpen"
@@ -182,6 +187,7 @@ const rarityOptions = computed(() => [
       <div
         v-if="abiertos"
         :id="panelId"
+        ref="panelFiltros"
         class="flex flex-col gap-3"
         :class="
           ancho

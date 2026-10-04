@@ -27,8 +27,9 @@ const props = defineProps({
   legacy: Boolean,
   // Exclusivo de la supermegaevolución.
   mega: Boolean,
-  // Píldora con borde completo. Es lo que se usa en toda la app: el subrayado
-  // suelto se leía peor y costaba distinguir el ámbar del morado de un vistazo.
+  // Pastilla de relleno suave y sin borde (el borde es de lo que se pulsa). Es
+  // lo que se usa en toda la app: el subrayado suelto se leía peor y costaba
+  // distinguir el ámbar del morado de un vistazo.
   chip: Boolean,
   hideIcon: Boolean,
   /**
@@ -55,8 +56,8 @@ const styling = computed(() => {
   const color = origin.value ? COLORES_ORIGEN[origin.value] : null
   if (props.chip) {
     return [
-      'px-2 py-0.5 rounded-full border',
-      color ? color.chip : 'border-gray-300 dark:border-gray-600'
+      'px-2 py-0.5 rounded-md',
+      color ? color.chip : 'bg-gray-200 dark:bg-white/[0.07] text-gray-800 dark:text-gray-100'
     ]
   }
   // En línea el borde completo pesa demasiado: basta con subrayarlo.

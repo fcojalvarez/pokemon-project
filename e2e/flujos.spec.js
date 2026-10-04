@@ -452,3 +452,28 @@ test('lo que no existe lo dice, y ofrece las secciones', async ({ page }) => {
   await page.getByRole('link', { name: 'Top' }).last().click()
   await expect(page).toHaveURL(/\/top$/)
 })
+
+/**
+ * Por debajo de xl, Leyenda y Filtros comparten barra: abrir uno cierra el
+ * otro, en los dos órdenes. Antes, con Filtros abierto, pulsar Leyenda no lo
+ * cerraba porque la barra entera contaba como «dentro» de los filtros.
+ */
+test.describe('Leyenda y Filtros de la Pokédex', () => {
+  test.skip(({ viewport }) => viewport.width >= 1280, 'en la barra lateral van siempre abiertos')
+
+  test('abrir uno cierra el otro', async ({ page }) => {
+    await page.goto('/')
+    const filtros = page.getByRole('button', { name: /^Filtros/ })
+    const leyenda = page.getByRole('button', { name: /^Leyenda/ })
+
+    await filtros.click()
+    await expect(filtros).toHaveAttribute('aria-expanded', 'true')
+    await leyenda.click()
+    await expect(leyenda).toHaveAttribute('aria-expanded', 'true')
+    await expect(filtros).toHaveAttribute('aria-expanded', 'false')
+
+    await filtros.click()
+    await expect(filtros).toHaveAttribute('aria-expanded', 'true')
+    await expect(leyenda).toHaveAttribute('aria-expanded', 'false')
+  })
+})
