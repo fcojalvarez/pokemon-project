@@ -24,6 +24,14 @@ describe('useImagenTolerante', () => {
     expect(img.url.value).toBeNull()
   })
 
+  it('no cuenta el fallo de un <img> que ya no está en la página', () => {
+    const img = useImagenTolerante('https://cdn/a.png', '/sprites/1.webp')
+    img.alFallar({ target: { isConnected: true } })
+    img.alFallar({ target: { isConnected: false } })
+    expect(img.url.value).toBe('https://cdn/a.png')
+    expect(img.crossorigin.value).toBeUndefined()
+  })
+
   it('una imagen nueva vuelve a empezar', async () => {
     const src = ref('https://cdn/a.png')
     const img = useImagenTolerante(src, null)

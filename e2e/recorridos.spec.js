@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { expect, test } from '@playwright/test'
 
 /**
@@ -218,15 +219,63 @@ test('los iconos de LeekDuck se ven aunque lleguen sin una cabecera CORS válida
   // Lo que pasaba en Android: la imagen existe, pero la cabecera CORS no vale
   // para nuestra web y, pedida con crossorigin, el navegador la rechaza. Sin
   // ninguna cabecera no se puede simular: Playwright pone la suya al contestar.
+  // La imagen es una nuestra: lo que se prueba es la cabecera, y así el test
+  // no depende de que el CDN de LeekDuck conteste a tiempo.
+  //
+  // La primera petición de cada icono se contesta tarde: es la del <img> que
+  // Vue cambia por otro cuando llega el roster, y si su error llega después
+  // del del nuevo es cuando se colaba como un segundo fallo.
+  const sprite = readFileSync(new URL('../public/sprites/25.webp', import.meta.url))
+  const pedidos = new Set()
   await page.route('https://cdn.leekduck.com/assets/img/pokemon_icons**', async (route) => {
-    const respuesta = await route.fetch()
-    const headers = { ...respuesta.headers() }
-    for (const clave of Object.keys(headers)) {
-      if (clave.toLowerCase().startsWith('access-control-')) delete headers[clave]
+    const url = route.request().url()
+    if (!pedidos.has(url)) {
+      pedidos.add(url)
+      await new Promise((listo) => setTimeout(listo, 1500))
     }
-    headers['access-control-allow-origin'] = 'https://otra-web.example'
-    await route.fulfill({ response: respuesta, headers })
+    await route.fulfill({
+      contentType: 'image/webp',
+      body: sprite,
+      headers: { 'access-control-allow-origin': 'https://otra-web.example' }
+    })
   })
+  // El feed se contesta aquí: el de verdad hay semanas que no trae ningún
+  // icono de LeekDuck, y entonces no habría nada que comprobar. Son nombres
+  // del roster a propósito: al llegar este, EventMon pasa de `span` a enlace
+  // y cambia el <img>, que es lo que antes lo mandaba al respaldo.
+  const icono = (fichero) => `https://cdn.leekduck.com/assets/img/pokemon_icons/${fichero}`
+  // Hora local sin zona, como las publica LeekDuck.
+  const local = (dias) => {
+    const fecha = new Date(Date.now() + dias * 86_400_000)
+    return new Date(fecha.getTime() - fecha.getTimezoneOffset() * 60_000).toISOString().slice(0, -1)
+  }
+  const evento = (eventID, eventType, extraData) => ({
+    eventID,
+    name: eventID,
+    eventType,
+    heading: eventType,
+    link: `https://leekduck.com/events/${eventID}/`,
+    image: null,
+    start: local(-1),
+    end: local(1),
+    extraData
+  })
+  const xerneas = { name: 'Xerneas', image: icono('pokemon_icon_716_00.png'), canBeShiny: true }
+  const victreebel = { name: 'Victreebel', image: icono('pm71.fMEGA.icon.png'), canBeShiny: false }
+  const thundurus = { name: 'Thundurus', image: icono('pokemon_icon_642_11.png'), canBeShiny: true }
+  await page.route('**/ScrapedDuck/data/events.json', (route) =>
+    route.fulfill({
+      json: [
+        evento('e2e-incursiones', 'raid-battles', { raidbattles: { bosses: [xerneas] } }),
+        evento('e2e-hora-destacada', 'pokemon-spotlight-hour', {
+          spotlight: { ...victreebel, bonus: '2× Catch Candy', list: [victreebel] }
+        }),
+        evento('e2e-dia-comunidad', 'community-day', {
+          communityday: { spawns: [thundurus], bonuses: [], bonusDisclaimers: [], shinies: [] }
+        })
+      ]
+    })
+  )
   await page.goto('/events')
   await expect(page.locator('main article').first()).toBeVisible()
   // Bajando poco a poco, para que carguen las perezosas.
@@ -234,13 +283,17 @@ test('los iconos de LeekDuck se ven aunque lleguen sin una cabecera CORS válida
     await page.mouse.wheel(0, 900)
     await page.waitForTimeout(150)
   }
-  const rotas = () =>
-    page
-      .locator('main article img')
-      .evaluateAll((imgs) => imgs.filter((i) => i.complete && i.naturalWidth === 0).length)
-  await expect.poll(rotas).toBe(0)
-  // Y que siguen siendo las de LeekDuck: basta con el reintento sin crossorigin.
-  expect(await page.locator('main article img[src*="pokemon_icons"]').count()).toBeGreaterThan(0)
+  // Ninguna rota, y las tres de LeekDuck cargadas de verdad: basta con el
+  // reintento sin crossorigin, sin caer al sprite de respaldo. Se espera a que
+  // carguen: una imagen a medio bajar tampoco cuenta como rota.
+  const estado = () =>
+    page.locator('main article img').evaluateAll((imgs) => ({
+      rotas: imgs.filter((i) => i.complete && i.naturalWidth === 0).length,
+      deLeekDuck: imgs.filter(
+        (i) => i.src.includes('pokemon_icons') && i.complete && i.naturalWidth > 0
+      ).length
+    }))
+  await expect.poll(estado).toEqual({ rotas: 0, deLeekDuck: 3 })
 })
 
 test('la ficha dice en qué puesto queda con tus ataques', async ({ page }) => {

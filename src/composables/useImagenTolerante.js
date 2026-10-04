@@ -36,7 +36,15 @@ export function useImagenTolerante(src, respaldo = null) {
   /** Solo en el primer intento: en el segundo es justo lo que se quita. */
   const crossorigin = computed(() => (intento.value === 1 ? undefined : 'anonymous'))
 
-  const alFallar = () => {
+  /**
+   * Solo cuenta el fallo del `<img>` que está en la página. Si Vue lo cambia
+   * por otro (en EventMon, el `span` pasa a `router-link` al llegar el
+   * roster), el viejo sigue con su petición en vuelo y su `@error` puesto:
+   * contaba como un segundo fallo y saltaba al respaldo sin haber probado
+   * sin `crossorigin`.
+   */
+  const alFallar = (evento) => {
+    if (evento?.target?.isConnected === false) return
     intento.value++
     // Sin respaldo, del segundo intento se pasa directamente a no enseñarla.
     if (intento.value === 2 && !toValue(respaldo)) intento.value = 3
