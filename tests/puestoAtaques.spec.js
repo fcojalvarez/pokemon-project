@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { puestoDeConjunto } from '../src/utils/puestoAtaques'
+import { puestoDeConjunto, puntuacionGeneral } from '../src/utils/puestoAtaques'
 
 const fila = (id, dps, type = 'psychic') => ({ id, dps, charged: { type } })
 
@@ -34,5 +34,27 @@ describe('puestoDeConjunto', () => {
     const cortado = { overall: [fila('a', 30), fila('b', 25), fila('c', 20)], byType: {} }
     expect(puestoDeConjunto(fila('x', 10), 'x', cortado, 3).general).toBeNull()
     expect(puestoDeConjunto(fila('x', 22), 'x', cortado, 3).general).toBe(3)
+  })
+})
+
+describe('puntuacionGeneral', () => {
+  it('suma sus dos mejores tipos, con el conjunto en el suyo', () => {
+    const mejores = { psychic: 30, fighting: 25, ice: 10 }
+    // En su tipo manda lo tuyo, aunque sea peor que su mejor conjunto.
+    expect(puntuacionGeneral({ dps: 20, charged: { type: 'psychic' } }, mejores)).toBe(45)
+    // Si su tipo no está entre los dos mejores, no cambia la suma.
+    expect(puntuacionGeneral({ dps: 5, charged: { type: 'ice' } }, mejores)).toBe(55)
+    expect(puntuacionGeneral({ dps: 12, charged: { type: 'ice' } }, {})).toBe(12)
+  })
+
+  it('con ella, la general se compara con la suma de los demás', () => {
+    const ranking = {
+      overall: [
+        { id: 'a', dps: 30, general: 60 },
+        { id: 'b', dps: 35, general: 40 }
+      ],
+      byType: {}
+    }
+    expect(puestoDeConjunto(fila('x', 32), 'x', ranking, 500, 50).general).toBe(2)
   })
 })

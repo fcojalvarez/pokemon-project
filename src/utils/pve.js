@@ -12,6 +12,19 @@ const DEFAULT_TARGET = { def: 180 }
 const DEFAULT_LEVEL = 40
 const PERFECT_IVS = { atk: 15, def: 15, hp: 15 }
 
+/**
+ * Lo que pega de más un ataque súper eficaz. Las listas por tipo se calculan
+ * contra un jefe débil a ese tipo (ver computeTypeRankings).
+ */
+export const SUPER_EFICAZ = 1.6
+
+/**
+ * Tipos a los que no es débil nadie: su lista va contra un jefe neutro. Sin
+ * esto, Regigigas Oscuro sumaba su tipo Normal a ×1,6, un daño que en el juego
+ * no se da nunca, y salía entre los cinco primeros de la lista general.
+ */
+const SIN_DEBILES = new Set(['normal'])
+
 /** Movimientos que no son una opción real para un atacante optimizado. */
 const EXCLUDED_MOVES = new Set(['FRUSTRATION', 'RETURN', 'STRUGGLE'])
 
@@ -44,6 +57,15 @@ export function evaluatePokemon(entry, moves, options = {}) {
   const chart = options.chart ?? null
   const defenderTypes = options.defenderTypes ?? null
   const sortBy = options.sortBy ?? 'dps'
+  // Contra un jefe débil a este tipo: solo sus ataques cargados de ese tipo,
+  // y cada ataque de ese tipo (rápido o cargado) pega ×1,6; el resto, ×1.
+  const debilA = options.debilA ?? null
+  const eficacia = (tipo) =>
+    chart && defenderTypes
+      ? effectivenessAgainst(chart, tipo, defenderTypes)
+      : debilA && tipo === debilA && !SIN_DEBILES.has(debilA)
+      ? SUPER_EFICAZ
+      : 1
 
   const stats = effectiveStats(entry.stats, ivs, level, { shadow: entry.shadow })
   const results = []
@@ -88,13 +110,13 @@ export function evaluatePokemon(entry, moves, options = {}) {
   for (const fastId of fastPool) {
     const fm = moves[fastId]
     if (!usableMove(fm, fastId)) continue
-    const fastEff = chart && defenderTypes ? effectivenessAgainst(chart, fm.type, defenderTypes) : 1
+    const fastEff = eficacia(fm.type)
 
     for (const chargedId of chargedPool) {
       const cm = moves[chargedId]
       if (!usableMove(cm, chargedId)) continue
-      const chargedEff =
-        chart && defenderTypes ? effectivenessAgainst(chart, cm.type, defenderTypes) : 1
+      if (debilA && cm.type !== debilA) continue
+      const chargedEff = eficacia(cm.type)
 
       const perf = movesetPerformance({
         stats,
@@ -146,8 +168,22 @@ function keep(best, key, candidate, sortBy) {
 }
 
 /**
- * Mejores atacantes de cada tipo, contra un objetivo neutro.
- * Un Pokémon entra en la lista del tipo de su movimiento cargado.
+ * Mejores atacantes de cada tipo y en general.
+ *
+ * Cada tipo, contra un jefe débil a ese tipo, como las listas de atacantes de
+ * la comunidad (GO Hub, GamePress): un Pokémon entra con su mejor conjunto de
+ * cargado de ese tipo, y su ataque rápido cuenta ×1,6 si también es de ese
+ * tipo. Antes era contra un jefe neutro, y un rápido de otro tipo puntuaba
+ * igual: salían arriba de Fuego Mega Mewtwo con Contraataque o Groudon
+ * Primigenio con Cola Dragón, que contra un jefe de verdad pegan bastante
+ * menos.
+ *
+ * La lista general, por versatilidad: cada Pokémon puntúa la suma de sus dos
+ * mejores tipos (con la métrica de `sortBy`), y su fila enseña el conjunto y
+ * las cifras de su mejor tipo. Antes era el mejor DPS contra un jefe neutro y
+ * salía primero Regigigas Oscuro, que pega mucho pero con ataques Normal, que
+ * nunca son súper eficaces. Comparada con la lista general de GO Hub, la suma
+ * de los dos mejores es la que más se le parece (39 de sus 50 primeros).
  *
  * @returns {{byType: Record<string, object[]>, overall: object[]}}
  */
@@ -159,23 +195,44 @@ export function computeTypeRankings(pokemon, moves, options = {}) {
 
   for (const entry of pokemon) {
     if (!usable(entry, options)) continue
-    for (const r of evaluatePokemon(entry, moves, options)) {
-      const type = r.charged.type
+    // Una pasada por cada tipo de cargado que tenga, contra un jefe débil a él.
+    const tipos = new Set(evaluatePokemon(entry, moves, options).map((r) => r.charged.type))
+    const suyos = []
+    for (const type of tipos) {
       if (!byType.has(type)) byType.set(type, new Map())
-      keep(byType.get(type), r.id, r, sortBy)
-      keep(overall, r.id, r, sortBy)
+      const porTipo = new Map()
+      for (const r of evaluatePokemon(entry, moves, { ...options, debilA: type })) {
+        keep(byType.get(type), r.id, r, sortBy)
+        keep(porTipo, r.id, r, sortBy)
+      }
+      suyos.push(...porTipo.values())
+    }
+    // Por forma (un mismo dex puede traer varias): sus dos mejores tipos.
+    const porForma = new Map()
+    for (const r of suyos) {
+      if (!porForma.has(r.id)) porForma.set(r.id, [])
+      porForma.get(r.id).push(r)
+    }
+    for (const filas of porForma.values()) {
+      filas.sort((a, b) => b[sortBy] - a[sortBy])
+      const [mejor, segundo] = filas
+      overall.set(mejor.id, {
+        ...mejor,
+        general: mejor[sortBy] + (segundo?.[sortBy] ?? 0),
+        tiposGeneral: [mejor.charged.type, segundo?.charged.type].filter(Boolean)
+      })
     }
   }
 
-  const rank = (map) =>
+  const rank = (map, clave = sortBy) =>
     [...map.values()]
-      .sort((a, b) => b[sortBy] - a[sortBy])
+      .sort((a, b) => b[clave] - a[clave])
       .slice(0, limit)
       .map((e, i) => ({ ...e, rank: i + 1 }))
 
   const out = {}
   for (const [type, map] of byType) out[type] = rank(map)
-  return { byType: out, overall: rank(overall) }
+  return { byType: out, overall: rank(overall, 'general') }
 }
 
 /**

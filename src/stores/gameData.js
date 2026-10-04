@@ -411,6 +411,15 @@ export const useGameDataStore = defineStore('gameData', () => {
     )
 
   /**
+   * Sus conjuntos contra un jefe débil a `tipo`, como las listas por tipo del
+   * Top: solo los de cargado de ese tipo, con el ×1,6.
+   */
+  const conjuntosContra = (entry, tipo) =>
+    cached(`contra:${entry.id}:${tipo}`, () =>
+      evaluatePokemon(entry, moves.value, { sortBy: 'dps', debilA: tipo })
+    )
+
+  /**
    * PC con IVs 15/15/15 en los niveles que importan: 20 (incursión, tarea o
    * huevo), 25 (con clima), 30 y 35 (salvaje) y los topes 40 y 50.
    */
@@ -510,6 +519,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     counters,
     matchups,
     bestMovesets,
+    conjuntosContra,
     perfectCP,
     pveRanksFor,
     pvpRanksFor,

@@ -23,6 +23,15 @@ const { t } = useTranslate()
 
 const mode = ref('pve')
 const type = ref('all')
+
+/**
+ * La letra de cada puesto: en PvE y PvP (el Max no tiene un orden que se
+ * compare con el de GO Hub). La lista de un tipo de PvE es más corta y lleva
+ * cortes más cortos; en PvP filtrar por tipo no cambia el puesto en la liga.
+ */
+const nivel = computed(() =>
+  mode.value === 'max' ? '' : mode.value === 'pve' && type.value !== 'all' ? 'tipo' : 'general'
+)
 const sortBy = ref('dps')
 const league = ref('great')
 // Desde xl, barra lateral fija con los filtros y el ranking en tabla.
@@ -331,11 +340,9 @@ watch(
         >
           <!-- La variante, lo primero: Incursiones o Max, o la liga. -->
           <div :class="ancho ? '' : 'mb-3'">
-            <span
-              id="variante-top"
-              class="rotulo block mb-1"
-              >{{ $t(mode === 'pvp' ? 'top.league' : 'top.pveKind') }}</span
-            >
+            <span id="variante-top" class="rotulo block mb-1">{{
+              $t(mode === 'pvp' ? 'top.league' : 'top.pveKind')
+            }}</span>
             <base-segmented
               v-if="mode === 'pvp'"
               v-model="league"
@@ -444,10 +451,16 @@ watch(
           v-model:sort-by="sortBy"
           :rows="filasVisibles"
           :mode="mode"
+          :nivel="nivel"
         />
 
         <!-- PvE -->
-        <attacker-list v-else-if="mode === 'pve'" :rows="pveRows" :sort-by="sortBy" />
+        <attacker-list
+          v-else-if="mode === 'pve'"
+          :rows="pveRows"
+          :sort-by="sortBy"
+          :nivel="nivel"
+        />
 
         <!--
           Dinamax: la métrica es el ataque base (con el STAB, si hay tipo) y los
@@ -469,6 +482,7 @@ watch(
           unit=""
           :show-bar="false"
           :show-secondary="false"
+          :nivel="nivel"
         />
 
         <!-- Cómo se calcula el top Max: debajo de la lista, encima de la leyenda. -->

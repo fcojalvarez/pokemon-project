@@ -12,29 +12,41 @@
 import { computed } from 'vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import StabBadge from '../base/StabBadge.vue'
+import BaseNivel from '../base/BaseNivel.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import { spriteUrl } from '../../utils/sprites'
 import { useTranslate, formatDecimal } from '../../composables/useTranslate'
 import MaxMoveLines from './MaxMoveLines.vue'
-import { movesOf, rowKey } from '../../utils/rankingRows'
+import { fichaDeFila, movesOf, rowKey } from '../../utils/rankingRows'
+import { useGameDataStore } from '../../stores/gameData'
 
 const props = defineProps({
   rows: { type: Array, required: true },
   /** 'pve' | 'max' | 'pvp' */
   mode: { type: String, default: 'pve' },
-  sortBy: { type: String, default: 'dps' }
+  sortBy: { type: String, default: 'dps' },
+  /**
+   * La letra de cada puesto, al final de la fila: 'general' (la lista general
+   * y las de PvP), 'tipo' (la de un tipo, con cortes más cortos) o nada.
+   */
+  nivel: { type: String, default: '' }
 })
 const emit = defineEmits(['update:sortBy'])
 const { t, localName } = useTranslate()
+const gameData = useGameDataStore()
+const fichaDe = (row) => fichaDeFila(row, gameData.fichaBase)
 
 const METRICAS = ['dps', 'tdo', 'er']
 
 /** La columna que manda: la de la barra. */
 const principal = computed(() => (props.mode === 'pve' ? props.sortBy : 'value'))
 const valor = (row, clave) => row[clave] ?? row.value ?? 0
-const tope = computed(() => (props.rows.length ? valor(props.rows[0], principal.value) || 1 : 1))
-const porcentaje = (row) => Math.round((valor(row, principal.value) / tope.value) * 100)
+// En «Todos» la barra sigue a la puntuación por la que se ordena (la suma de
+// sus dos mejores tipos), no a las cifras de la fila, que son las del mejor.
+const barra = (row) => row.general ?? valor(row, principal.value)
+const tope = computed(() => Math.max(1e-9, ...props.rows.map(barra)))
+const porcentaje = (row) => Math.round((barra(row) / tope.value) * 100)
 const formato = (clave, v) =>
   clave === 'tdo' || props.mode === 'max' ? Math.round(v) : formatDecimal(Number(v))
 
@@ -88,6 +100,9 @@ const ordenar = (metrica) => {
               {{ tituloValor }}
             </th>
           </template>
+          <th v-if="nivel" scope="col" class="px-3 py-2 font-semibold text-center">
+            {{ $t('top.tierColumn') }}
+          </th>
         </tr>
       </thead>
       <tbody>
@@ -117,7 +132,7 @@ const ordenar = (metrica) => {
               />
               <router-link
                 v-if="row.dex"
-                :to="`/pokemon/${row.dex}`"
+                :to="fichaDe(row)"
                 class="text-sm font-semibold text-gray-800 dark:text-gray-200 after:absolute after:inset-0 after:content-['']"
                 >{{ localName(row) }}</router-link
               >
@@ -210,6 +225,9 @@ const ordenar = (metrica) => {
               </span>
             </td>
           </template>
+          <td v-if="nivel" class="px-3 py-1.5 text-center">
+            <base-nivel :rank="row.rank" :por-tipo="nivel === 'tipo'" />
+          </td>
         </tr>
       </tbody>
     </table>

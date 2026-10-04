@@ -11,6 +11,7 @@
 import { computed, ref } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import MoveTag from '../MoveTag.vue'
+import BaseNivel from '../../base/BaseNivel.vue'
 import BaseChevron from '../../base/BaseChevron.vue'
 import { useTranslate, formatDecimal } from '../../../composables/useTranslate'
 
@@ -63,7 +64,8 @@ const resumen = computed(() => {
             class="min-w-0 text-gray-600 dark:text-gray-300"
             >{{ localName(entry) }}</span
           >
-          <span class="ml-auto shrink-0">
+          <span class="ml-auto shrink-0 inline-flex items-center gap-1.5">
+            <base-nivel :rank="entry.rank" pequena />
             #{{ entry.rank }} · <strong>{{ formatDecimal(entry.score) }}</strong>
           </span>
         </span>

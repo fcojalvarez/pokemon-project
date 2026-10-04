@@ -17,7 +17,7 @@ import MoveLegend from '../MoveLegend.vue'
 import BaseChevron from '../../base/BaseChevron.vue'
 import { useTranslate, formatDecimal } from '../../../composables/useTranslate'
 import { useGameDataStore } from '../../../stores/gameData'
-import { puestoDeConjunto } from '../../../utils/puestoAtaques'
+import { puestoDeConjunto, puntuacionGeneral } from '../../../utils/puestoAtaques'
 
 const props = defineProps({
   bestMovesets: { type: Array, required: true },
@@ -92,11 +92,33 @@ const conTusAtaques = computed(() => {
   if (!conjunto) return { sinDatos: true }
   const ranking = gameData.pveRankings({ limit: LIMITE })
   const mejor = todos[0]
+  // Los puestos, con las cuentas del Top: cada conjunto contra un jefe débil
+  // al tipo de su cargado, y la general, por la suma de sus dos mejores tipos.
+  const tipos = new Set(todos.map((uno) => uno.charged.type))
+  const mejorPorTipo = Object.fromEntries(
+    [...tipos].map((tipo) => [tipo, gameData.conjuntosContra(props.entrada, tipo)[0]?.dps ?? 0])
+  )
+  const contraSuTipo = (uno) =>
+    gameData
+      .conjuntosContra(props.entrada, uno.charged.type)
+      .find((otro) => otro.fast.id === uno.fast.id && otro.charged.id === uno.charged.id) ?? uno
+  const puesto = (uno, enSuTipo = contraSuTipo(uno)) =>
+    puestoDeConjunto(
+      enSuTipo,
+      props.entrada.id,
+      ranking,
+      LIMITE,
+      puntuacionGeneral(enSuTipo, mejorPorTipo)
+    )
+  // El de su mejor conjunto, el mismo que el de «Puesto PvE»: en su tipo, el
+  // mejor conjunto contra un jefe débil a él (con el ×1,6 puede no ser el del
+  // DPS neutro).
+  const tipoMejor = mejor.charged.type
   return {
     conjunto,
-    puesto: puestoDeConjunto(conjunto, props.entrada.id, ranking, LIMITE),
+    puesto: puesto(conjunto),
     mejor,
-    puestoMejor: puestoDeConjunto(mejor, props.entrada.id, ranking, LIMITE),
+    puestoMejor: puesto(mejor, gameData.conjuntosContra(props.entrada, tipoMejor)[0] ?? mejor),
     porcentaje: Math.round((conjunto.dps / mejor.dps) * 100),
     esElMejor: conjunto === mejor
   }

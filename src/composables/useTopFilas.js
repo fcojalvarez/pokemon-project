@@ -169,6 +169,7 @@ export function useTopFilas(filtros) {
       .slice(0, LIMITE)
       .map(({ entry, version, maxId, maxLines, stab, value }, indice) => ({
         id: `${entry.id}-${maxId}`,
+        formId: entry.id,
         version,
         maxLines,
         rank: indice + 1,

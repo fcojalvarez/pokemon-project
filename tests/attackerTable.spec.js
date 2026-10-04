@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import i18n from '../src/plugins/i18n'
 import AttackerTable from '../src/components/rankings/AttackerTable.vue'
 
@@ -10,20 +11,40 @@ import AttackerTable from '../src/components/rankings/AttackerTable.vue'
  */
 const movimiento = (nameEs, type = 'fire') => ({ id: nameEs.toUpperCase(), nameEs, type })
 const fila = (rank, nameEs, dps, tdo, er) => ({
-  id: `p${rank}`, rank, dex: rank, spriteId: rank, nameEs, types: ['fire'],
-  fast: movimiento('Ascuas'), charged: movimiento('Llamarada'), dps, tdo, er
+  id: `p${rank}`,
+  rank,
+  dex: rank,
+  spriteId: rank,
+  nameEs,
+  types: ['fire'],
+  fast: movimiento('Ascuas'),
+  charged: movimiento('Llamarada'),
+  dps,
+  tdo,
+  er
 })
 const montar = (props) =>
   mount(AttackerTable, {
     props,
-    global: { plugins: [i18n], stubs: { RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' } } }
+    global: {
+      plugins: [i18n, createPinia()],
+      stubs: { RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' } }
+    }
   })
 
 describe('tabla del Top', () => {
   it('en PvE marca la columna por la que se ordena y la cambia al pulsar otra cabecera', async () => {
-    const w = montar({ mode: 'pve', sortBy: 'dps', rows: [fila(1, 'Charizard', 20.5, 900.4, 60.12), fila(2, 'Moltres', 18, 700, 55)] })
+    const w = montar({
+      mode: 'pve',
+      sortBy: 'dps',
+      rows: [fila(1, 'Charizard', 20.5, 900.4, 60.12), fila(2, 'Moltres', 18, 700, 55)]
+    })
     const cabeceras = w.findAll('th[aria-sort]')
-    expect(cabeceras.map((th) => th.attributes('aria-sort'))).toEqual(['descending', 'none', 'none'])
+    expect(cabeceras.map((th) => th.attributes('aria-sort'))).toEqual([
+      'descending',
+      'none',
+      'none'
+    ])
 
     await w.findAll('th button')[1].trigger('click')
     expect(w.emitted('update:sortBy')).toEqual([['tdo']])
@@ -34,8 +55,15 @@ describe('tabla del Top', () => {
   })
 
   it('cada dato en su columna, con la coma decimal del español', () => {
-    const w = montar({ mode: 'pve', sortBy: 'dps', rows: [fila(1, 'Charizard', 20.54, 900.4, 60.12)] })
-    const celdas = w.get('tbody tr').findAll('td').map((td) => td.text())
+    const w = montar({
+      mode: 'pve',
+      sortBy: 'dps',
+      rows: [fila(1, 'Charizard', 20.54, 900.4, 60.12)]
+    })
+    const celdas = w
+      .get('tbody tr')
+      .findAll('td')
+      .map((td) => td.text())
     expect(celdas[0]).toBe('1')
     expect(celdas[1]).toContain('Charizard')
     // Rápido y cargado, juntos en la columna «Ataques» y en ese orden.
@@ -48,7 +76,18 @@ describe('tabla del Top', () => {
   it('en Max la columna son los ataques y el valor, el daño', () => {
     const w = montar({
       mode: 'max',
-      rows: [{ id: 'x', rank: 1, dex: 6, spriteId: 6, nameEs: 'Charizard', types: ['fire'], moves: [movimiento('Maxignición')], value: 223 }]
+      rows: [
+        {
+          id: 'x',
+          rank: 1,
+          dex: 6,
+          spriteId: 6,
+          nameEs: 'Charizard',
+          types: ['fire'],
+          moves: [movimiento('Maxignición')],
+          value: 223
+        }
+      ]
     })
     const cabeceras = w.findAll('th').map((th) => th.text())
     expect(cabeceras).toEqual(['#', 'Pokémon', 'Ataques', 'Daño'])
@@ -59,7 +98,18 @@ describe('tabla del Top', () => {
   it('en PvP, los ataques y la puntuación, sin cabeceras para ordenar', () => {
     const w = montar({
       mode: 'pvp',
-      rows: [{ id: 'y', rank: 1, dex: 308, spriteId: 308, nameEs: 'Medicham', types: ['fighting'], moves: [movimiento('Contraataque'), movimiento('Puño Hielo')], value: 94.3 }]
+      rows: [
+        {
+          id: 'y',
+          rank: 1,
+          dex: 308,
+          spriteId: 308,
+          nameEs: 'Medicham',
+          types: ['fighting'],
+          moves: [movimiento('Contraataque'), movimiento('Puño Hielo')],
+          value: 94.3
+        }
+      ]
     })
     expect(w.findAll('th button')).toHaveLength(0)
     expect(w.findAll('th').at(-1).text()).toBe('Puntuación')

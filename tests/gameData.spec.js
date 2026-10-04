@@ -1,7 +1,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { computeCounters, computeTypeRankings, evaluatePokemon, typeMatchups } from '../src/utils/pve'
+import {
+  computeCounters,
+  computeTypeRankings,
+  evaluatePokemon,
+  typeMatchups
+} from '../src/utils/pve'
 import { dexFromImage, eventStatus, parseDate } from '../src/utils/liveFeed'
 import { normalizeName, translateGameText } from '../src/utils/gameText'
 import { spriteUrl } from '../src/utils/sprites'
@@ -85,6 +90,27 @@ describe('computeTypeRankings', () => {
     expect(ids(rankings.byType.fire)).toContain('charizard_mega_y')
   })
 
+  it('en cada tipo, contra un jefe débil a él: el ×1,6 se nota en el DPS', () => {
+    const neutro = computeTypeRankings(roster, moves, { limit: 20, sortBy: 'dps' })
+    const charizard = (lista) => lista.find((row) => row.id === 'charizard')
+    const fuego = computeTypeRankings(roster, moves, { limit: 500, sortBy: 'dps' }).byType.fire
+    expect(charizard(fuego).dps).toBeGreaterThan(20)
+    expect(neutro.overall[0].general).toBeGreaterThan(neutro.overall[0].dps)
+  })
+
+  it('ordena la lista general por la suma de los dos mejores tipos', () => {
+    const { overall } = computeTypeRankings(roster, moves, { limit: 50, sortBy: 'er' })
+    for (let i = 1; i < overall.length; i++)
+      expect(overall[i - 1].general).toBeGreaterThanOrEqual(overall[i].general)
+    // La fila enseña su mejor tipo: la suma nunca pasa del doble de él.
+    for (const row of overall) {
+      expect(row.general).toBeLessThanOrEqual(row.er * 2 + 1e-9)
+      expect(row.tiposGeneral[0]).toBe(row.charged.type)
+    }
+    // Versátiles arriba (psíquico y lucha): Mewtwo Mega X, como en GO Hub.
+    expect(ids(overall.slice(0, 5))).toContain('mewtwo_mega_x')
+  })
+
   it('deja fuera megas y oscuros cuando se piden sin ellos', () => {
     const clean = computeTypeRankings(roster, moves, {
       limit: 20,
@@ -110,7 +136,13 @@ describe('computeCounters', () => {
       { types: ['grass', 'ice'] },
       { limit: 1 }
     )
-    const vsWater = computeCounters(roster, moves, typechart.chart, { types: ['water'] }, { limit: 1 })
+    const vsWater = computeCounters(
+      roster,
+      moves,
+      typechart.chart,
+      { types: ['water'] },
+      { limit: 1 }
+    )
     expect(vsGrassIce[0].dps).toBeGreaterThan(vsWater[0].dps)
     expect(vsGrassIce[0].charged.type).toBe('fire')
   })
@@ -183,8 +215,12 @@ describe('nombres de las megas', () => {
 
 describe('dexFromImage', () => {
   it('saca el número de Pokédex de la imagen de LeekDuck', () => {
-    expect(dexFromImage('https://cdn.leekduck.com/assets/img/pokemon_icons/pm147.icon.png')).toBe(147)
-    expect(dexFromImage('https://cdn.leekduck.com/assets/img/pokemon_icons/pm687.fMEGA.icon.png')).toBe(687)
+    expect(dexFromImage('https://cdn.leekduck.com/assets/img/pokemon_icons/pm147.icon.png')).toBe(
+      147
+    )
+    expect(
+      dexFromImage('https://cdn.leekduck.com/assets/img/pokemon_icons/pm687.fMEGA.icon.png')
+    ).toBe(687)
     expect(dexFromImage('.../pokemon_icon_025_00.png')).toBe(25)
   })
 
@@ -199,7 +235,9 @@ describe('traducción con los textos del juego', () => {
 
   it('traduce las tareas manteniendo los números', () => {
     expect(translateGameText('Make 7 Great Throws', dictionary)).toBe('Haz 7 grandes lanzamientos')
-    expect(translateGameText('Make an Excellent Throw', dictionary)).toBe('Haz un lanzamiento excelente')
+    expect(translateGameText('Make an Excellent Throw', dictionary)).toBe(
+      'Haz un lanzamiento excelente'
+    )
   })
 
   it('deja el original si no hay frase equivalente', () => {
@@ -244,10 +282,12 @@ describe('movimientos exclusivos de supermega', () => {
     // Hoy puede no quedar ninguno: los de las supermegas llevan los datos de
     // incursión de Pokebattler (pveSource), a falta de los del GAME_MASTER.
     const sinPve = new Set(
-      Object.values(moves).filter((m) => !m.pve).map((m) => m.id)
+      Object.values(moves)
+        .filter((m) => !m.pve)
+        .map((m) => m.id)
     )
-    const contaminados = roster.filter(
-      (p) => [...p.fast, ...p.charged].some((id) => sinPve.has(id))
+    const contaminados = roster.filter((p) =>
+      [...p.fast, ...p.charged].some((id) => sinPve.has(id))
     )
     expect(contaminados.map((p) => p.id)).toEqual([])
   })
@@ -306,15 +346,15 @@ describe('combates Max', () => {
 
   it('no marca Gigamax lo que el juego tiene preparado pero no ha salido', () => {
     // Flapple y Appletun venían en el GAME_MASTER años antes de salir.
-    const preparados = roster.filter((p) => ['flapple', 'appletun', 'eevee', 'melmetal'].includes(p.id))
+    const preparados = roster.filter((p) =>
+      ['flapple', 'appletun', 'eevee', 'melmetal'].includes(p.id)
+    )
     expect(preparados.filter((p) => p.gigantamax).map((p) => p.id)).toEqual([])
     expect(roster.find((p) => p.id === 'charizard').gigantamax).toBe(true)
   })
 
   it('no marca como Max a megas, primigenios ni oscuros', () => {
-    const colados = roster.filter(
-      (p) => (p.dynamax || p.gigantamax) && (p.mega || p.shadow)
-    )
+    const colados = roster.filter((p) => (p.dynamax || p.gigantamax) && (p.mega || p.shadow))
     expect(colados.map((p) => p.id)).toEqual([])
   })
 
@@ -335,7 +375,10 @@ describe('combates Max', () => {
 
   it('trae el coste de mejora de cada grupo que usa el roster', () => {
     const grupos = new Set(
-      roster.filter((p) => p.dynamax).map((p) => p.maxCostGroup).filter(Boolean)
+      roster
+        .filter((p) => p.dynamax)
+        .map((p) => p.maxCostGroup)
+        .filter(Boolean)
     )
     expect(grupos.size).toBeGreaterThan(0)
     for (const grupo of grupos) {
@@ -367,9 +410,7 @@ describe('bonificaciones de evento', () => {
 
   it('casa la "x" de LeekDuck con el "×" del juego', () => {
     // LeekDuck escribe "3x" y el juego "3×". Sin unificarlo no casaba ninguna.
-    expect(translateGameText('3x Catch XP', textos)).toBe(
-      translateGameText('3× Catch XP', textos)
-    )
+    expect(translateGameText('3x Catch XP', textos)).toBe(translateGameText('3× Catch XP', textos))
   })
 
   it('no inventa un número cuando no tiene la frase exacta', () => {
@@ -381,9 +422,7 @@ describe('bonificaciones de evento', () => {
   })
 
   it('sigue traduciendo las tareas, que sí llevan marcador', () => {
-    expect(translateGameText('Make 7 Great Throws', textos)).toBe(
-      'Haz 7 grandes lanzamientos'
-    )
+    expect(translateGameText('Make 7 Great Throws', textos)).toBe('Haz 7 grandes lanzamientos')
     expect(translateGameText('Make 3 Great Throws in a row', textos)).toBe(
       'Haz 3 grandes lanzamientos seguidos'
     )
@@ -416,10 +455,11 @@ describe('ranking sin ataques legacy', () => {
     const mejor = (opciones) => {
       const { overall } = computeTypeRankings(roster, moves, {
         sortBy: 'dps',
-        limit: 500,
+        // Sin Embate Supremo cae más allá del 500 de la lista general.
+        limit: 2000,
         ...opciones
       })
-      return overall.find((row) => row.id.startsWith('zamazenta'))
+      return overall.find((row) => row.id === 'zamazenta_crowned_shield')
     }
     const con = mejor({})
     const sin = mejor({ includeLegacy: false })

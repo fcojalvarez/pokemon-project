@@ -3,6 +3,7 @@
 import { computed } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import TypeIcons from '../../base/TypeIcons.vue'
+import BaseNivel from '../../base/BaseNivel.vue'
 import { useTranslate, formatDecimal } from '../../../composables/useTranslate'
 
 const props = defineProps({
@@ -51,20 +52,34 @@ const resumen = computed(() => {
         <h3 v-if="conNombre(forma.id, ranks.length > 1)" class="subtitulo">
           {{ localName(forma.entry) }}
         </h3>
-        <p v-if="forma.overall" class="mt-0.5 text-mini text-gray-600 dark:text-gray-300">
-          {{ $t('top.overall') }}: <strong>#{{ forma.overall.rank }}</strong>
+        <!-- En flex: en línea, la letra quedaba más alta que el texto. -->
+        <p
+          v-if="forma.overall"
+          class="mt-0.5 flex items-center gap-1.5 text-mini text-gray-600 dark:text-gray-300"
+        >
+          <span
+            >{{ $t('top.overall') }}: <strong>#{{ forma.overall.rank }}</strong></span
+          >
+          <base-nivel :rank="forma.overall.rank" pequena />
         </p>
-        <ul class="mt-1.5 flex flex-wrap gap-1.5">
+        <!-- La letra, en la esquina de cada pastilla: sobresale, de ahí el hueco de más. -->
+        <ul class="mt-2.5 flex flex-wrap gap-x-3 gap-y-2.5">
           <li
             v-for="entry in forma.byType"
             :key="`${entry.type}-${entry.id}`"
-            class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs tabular-nums"
+            class="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs tabular-nums"
             :title="`${$t(`types.${entry.type}`)}: #${entry.rank} · ${formatDecimal(
               entry.dps
             )} DPS`"
           >
             <type-icons :types="[entry.type]" size="13" />
             <strong>#{{ entry.rank }}</strong>
+            <base-nivel
+              :rank="entry.rank"
+              por-tipo
+              pequena
+              class="absolute -top-2 -right-2 ring-2 ring-white dark:ring-gray-900"
+            />
           </li>
         </ul>
       </div>

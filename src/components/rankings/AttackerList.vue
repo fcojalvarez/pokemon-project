@@ -19,8 +19,10 @@ import { spriteUrl } from '../../utils/sprites'
 import BaseSprite from '../base/BaseSprite.vue'
 import { localName, formatDecimal } from '../../composables/useTranslate'
 import StabBadge from '../base/StabBadge.vue'
+import BaseNivel from '../base/BaseNivel.vue'
 import MaxMoveLines from './MaxMoveLines.vue'
-import { movesOf, rowKey } from '../../utils/rankingRows'
+import { fichaDeFila, movesOf, rowKey } from '../../utils/rankingRows'
+import { useGameDataStore } from '../../stores/gameData'
 
 const props = defineProps({
   rows: { type: Array, required: true },
@@ -30,16 +32,27 @@ const props = defineProps({
   // La barra compara cada fila con la primera: sin ranking ordenado no aporta.
   showBar: { type: Boolean, default: true },
   // Métrica de apoyo bajo la principal (en PvE, el DPS o el TDO contrario).
-  showSecondary: { type: Boolean, default: true }
+  showSecondary: { type: Boolean, default: true },
+  /**
+   * La letra de cada puesto, al final de la fila: 'general' (la lista general
+   * y las de PvP), 'tipo' (la de un tipo, con cortes más cortos) o nada.
+   */
+  nivel: { type: String, default: '' }
 })
 
 const UNITS = { dps: 'DPS', tdo: 'TDO', er: 'ER' }
+
+const gameData = useGameDataStore()
+const fichaDe = (row) => fichaDeFila(row, gameData.fichaBase)
 
 const unitLabel = computed(() => props.unit ?? UNITS[props.sortBy] ?? '')
 
 const valueOf = (row) => row.value ?? row[props.sortBy]
 
-const max = computed(() => (props.rows.length ? valueOf(props.rows[0]) || 1 : 1))
+// En «Todos» la barra sigue a la puntuación por la que se ordena (la suma de
+// sus dos mejores tipos), no a las cifras de la fila, que son las del mejor.
+const barra = (row) => row.general ?? valueOf(row)
+const max = computed(() => Math.max(1e-9, ...props.rows.map(barra)))
 
 const mainValue = (row) => {
   const value = valueOf(row)
@@ -49,7 +62,7 @@ const mainValue = (row) => {
     : formatDecimal(value)
 }
 
-const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
+const percent = (row) => Math.round((barra(row) / max.value) * 100)
 </script>
 
 <template>
@@ -66,13 +79,16 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
       -->
       <component
         :is="row.dex ? 'router-link' : 'div'"
-        :to="row.dex ? `/pokemon/${row.dex}` : undefined"
-        class="grid grid-cols-[3.25rem_minmax(0,1fr)_72px] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px] items-center gap-x-3 p-2 pr-3 border rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
-        :class="
+        :to="row.dex ? fichaDe(row) : undefined"
+        class="grid items-center gap-x-3 p-2 pr-3 border rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
+        :class="[
+          nivel
+            ? 'grid-cols-[3.25rem_minmax(0,1fr)_64px_1.5rem] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px_1.5rem]'
+            : 'grid-cols-[3.25rem_minmax(0,1fr)_72px] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px]',
           row.version === 'gigantamax'
             ? 'border-fuchsia-500 dark:border-fuchsia-400'
             : 'border-gray-300 dark:border-gray-700'
-        "
+        ]"
       >
         <span class="relative block">
           <base-sprite
@@ -149,6 +165,13 @@ const percent = (row) => Math.round((valueOf(row) / max.value) * 100)
           <!-- El STAB va con la cifra, que es lo que multiplica: junto al nombre bajaba de línea. -->
           <stab-badge v-if="row.stab" class="mt-1 inline-block" />
         </div>
+
+        <base-nivel
+          v-if="nivel"
+          :rank="row.rank"
+          :por-tipo="nivel === 'tipo'"
+          class="justify-self-end"
+        />
       </component>
     </li>
   </ol>
