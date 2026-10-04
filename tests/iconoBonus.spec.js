@@ -9,6 +9,8 @@ describe('iconoDeBonus', () => {
     expect(iconoDeBonus('Los Módulos Cebo Musgosos durarán una hora.')).toBe('lure')
     expect(iconoDeBonus('1/2 Hatch Distance')).toBe('egg')
     expect(iconoDeBonus('Más Polvo Estelar al derrotar a los Reclutas')).toBe('stardust')
+    expect(iconoDeBonus('Más Pokémon salvajes de tipo Planta')).toBe('wild')
+    expect(iconoDeBonus('Increased wild spawns')).toBe('wild')
     expect(iconoDeBonus('Abrid hasta 40 regalos al día.')).toBeNull()
   })
 })

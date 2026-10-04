@@ -153,7 +153,7 @@ const opcion = (elegida) => [
         <div>
           <p
             id="ajustes-tema"
-            class="mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+            class="rotulo mb-1"
           >
             {{ $t('settings.theme') }}
           </p>
@@ -190,7 +190,7 @@ const opcion = (elegida) => [
         <div>
           <p
             id="ajustes-idioma"
-            class="mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+            class="rotulo mb-1"
           >
             {{ $t('language.label') }}
           </p>

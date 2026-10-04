@@ -77,15 +77,11 @@ const resumen = computed(() =>
     <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.pvpIv.intro') }}</p>
 
     <fieldset class="mt-2">
-      <legend class="text-mini text-gray-600 dark:text-gray-300">
+      <legend class="rotulo">
         {{ $t('pokemon.pvpIv.yours') }}
       </legend>
       <div class="mt-1 grid grid-cols-3 gap-2">
-        <label
-          v-for="campo in CAMPOS"
-          :key="campo"
-          class="text-mini text-gray-600 dark:text-gray-300"
-        >
+        <label v-for="campo in CAMPOS" :key="campo" class="rotulo">
           {{ $t(`pokemon.pvpIv.${campo}`) }}
           <input
             v-model="mios[campo]"

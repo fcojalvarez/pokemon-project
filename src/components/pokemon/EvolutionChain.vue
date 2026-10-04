@@ -25,7 +25,13 @@ const megasDe = (mon) => {
   return (gameData.formsByDex.get(mon.pokemon_id) ?? [])
     .filter((form) => form.mega && form.released)
     .map((form) => ({
-      req: form.megaEnergy?.first ? { mega_energy_required: form.megaEnergy.first } : {},
+      req: form.megaEnergy?.first
+        ? {
+            mega_energy_required: form.megaEnergy.first,
+            // La megaenergía es de la especie (Charizard: la misma para X e Y).
+            mega_energy_dex: mon.pokemon_id
+          }
+        : {},
       destino: {
         mon: {
           pokemon_id: form.dex,

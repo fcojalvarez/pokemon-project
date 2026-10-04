@@ -9,6 +9,7 @@
  */
 import { computed } from 'vue'
 import BaseCandyIcon from '../base/BaseCandyIcon.vue'
+import BaseMegaEnergyIcon from '../base/BaseMegaEnergyIcon.vue'
 import lure from '../../assets/icons/lure_icon.png'
 import walk from '../../assets/icons/walkWithYourBuddy.png'
 import sun from '../../assets/icons/ic_sun.png'
@@ -76,8 +77,15 @@ const hayAlgo = computed(() => {
       <base-candy-icon :type="type" class="w-3 h-3" aria-hidden="true" />
       <span class="sr-only">{{ $tc('candy', req.candy_required) }}</span>
     </li>
-    <li v-if="coste && req.mega_energy_required" class="whitespace-nowrap text-xs">
-      ×{{ req.mega_energy_required }} {{ $t('megaenergy') }}
+    <!-- El símbolo del juego, como en Costes; la leyenda de la ficha dice qué es. -->
+    <li
+      v-if="coste && req.mega_energy_required"
+      class="flex items-center gap-1 whitespace-nowrap text-xs"
+    >
+      <span>×{{ req.mega_energy_required }}</span>
+      <!-- Con los colores de la especie que megaevoluciona, los del juego. -->
+      <base-mega-energy-icon :dex="req.mega_energy_dex" class="w-3.5 h-3.5" />
+      <span class="sr-only">{{ $t('megaenergy') }}</span>
     </li>
 
     <template v-if="resto">

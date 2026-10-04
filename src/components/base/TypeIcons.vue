@@ -26,9 +26,7 @@ const known = computed(() => props.types.filter((type) => typesSVG[type]))
         :role="withLabel ? undefined : 'img'"
         :aria-label="withLabel ? undefined : $t(`types.${type}`)"
       />
-      <span v-if="withLabel" class="text-mini uppercase tracking-wide">{{
-        $t(`types.${type}`)
-      }}</span>
+      <span v-if="withLabel" class="text-mini">{{ $t(`types.${type}`) }}</span>
     </span>
   </span>
 </template>

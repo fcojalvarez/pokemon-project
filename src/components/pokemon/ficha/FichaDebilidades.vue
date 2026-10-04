@@ -74,9 +74,7 @@ const estiloRelleno = (tipo) => {
           "
         >
           <!-- Rellena del color del tipo, su icono no se vería: solo el nombre. -->
-          <span v-if="nivel.doble" class="uppercase tracking-wide">{{
-            $t(`types.${entry.type}`)
-          }}</span>
+          <span v-if="nivel.doble">{{ $t(`types.${entry.type}`) }}</span>
           <type-icons v-else :types="[entry.type]" size="13" with-label />
         </span>
       </div>

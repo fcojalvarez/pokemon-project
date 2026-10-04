@@ -18,7 +18,8 @@ const REGLAS = [
   ['research', /investigaci|tarea|research|task/i],
   ['buddy', /compañero|buddy/i],
   ['stardust', /polvo estelar|stardust/i],
-  ['xp', /\bpx\b|\bxp\b|experiencia/i]
+  ['xp', /\bpx\b|\bxp\b|experiencia/i],
+  ['wild', /salvaje|\bwild|\bspawn/i]
 ]
 
 export function iconoDeBonus(texto) {

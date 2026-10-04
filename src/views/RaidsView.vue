@@ -6,7 +6,6 @@ import { dexFromImage } from '../utils/liveFeed'
 import { useGameDataStore } from '../stores/gameData'
 import BaseEmptyState from '../components/base/BaseEmptyState.vue'
 import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
-import BasePillButton from '../components/base/BasePillButton.vue'
 import BaseSidebar from '../components/base/BaseSidebar.vue'
 import BaseFilterList from '../components/base/BaseFilterList.vue'
 import BaseSegmented from '../components/base/BaseSegmented.vue'
@@ -357,16 +356,9 @@ onMounted(() => {
     <div :class="ancho ? 'grid grid-cols-[240px_minmax(0,1fr)] gap-6 items-start' : ''">
       <!-- En escritorio ancho, barra lateral con las pestañas y los grupos de la pestaña -->
       <base-sidebar v-if="ancho">
-        <div class="flex flex-col gap-2">
-          <base-pill-button
-            v-for="name in TABS"
-            :key="name"
-            :active="tab === name"
-            @click="tab = name"
-          >
-            {{ tabLabel(name) }}
-          </base-pill-button>
-        </div>
+        <!-- Las pestañas, con la misma lista que los grupos de debajo. -->
+        <base-filter-list v-model="tab" :options="tabOptions" />
+        <hr v-if="filtros.length" class="border-gray-300 dark:border-gray-700" />
         <!-- Como el tipo en Eventos: un clic, con cuántos hay de cada uno. -->
         <base-filter-list
           v-if="filtros.length"

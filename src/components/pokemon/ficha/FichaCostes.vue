@@ -4,12 +4,15 @@ import { computed } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import { useTranslate } from '../../../composables/useTranslate'
 import iconoCaramelo from '../../../assets/icons/candy_icon.png'
+import BaseMegaEnergyIcon from '../../base/BaseMegaEnergyIcon.vue'
 
 const props = defineProps({
   /** Claves de pokemon.flags.* (useFichaDatos). */
   flags: { type: Array, required: true },
   /** Filas de coste (useFichaDatos). */
-  costs: { type: Array, required: true }
+  costs: { type: Array, required: true },
+  /** Número de la especie: los colores de su megaenergía. */
+  dexMega: { type: Number, default: null }
 })
 
 const { t, tc, formatNumber } = useTranslate()
@@ -26,7 +29,7 @@ const costeTexto = (row) => {
 
 /**
  * El valor de una fila en piezas, cada una con su icono: el caramelo del
- * juego, ✧ para el polvo y ⚡ para la megaenergía. La palabra va aparte, para
+ * juego, ✧ para el polvo y la piedra de megaenergía con los colores de la especie. La palabra va aparte, para
  * el lector de pantalla. Antes iba todo escrito («25 caramelos · 10.000
  * polvo») y las seis filas eran cajas iguales que costaba comparar.
  */
@@ -40,7 +43,7 @@ const piezas = (row) => {
       lista.push({ n: formatNumber(row.dust), signo: '✧', palabra: t('pokemon.stardust') })
     return lista
   }
-  if (row.energy) return [{ n: formatNumber(row.energy), signo: '⚡', palabra: t('megaenergy') }]
+  if (row.energy) return [{ n: formatNumber(row.energy), icono: 'mega', palabra: t('megaenergy') }]
   return [{ texto: `${formatNumber(row.km)} ${t('unitDistance')}` }]
 }
 
@@ -66,11 +69,7 @@ const resumen = computed(() => {
         {{ $t('pokemon.status') }}
       </h3>
       <div class="flex flex-wrap gap-1.5 mt-2">
-        <span
-          v-for="flag in flags"
-          :key="flag"
-          class="px-2 py-0.5 text-mini rounded-full border border-gray-400 dark:border-gray-600 text-gray-600 dark:text-gray-300"
-        >
+        <span v-for="flag in flags" :key="flag" class="insignia">
           {{ $t(`pokemon.flags.${flag}`) }}
         </span>
       </div>
@@ -101,6 +100,11 @@ const resumen = computed(() => {
                   alt=""
                   aria-hidden="true"
                   class="w-3.5 h-3.5 object-contain"
+                />
+                <base-mega-energy-icon
+                  v-else-if="pieza.icono === 'mega'"
+                  :dex="dexMega"
+                  class="w-3.5 h-3.5"
                 />
                 <span
                   v-else

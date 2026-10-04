@@ -665,7 +665,8 @@
     "shiny": "Shiny released",
     "dynamax": "Dynamax released",
     "gigantamax": "Gigantamax released",
-    "noLiberado": "Not released"
+    "noLiberado": "Not released",
+    "megaEnergy": "Mega Energy"
   },
   "update": {
     "title": "A new version is available",

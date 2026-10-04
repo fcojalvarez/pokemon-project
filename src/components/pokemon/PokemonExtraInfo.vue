@@ -174,7 +174,12 @@ const moverVisible = (id, paso) => {
         <!-- bloquesVisibles ya deja fuera las que este Pokémon no tiene. -->
         <!-- Va lo primero de fábrica porque es lo único de la ficha que caduca. -->
         <where-to-find v-if="id === 'donde'" :pokemon="pokemon" />
-        <ficha-costes v-else-if="id === 'costes'" :flags="flags" :costs="costs" />
+        <ficha-costes
+          v-else-if="id === 'costes'"
+          :flags="flags"
+          :costs="costs"
+          :dex-mega="pokemon.pokemon_id"
+        />
         <max-battle-panel v-else-if="id === 'max'" :entry="entrada" />
         <ficha-pc v-else-if="id === 'pc'" :cp-table="cpTable" :es-max="esMax" />
         <ficha-pve v-else-if="id === 'pve'" :ranks="pveRanks" :con-nombre="conNombre" />

@@ -103,6 +103,7 @@ const monProps = (nodo, extra = {}) => ({
   shiny: cadena.shiny.value,
   sinNumero: Boolean(nodo.mega) || props.enGrupo || Boolean(extra.enGrupo),
   badge: nodo.mega?.superMega ? t('pokemon.superMega') : null,
+  formaId: nodo.mega?.id ?? nodo.mon.form ?? null,
   ...extra
 })
 </script>
@@ -149,15 +150,13 @@ const monProps = (nodo, extra = {}) => ({
         v-else
         role="group"
         :aria-label="tramo.final.etiqueta"
-        class="relative mt-2.5 lg:mt-0 rounded-xl border-[1.5px] border-dashed border-gray-400 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/40 px-2 lg:px-3 pt-5 pb-3"
+        class="mt-2.5 lg:mt-0 rounded-xl border border-gray-300 dark:border-gray-700 px-2 lg:px-3 pt-2.5 pb-3"
         :class="principal ? 'w-full lg:w-auto' : ''"
       >
-        <!-- Encima del borde, con el fondo de la tarjeta para cortarlo -->
-        <span
-          class="absolute -top-2.5 left-3 px-2 bg-white dark:bg-gray-900 text-mini font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-300 whitespace-nowrap"
-          aria-hidden="true"
-          >{{ tramo.final.etiqueta }}</span
-        >
+        <!-- Borde continuo y el título dentro, como un subtítulo más: era el
+             único borde discontinuo de la app y el único título en versalitas
+             montado encima de un borde. -->
+        <span class="subtitulo block mb-2" aria-hidden="true">{{ tramo.final.etiqueta }}</span>
 
         <!--
           En escritorio la columna no baja de lo que mide su tarjeta: con

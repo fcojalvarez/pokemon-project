@@ -194,7 +194,7 @@ const resumen = computed(() => {
 
     <dl v-if="maxInfo.gmaxMove" class="mt-2 flex flex-col gap-2">
       <div
-        class="flex items-center justify-between gap-2 p-2 rounded-xl bg-fuchsia-50 dark:bg-fuchsia-950 border border-fuchsia-300 dark:border-fuchsia-800"
+        class="flex items-center justify-between gap-2 p-2 rounded-xl border border-fuchsia-400 dark:border-fuchsia-500"
       >
         <dt class="text-xs text-gray-600 dark:text-gray-300">{{ $t('max.gmaxMove') }}</dt>
         <dd class="flex items-center gap-2 text-sm font-semibold">

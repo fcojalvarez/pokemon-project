@@ -333,7 +333,7 @@ watch(
           <div :class="ancho ? '' : 'mb-3'">
             <span
               id="variante-top"
-              class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
+              class="rotulo block mb-1"
               >{{ $t(mode === 'pvp' ? 'top.league' : 'top.pveKind') }}</span
             >
             <base-segmented

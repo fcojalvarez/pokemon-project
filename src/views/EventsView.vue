@@ -4,7 +4,6 @@ import { useLiveStore } from '../stores/live'
 import { useGameDataStore } from '../stores/gameData'
 import BaseEmptyState from '../components/base/BaseEmptyState.vue'
 import BaseErrorMessage from '../components/base/BaseErrorMessage.vue'
-import BasePillButton from '../components/base/BasePillButton.vue'
 import BaseSidebar from '../components/base/BaseSidebar.vue'
 import BaseFilterList from '../components/base/BaseFilterList.vue'
 import BaseSegmented from '../components/base/BaseSegmented.vue'
@@ -144,25 +143,16 @@ onMounted(async () => {
     -->
     <div :class="ancho ? 'grid grid-cols-[240px_minmax(0,1fr)] gap-6 items-start' : ''">
       <base-sidebar :activa="ancho">
-        <!-- Tres pestañas no caben en fila en la barra: una debajo de otra, como en «Ahora». -->
-        <div v-if="ancho" class="flex flex-col gap-2">
-          <base-pill-button
-            v-for="name in TABS"
-            :key="name"
-            :active="tab === name"
-            @click="tab = name"
-          >
-            {{ $t(`events.${name}`) }}
-          </base-pill-button>
-        </div>
+        <!-- Las pestañas, con la misma lista que los tipos de debajo y una raya entre las dos. -->
+        <template v-if="ancho">
+          <base-filter-list v-model="tab" :options="tabOptions" />
+          <hr v-if="!semana" class="border-gray-300 dark:border-gray-700" />
+        </template>
         <base-segmented v-else v-model="tab" :options="tabOptions" class="mb-3" />
 
         <!-- La semana va por día, sin filtrar por tipo: es para verla entera. -->
         <div v-if="ancho && !semana" role="group" aria-labelledby="eventos-tipo">
-          <span
-            id="eventos-tipo"
-            class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
-          >
+          <span id="eventos-tipo" class="rotulo block mb-1">
             {{ $t('events.filterType') }}
           </span>
           <base-filter-list v-model="typeFilter" :options="typeOptions" />

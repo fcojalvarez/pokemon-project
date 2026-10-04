@@ -20,7 +20,11 @@ vi.mock('../src/stores/gameData', () => ({
     // Como en la store: cada forma por su id.
     get byId() {
       return new Map([...formas.values()].flat().map((forma) => [forma.id, forma]))
-    }
+    },
+    // Como en la store: la forma base de la especie y, si se puede, su info Max.
+    fichaBase: (dex) => (formas.get(dex) ?? []).find((forma) => !forma.mega) ?? null,
+    maxInfoFor: (entry) =>
+      entry?.dynamax || entry?.gigantamax ? { gigantamax: Boolean(entry.gigantamax) } : null
   })
 }))
 
@@ -105,8 +109,39 @@ describe('línea evolutiva', () => {
       '/pokemon/6?form=charizard_mega_y'
     ])
     expect(grupo.text()).not.toContain('#6')
-    expect(w.text().match(/×200 Megaenergía/g)).toHaveLength(2) // flecha de escritorio y la vertical de móvil
+    expect(w.text().match(/×200Megaenergía/g)).toHaveLength(2) // flecha de escritorio y la vertical de móvil
     expect(grupo.findAll('svg path[d^="M21 7"]')).toHaveLength(0)
+  })
+
+  it('cada Pokémon lleva sus marcas de Dinamax y Gigamax, y las megas ninguna', () => {
+    formas.clear()
+    formas.set(4, [{ id: 'charmander', dex: 4, dynamax: true }])
+    formas.set(6, [
+      { id: 'charizard', dex: 6, dynamax: true, gigantamax: true },
+      mega('charizard_mega_x', 6, 'Mega Charizard X', ['fire', 'dragon'])
+    ])
+    const charizard = {
+      ...paso(6, 'Charizard', ['fire', 'flying']),
+      evolution_info: {
+        primary: [
+          paso(4, 'Charmander', ['fire'], { candy_required: 25 }),
+          paso(5, 'Charmeleon', ['fire'], { candy_required: 100 }),
+          paso(6, 'Charizard', ['fire', 'flying'])
+        ]
+      }
+    }
+    const w = montar(charizard)
+    const marcas = (texto) =>
+      w
+        .findAll('a, [aria-current="page"]')
+        .find((el) => el.text().includes(texto))
+        .findAll('svg[role="img"]')
+        .map((svg) => svg.attributes('aria-label'))
+        .filter((nombre) => nombre.includes('maxizar'))
+    expect(marcas('Charmander')).toEqual(['Puede dinamaxizar'])
+    expect(marcas('Charmeleon')).toEqual([])
+    expect(marcas('#6 Charizard')).toEqual(['Puede dinamaxizar', 'Puede gigamaxizar'])
+    expect(marcas('Mega Charizard X')).toEqual([])
   })
 
   it('el Pokémon que se está viendo se marca y no es un enlace', () => {
@@ -143,7 +178,7 @@ describe('línea evolutiva', () => {
     formas.set(384, [mega('rayquaza_mega', 384, 'Mega Rayquaza', ['dragon', 'flying'], 400)])
     const w = montar({ ...paso(384, 'Rayquaza', ['dragon', 'flying']), evolution_info: {} })
     expect(nombres(w)).toEqual(['#384 Rayquaza', 'Mega Rayquaza'])
-    expect(w.text()).toContain('×400 Megaenergía')
+    expect(w.text()).toContain('×400Megaenergía')
   })
 
   it('en la ficha de una mega, la marcada es la mega y no el base', () => {

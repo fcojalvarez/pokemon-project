@@ -16,6 +16,9 @@
 const CAMPOS_REQUISITO = [
   'candy_required',
   'mega_energy_required',
+  // La especie de la megaenergía, para sus colores (BaseMegaEnergyIcon): es
+  // la misma para todas sus megas, así que va en la flecha con el coste.
+  'mega_energy_dex',
   'item_required',
   'item_cost',
   'lure_required',

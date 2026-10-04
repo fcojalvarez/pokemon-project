@@ -210,11 +210,7 @@ useDetectOutsideClick(root, () => close())
 
 <template>
   <div ref="root" class="relative min-w-0">
-    <span
-      v-if="label"
-      :id="`etiqueta-${uid}`"
-      class="block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300"
-    >
+    <span v-if="label" :id="`etiqueta-${uid}`" class="rotulo block mb-1">
       {{ label }}
     </span>
 

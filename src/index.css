@@ -104,6 +104,32 @@
     @apply border-gray-800 dark:border-gray-100 bg-gray-800 dark:bg-gray-100 font-semibold text-white dark:text-gray-900 hover:bg-gray-700 hover:dark:bg-white;
   }
 
+  /*
+     * Insignia: una etiqueta que informa y no se pulsa (Legendario, Supermega,
+     * el tipo de evento, STAB, Tiene versión oscura). Fondo suave y sin borde,
+     * porque el borde es de lo que se pulsa (botones y filtros), y sin
+     * mayúsculas. Antes había cinco estilos. El color, solo si dice algo:
+     * ámbar la rareza y verde el STAB.
+     */
+  .insignia {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-mini font-medium leading-tight bg-gray-150 dark:bg-gray-800 text-gray-700 dark:text-gray-200;
+  }
+  .insignia-ambar {
+    @apply bg-amber-100 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300;
+  }
+  .insignia-verde {
+    @apply bg-emerald-100 dark:bg-emerald-400/15 text-emerald-800 dark:text-emerald-300;
+  }
+
+  /*
+     * Rótulo encima de un campo (Tipo, Ordenar por, los IV del tuyo…): gris y
+     * sin mayúsculas. Antes la barra lateral los ponía en versalitas y la
+     * ficha no.
+     */
+  .rotulo {
+    @apply text-xs text-gray-600 dark:text-gray-300;
+  }
+
   .campo {
     @apply block w-full rounded-xl px-3 py-2 text-sm bg-white text-gray-900 border border-gray-400 placeholder:text-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-600 dark:bg-gray-900 dark:text-gray-100 dark:border-gray-600 dark:focus:ring-blue-300;
   }

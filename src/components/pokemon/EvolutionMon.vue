@@ -15,7 +15,9 @@ import { computed } from 'vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import ShinyMark from './ShinyMark.vue'
+import MaxMark from './MaxMark.vue'
 import { localName } from '../../composables/useTranslate'
+import { useGameDataStore } from '../../stores/gameData'
 
 const props = defineProps({
   mon: { type: Object, required: true },
@@ -30,7 +32,23 @@ const props = defineProps({
   /** Sin número delante: en las megas es el mismo que el del base, y dentro
    *  de un grupo no cabe (Eevee, a cuatro columnas en móvil). */
   sinNumero: Boolean,
-  badge: { type: String, default: null }
+  badge: { type: String, default: null },
+  /** Id de la forma (mega o regional) para saber si se puede dinamaxizar. */
+  formaId: { type: String, default: null }
+})
+
+const gameData = useGameDataStore()
+
+// Las mismas marcas que en la Pokédex y en la cabecera de la ficha, y con el
+// mismo dato: el de la forma si es una mega o una regional y si no, el de la base.
+const maxLiberado = computed(() => {
+  if (!gameData.isReady) return []
+  const entry = props.formaId
+    ? gameData.byId.get(props.formaId)
+    : gameData.fichaBase(props.mon.pokemon_id, props.mon.name)
+  const info = gameData.maxInfoFor(entry)
+  if (!info) return []
+  return info.gigantamax ? ['dynamax', 'gigantamax'] : ['dynamax']
 })
 
 // En una sola expresión: un espacio al final de un bloque condicional de la
@@ -66,6 +84,17 @@ const activo =
 const alPasar =
   'hover:outline hover:bg-gray-150 hover:outline-white hover:dark:bg-gray-800 hover:dark:outline-gray-600'
 
+// Las marcas crecen y menguan con el sprite: la caja va de 54 a 96 px y las
+// marcas guardan con ella la proporción que tienen a 96 (la de Max, 18 px como
+// en la Pokédex; la de shiny, al 90 %). Con scale y no con otro tamaño de letra
+// o de svg, para no descuadrarlas.
+const escalaShiny = computed(() =>
+  props.enGrupo ? 'scale-[0.51] lg:scale-[0.675]' : 'scale-[0.56] md:scale-[0.675] lg:scale-90'
+)
+const escalaMax = computed(() =>
+  props.enGrupo ? 'scale-[0.56] lg:scale-75' : 'scale-[0.625] md:scale-75 lg:scale-100'
+)
+
 const caja = computed(() =>
   props.enGrupo
     ? 'w-[54px] h-[54px] lg:w-[72px] lg:h-[72px]'
@@ -94,7 +123,15 @@ const caja = computed(() =>
         variant="evolution"
         :label="$t('pokemon.shinyLegend')"
         class="absolute top-0 right-0 z-10 origin-top-right"
-        :class="enGrupo ? 'scale-75' : 'scale-90'"
+        :class="escalaShiny"
+      />
+      <max-mark
+        v-for="(marca, i) in maxLiberado"
+        :key="marca"
+        :variant="marca"
+        :size="18"
+        :class="[i === 0 ? 'left-0 origin-bottom-left' : 'right-0 origin-bottom-right', escalaMax]"
+        class="absolute bottom-0 z-10 text-gray-800 dark:text-gray-200"
       />
     </span>
     <span
@@ -108,10 +145,6 @@ const caja = computed(() =>
       >
       <type-icons v-if="mon.types?.length" :types="mon.types" size="11" class="!gap-0.5" />
     </span>
-    <span
-      v-if="badge"
-      class="px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-amber-500 text-amber-700 dark:text-amber-400"
-      >{{ badge }}</span
-    >
+    <span v-if="badge" class="insignia insignia-ambar">{{ badge }}</span>
   </component>
 </template>

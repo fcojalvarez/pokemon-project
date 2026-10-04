@@ -26,7 +26,9 @@ const props = defineProps({
   /** Clases de la imagen. */
   imagen: { type: String, default: 'w-5 h-5' },
   /** Para el destacado: el signo en ámbar y más grande. */
-  destacado: Boolean
+  destacado: Boolean,
+  /** El icono a la fuerza, sin mirar el texto (lo que trae un evento). */
+  clave: { type: String, default: null }
 })
 
 const IMAGENES = {
@@ -39,7 +41,7 @@ const IMAGENES = {
 const MASCARAS = { raid: iconoIncursion, research: iconoMision, buddy: iconoCompanero }
 const SIGNOS = { shiny: '✦', stardust: '✧', xp: 'PX' }
 
-const icono = computed(() => iconoDeBonus(props.texto))
+const icono = computed(() => props.clave ?? iconoDeBonus(props.texto))
 </script>
 
 <template>
@@ -55,6 +57,20 @@ const icono = computed(() => iconoDeBonus(props.texto))
       class="object-contain"
       :class="imagen"
     />
+    <!-- Apariciones salvajes: una mata de hierba, que es donde salen en el juego. -->
+    <svg
+      v-else-if="icono === 'wild'"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      class="text-gray-700 dark:text-gray-200"
+      :class="imagen"
+    >
+      <path d="M4 20c1-5 2-8 4-11M9 20c0-5 .5-9 3-14M15 20c0-4 1-7 3-10M20 20c-.5-3-1-5-3-7" />
+      <path d="M2 20h20" />
+    </svg>
     <icono-mascara
       v-else-if="MASCARAS[icono]"
       :src="MASCARAS[icono]"

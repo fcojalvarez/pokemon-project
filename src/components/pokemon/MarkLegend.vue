@@ -14,12 +14,18 @@
  * vería nadie); en «Ahora», al final. Con `marcas` se eligen las que salen:
  * solo las que aparecen en esa página.
  *
+ * Con `enFila`, las marcas en una sola línea que salta si no cabe: el pie de
+ * la ficha, donde la lista de una por línea quedaba suelta y ocupaba mucho.
+ *
  * Con `plegable` se queda en un botón («Leyenda» y las marcas) que la
  * despliega debajo, en móvil y en escritorio: abierta, las líneas ocupaban
  * sitio antes del primer Pokémon.
  *
  * Las marcas son los mismos componentes que las pintan sobre el sprite, al
  * tamaño de la leyenda: si cambia el símbolo, cambia en los dos sitios.
+ *
+ * «Megaenergía» (megaEnergy) es el símbolo del coste de las megas en la línea
+ * evolutiva y en Costes: sale en la leyenda de la ficha si tiene megas.
  *
  * «No liberado» (noLiberado) no es una marca sobre el sprite sino cómo se
  * pinta la tarjeta entera (en gris y con el nombre tachado): su icono es una
@@ -29,11 +35,13 @@ import { ref } from 'vue'
 import ShinyMark from './ShinyMark.vue'
 import MaxMark from './MaxMark.vue'
 import NoLiberadoMark from './NoLiberadoMark.vue'
+import BaseMegaEnergyIcon from '../base/BaseMegaEnergyIcon.vue'
 import useDetectOutsideClick from '../../composables/useDetectOutsideClick'
 
 defineProps({
   marcas: { type: Array, default: () => ['shiny', 'dynamax', 'gigantamax', 'noLiberado'] },
-  plegable: Boolean
+  plegable: Boolean,
+  enFila: Boolean
 })
 
 const abierta = ref(false)
@@ -72,6 +80,7 @@ const onKeydown = (event) => {
             :scale="0.65"
           />
           <no-liberado-mark v-else-if="marca === 'noLiberado'" />
+          <base-mega-energy-icon v-else-if="marca === 'megaEnergy'" class="w-3.5 h-3.5" />
           <max-mark v-else :variant="marca" :size="14" class="shrink-0" />
         </template>
       </span>
@@ -92,8 +101,17 @@ const onKeydown = (event) => {
             : ''
         "
       >
-        <ul :aria-label="$t('legend.title')" class="flex flex-col gap-1.5">
-          <li v-for="marca in marcas" :key="marca" class="flex items-center gap-2">
+        <ul
+          :aria-label="$t('legend.title')"
+          class="flex"
+          :class="enFila ? 'flex-wrap gap-x-4 gap-y-1' : 'flex-col gap-1.5'"
+        >
+          <li
+            v-for="marca in marcas"
+            :key="marca"
+            class="flex items-center"
+            :class="enFila ? 'gap-1' : 'gap-2'"
+          >
             <!-- Todas en una caja del mismo ancho: así los textos quedan alineados. -->
             <span class="w-4 shrink-0 flex justify-center" aria-hidden="true">
               <shiny-mark
@@ -104,6 +122,7 @@ const onKeydown = (event) => {
                 :scale="0.65"
               />
               <no-liberado-mark v-else-if="marca === 'noLiberado'" />
+              <base-mega-energy-icon v-else-if="marca === 'megaEnergy'" class="w-3.5 h-3.5" />
               <max-mark v-else :variant="marca" :size="15" class="shrink-0" />
             </span>
             <span :class="marca === 'noLiberado' ? 'line-through' : ''">{{

@@ -92,7 +92,7 @@ const alPulsarTecla = (event) => {
 const hasFilters = computed(() => activeFilterCount.value > 0)
 
 /** Las mismas etiquetas que el Top: en versalitas, pequeñas y grises. */
-const ETIQUETA = 'block mb-1 text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300'
+const ETIQUETA = 'rotulo block mb-1'
 
 const toggleType = (type) => {
   const current = filters.value.types

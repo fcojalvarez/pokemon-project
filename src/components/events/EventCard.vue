@@ -152,6 +152,14 @@ const maxBattle = computed(() => {
  */
 const resumen = computed(() => summarizeEvent(props.event))
 
+// Lo que trae el evento, con el icono de cada cosa (como un bonus más).
+const loQueTrae = computed(() =>
+  [
+    resumen.value?.hasSpawns && { clave: 'wild', texto: t('events.hasSpawns') },
+    resumen.value?.hasResearch && { clave: 'research', texto: t('events.hasResearch') }
+  ].filter(Boolean)
+)
+
 /**
  * Nombres que pueden salir variocolor.
  *
@@ -251,20 +259,8 @@ defineExpose({ titulo, todosLosBonus })
 
       <div class="min-w-0 flex-1 flex flex-col">
         <div class="flex flex-col items-start gap-1">
-          <!-- La flecha dice que la tarjeta entera abre el detalle: antes no había nada que lo indicara. -->
-          <span class="self-stretch flex items-center justify-between gap-2">
-            <span
-              class="px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
-            >
-              {{ typeLabel }}
-            </span>
-            <span
-              v-if="!detalle"
-              class="shrink-0 text-lg leading-none text-gray-500 dark:text-gray-400"
-              aria-hidden="true"
-              >›</span
-            >
-          </span>
+          <!-- Sin flecha: como las tarjetas de la Pokédex y de «Ahora», la tarjeta entera se pulsa. -->
+          <span class="insignia">{{ typeLabel }}</span>
           <!-- Siempre un h2 (la página lleva su h1), con el enlace dentro si lo hay. -->
           <h2 class="font-bold leading-snug" :class="detalle ? 'text-lg' : 'text-sm sm:text-base'">
             <template v-if="detalle">{{ titulo }}</template>
@@ -416,20 +412,18 @@ defineExpose({ titulo, todosLosBonus })
           v-if="!detalle && resumen && (resumen.hasSpawns || resumen.hasResearch)"
           class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
         >
-          <div v-if="resumen.hasSpawns || resumen.hasResearch" class="flex flex-wrap gap-1.5">
-            <span
-              v-if="resumen.hasSpawns"
-              class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
-            >
-              {{ $t('events.hasSpawns') }}
-            </span>
-            <span
-              v-if="resumen.hasResearch"
-              class="px-2 py-0.5 text-mini rounded-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300"
-            >
-              {{ $t('events.hasResearch') }}
-            </span>
-          </div>
+          <!-- Como los bonus: una lista con su icono, no pastillas que parezcan filtros. -->
+          <ul class="flex flex-col gap-1 text-xs">
+            <li v-for="uno in loQueTrae" :key="uno.clave" class="flex items-center gap-2">
+              <bonus-icono
+                :texto="uno.texto"
+                :clave="uno.clave"
+                circulo="w-5 h-5 bg-gray-150 dark:bg-gray-800 text-[10px]"
+                imagen="w-3.5 h-3.5"
+              />
+              <span class="min-w-0">{{ uno.texto }}</span>
+            </li>
+          </ul>
         </div>
 
         <p

@@ -156,6 +156,26 @@ const maxLiberado = computed(() => {
   return info.gigantamax ? ['dynamax', 'gigantamax'] : ['dynamax']
 })
 
+/**
+ * Las marcas de la leyenda del pie: las de siempre y, si en la línea evolutiva
+ * hay alguna mega (su coste lleva ⚡) o la ficha es de una, la megaenergía.
+ */
+const marcasLeyenda = computed(() => {
+  const marcas = ['shiny', 'dynamax', 'gigantamax', 'noLiberado']
+  const p = pokemon.value
+  if (!p || !gameData.isReady) return marcas
+  const ids = new Set(
+    [...JSON.stringify(p.evolution_info ?? {}).matchAll(/"pokemon_id":(\d+)/g)].map((m) =>
+      Number(m[1])
+    )
+  )
+  ids.add(p.pokemon_id)
+  const conMega = [...ids].some((dex) =>
+    (gameData.formsByDex.get(dex) ?? []).some((f) => f.mega && f.released)
+  )
+  return conMega ? [...marcas, 'megaEnergy'] : marcas
+})
+
 // El título de la pestaña lo pone el router para las páginas fijas; aquí
 // depende de qué Pokémon se cargue.
 watch(
@@ -287,6 +307,9 @@ watch(
             >
               <span class="font-normal text-gray-600 dark:text-gray-300">100 %</span>
               {{ pc100.normal }}
+              <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+                $t('raids.cpRange')
+              }}</span>
             </span>
             <span
               class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 font-semibold text-gray-900 dark:text-gray-100"
@@ -295,13 +318,14 @@ watch(
               <icono-mascara :src="iconoClima" class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
               <span class="sr-only">{{ $t('pokemon.cpWeather') }}:</span>
               {{ pc100.clima }}
+              <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+                $t('raids.cpRange')
+              }}</span>
             </span>
           </p>
-          <span
-            v-if="categoria"
-            class="inline-block mt-2 px-2 py-0.5 text-mini uppercase tracking-wider rounded-full border border-amber-500 text-amber-700 dark:text-amber-400"
-            >{{ $t(`pokemon.category.${categoria}`) }}</span
-          >
+          <span v-if="categoria" class="insignia insignia-ambar mt-2">{{
+            $t(`pokemon.category.${categoria}`)
+          }}</span>
           <!--
                         Una píldora por forma regional, con su sprite y su
                         nombre; la que se ve, rellena. replace: cambiar de forma
@@ -380,7 +404,7 @@ watch(
     <pokemon-extra-info :pokemon="pokemon" :form-id="formId" />
 
     <!-- La misma leyenda que la Pokédex, abierta y al final: explica las marcas del sprite y de la línea evolutiva. -->
-    <mark-legend class="mt-2" />
+    <mark-legend en-fila :marcas="marcasLeyenda" class="mt-3" />
   </div>
 
   <not-found-view v-else-if="noExiste" />

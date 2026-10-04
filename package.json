@@ -26,6 +26,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "icons": "node scripts/build-icons.mjs",
+    "megaenergia": "node scripts/build-megaenergia.mjs",
     "max": "node scripts/fetch-max-battles.mjs",
     "traducir": "node scripts/translate-live.mjs",
     "noticias": "node scripts/fetch-news.mjs",
