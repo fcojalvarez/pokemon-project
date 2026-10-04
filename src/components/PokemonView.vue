@@ -477,18 +477,25 @@ watch(
       <div class="flex flex-col gap-3 md:block md:columns-2 lg:gap-4">
         <div v-for="n in 6" :key="`s${n}`" class="min-w-0 md:break-inside-avoid md:mb-3">
           <base-card padding="" as="div">
-            <!-- Plegada (móvil y tablet): el título, el resumen y la flecha. -->
+            <!--
+              Plegada (móvil y tablet), calcada de FichaSeccion: el hueco del
+              icono a la izquierda, el título y el resumen, y la flecha a la
+              derecha. Al llegar los datos nada cambia de sitio.
+            -->
             <span class="lg:hidden flex items-center gap-3 px-4 py-3.5">
+              <span class="esqueleto shrink-0 w-7 h-7 rounded-lg"></span>
               <span class="flex-1 flex flex-col gap-1.5">
                 <span class="esqueleto h-4 w-36 rounded-full"></span>
                 <span class="esqueleto h-3 w-full max-w-[16rem] rounded-full"></span>
-                <span class="esqueleto h-3 w-2/3 max-w-[11rem] rounded-full"></span>
               </span>
-              <span class="esqueleto w-5 h-5 rounded-full"></span>
+              <span class="esqueleto shrink-0 w-3.5 h-2 rounded-full"></span>
             </span>
-            <!-- Abierta (escritorio): el título y unas filas de contenido. -->
+            <!-- Abierta (escritorio): el icono y el título, y unas filas de contenido. -->
             <span class="hidden lg:flex flex-col gap-2 p-4">
-              <span class="esqueleto h-4 w-36 rounded-full"></span>
+              <span class="flex items-center gap-3">
+                <span class="esqueleto shrink-0 w-7 h-7 rounded-lg"></span>
+                <span class="esqueleto h-4 w-36 rounded-full"></span>
+              </span>
               <span
                 v-for="fila in n % 2 ? 4 : 3"
                 :key="fila"

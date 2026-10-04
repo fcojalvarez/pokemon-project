@@ -2,6 +2,8 @@
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
 import ItemPokemonList from '../components/ItemPokemonList.vue'
 import ScrollUpButton from '../components/ScrollUpButton.vue'
+import BaseSprite from '../components/base/BaseSprite.vue'
+import { spriteUrl } from '../utils/sprites'
 import MarkLegend from '../components/pokemon/MarkLegend.vue'
 import PokedexFilters from '../components/pokemon/PokedexFilters.vue'
 import { storeToRefs } from 'pinia'
@@ -20,8 +22,15 @@ const pokemonStore = usePokemonsStore()
 const route = useRoute()
 const { pokemons, isLoading, isSearching, filters, searchTerm, activeFilterCount } =
   storeToRefs(pokemonStore)
-const { getPokemons, addPokemons, setFilters, clearFilters, filterPokemons, setIsSearching } =
-  pokemonStore
+const {
+  getPokemons,
+  addPokemons,
+  setFilters,
+  clearFilters,
+  filterPokemons,
+  setIsSearching,
+  parecidos
+} = pokemonStore
 
 /**
  * Los filtros, en la URL: un enlace o una recarga conservan la selección.
@@ -176,6 +185,27 @@ onUnmounted(() => {
   document.removeEventListener('scroll', alDesplazar)
 })
 
+/**
+ * Sin resultados: antes la Pokédex se quedaba en blanco, sin saber si cargaba,
+ * si había fallado o si no había nada. Con una búsqueda por nombre, los
+ * Pokémon de nombre parecido («¿Querías decir…?»), por si era una errata; con
+ * filtros que no dejan a nadie, el botón para quitarlos.
+ */
+const sinResultados = computed(
+  () =>
+    !isLoading.value &&
+    pokemons.value.length === 0 &&
+    (Boolean(searchTerm.value) || activeFilterCount.value > 0)
+)
+const sugerencias = ref([])
+watch(
+  [sinResultados, searchTerm],
+  async ([vacio, texto]) => {
+    sugerencias.value = vacio && texto && isNaN(texto) ? await parecidos(texto) : []
+  },
+  { immediate: true }
+)
+
 // El mismo corte que PokedexFilters y el Top: desde aquí, barra lateral.
 const ancho = useMedia('(min-width: 1280px)')
 </script>
@@ -261,6 +291,38 @@ const ancho = useMedia('(min-width: 1280px)')
               </div>
             </div>
           </template>
+        </div>
+
+        <div
+          v-else-if="sinResultados"
+          class="mt-4 mx-auto max-w-md p-6 flex flex-col items-center gap-3 text-center border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+          role="status"
+        >
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {{
+              searchTerm ? $t('filters.noneNamed', { texto: searchTerm }) : $t('filters.noneMatch')
+            }}
+          </p>
+          <template v-if="sugerencias.length">
+            <p class="text-xs text-gray-600 dark:text-gray-300">{{ $t('filters.didYouMean') }}</p>
+            <ul class="flex flex-wrap justify-center gap-4">
+              <li v-for="p in sugerencias" :key="p.pokemon_id">
+                <router-link
+                  :to="`/pokemon/${p.pokemon_id}`"
+                  class="flex flex-col items-center gap-1 p-1 rounded-xl text-xs font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+                >
+                  <base-sprite :src="spriteUrl(p.pokemon_id)" class="w-14 h-14" />
+                  {{ p.name }}
+                </router-link>
+              </li>
+            </ul>
+          </template>
+          <p v-else-if="searchTerm" class="text-xs text-gray-600 dark:text-gray-300">
+            {{ $t('filters.tryOther') }}
+          </p>
+          <button v-if="activeFilterCount > 0" type="button" class="boton" @click="clearFilters">
+            {{ $t('filters.clearAll') }}
+          </button>
         </div>
       </div>
     </div>

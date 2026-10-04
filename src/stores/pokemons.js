@@ -154,6 +154,46 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     return [...empiezan, ...contienen]
   }
 
+  /**
+   * Distancia de edición entre dos textos (cuántas letras hay que cambiar,
+   * quitar o poner, contando como una el cambio de dos seguidas: «pikahcu»
+   * está a una de «pikachu»).
+   */
+  const distancia = (a, b) => {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)])
+    for (let j = 1; j <= b.length; j++) d[0][j] = j
+    for (let i = 1; i <= a.length; i++) {
+      for (let j = 1; j <= b.length; j++) {
+        const coste = a[i - 1] === b[j - 1] ? 0 : 1
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + coste)
+        if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1])
+          d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1)
+      }
+    }
+    return d[a.length][b.length]
+  }
+
+  /**
+   * Para «¿Querías decir…?» cuando la búsqueda no encuentra a nadie: los
+   * nombres a pocas letras de lo escrito, contra el nombre entero o contra su
+   * principio (quien escribe «pikahc» aún no ha acabado). Como mucho tres, de
+   * más a menos parecido. Cuantas más letras, más errores se admiten.
+   */
+  const parecidos = async (texto, cuantos = 3) => {
+    const q = normalizar(texto)
+    if (q.length < 3) return []
+    const tope = q.length <= 4 ? 1 : q.length <= 7 ? 2 : 3
+    return (await cargarNombres())
+      .map((p) => {
+        const n = normalizar(p.name)
+        return { p, d: Math.min(distancia(q, n), distancia(q, n.slice(0, q.length))) }
+      })
+      .filter(({ d }) => d <= tope)
+      .sort((a, b) => a.d - b.d || a.p.pokemon_id - b.p.pokemon_id)
+      .slice(0, cuantos)
+      .map(({ p }) => p)
+  }
+
   const filterPokemons = async (inputValue, toSearchModal = false) => {
     const value = (inputValue || '').toLowerCase().trim()
     const isWritingName = isNaN(value)
@@ -277,6 +317,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     getPokemons,
     isLoading,
     isSearching,
+    parecidos,
     searchTerm,
     setIsSearching,
     pokemons

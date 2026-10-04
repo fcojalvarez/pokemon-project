@@ -66,9 +66,9 @@ test('el orden de las secciones de la ficha se guarda y se puede restablecer', a
   }
   await expect(page.locator('#ficha-debilidades')).toBeAttached()
 
-  await page.getByRole('button', { name: 'Ordenar secciones' }).click()
-  // Debilidades va la última de fábrica: se sube por encima de Efectos.
+  // Debilidades va detrás de Efectos de fábrica: se sube por encima.
   expect(await antes('efectos', 'debilidades')).toBe(true)
+  await page.getByRole('button', { name: 'Ordenar secciones' }).click()
   await page.getByRole('button', { name: 'Subir Debilidades' }).click()
   await page.getByRole('button', { name: 'Listo' }).click()
 
@@ -78,7 +78,42 @@ test('el orden de las secciones de la ficha se guarda y se puede restablecer', a
 
   await page.getByRole('button', { name: 'Ordenar secciones' }).click()
   await page.getByRole('button', { name: 'Restablecer orden' }).click()
+  await page.getByRole('button', { name: 'Listo' }).click()
   expect(await antes('efectos', 'debilidades')).toBe(true)
+})
+
+test('al ordenar, una sección se puede arrastrar por su asa', async ({ page }) => {
+  await page.goto('/pokemon/6')
+  await expect(page.getByRole('heading', { level: 1, name: 'Charizard' })).toBeVisible()
+  await expect(page.locator('#ficha-comparar')).toBeAttached()
+  await page.getByRole('button', { name: 'Ordenar secciones' }).click()
+
+  // La lista compacta, una fila por sección: se lleva la última arriba del todo.
+  const filas = page.locator('ol > li')
+  await page.locator('ol').evaluate((ol) => ol.scrollIntoView({ block: 'center' }))
+  const primera = await filas.first().innerText()
+  const ultima = filas.last()
+  const asa = ultima.locator('span[aria-hidden="true"]').first()
+  const desde = await asa.boundingBox()
+  const hasta = await filas.first().boundingBox()
+  await page.mouse.move(desde.x + desde.width / 2, desde.y + desde.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(desde.x + desde.width / 2, hasta.y + 2, { steps: 20 })
+  await page.mouse.up()
+  await expect(filas.first()).toContainText('Comparar con')
+  await expect(filas.nth(1)).toContainText(primera.trim().split(/\s*\n\s*/)[0])
+
+  // Y de vuelta al último puesto: antes se quedaba siempre en el penúltimo.
+  const asaArriba = filas.first().locator('span[aria-hidden="true"]').first()
+  const otra = await asaArriba.boundingBox()
+  const fondo = await filas.last().boundingBox()
+  await page.mouse.move(otra.x + otra.width / 2, otra.y + otra.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(otra.x + otra.width / 2, fondo.y + fondo.height - 2, { steps: 20 })
+  await page.mouse.up()
+  await expect(filas.last()).toContainText('Comparar con')
+
+  await page.getByRole('button', { name: 'Restablecer orden' }).click()
 })
 
 test('la galería de formas se recorre con las flechas y se cierra con Escape', async ({ page }) => {

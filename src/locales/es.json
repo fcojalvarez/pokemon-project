@@ -435,6 +435,11 @@
     "countersButton": "Counters"
   },
   "filters": {
+    "noneNamed": "Ningún Pokémon se llama «{texto}»",
+    "noneMatch": "Ningún Pokémon cumple estos filtros",
+    "didYouMean": "¿Querías decir…?",
+    "tryOther": "Prueba con otro nombre o con su número.",
+    "clearAll": "Quitar los filtros",
     "more": "Más filtros",
     "type": "Tipo",
     "generation": "Generación",

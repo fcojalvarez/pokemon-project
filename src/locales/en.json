@@ -435,6 +435,11 @@
     "countersButton": "Counters"
   },
   "filters": {
+    "noneNamed": "No Pokémon is called “{texto}”",
+    "noneMatch": "No Pokémon matches these filters",
+    "didYouMean": "Did you mean…?",
+    "tryOther": "Try another name or its number.",
+    "clearAll": "Clear the filters",
     "more": "More filters",
     "type": "Type",
     "generation": "Generation",
