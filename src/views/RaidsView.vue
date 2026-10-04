@@ -532,20 +532,18 @@ onMounted(() => {
                 >
               </h3>
               <!--
-                Un carrusel por nivel, como los huevos: solo el nivel 1 eran 32
-                tarjetas a una columna, unas veinte pantallas. Desde md hay
-                sitio y van en rejilla. El equipo del jefe abierto sale debajo
-                de su nivel, a todo el ancho.
+                En rejilla, como las incursiones: antes era un carrusel en el
+                móvil y, con 35 jefes en el nivel 1, buscar uno era deslizar a
+                ciegas. Los chips de arriba saltan a cada nivel. El equipo del
+                jefe abierto sale debajo de su nivel, a todo el ancho.
               -->
               <div
-                v-difuminado
-                class="-mx-4 px-4 py-1 flex gap-2 overflow-x-auto snap-x scroll-px-4 [scrollbar-width:none] md:mx-0 md:px-0 md:grid md:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] md:overflow-visible"
+                class="grid grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-2"
               >
                 <live-mon-card
                   v-for="uno in grupo.list"
                   :id="`mon-${uno.dex}`"
                   :key="`${grupo.tier}-${uno.dex}`"
-                  class="shrink-0 w-44 snap-start md:w-auto"
                   :highlight="destacado === uno.dex"
                   :name="localName(uno)"
                   :image="uno.image"
@@ -607,20 +605,16 @@ onMounted(() => {
               >
             </h2>
             <!--
-              Un carrusel por distancia: cada huevo es una fila que se desliza
-              y se ven todas las distancias sin bajar mucho. Antes, solo 1 km
-              eran 27 tarjetas a dos columnas. Desde md hay sitio y bajan de
-              línea.
+              En rejilla, todos a la vista: el carrusel enseñaba cuatro de cada
+              vez y para encontrar uno había que deslizar a ciegas. Las tarjetas
+              son pequeñas, así que caben tres o cuatro por fila en el móvil.
             -->
-            <div
-              v-difuminado
-              class="-mx-4 px-4 py-1 flex gap-2 overflow-x-auto snap-x scroll-px-4 [scrollbar-width:none] md:mx-0 md:px-0 md:flex-wrap md:overflow-visible"
-            >
+            <div class="grid grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] gap-2">
               <live-mon-card
                 v-for="egg in group.list"
                 :key="`${group.name}-${egg.name}`"
                 :id="`mon-${dexFromImage(egg.image)}`"
-                class="snap-start"
+                class="!w-auto"
                 vertical
                 :highlight="destacado === dexFromImage(egg.image)"
                 :name="gameData.nombreEs(egg.name)"
@@ -652,10 +646,13 @@ onMounted(() => {
                   >({{ grupo.list.length }})</span
                 >
               </h2>
-              <div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 items-start">
+              <!-- En columnas encajadas, como la Semana de Eventos: cada tarjeta con
+                   su alto y sin huecos, y en escritorio hasta tres. -->
+              <div class="md:columns-2 xl:columns-3 gap-2">
                 <rocket-lineup
                   v-for="lineup in grupo.list"
                   :key="lineup.name"
+                  class="mb-2 break-inside-avoid"
                   :lineup="lineup"
                   :open="openRocket === lineup.name"
                   @toggle="openRocket = openRocket === lineup.name ? null : lineup.name"
@@ -682,11 +679,11 @@ onMounted(() => {
                 >({{ group.list.length }})</span
               >
             </h2>
-            <div class="grid grid-cols-[repeat(auto-fill,minmax(290px,1fr))] gap-2 items-start">
+            <div class="md:columns-2 xl:columns-3 gap-2">
               <article
                 v-for="(task, index) in group.list"
                 :key="`${group.type}-${index}`"
-                class="p-2.5 border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900"
+                class="mb-2 break-inside-avoid p-2.5 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
               >
                 <p class="text-xs font-semibold mb-1">{{ taskText(task.text) }}</p>
                 <!-- Las recompensas, sin caja: antes eran tarjetas dentro de la tarjeta. -->

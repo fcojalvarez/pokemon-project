@@ -84,7 +84,7 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
     :is="to ? 'router-link' : 'div'"
     v-if="esJefe"
     :to="to ?? undefined"
-    class="luz-tipo relative isolate flex flex-col p-2 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+    class="luz-tipo relative isolate flex flex-col p-2 rounded-xl border border-gray-300 dark:border-gray-700 shadow-md bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
     :style="{ '--tipo': colorTipo }"
     :class="[
       to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : '',
@@ -151,7 +151,9 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
     :to="to ?? undefined"
     class="relative isolate shrink-0 w-[5.5rem] flex flex-col items-center p-1.5 rounded-xl text-center text-gray-800 dark:text-gray-200"
     :class="[
-      sinCaja ? '' : 'border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900',
+      sinCaja
+        ? ''
+        : 'border border-gray-300 dark:border-gray-700 shadow-md bg-white dark:bg-gray-900',
       to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : '',
       highlight
         ? 'ring-2 ring-offset-2 ring-gray-600 dark:ring-gray-300 ring-offset-gray-100 dark:ring-offset-gray-950'
@@ -193,7 +195,7 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
     :is="to ? 'router-link' : 'div'"
     v-else
     :to="to ?? undefined"
-    class="flex flex-wrap md:flex-nowrap items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+    class="flex flex-wrap md:flex-nowrap items-center gap-2 p-1.5 rounded-xl border border-gray-300 dark:border-gray-700 shadow-md bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
     :class="[
       to ? 'cursor-pointer hover:bg-gray-150 hover:dark:bg-gray-800' : '',
       highlight

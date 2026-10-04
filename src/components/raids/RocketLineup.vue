@@ -84,7 +84,7 @@ const debilidades = computed(() =>
 
 <template>
   <article
-    class="overflow-hidden border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900"
+    class="overflow-hidden border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
   >
     <div class="flex flex-wrap items-center gap-2 px-2.5 pt-2.5 pb-2">
       <div class="flex-1 min-w-0">
@@ -93,7 +93,13 @@ const debilidades = computed(() =>
           {{ $t('raids.rocket.quote', { text: frase }) }}
         </p>
       </div>
-      <counters-toggle v-if="tipo" :open="open" :boss-name="nombre" @toggle="emit('toggle')" />
+      <counters-toggle
+        v-if="tipo"
+        icono
+        :open="open"
+        :boss-name="nombre"
+        @toggle="emit('toggle')"
+      />
     </div>
 
     <!--
@@ -140,7 +146,7 @@ const debilidades = computed(() =>
             </component>
           </li>
         </ul>
-        <span class="flex-1 min-w-0 text-mini leading-tight line-clamp-2" aria-hidden="true">{{
+        <span class="flex-1 min-w-0 text-mini leading-tight" aria-hidden="true">{{
           lista.map((mon) => mon.nombre).join(' · ')
         }}</span>
         <span
