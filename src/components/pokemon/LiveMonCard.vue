@@ -129,18 +129,19 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
       Abajo, bajo una raya y como una ficha técnica, lo que hace falta para
       preparar el equipo: su tipo y a qué es débil (hasta cuatro, los que más
       daño le hacen), cada uno con su rótulo. Sin rótulos, los iconos sueltos
-      no se entendían. El botón de counters, a la derecha, ocupa las dos líneas.
+      no se entendían. Debajo, a lo ancho, el botón de counters con su texto: al
+      lado de las debilidades no cabía en las tarjetas estrechas del móvil.
     -->
     <span
-      class="mt-auto pt-1.5 border-t border-gray-300/70 dark:border-gray-700 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1"
+      class="mt-auto pt-1.5 border-t border-gray-300/70 dark:border-gray-700 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1"
     >
       <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('filters.type') }}</span>
       <type-icons :types="tipos" size="14" class="!gap-1 min-w-0" />
-      <span class="row-span-2 col-start-3 row-start-1 self-center"><slot name="pie" /></span>
       <template v-if="debil.length">
         <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('raids.weak') }}</span>
         <type-icons :types="debil.slice(0, 4)" size="14" class="!gap-1 min-w-0" />
       </template>
+      <span v-if="$slots.pie" class="col-span-2 mt-1 grid"><slot name="pie" /></span>
     </span>
   </component>
 

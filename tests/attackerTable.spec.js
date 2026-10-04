@@ -38,9 +38,9 @@ describe('tabla del Top', () => {
     const celdas = w.get('tbody tr').findAll('td').map((td) => td.text())
     expect(celdas[0]).toBe('1')
     expect(celdas[1]).toContain('Charizard')
-    expect(celdas[2]).toContain('Ascuas')
-    expect(celdas[3]).toContain('Llamarada')
-    expect(celdas.slice(4)).toEqual(['20,5', '900', '60,1'])
+    // Rápido y cargado, juntos en la columna «Ataques» y en ese orden.
+    expect(celdas[2]).toMatch(/Ascuas.*Llamarada/)
+    expect(celdas.slice(3)).toEqual(['20,5', '900', '60,1'])
     // Toda la fila es el enlace a la ficha.
     expect(w.get('tbody a').attributes('href')).toBe('/pokemon/1')
   })

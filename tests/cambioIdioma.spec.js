@@ -77,6 +77,6 @@ describe('tabla del Top al cambiar de idioma', () => {
     await nextTick()
     expect(w.get('tbody').text()).toContain('Charizard (Mega X)')
     expect(w.get('tbody').text()).toContain('Fire Blast')
-    expect(w.get('thead').text()).toContain('Fast moves')
+    expect(w.get('thead').text()).toContain('Moves')
   })
 })

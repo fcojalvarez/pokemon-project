@@ -54,8 +54,9 @@ const ordenar = (metrica) => {
           <th scope="col" class="w-10 px-3 py-2 font-semibold text-right">#</th>
           <th scope="col" class="px-3 py-2 font-semibold">{{ $t('top.pokemonColumn') }}</th>
           <template v-if="mode === 'pve'">
-            <th scope="col" class="px-3 py-2 font-semibold">{{ $t('pokemon.fastMoves') }}</th>
-            <th scope="col" class="px-3 py-2 font-semibold">{{ $t('pokemon.chargedMoves') }}</th>
+            <!-- Una columna para los dos, el rápido delante: con dos, «Ataques
+                 cargados» saltaba de línea y repetían «Ataques». -->
+            <th scope="col" class="px-3 py-2 font-semibold">{{ $t('top.moves') }}</th>
             <th
               v-for="metrica in METRICAS"
               :key="metrica"
@@ -128,23 +129,23 @@ const ordenar = (metrica) => {
           </td>
           <template v-if="mode === 'pve'">
             <td class="px-3 py-1.5 text-mini">
-              <move-tag
-                chip
-                :name="localName(row.fast)"
-                :type="row.fast.type"
-                :elite="row.fast.elite"
-                :legacy="row.fast.legacy"
-              />
-            </td>
-            <td class="px-3 py-1.5 text-mini">
-              <move-tag
-                chip
-                :name="localName(row.charged)"
-                :type="row.charged.type"
-                :elite="row.charged.elite"
-                :legacy="row.charged.legacy"
-                :mega="row.charged.mega"
-              />
+              <span class="flex gap-1.5 whitespace-nowrap">
+                <move-tag
+                  chip
+                  :name="localName(row.fast)"
+                  :type="row.fast.type"
+                  :elite="row.fast.elite"
+                  :legacy="row.fast.legacy"
+                />
+                <move-tag
+                  chip
+                  :name="localName(row.charged)"
+                  :type="row.charged.type"
+                  :elite="row.charged.elite"
+                  :legacy="row.charged.legacy"
+                  :mega="row.charged.mega"
+                />
+              </span>
             </td>
             <td
               v-for="metrica in METRICAS"

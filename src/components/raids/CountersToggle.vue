@@ -19,8 +19,9 @@ defineProps({
   /** Para el lector de pantalla: de qué jefe son los contrincantes. */
   bossName: { type: String, required: true },
   /**
-   * Solo el icono, en un botón cuadrado: en la tarjeta de jefe comparte fila
-   * con sus debilidades. Abierto, relleno, porque no hay flecha que gire.
+   * Con las espadas delante, en la tarjeta de jefe, donde comparte fila con
+   * sus debilidades. Antes era solo el icono y no se sabía qué hacía: ahora
+   * lleva también la palabra. Abierto, relleno, porque no hay flecha que gire.
    */
   icono: Boolean
 })
@@ -32,11 +33,10 @@ const emit = defineEmits(['toggle'])
   <button
     v-if="icono"
     type="button"
-    class="zona-tactil shrink-0 boton w-9 !px-0"
+    class="zona-tactil shrink-0 boton !px-2"
     :class="open ? 'boton-activo' : ''"
     :aria-expanded="open"
     :aria-label="`${$t('raids.countersButton')}: ${bossName}`"
-    :title="$t('raids.countersButton')"
     @click.prevent.stop="emit('toggle')"
   >
     <!-- Dos espadas cruzadas: a quién llevar al combate. -->
@@ -53,6 +53,7 @@ const emit = defineEmits(['toggle'])
       <path d="M14.5 17.5 3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2" />
       <path d="M9.5 17.5 21 6V3h-3L6.5 14.5M11 19l-6-6M8 16l-4 4M5 21l-2-2" />
     </svg>
+    <span aria-hidden="true">{{ $t('raids.countersButton') }}</span>
   </button>
   <button
     v-else

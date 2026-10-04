@@ -42,10 +42,25 @@ const MASCARAS = { raid: iconoIncursion, research: iconoMision, buddy: iconoComp
 const SIGNOS = { shiny: '✦', stardust: '✧', xp: 'PX' }
 
 const icono = computed(() => props.clave ?? iconoDeBonus(props.texto))
+
+/**
+ * Sin icono que encaje, no se pinta nada: solo el hueco, para que el texto
+ * quede alineado con los demás. Antes salía un círculo con un punto, y en
+ * algunos eventos era la mitad de la lista.
+ */
+const sinIcono = computed(() => !props.destacado && !icono.value)
+const hueco = computed(() =>
+  props.circulo
+    .split(/\s+/)
+    .filter((clase) => !/(^|:)bg-/.test(clase))
+    .join(' ')
+)
 </script>
 
 <template>
+  <span v-if="sinIcono" class="shrink-0" :class="hueco" aria-hidden="true"></span>
   <span
+    v-else
     class="shrink-0 rounded-full flex items-center justify-center"
     :class="circulo"
     aria-hidden="true"
@@ -85,7 +100,7 @@ const icono = computed(() => props.clave ?? iconoDeBonus(props.texto))
           ? 'text-amber-600 dark:text-amber-400'
           : 'text-gray-700 dark:text-gray-200'
       "
-      >{{ SIGNOS[icono] ?? '•' }}</span
+      >{{ SIGNOS[icono] ?? '✦' }}</span
     >
   </span>
 </template>

@@ -477,3 +477,13 @@ test.describe('Leyenda y Filtros de la Pokédex', () => {
     await expect(leyenda).toHaveAttribute('aria-expanded', 'false')
   })
 })
+
+test('al buscar con la Pokédex bajada, vuelve arriba y el resultado se ve', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByText('Bulbasaur', { exact: true }).first()).toBeVisible()
+  await page.evaluate(() => window.scrollTo(0, 3000))
+  await page.getByRole('button', { name: 'Abrir el buscador' }).click()
+  await page.getByPlaceholder(/buscar pok/i).fill('mewtwo')
+  await expect(page.getByText('Mewtwo', { exact: true }).first()).toBeInViewport()
+  expect(await page.evaluate(() => window.scrollY)).toBe(0)
+})

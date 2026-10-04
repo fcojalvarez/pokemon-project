@@ -158,6 +158,15 @@ watch(
   { deep: true }
 )
 
+// Al buscar o filtrar la lista se rehace desde el principio: arriba del todo.
+// Si no, con la página bajada y pocos resultados, la página encogía y los
+// resultados quedaban escondidos bajo la cabecera.
+const volverArriba = () => {
+  if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: 'instant' })
+}
+watch(searchTerm, volverArriba)
+watch(filters, volverArriba, { deep: true })
+
 onMounted(async () => {
   // Con filtros en la URL, la primera carga la hace setFilters (ver arriba).
   if (pokemons.value.length === 0 && !habiaFiltros) await getPokemons()
