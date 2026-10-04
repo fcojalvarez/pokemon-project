@@ -666,7 +666,8 @@
     "dynamax": "Dinamax liberado",
     "gigantamax": "Gigamax liberado",
     "noLiberado": "No liberado",
-    "megaEnergy": "Megaenergía"
+    "megaEnergy": "Megaenergía",
+    "primalEnergy": "Energía primigenia"
   },
   "update": {
     "title": "Hay una nueva versión",

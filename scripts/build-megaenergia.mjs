@@ -1,17 +1,24 @@
 /**
- * Los colores de la megaenergía de cada especie, sacados del propio juego.
+ * Los colores de la megaenergía de cada especie, para la piedra en SVG
+ * (BaseMegaEnergyIcon).
  *
  *   pnpm megaenergia
  *
- * En el juego la megaenergía es un modelo 3D (no hay imagen en pogo_assets):
- * una piedra con el símbolo mega, siempre la misma, teñida con cuatro colores
- * de rampa que cambian por especie. PokeMiners los publica en
- * «Candy Color Data/PokemonMegaCandyAkaMegaEnergy.json». La app dibuja la
- * piedra en SVG (BaseMegaEnergyIcon) y la pinta con estos colores.
+ * En el juego la megaenergía es un modelo 3D, una piedra siempre igual teñida
+ * por especie, y nadie publica un vector. En src/assets/megaEnergia.json van:
  *
- * Sale src/assets/megaEnergia.json: { "6": ["#de9372", …], "6_MEGA_X": … },
- * las cuatro rampas de oscuro a claro en el orden del juego (1 a 4). Solo
- * cambia cuando sale una mega nueva: se vuelve a lanzar entonces.
+ *   - `puntos`: 41 colores por especie (25 por dentro, fuera del símbolo, y 16
+ *     pegados al canto), medidos en el sprite de cada megaenergía que publica
+ *     Bulbagarden Archives (Category:Pokémon GO Mega Energy, los del juego a
+ *     128 px), y `generica`, la piedra sin especie. Solo están las megas que
+ *     ya han salido en GO. Se midieron a mano en el navegador: la web corta a
+ *     los navegadores automáticos, así que este script no los toca y se
+ *     conservan. Dónde va cada punto, en el componente (DENTRO y CANTO).
+ *   - `rampas`: los cuatro colores de rampa del juego (PokeMiners, «Candy Color
+ *     Data»), que traen también las megas aún sin publicar. De ellos sale el
+ *     color de las que no tienen puntos medidos.
+ *
+ * Solo cambia cuando sale una mega nueva: se vuelve a lanzar entonces.
  */
 import fs from 'node:fs/promises'
 import path from 'node:path'
@@ -32,17 +39,29 @@ const hex = ({ r, g, b }) =>
     )
     .join('')
 
+// ---------- Rampas del juego ----------
 const res = await fetch(URL_COLORES)
 if (!res.ok) throw new Error(`HTTP ${res.status} al bajar los colores de megaenergía`)
-const datos = await res.json()
-
-const colores = {}
-for (const [clave, material] of Object.entries(datos)) {
+const rampas = {}
+for (const [clave, material] of Object.entries(await res.json())) {
   // «0006» → «6»; «0006_MEGA_X» → «6_MEGA_X».
   const id = clave.replace(/^0+/, '')
-  const rampas = [1, 2, 3, 4].map((n) => material[`_RampColor${n}`])
-  if (rampas.every(Boolean)) colores[id] = rampas.map(hex)
+  const colores = [1, 2, 3, 4].map((n) => material[`_RampColor${n}`])
+  if (colores.every(Boolean)) rampas[id] = colores.map(hex)
 }
 
-await fs.writeFile(SALIDA, JSON.stringify(colores, null, 0) + '\n')
-console.log(`${Object.keys(colores).length} megaenergías en ${path.relative(ROOT, SALIDA)}`)
+// ---------- Tonos medidos: se conservan ----------
+let previo = {}
+try {
+  previo = JSON.parse(await fs.readFile(SALIDA, 'utf8'))
+} catch {
+  /* primera vez */
+}
+const { generica = null, puntos = {} } = previo
+
+await fs.writeFile(SALIDA, JSON.stringify({ generica, puntos, rampas }) + '\n')
+console.log(
+  `${Object.keys(rampas).length} megaenergías con rampas (${
+    Object.keys(puntos).length
+  } medidas en su sprite) en ${path.relative(ROOT, SALIDA)}`
+)

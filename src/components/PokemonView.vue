@@ -157,23 +157,31 @@ const maxLiberado = computed(() => {
 })
 
 /**
- * Las marcas de la leyenda del pie: las de siempre y, si en la línea evolutiva
- * hay alguna mega (su coste lleva ⚡) o la ficha es de una, la megaenergía.
+ * La especie de la línea evolutiva que megaevoluciona (su coste lleva la
+ * piedra de megaenergía, o la gema primigenia en Kyogre y Groudon), o null.
  */
-const marcasLeyenda = computed(() => {
-  const marcas = ['shiny', 'dynamax', 'gigantamax', 'noLiberado']
+const dexEnergia = computed(() => {
   const p = pokemon.value
-  if (!p || !gameData.isReady) return marcas
+  if (!p || !gameData.isReady) return null
   const ids = new Set(
     [...JSON.stringify(p.evolution_info ?? {}).matchAll(/"pokemon_id":(\d+)/g)].map((m) =>
       Number(m[1])
     )
   )
   ids.add(p.pokemon_id)
-  const conMega = [...ids].some((dex) =>
-    (gameData.formsByDex.get(dex) ?? []).some((f) => f.mega && f.released)
+  return (
+    [...ids].find((dex) =>
+      (gameData.formsByDex.get(dex) ?? []).some((f) => f.mega && f.released)
+    ) ?? null
   )
-  return conMega ? [...marcas, 'megaEnergy'] : marcas
+})
+
+/** Las marcas de la leyenda del pie: las de siempre y, si hay megas, su energía. */
+const ENERGIA_PRIMIGENIA = [382, 383]
+const marcasLeyenda = computed(() => {
+  const marcas = ['shiny', 'dynamax', 'gigantamax', 'noLiberado']
+  if (!dexEnergia.value) return marcas
+  return [...marcas, ENERGIA_PRIMIGENIA.includes(dexEnergia.value) ? 'primalEnergy' : 'megaEnergy']
 })
 
 // El título de la pestaña lo pone el router para las páginas fijas; aquí
@@ -404,7 +412,7 @@ watch(
     <pokemon-extra-info :pokemon="pokemon" :form-id="formId" />
 
     <!-- La misma leyenda que la Pokédex, abierta y al final: explica las marcas del sprite y de la línea evolutiva. -->
-    <mark-legend en-fila :marcas="marcasLeyenda" class="mt-3" />
+    <mark-legend en-fila :marcas="marcasLeyenda" :dex-energia="dexEnergia" class="mt-3" />
   </div>
 
   <not-found-view v-else-if="noExiste" />

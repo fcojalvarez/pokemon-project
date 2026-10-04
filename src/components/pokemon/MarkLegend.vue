@@ -24,8 +24,10 @@
  * Las marcas son los mismos componentes que las pintan sobre el sprite, al
  * tamaño de la leyenda: si cambia el símbolo, cambia en los dos sitios.
  *
- * «Megaenergía» (megaEnergy) es el símbolo del coste de las megas en la línea
- * evolutiva y en Costes: sale en la leyenda de la ficha si tiene megas.
+ * «Megaenergía» (megaEnergy) y «Energía primigenia» (primalEnergy, la de
+ * Kyogre y Groudon, que es otra figura) son el icono del coste de las megas en
+ * la línea evolutiva y en Costes: salen en la leyenda de la ficha si tiene
+ * megas, con la de su especie (`dexEnergia`).
  *
  * «No liberado» (noLiberado) no es una marca sobre el sprite sino cómo se
  * pinta la tarjeta entera (en gris y con el nombre tachado): su icono es una
@@ -41,7 +43,9 @@ import useDetectOutsideClick from '../../composables/useDetectOutsideClick'
 defineProps({
   marcas: { type: Array, default: () => ['shiny', 'dynamax', 'gigantamax', 'noLiberado'] },
   plegable: Boolean,
-  enFila: Boolean
+  enFila: Boolean,
+  /** Especie de la megaenergía que se enseña en la leyenda. */
+  dexEnergia: { type: Number, default: null }
 })
 
 const abierta = ref(false)
@@ -80,7 +84,11 @@ const onKeydown = (event) => {
             :scale="0.65"
           />
           <no-liberado-mark v-else-if="marca === 'noLiberado'" />
-          <base-mega-energy-icon v-else-if="marca === 'megaEnergy'" class="w-3.5 h-3.5" />
+          <base-mega-energy-icon
+            v-else-if="marca === 'megaEnergy' || marca === 'primalEnergy'"
+            :dex="dexEnergia"
+            class="w-3.5 h-3.5"
+          />
           <max-mark v-else :variant="marca" :size="14" class="shrink-0" />
         </template>
       </span>
@@ -122,7 +130,11 @@ const onKeydown = (event) => {
                 :scale="0.65"
               />
               <no-liberado-mark v-else-if="marca === 'noLiberado'" />
-              <base-mega-energy-icon v-else-if="marca === 'megaEnergy'" class="w-3.5 h-3.5" />
+              <base-mega-energy-icon
+                v-else-if="marca === 'megaEnergy' || marca === 'primalEnergy'"
+                :dex="dexEnergia"
+                class="w-3.5 h-3.5"
+              />
               <max-mark v-else :variant="marca" :size="15" class="shrink-0" />
             </span>
             <span :class="marca === 'noLiberado' ? 'line-through' : ''">{{

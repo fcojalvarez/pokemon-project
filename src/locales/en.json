@@ -666,7 +666,8 @@
     "dynamax": "Dynamax released",
     "gigantamax": "Gigantamax released",
     "noLiberado": "Not released",
-    "megaEnergy": "Mega Energy"
+    "megaEnergy": "Mega Energy",
+    "primalEnergy": "Primal Energy"
   },
   "update": {
     "title": "A new version is available",
