@@ -172,7 +172,8 @@
         "cp": "PC máx. (nv. 50)",
         "dps": "DPS",
         "tdo": "Daño total",
-        "pve": "Puesto incursiones"
+        "pve": "Puesto incursiones",
+        "bestType": "Mejor tipo"
       }
     },
     "howToBeatHelp": "Los que más daño le hacen por segundo, con sus mejores ataques: los mismos que para un jefe de incursión.",
@@ -199,8 +200,21 @@
     "short": {
       "pvp": "PvP",
       "pve": "PvE",
-      "max": "Max"
+      "max": "Max",
+      "gym": "Gimnasio"
     },
+    "gym": {
+      "intro": "Mejores defensores de gimnasio: los que más aguantan y siguen pegando. Ni legendarios, ni singulares, ni ultraentes, ni oscuros, ni megas.",
+      "unit": "Defensa",
+      "hp": "PS",
+      "def": "Def",
+      "ficha": "Defendiendo un gimnasio",
+      "pill": "Defensor de gimnasio",
+      "method1": "Un defensor sobre todo aguanta: obliga a gastar tiempo y pociones. Por eso pesa el aguante, sus PS de defensor (en un gimnasio, el doble) por su defensa, y algo menos su daño: aguante^1,5 × DPS^0,5, al nivel 40 y con IV 15/15/15, con su mejor conjunto contra un objetivo neutro.",
+      "method2": "La cifra es su puntuación frente al primero, que vale 100. No pueden defender gimnasios los legendarios, los singulares, los ultraentes, los oscuros ni las megas; filtrar por tipo no cambia el puesto."
+    },
+    "methodWeather": "En ámbar, debajo, lo mismo con el clima que potencia el tipo de su ataque cargado (Soleado para Fuego, Lluvia para Agua…): los ataques de los tipos de ese clima pegan un 20 % más. El orden no cambia; es para ver cuánto ganaría.",
+    "weatherTitle": "Con {clima}, los ataques de {tipos} pegan un 20 % más",
     "pokemonColumn": "Pokémon",
     "score": "Puntuación",
     "moves": "Ataques",

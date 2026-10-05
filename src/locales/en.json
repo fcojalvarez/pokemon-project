@@ -171,7 +171,8 @@
         "cp": "Max CP (lv. 50)",
         "dps": "DPS",
         "tdo": "Total damage",
-        "pve": "Raid rank"
+        "pve": "Raid rank",
+        "bestType": "Best type"
       }
     },
     "howToBeat": "How to beat it",
@@ -199,8 +200,21 @@
     "short": {
       "pvp": "PvP",
       "pve": "PvE",
-      "max": "Max"
+      "max": "Max",
+      "gym": "Gym"
     },
+    "gym": {
+      "intro": "Best gym defenders: the ones that last longest and still hit back. No legendary, mythical, Ultra Beast, Shadow or Mega Pokémon.",
+      "unit": "Defense",
+      "hp": "HP",
+      "def": "Def",
+      "ficha": "Defending a gym",
+      "pill": "Gym defender",
+      "method1": "A defender mostly lasts: it costs attackers time and potions. So bulk weighs most, its defender HP (doubled in a gym) times its defense, and its damage a bit less: bulk^1.5 × DPS^0.5, at level 40 with 15/15/15 IVs, with its best moveset against a neutral target.",
+      "method2": "The number is its score against the first one, which is 100. Legendary, mythical, Ultra Beast, Shadow and Mega Pokémon cannot defend gyms; filtering by type does not change the rank."
+    },
+    "methodWeather": "In amber, below, the same with the weather that boosts its charged move type (Sunny for Fire, Rain for Water…): moves of that weather's types deal 20% more. The order does not change; it shows how much it would gain.",
+    "weatherTitle": "With {clima}, {tipos} moves deal 20% more",
     "pokemonColumn": "Pokémon",
     "score": "Score",
     "moves": "Moves",

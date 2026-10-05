@@ -12,6 +12,8 @@
 import { computed, ref, useId, watch } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import MoveTag from '../MoveTag.vue'
+import TypeIcons from '../../base/TypeIcons.vue'
+import BaseNivel from '../../base/BaseNivel.vue'
 import { useGameDataStore } from '../../../stores/gameData'
 import { useTranslate } from '../../../composables/useTranslate'
 import { spriteUrl } from '../../../utils/sprites'
@@ -172,7 +174,24 @@ const resumen = computed(() =>
               class="py-1.5 text-center"
               :class="fila.gana === lado ? 'font-bold text-green-700 dark:text-green-400' : ''"
             >
-              {{ formato(fila, fila[lado]) }}
+              <!--
+                Los puestos, con su letra (como en Puesto PvE y PvP); el de su
+                mejor tipo, con el icono del tipo y los cortes por tipo.
+              -->
+              <span
+                v-if="fila.mejor === 'menor' && fila[lado] != null"
+                class="inline-flex items-center gap-1.5"
+              >
+                <span
+                  class="inline-flex items-center gap-1"
+                  :class="fila.gana === lado ? 'font-bold' : ''"
+                >
+                  <type-icons v-if="fila.tipos?.[lado]" :types="[fila.tipos[lado]]" size="13" />
+                  {{ formato(fila, fila[lado]) }}
+                </span>
+                <base-nivel :rank="fila[lado]" :por-tipo="fila.clave === 'bestType'" pequena />
+              </span>
+              <template v-else>{{ formato(fila, fila[lado]) }}</template>
             </td>
           </tr>
         </tbody>

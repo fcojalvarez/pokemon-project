@@ -293,11 +293,30 @@ export function useFichaDatos({ pokemon, formId }) {
    * Puestos PvE por forma: la que se está viendo y, debajo, su versión oscura,
    * que en el Top sale aparte y aquí no aparecía nunca. Sin forma concreta,
    * todas las de la especie.
+   *
+   * Cada una lleva también su puesto como defensor de gimnasio (`defensor`),
+   * si puede defender. La forma principal sale aunque como atacante no entre
+   * en ningún top: Blissey es la mejor defensora y no pega a nada.
    */
   const pveRanks = computed(() => {
     if (!gameData.isReady || !fila()) return []
-    const formas = gameData.pveRanksFor(fila().pokemon_id).filter((forma) => forma.byType.length)
     const principal = form.value?.id ?? base.value?.id
+    const porId = new Map(
+      gameData
+        .pveRanksFor(fila().pokemon_id)
+        .map((forma) => [forma.id, { ...forma, defensor: gameData.defensorPara(forma.id) }])
+    )
+    const defensorPrincipal = gameData.defensorPara(principal)
+    if (defensorPrincipal && !porId.has(principal)) {
+      porId.set(principal, {
+        id: principal,
+        entry: gameData.byId.get(principal),
+        overall: null,
+        byType: [],
+        defensor: defensorPrincipal
+      })
+    }
+    const formas = [...porId.values()].filter((forma) => forma.byType.length || forma.defensor)
     const ids = [principal, `${principal}_shadow`]
     const suyas = ids.map((id) => formas.find((forma) => forma.id === id)).filter(Boolean)
     // Viendo una forma concreta, solo ella y su oscura. En la ficha de la

@@ -442,3 +442,22 @@ test('la calculadora de subida cambia con los tiradores y la variante', async ({
   await seccion.getByRole('button', { name: 'Con suerte', exact: true }).click()
   await expect(cifras).toContainText('237.500')
 })
+
+test('el Top de gimnasio pone a Blissey primera y su ficha lo dice', async ({ page }) => {
+  await page.goto('/top?mode=gym')
+  const primera = page.locator('[data-fila-top]').first()
+  await expect(primera).toContainText('Blissey')
+  await expect(primera).toContainText('100')
+  await page.goto('/pokemon/242')
+  const seccion = page.locator('#ficha-pve')
+  const plegada = seccion.locator('h2 button[aria-expanded="false"]')
+  if (await plegada.count()) await plegada.click()
+  await expect(seccion).toContainText('Defendiendo un gimnasio')
+  await expect(seccion).toContainText('#1')
+})
+
+test('cada fila del Top de incursiones lleva su cifra con clima', async ({ page }) => {
+  await page.goto('/top?kind=fire')
+  const fila = page.locator('[data-fila-top]').first()
+  await expect(fila.locator('[title^="Con Soleado"]')).toBeVisible()
+})

@@ -18,6 +18,9 @@ const PERFECT_IVS = { atk: 15, def: 15, hp: 15 }
  */
 export const SUPER_EFICAZ = 1.6
 
+/** Lo que pega de más un ataque de un tipo potenciado por el clima. */
+export const CLIMA = 1.2
+
 /**
  * Tipos a los que no es débil nadie: su lista va contra un jefe neutro. Sin
  * esto, Regigigas Oscuro sumaba su tipo Normal a ×1,6, un daño que en el juego
@@ -60,12 +63,14 @@ export function evaluatePokemon(entry, moves, options = {}) {
   // Contra un jefe débil a este tipo: solo sus ataques cargados de ese tipo,
   // y cada ataque de ese tipo (rápido o cargado) pega ×1,6; el resto, ×1.
   const debilA = options.debilA ?? null
+  // Con clima: los ataques de los tipos que potencia pegan ×1,2.
+  const clima = options.clima ?? null
   const eficacia = (tipo) =>
-    chart && defenderTypes
+    (chart && defenderTypes
       ? effectivenessAgainst(chart, tipo, defenderTypes)
       : debilA && tipo === debilA && !SIN_DEBILES.has(debilA)
       ? SUPER_EFICAZ
-      : 1
+      : 1) * (clima?.includes(tipo) ? CLIMA : 1)
 
   const stats = effectiveStats(entry.stats, ivs, level, { shadow: entry.shadow })
   const results = []
@@ -278,4 +283,59 @@ export function typeMatchups(chart, types, allTypes) {
   weak.sort((a, b) => b.mult - a.mult)
   resist.sort((a, b) => a.mult - b.mult)
   return { weak, resist }
+}
+
+/**
+ * ¿Puede defender un gimnasio? No pueden los legendarios, los singulares,
+ * los ultraentes, los oscuros ni las megas (la mega vuelve a su forma al
+ * dejarla).
+ */
+export function puedeDefender(entry) {
+  return Boolean(
+    entry?.released &&
+      entry.stats &&
+      !entry.shadow &&
+      !entry.mega &&
+      !entry.legendary &&
+      !entry.mythical &&
+      !entry.ultraBeast
+  )
+}
+
+/**
+ * Los mejores defensores de gimnasio.
+ *
+ * Un defensor aguanta y obliga a gastar pociones; el daño que hace cuenta,
+ * pero menos. Por eso pesa sobre todo el aguante: PS de defensor (en un
+ * gimnasio, el doble) por defensa, al nivel 40 y 15/15/15. Puntuación:
+ * aguante^1,5 × DPS^0,5, con su mejor conjunto contra un objetivo neutro.
+ * Así salen arriba Blissey y Snorlax, como dice la comunidad, y no un
+ * atacante de cristal.
+ *
+ * Cada fila es la de evaluatePokemon con `rank`, `value` (de 0 a 100,
+ * respecto al primero), `psDefensor` y `defensa`.
+ */
+export function computeDefenders(pokemon, moves, options = {}) {
+  const filas = []
+  for (const entry of pokemon) {
+    if (!puedeDefender(entry)) continue
+    const mejor = evaluatePokemon(entry, moves, { ...options, sortBy: 'dps' })[0]
+    if (!mejor) continue
+    const stats = effectiveStats(entry.stats, PERFECT_IVS, DEFAULT_LEVEL)
+    const psDefensor = stats.hp * 2
+    const aguante = psDefensor * stats.def
+    filas.push({
+      ...mejor,
+      psDefensor,
+      defensa: Math.round(stats.def),
+      puntuacion: aguante ** 1.5 * mejor.dps ** 0.5
+    })
+  }
+  filas.sort((a, b) => b.puntuacion - a.puntuacion)
+  const tope = filas[0]?.puntuacion || 1
+  return filas.map((fila, i) => ({
+    ...fila,
+    rank: i + 1,
+    value: Math.round((fila.puntuacion / tope) * 100)
+  }))
 }

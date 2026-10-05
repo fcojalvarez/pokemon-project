@@ -45,7 +45,10 @@ describe('candidatosComparar', () => {
 describe('resumenComparable y filasComparar', () => {
   const gameData = {
     bestMovesets: (entry) => [{ dps: entry.id === 'a' ? 15 : 12, tdo: 400 }],
-    pveRanksFor: () => [{ id: 'a', overall: { rank: 10 } }],
+    pveRanksFor: () => [
+      { id: 'a', overall: { rank: 10 }, byType: [{ type: 'fire', rank: 44 }] },
+      { id: 'b', overall: null, byType: [{ type: 'water', rank: 98 }] }
+    ],
     pvpRanksFor: () => [
       { id: 'a', league: 'great', rank: 30 },
       { id: 'a', league: 'great', rank: 5 },
@@ -60,6 +63,8 @@ describe('resumenComparable y filasComparar', () => {
     expect(b.pvp.great).toBe(2)
     expect(a.pve).toBe(10)
     expect(b.pve).toBeNull()
+    // Aunque no entre en el general, en su tipo sí.
+    expect(b.mejorTipo).toEqual({ tipo: 'water', rank: 98 })
     expect(a.cp).toBeGreaterThan(0)
   })
 
@@ -72,8 +77,11 @@ describe('resumenComparable y filasComparar', () => {
       dps: 'a',
       tdo: null,
       pve: null,
+      bestType: 'a',
       great: 'b',
       ultra: null
     })
+    const mejorTipo = filasComparar(a, b).find((f) => f.clave === 'bestType')
+    expect(mejorTipo.tipos).toEqual({ a: 'fire', b: 'water' })
   })
 })

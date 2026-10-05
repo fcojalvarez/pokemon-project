@@ -28,6 +28,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CPM_BY_LEVEL } from '../src/utils/formulas.js'
 import { POLVO_POR_NIVEL, CARAMELOS_POR_NIVEL, XL_POR_NIVEL } from '../src/utils/subida.js'
+import { CLIMAS } from '../src/utils/clima.js'
 import { normalizeText } from '../src/utils/gameText.js'
 import { spriteUrl } from '../src/utils/sprites.js'
 import { loadEnv } from './lib/env.mjs'
@@ -2057,6 +2058,19 @@ async function main() {
     console.warn('    Actualízalos antes de fiarte de la calculadora de la ficha.\n')
   }
 
+  // Y los tipos que potencia cada clima, de src/utils/clima.js.
+  const CLIMA_GM = { CLEAR: 'clear', RAINY: 'rainy', PARTLY_CLOUDY: 'partlycloudy', OVERCAST: 'cloudy', WINDY: 'windy', SNOW: 'snow', FOG: 'fog' }
+  const climasGm = gmRaw.filter((t) => t.data?.weatherAffinities).map((t) => t.data.weatherAffinities)
+  const climaDistinto = climasGm.length !== Object.keys(CLIMAS).length || climasGm.some((a) => {
+    const nuestros = CLIMAS[CLIMA_GM[a.weatherCondition]] ?? []
+    const suyos = a.pokemonType.map((tipo) => tipo.replace('POKEMON_TYPE_', '').toLowerCase())
+    return suyos.length !== nuestros.length || suyos.some((tipo) => !nuestros.includes(tipo))
+  })
+  if (climaDistinto) {
+    console.warn('\n  ⚠ Los climas del GAME_MASTER ya no coinciden con src/utils/clima.js')
+    console.warn('    Actualízalos antes de fiarte de la cifra con clima del Top.\n')
+  }
+
   const chart = buildTypeChart(gmRaw)
   const moves = buildMoves(gmRaw, pvpGm, es, nombresDeAtaques(pgaRaw))
   await completarPve(moves, pbMoves)
@@ -2067,6 +2081,25 @@ async function main() {
   const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
   const conVariocolor = especiesConVariocolor(leekRaw)
   const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, conVariocolor, i18nMap(enRaw))
+  // Legendario, singular y ultraente, del GAME_MASTER (`pokemonClass`), que
+  // manda en las tres: las etiquetas de pvpoke se dejaban 59 formas (Arceus,
+  // Silvally, Cosmog…) y ponían a Necrozma de ultraente, que es legendario.
+  // Solo con las especies que el GAME_MASTER trae; sin clase, ninguna.
+  const clasePorDex = new Map()
+  for (const t of gmRaw) {
+    const m = /^V(\d{4})_POKEMON_[A-Z0-9_]+$/.exec(t.templateId ?? '')
+    if (!m || !t.data?.pokemonSettings) continue
+    const dex = Number(m[1])
+    const clase = t.data.pokemonSettings.pokemonClass ?? null
+    if (!clasePorDex.has(dex) || (clase && !clasePorDex.get(dex))) clasePorDex.set(dex, clase)
+  }
+  for (const p of pokemon) {
+    if (!clasePorDex.has(p.dex)) continue
+    const clase = clasePorDex.get(p.dex)
+    p.legendary = clase === 'POKEMON_CLASS_LEGENDARY'
+    p.mythical = clase === 'POKEMON_CLASS_MYTHIC'
+    p.ultraBeast = clase === 'POKEMON_CLASS_ULTRA_BEAST'
+  }
   // Especies que suben con otra tabla (Eternatus paga treinta veces más
   // caramelos). El polvo es el mismo: solo se guardan caramelos y XL.
   for (const t of gmRaw.filter((x) => x.templateId?.startsWith('POKEMON_UPGRADE_OVERRIDE_SETTINGS_V'))) {

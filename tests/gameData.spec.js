@@ -3,10 +3,13 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   computeCounters,
+  computeDefenders,
   computeTypeRankings,
   evaluatePokemon,
+  puedeDefender,
   typeMatchups
 } from '../src/utils/pve'
+import { CLIMAS, climaDeTipo } from '../src/utils/clima'
 import { dexFromImage, eventStatus, parseDate } from '../src/utils/liveFeed'
 import { normalizeName, translateGameText } from '../src/utils/gameText'
 import { spriteUrl } from '../src/utils/sprites'
@@ -502,5 +505,51 @@ describe('ranking sin ataques élite', () => {
     )
     expect(colados).toEqual([])
     expect(overall.length).toBeGreaterThan(0)
+  })
+})
+
+describe('defensores de gimnasio', () => {
+  const defensores = computeDefenders(roster, moves)
+
+  it('Blissey y Snorlax, arriba, como dice la comunidad', () => {
+    expect(defensores[0].id).toBe('blissey')
+    expect(defensores[0].value).toBe(100)
+    expect(ids(defensores.slice(0, 3))).toContain('snorlax')
+  })
+
+  it('PS de defensor, el doble', () => {
+    const blissey = defensores[0]
+    expect(blissey.psDefensor % 2).toBe(0)
+    expect(blissey.psDefensor).toBeGreaterThan(800)
+  })
+
+  it('sin legendarios, singulares, ultraentes, oscuros ni megas', () => {
+    for (const fila of defensores) {
+      const entry = roster.find((e) => e.id === fila.id)
+      expect(puedeDefender(entry)).toBe(true)
+      expect(
+        entry.shadow || entry.mega || entry.legendary || entry.mythical || entry.ultraBeast
+      ).toBe(false)
+    }
+  })
+})
+
+describe('clima', () => {
+  it('cada tipo, con un solo clima', () => {
+    for (const tipo of typechart.order) expect(climaDeTipo(tipo)).not.toBeNull()
+    const todos = Object.values(CLIMAS).flat()
+    expect(new Set(todos).size).toBe(todos.length)
+  })
+
+  it('con su clima, el conjunto pega un 20 % más si sus dos ataques son de ese tipo', () => {
+    const charizard = roster.find((e) => e.id === 'charizard')
+    const opciones = { debilA: 'fire' }
+    const igual = (r) => r.fast.type === 'fire' && r.charged.type === 'fire'
+    const sin = evaluatePokemon(charizard, moves, opciones).find(igual)
+    const con = evaluatePokemon(charizard, moves, { ...opciones, clima: CLIMAS.clear }).find(
+      (r) => r.fast.id === sin.fast.id && r.charged.id === sin.charged.id
+    )
+    expect(con.dps / sin.dps).toBeGreaterThan(1.15)
+    expect(con.dps / sin.dps).toBeLessThan(1.25)
   })
 })

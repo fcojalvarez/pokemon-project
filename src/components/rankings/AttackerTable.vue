@@ -14,6 +14,8 @@ import TypeIcons from '../base/TypeIcons.vue'
 import StabBadge from '../base/StabBadge.vue'
 import BaseNivel from '../base/BaseNivel.vue'
 import PapelesMax from './PapelesMax.vue'
+import IconoClima from '../base/IconoClima.vue'
+import { useTituloClima } from '../../composables/useTituloClima'
 import MoveTag from '../pokemon/MoveTag.vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import { spriteUrl } from '../../utils/sprites'
@@ -52,9 +54,18 @@ const barra = (row) => row.general ?? valor(row, principal.value)
 const tope = computed(() => Math.max(1e-9, ...props.rows.map(barra)))
 const porcentaje = (row) => Math.round((barra(row) / tope.value) * 100)
 const formato = (clave, v) =>
-  clave === 'tdo' || props.mode === 'max' ? Math.round(v) : formatDecimal(Number(v))
+  clave === 'tdo' || props.mode === 'max' || props.mode === 'gym'
+    ? Math.round(v)
+    : formatDecimal(Number(v))
+const tituloClima = useTituloClima()
 
-const tituloValor = computed(() => (props.mode === 'max' ? t('max.damageUnit') : t('top.score')))
+const tituloValor = computed(() =>
+  props.mode === 'max'
+    ? t('max.damageUnit')
+    : props.mode === 'gym'
+    ? t('top.gym.unit')
+    : t('top.score')
+)
 const ordenar = (metrica) => {
   if (metrica !== props.sortBy) emit('update:sortBy', metrica)
 }
@@ -191,6 +202,16 @@ const ordenar = (metrica) => {
                 ></span>
                 {{ formato(metrica, row[metrica]) }}
               </span>
+              <!-- Debajo, en ámbar, con el clima que potencia su tipo. -->
+              <span
+                v-if="metrica === sortBy && row.conClima"
+                class="flex items-center justify-end gap-1 text-mini font-bold text-amber-700 dark:text-amber-400"
+                :title="tituloClima(row.conClima.clima)"
+              >
+                <icono-clima :clima="row.conClima.clima" class="w-3.5 h-3.5" />
+                <span class="sr-only">{{ tituloClima(row.conClima.clima) }}:</span>
+                {{ formato(metrica, row.conClima[metrica]) }}
+              </span>
             </td>
           </template>
           <template v-else>
@@ -218,7 +239,7 @@ const ordenar = (metrica) => {
             >
               <span class="inline-flex items-center justify-end gap-2">
                 <span
-                  v-if="mode === 'max'"
+                  v-if="mode === 'max' || mode === 'gym'"
                   class="w-14 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
                   aria-hidden="true"
                 >
@@ -229,6 +250,13 @@ const ordenar = (metrica) => {
                 </span>
                 <stab-badge v-if="row.stab" />
                 {{ formato('value', row.value) }}
+              </span>
+              <span
+                v-if="row.psDefensor"
+                class="block text-mini font-normal text-gray-600 dark:text-gray-300"
+              >
+                {{ row.psDefensor }} {{ $t('top.gym.hp') }} · {{ row.defensa }}
+                {{ $t('top.gym.def') }}
               </span>
             </td>
           </template>

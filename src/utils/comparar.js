@@ -41,7 +41,9 @@ export function candidatosComparar(roster, texto, nombre, { excluir = null, limi
 
 /**
  * Lo que se compara de una forma: estadísticas, PC máximo, su mejor conjunto
- * de ataques para incursiones y sus puestos PvE y PvP. Todo sale de lo que ya
+ * de ataques para incursiones y sus puestos PvE y PvP. En PvE, el general y
+ * su mejor puesto por tipo: muchos no entran en el general (Blastoise) y en
+ * su tipo sí. Todo sale de lo que ya
  * calcula el resto de la ficha, así que los números son los mismos que se ven
  * en la de cada uno.
  */
@@ -59,6 +61,8 @@ export function resumenComparable(gameData, entry) {
     cp: calcCP(entry.stats, { atk: 15, def: 15, hp: 15 }, 50),
     mejor,
     pve: pve?.overall?.rank ?? null,
+    // byType viene ordenado por puesto: el primero es su mejor tipo.
+    mejorTipo: pve?.byType?.[0] ? { tipo: pve.byType[0].type, rank: pve.byType[0].rank } : null,
     pvp
   }
 }
@@ -70,12 +74,12 @@ export function resumenComparable(gameData, entry) {
  * no está entre los que se clasifican.
  */
 export function filasComparar(a, b) {
-  const fila = (clave, va, vb, mejor) => {
+  const fila = (clave, va, vb, mejor, extra = {}) => {
     let gana = null
     if (va != null && vb != null && va !== vb) {
       gana = (mejor === 'mayor' ? va > vb : va < vb) ? 'a' : 'b'
     }
-    return { clave, a: va, b: vb, mejor, gana }
+    return { clave, a: va, b: vb, mejor, gana, ...extra }
   }
   return [
     fila('atk', a.stats.atk, b.stats.atk, 'mayor'),
@@ -85,6 +89,10 @@ export function filasComparar(a, b) {
     fila('dps', a.mejor?.dps ?? null, b.mejor?.dps ?? null, 'mayor'),
     fila('tdo', a.mejor?.tdo ?? null, b.mejor?.tdo ?? null, 'mayor'),
     fila('pve', a.pve, b.pve, 'menor'),
+    // El de cada uno en su tipo: con `tipos` para el icono y las letras por tipo.
+    fila('bestType', a.mejorTipo?.rank ?? null, b.mejorTipo?.rank ?? null, 'menor', {
+      tipos: { a: a.mejorTipo?.tipo ?? null, b: b.mejorTipo?.tipo ?? null }
+    }),
     fila('great', a.pvp.great ?? null, b.pvp.great ?? null, 'menor'),
     fila('ultra', a.pvp.ultra ?? null, b.pvp.ultra ?? null, 'menor'),
     fila('master', a.pvp.master ?? null, b.pvp.master ?? null, 'menor')

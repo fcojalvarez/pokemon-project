@@ -1,7 +1,14 @@
 import { computed, ref, shallowRef } from 'vue'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { leerFilas } from '../lib/filasDeDatos'
-import { computeCounters, computeTypeRankings, typeMatchups, evaluatePokemon } from '../utils/pve'
+import {
+  computeCounters,
+  computeDefenders,
+  computeTypeRankings,
+  typeMatchups,
+  evaluatePokemon
+} from '../utils/pve'
+import { CLIMAS, climaDeTipo } from '../utils/clima'
 import { calcCP } from '../utils/formulas'
 import { gigamaxDe, opcionesMax, papelesMax } from '../utils/maxBattle'
 import { aShinyEnTodo, normalizeName, translateGameText } from '../utils/gameText'
@@ -383,6 +390,33 @@ export const useGameDataStore = defineStore('gameData', () => {
       computeTypeRankings(roster.value, moves.value, { limit: 50, ...options })
     )
 
+  /** Los defensores de gimnasio, todos, del mejor al peor (Top y ficha). */
+  const defensores = (options = {}) =>
+    cached(`def:${JSON.stringify(options)}`, () =>
+      computeDefenders(roster.value, moves.value, options)
+    )
+
+  /** Su fila de defensor (con `rank`), si puede defender un gimnasio. */
+  const defensorPara = (id) =>
+    cached('defPorId', () => new Map(defensores().map((fila) => [fila.id, fila]))).get(id) ?? null
+
+  /**
+   * Una fila del Top PvE con el clima que potencia el tipo de su cargado:
+   * el mismo conjunto, contra el mismo jefe débil a ese tipo, con los ataques
+   * de los tipos de ese clima ×1,2. Devuelve { clima, dps, tdo, er }.
+   */
+  const conClima = (row) =>
+    cached(`clima:${row.id}:${row.fast.id}:${row.charged.id}`, () => {
+      const entry = byId.value.get(row.id)
+      const clima = climaDeTipo(row.charged.type)
+      if (!entry || !clima) return null
+      const igual = evaluatePokemon(entry, moves.value, {
+        debilA: row.charged.type,
+        clima: CLIMAS[clima]
+      }).find((otro) => otro.fast.id === row.fast.id && otro.charged.id === row.charged.id)
+      return igual ? { clima, dps: igual.dps, tdo: igual.tdo, er: igual.er } : null
+    })
+
   /** Puesto de tanque y de sanador de cada Pokémon que dinamaxiza (letras del Top Max). */
   const papelesDeMax = () => cached('papelesMax', () => papelesMax(roster.value))
 
@@ -504,6 +538,9 @@ export const useGameDataStore = defineStore('gameData', () => {
     maxLiveCaducado,
     maxInfoFor,
     papelesDeMax,
+    defensores,
+    defensorPara,
+    conClima,
     datosMax,
     status,
     error,

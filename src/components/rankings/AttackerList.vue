@@ -21,6 +21,8 @@ import { localName, formatDecimal } from '../../composables/useTranslate'
 import StabBadge from '../base/StabBadge.vue'
 import BaseNivel from '../base/BaseNivel.vue'
 import PapelesMax from './PapelesMax.vue'
+import IconoClima from '../base/IconoClima.vue'
+import { useTituloClima } from '../../composables/useTituloClima'
 import MaxMoveLines from './MaxMoveLines.vue'
 import { fichaDeFila, movesOf, rowKey } from '../../utils/rankingRows'
 import { useGameDataStore } from '../../stores/gameData'
@@ -67,6 +69,13 @@ const mainValue = (row) => {
 }
 
 const percent = (row) => Math.round((barra(row) / max.value) * 100)
+
+const tituloClima = useTituloClima()
+/** La cifra de la métrica que manda, con el clima. */
+const cifraClima = (row) => {
+  const valor = row.conClima[props.sortBy]
+  return props.sortBy === 'tdo' ? Math.round(valor) : formatDecimal(valor)
+}
 </script>
 
 <template>
@@ -164,7 +173,28 @@ const percent = (row) => Math.round((barra(row) / max.value) * 100)
               :style="{ width: percent(row) + '%' }"
             ></span>
           </div>
-          <div v-if="showSecondary" class="mt-0.5 text-mini text-gray-600 dark:text-gray-300">
+          <!--
+            Debajo, en ámbar, lo mismo con el clima que potencia su tipo: el
+            orden no cambia, pero se ve cuánto ganaría con ese clima.
+          -->
+          <div
+            v-if="showSecondary && row.conClima"
+            class="mt-0.5 inline-flex items-center gap-1 text-mini font-bold tabular-nums text-amber-700 dark:text-amber-400"
+            :title="tituloClima(row.conClima.clima)"
+          >
+            <icono-clima :clima="row.conClima.clima" class="w-3.5 h-3.5" />
+            <span class="sr-only">{{ tituloClima(row.conClima.clima) }}:</span>
+            {{ cifraClima(row) }}
+          </div>
+          <!-- PS y defensa de defensor, una por línea: juntas no cabían en la columna. -->
+          <div
+            v-else-if="showSecondary && row.psDefensor"
+            class="mt-0.5 flex flex-col text-mini text-gray-600 dark:text-gray-300 tabular-nums"
+          >
+            <span>{{ row.psDefensor }} {{ $t('top.gym.hp') }}</span>
+            <span>{{ row.defensa }} {{ $t('top.gym.def') }}</span>
+          </div>
+          <div v-else-if="showSecondary" class="mt-0.5 text-mini text-gray-600 dark:text-gray-300">
             <template v-if="sortBy !== 'dps'">{{ formatDecimal(row.dps) }} DPS</template>
             <template v-else>{{ Math.round(row.tdo) }} TDO</template>
           </div>

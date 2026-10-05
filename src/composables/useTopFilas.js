@@ -45,7 +45,24 @@ export function useTopFilas(filtros) {
       sortBy: sortBy.value,
       limit: LIMITE
     })
-    return type.value === 'all' ? rankings.overall : rankings.byType[type.value] ?? []
+    const filas = type.value === 'all' ? rankings.overall : rankings.byType[type.value] ?? []
+    // Cada fila, también con el clima que potencia su tipo (la cifra en ámbar).
+    return filas.map((row) => ({ ...row, conClima: gameData.conClima(row) }))
+  })
+
+  /**
+   * Gimnasio: los mejores defensores. Filtrar por tipo no cambia su puesto
+   * (como en PvP): es el de la lista entera.
+   */
+  const gymRows = computed(() => {
+    if (!gameData.isReady || mode.value !== 'gym') return []
+    const filas = gameData.defensores({
+      includeLegacy: includeLegacy.value,
+      includeElite: includeElite.value
+    })
+    return (
+      type.value === 'all' ? filas : filas.filter((row) => row.types.includes(type.value))
+    ).slice(0, LIMITE)
   })
 
   const moveType = (id) => gameData.moves[id]?.type ?? 'normal'
@@ -189,7 +206,13 @@ export function useTopFilas(filtros) {
 
   /** Las filas del modo que se está viendo. */
   const filasVisibles = computed(() =>
-    mode.value === 'max' ? maxRows.value : mode.value === 'pve' ? pveRows.value : pvpRows.value
+    mode.value === 'max'
+      ? maxRows.value
+      : mode.value === 'pve'
+      ? pveRows.value
+      : mode.value === 'gym'
+      ? gymRows.value
+      : pvpRows.value
   )
 
   /**
@@ -210,5 +233,5 @@ export function useTopFilas(filtros) {
     gigantamax: maxRows.value.some((fila) => fila.version === 'gigantamax')
   }))
 
-  return { pveRows, pvpRows, maxRows, filasVisibles, origenes, leyendaMax }
+  return { pveRows, pvpRows, maxRows, gymRows, filasVisibles, origenes, leyendaMax }
 }

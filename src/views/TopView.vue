@@ -29,9 +29,9 @@ const type = ref('all')
 const PAPELES = ['atacante', 'tanque', 'sanador']
 
 /**
- * La letra de cada puesto: en PvE y PvP (el Max no tiene un orden que se
- * compare con el de GO Hub). La lista de un tipo de PvE es más corta y lleva
- * cortes más cortos; en PvP filtrar por tipo no cambia el puesto en la liga.
+ * La letra de cada puesto: en PvE, PvP y Gimnasio (el Max lleva sus tres
+ * letras de papel). La lista de un tipo de PvE es más corta y lleva cortes
+ * más cortos; en PvP y Gimnasio filtrar por tipo no cambia el puesto.
  */
 const nivel = computed(() =>
   mode.value === 'max' ? '' : mode.value === 'pve' && type.value !== 'all' ? 'tipo' : 'general'
@@ -69,6 +69,12 @@ const incluir = computed(() => {
       { clave: 'elite', valor: includeElite, texto: 'moves.elite', ayuda: 'top.eliteHelp' }
     ]
   }
+  // Gimnasio: los oscuros y las megas no defienden, así que solo los ataques.
+  if (mode.value === 'gym')
+    return [
+      { clave: 'legacy', valor: includeLegacy, texto: 'moves.legacy', ayuda: 'top.legacyHelp' },
+      { clave: 'elite', valor: includeElite, texto: 'moves.elite', ayuda: 'top.eliteHelp' }
+    ]
   if (mode.value === 'max')
     return [
       {
@@ -104,7 +110,7 @@ const excluidos = computed({
   }
 })
 useFiltrosEnUrl({
-  mode: { valor: mode, defecto: 'pve', leer: entre(['pve', 'max', 'pvp']) },
+  mode: { valor: mode, defecto: 'pve', leer: entre(['pve', 'max', 'gym', 'pvp']) },
   kind: {
     valor: type,
     defecto: 'all',
@@ -150,11 +156,11 @@ const etiqueta = (opciones, valor) =>
 
 /**
  * Arriba, a la vista, solo PvE o PvP. Dentro de los filtros, lo primero es su
- * variante: Incursiones o Max con PvE, la liga con PvP. Antes eran cinco
- * botones al mismo nivel que mezclaban las dos cosas. Al volver a PvE se
- * vuelve a lo último que había (Incursiones o Max); la liga ya se recuerda.
+ * variante: Incursiones, Max o Gimnasio con PvE, la liga con PvP. Antes eran
+ * cinco botones al mismo nivel que mezclaban las dos cosas. Al volver a PvE
+ * se vuelve a lo último que había; la liga ya se recuerda.
  */
-const ultimoPve = ref(mode.value === 'max' ? 'max' : 'pve')
+const ultimoPve = ref(mode.value === 'pvp' ? 'pve' : mode.value)
 watch(mode, (nuevo) => {
   if (nuevo !== 'pvp') ultimoPve.value = nuevo
 })
@@ -170,7 +176,8 @@ const familiaOptions = computed(() => [
 ])
 const pveKindOptions = computed(() => [
   { value: 'pve', label: t('top.raids') },
-  { value: 'max', label: t('top.short.max') }
+  { value: 'max', label: t('top.short.max') },
+  { value: 'gym', label: t('top.short.gym') }
 ])
 const leagueOptions = computed(() =>
   ['great', 'ultra', 'master'].map((liga) => ({ value: liga, label: t(`top.${liga}`) }))
@@ -214,6 +221,12 @@ const resumenFiltros = computed(() => {
     if (quitados.length) partes.push(t('top.without', { list: quitados.join(', ') }))
   } else if (mode.value === 'max') {
     if (!includeLegendary.value) partes.push(t('top.without', { list: t('top.legendaries') }))
+  } else if (mode.value === 'gym') {
+    const quitados = [
+      !includeLegacy.value && t('moves.legacy'),
+      !includeElite.value && t('moves.elite')
+    ].filter(Boolean)
+    if (quitados.length) partes.push(t('top.without', { list: quitados.join(', ') }))
   }
   return partes.join(' · ')
 })
@@ -230,10 +243,11 @@ const filtrosCambiados = computed(
     (mode.value === 'pve'
       ? excluidos.value.filter((quitado) => quitado !== 'legendary').length
       : 0) +
-    (mode.value === 'max' && !includeLegendary.value ? 1 : 0)
+    (mode.value === 'max' && !includeLegendary.value ? 1 : 0) +
+    (mode.value === 'gym' ? [!includeLegacy.value, !includeElite.value].filter(Boolean).length : 0)
 )
 
-const { pveRows, pvpRows, maxRows, filasVisibles, origenes, leyendaMax } = useTopFilas({
+const { pveRows, pvpRows, maxRows, gymRows, filasVisibles, origenes, leyendaMax } = useTopFilas({
   mode,
   type,
   sortBy,
@@ -284,6 +298,8 @@ watch(
       {{
         mode === 'max'
           ? $t('max.tabIntro')
+          : mode === 'gym'
+          ? $t('top.gym.intro')
           : mode === 'pve'
           ? $t('top.pveIntro')
           : $t('top.pvpIntro')
@@ -478,6 +494,15 @@ watch(
           :show-secondary="false"
         />
 
+        <!-- Gimnasio: la puntuación de defensor (0–100) y, debajo, sus PS y su defensa. -->
+        <attacker-list
+          v-else-if="mode === 'gym'"
+          :rows="gymRows"
+          sort-by="value"
+          :unit="$t('top.gym.unit')"
+          :nivel="nivel"
+        />
+
         <!-- PvP: la misma lista, sin barra ni métrica de apoyo (no hay DPS aquí). -->
         <attacker-list
           v-else
@@ -489,10 +514,10 @@ watch(
           :nivel="nivel"
         />
 
-        <!-- Cómo se calcula el top Max: debajo de la lista, encima de la leyenda. -->
+        <!-- Cómo se calcula el top Max (y el de gimnasio): debajo de la lista. -->
         <top-calculo
-          v-if="gameData.isReady && mode === 'max' && rowsShown"
-          modo="max"
+          v-if="gameData.isReady && (mode === 'max' || mode === 'gym') && rowsShown"
+          :modo="mode"
           class="mt-3"
         />
 
