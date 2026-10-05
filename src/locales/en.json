@@ -105,6 +105,19 @@
     },
     "status": "Heads-up",
     "costs": "Costs",
+    "levelUp": {
+      "title": "Power up",
+      "level": "Lv.",
+      "from": "From level",
+      "to": "To level",
+      "dust": "Stardust",
+      "candy": "Candy",
+      "xl": "XL Candy",
+      "normal": "Normal",
+      "shadow": "Shadow",
+      "purified": "Purified",
+      "lucky": "Lucky"
+    },
     "stardust": "dust",
     "flags": {
       "notReleased": "Not in Pokémon GO yet",
@@ -660,7 +673,19 @@
     "method1": "A Dynamax Pokémon’s Max Move takes the type of its fast attack; a Gigantamax Pokémon uses its own fixed G-Max Move.",
     "method2": "Ranked by the damage of that move, with the game formula: power × attack × STAB. G-Max Moves and the exclusive ones (Crowned Zacian and Zamazenta, Eternatus) have 450 power; Max Moves, 350.",
     "exclusiveMove": "Exclusive Max Move",
-    "gmaxBorderLegend": "Fuchsia border: Gigantamax, with its own move"
+    "gmaxBorderLegend": "Fuchsia border: Gigantamax, with its own move",
+    "roles": {
+      "title": "Roles",
+      "atacante": "Attacker",
+      "tanque": "Tank",
+      "sanador": "Healer"
+    },
+    "rolesLegend": {
+      "atacante": "Attacker: its rank in this list, by damage",
+      "tanque": "Tank: holds on with Max Guard (defense × HP)",
+      "sanador": "Healer: heals with Max Spirit (HP)"
+    },
+    "methodRoles": "The three letters on each row: as an attacker, from its rank in this list; as a tank, by defense × HP, how long it lasts using Max Guard; and as a healer, by its HP, since Max Spirit heals based on HP. Tank and healer are ranked among every Pokémon that can Dynamax. The game does not publish how much Max Guard blocks or Max Spirit heals: this is a ranking, not a prediction."
   },
   "language": {
     "label": "Language",

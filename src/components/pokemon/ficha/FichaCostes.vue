@@ -5,6 +5,8 @@ import FichaSeccion from '../FichaSeccion.vue'
 import { useTranslate } from '../../../composables/useTranslate'
 import iconoCaramelo from '../../../assets/icons/candy_icon.png'
 import BaseMegaEnergyIcon from '../../base/BaseMegaEnergyIcon.vue'
+import IconoMascara from '../../base/IconoMascara.vue'
+import FichaSubida from './FichaSubida.vue'
 
 const props = defineProps({
   /** Claves de pokemon.flags.* (useFichaDatos). */
@@ -12,7 +14,9 @@ const props = defineProps({
   /** Filas de coste (useFichaDatos). */
   costs: { type: Array, required: true },
   /** Número de la especie: los colores de su megaenergía. */
-  dexMega: { type: Number, default: null }
+  dexMega: { type: Number, default: null },
+  /** La forma que se ve (la `entrada` de useFichaDatos): para «Subir de nivel». */
+  entrada: { type: Object, default: null }
 })
 
 const { t, tc, formatNumber } = useTranslate()
@@ -47,8 +51,12 @@ const piezas = (row) => {
   return [{ texto: `${formatNumber(row.km)} ${t('unitDistance')}` }]
 }
 
+/** «Subir de nivel» necesita las estadísticas, para el PC de cada nivel. */
+const conSubida = computed(() => Boolean(props.entrada?.stats?.atk))
+
 const titulo = computed(() => {
-  if (props.flags.length && props.costs.length) return t('pokemon.statusAndCosts')
+  if (props.flags.length && (props.costs.length || conSubida.value))
+    return t('pokemon.statusAndCosts')
   return props.flags.length ? t('pokemon.status') : t('pokemon.costs')
 })
 
@@ -65,7 +73,7 @@ const resumen = computed(() => {
 <template>
   <ficha-seccion id="costes" :title="titulo" :summary="resumen">
     <div v-if="flags.length" :class="costs.length ? 'mb-4' : ''">
-      <h3 v-if="costs.length" class="subtitulo">
+      <h3 v-if="costs.length || conSubida" class="subtitulo">
         {{ $t('pokemon.status') }}
       </h3>
       <div class="flex flex-wrap gap-1.5 mt-2">
@@ -94,12 +102,11 @@ const resumen = computed(() => {
               <template v-if="pieza.texto">{{ pieza.texto }}</template>
               <template v-else>
                 {{ pieza.n }}
-                <img
+                <!-- El PNG del juego es blanco: como máscara, del color del texto (en claro no se veía). -->
+                <icono-mascara
                   v-if="pieza.icono === 'candy'"
                   :src="iconoCaramelo"
-                  alt=""
-                  aria-hidden="true"
-                  class="w-3.5 h-3.5 object-contain"
+                  class="w-3.5 h-3.5"
                 />
                 <base-mega-energy-icon
                   v-else-if="pieza.icono === 'mega'"
@@ -119,5 +126,14 @@ const resumen = computed(() => {
         </li>
       </ul>
     </div>
+
+    <ficha-subida
+      v-if="conSubida"
+      :stats="entrada.stats"
+      :propia="entrada.costesSubida ?? null"
+      :con-oscuro="flags.includes('canBeShadow')"
+      :con-suerte="!flags.includes('notTradeable')"
+      :class="flags.length || costs.length ? 'mt-4' : 'mt-2'"
+    />
   </ficha-seccion>
 </template>

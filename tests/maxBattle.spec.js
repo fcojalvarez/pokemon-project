@@ -1,7 +1,13 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { maxCounters, mejorRapido, opcionesMax, potenciaMax } from '../src/utils/maxBattle'
+import {
+  maxCounters,
+  mejorRapido,
+  opcionesMax,
+  papelesMax,
+  potenciaMax
+} from '../src/utils/maxBattle'
 
 const DATA = path.join(process.cwd(), 'public', 'data')
 const read = (name) => JSON.parse(fs.readFileSync(path.join(DATA, name), 'utf8'))
@@ -186,5 +192,28 @@ describe('disponible evolucionando', () => {
     const blissey = tanks.find((uno) => uno.dex === 242)
     expect(blissey?.availableNow).toBe(true)
     expect(blissey?.availableFrom).toBeNull()
+  })
+})
+
+describe('papelesMax', () => {
+  const papeles = papelesMax(roster)
+
+  it('solo los que pueden dinamaxizar', () => {
+    for (const id of papeles.keys()) {
+      const entry = roster.find((e) => e.id === id)
+      expect(entry.dynamax || entry.gigantamax).toBe(true)
+    }
+  })
+
+  it('Blissey, el mejor tanque y el mejor sanador, como en la comunidad', () => {
+    expect(papeles.get('blissey')).toEqual({ tanque: 1, sanador: 1 })
+    expect(papeles.get('chansey').sanador).toBe(2)
+    expect(papeles.get('lugia').tanque).toBe(2)
+  })
+
+  it('las formas con las mismas estadísticas comparten puesto', () => {
+    const pikachus = roster.filter((e) => e.dex === 25 && (e.dynamax || e.gigantamax))
+    const puestos = new Set(pikachus.map((e) => papeles.get(e.id)?.tanque))
+    expect(puestos.size).toBe(1)
   })
 })

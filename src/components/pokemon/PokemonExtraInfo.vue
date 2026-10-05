@@ -75,7 +75,7 @@ const TITULOS = {
  */
 const tiene = computed(() => ({
   donde: live.status === 'ready',
-  costes: flags.value.length > 0 || costs.value.length > 0,
+  costes: flags.value.length > 0 || costs.value.length > 0 || Boolean(entrada.value?.stats?.atk),
   max: Boolean(maxInfo.value),
   pc: cpTable.value.length > 0,
   pve: true,
@@ -273,6 +273,7 @@ onBeforeUnmount(alSoltarAsa)
           :flags="flags"
           :costs="costs"
           :dex-mega="pokemon.pokemon_id"
+          :entrada="entrada"
         />
         <max-battle-panel v-else-if="id === 'max'" :entry="entrada" />
         <ficha-pc v-else-if="id === 'pc'" :cp-table="cpTable" :es-max="esMax" />

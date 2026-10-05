@@ -170,6 +170,8 @@ export function useTopFilas(filtros) {
       .map(({ entry, version, maxId, maxLines, stab, value }, indice) => ({
         id: `${entry.id}-${maxId}`,
         formId: entry.id,
+        // Sus puestos como tanque y sanador, para las tres letras de la fila.
+        papeles: gameData.papelesDeMax().get(entry.id) ?? null,
         version,
         maxLines,
         rank: indice + 1,

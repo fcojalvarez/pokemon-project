@@ -16,7 +16,13 @@ import FichaDebilidades from '../src/components/pokemon/ficha/FichaDebilidades.v
  * de la ficha se montan tal cual, con la sección abierta, y se lee su texto.
  */
 const router = () =>
-  createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { render: () => null } }, { path: '/otra', component: { render: () => null } }] })
+  createRouter({
+    history: createMemoryHistory(),
+    routes: [
+      { path: '/', component: { render: () => null } },
+      { path: '/otra', component: { render: () => null } }
+    ]
+  })
 
 const conPlugins = (extra = []) => ({ global: { plugins: [i18n, ...extra] } })
 
@@ -31,7 +37,12 @@ describe('BaseModal', () => {
   afterEach(() => vi.restoreAllMocks())
 
   const montar = (props) =>
-    mount(BaseModal, { props: { title: 'Detalle', ...props }, slots: { default: '<p>dentro</p>' }, attachTo: document.getElementById('app'), ...conPlugins([r]) })
+    mount(BaseModal, {
+      props: { title: 'Detalle', ...props },
+      slots: { default: '<p>dentro</p>' },
+      attachTo: document.getElementById('app'),
+      ...conPlugins([r])
+    })
 
   it('abierto: diálogo con título, foco dentro y la app inerte', async () => {
     const w = montar({ open: false })
@@ -40,7 +51,9 @@ describe('BaseModal', () => {
     await nextTick()
     const dialogo = document.querySelector('[role="dialog"]')
     expect(dialogo.getAttribute('aria-modal')).toBe('true')
-    expect(document.getElementById(dialogo.getAttribute('aria-labelledby')).textContent).toBe('Detalle')
+    expect(document.getElementById(dialogo.getAttribute('aria-labelledby')).textContent).toBe(
+      'Detalle'
+    )
     expect(document.activeElement).toBe(dialogo)
     expect(document.getElementById('app').hasAttribute('inert')).toBe(true)
     w.unmount()
@@ -118,10 +131,16 @@ describe('BaseFilterList', () => {
 
 describe('MoveTag y MoveLegend', () => {
   it('manda la procedencia más restrictiva y la explica en el title', () => {
-    const w = mount(MoveTag, { props: { name: 'Hidrocañón', chip: true, elite: true, legacy: true }, ...conPlugins() })
+    const w = mount(MoveTag, {
+      props: { name: 'Hidrocañón', chip: true, elite: true, legacy: true },
+      ...conPlugins()
+    })
     expect(w.classes()).toContain('bg-violet-100')
     expect(w.attributes('title')).toBe(i18n.global.t('moves.legacyHelp'))
-    const mega = mount(MoveTag, { props: { name: 'Ascenso Draco', mega: true, legacy: true }, ...conPlugins() })
+    const mega = mount(MoveTag, {
+      props: { name: 'Ascenso Draco', mega: true, legacy: true },
+      ...conPlugins()
+    })
     expect(mega.classes()).toContain('border-fuchsia-600')
   })
 
@@ -133,7 +152,10 @@ describe('MoveTag y MoveLegend', () => {
 
   it('la leyenda solo enseña lo que se le pasa, en orden élite, legacy, mega', () => {
     const w = mount(MoveLegend, { props: { mega: true, elite: true }, ...conPlugins() })
-    expect(w.findAll('li').map((li) => li.text())).toEqual([i18n.global.t('moves.elite'), i18n.global.t('moves.mega')])
+    expect(w.findAll('li').map((li) => li.text())).toEqual([
+      i18n.global.t('moves.elite'),
+      i18n.global.t('moves.mega')
+    ])
     const vacia = mount(MoveLegend, conPlugins())
     expect(vacia.find('ul').exists()).toBe(false)
   })
@@ -142,9 +164,13 @@ describe('MoveTag y MoveLegend', () => {
 describe('secciones de la ficha', () => {
   // Abiertas: en escritorio van siempre abiertas (useFichaSecciones).
   beforeEach(() => {
-    window.matchMedia = vi.fn().mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })
+    window.matchMedia = vi
+      .fn()
+      .mockReturnValue({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })
   })
-  afterEach(() => { delete window.matchMedia })
+  afterEach(() => {
+    delete window.matchMedia
+  })
 
   it('costes: caramelos y polvo con separador de miles, megaenergía y km', () => {
     const w = mount(FichaCostes, {
@@ -160,13 +186,29 @@ describe('secciones de la ficha', () => {
     })
     const texto = w.text()
     // Cifras con su icono; la palabra («caramelos», «polvo») va para el lector de pantalla.
-    expect(w.find('li img').exists()).toBe(true)
+    // El caramelo, como máscara del color del texto: el PNG es blanco y en claro no se veía.
+    expect(w.find('li span[style*="mask"]').exists()).toBe(true)
     expect(texto).toMatch(/25\s*caramelos/)
     expect(texto).toContain('10.000')
     expect(texto).toContain('200')
     expect(texto).toContain('3 km')
     expect(texto).toContain(i18n.global.t('pokemon.flags.canBeShadow'))
     expect(w.find('h2').text()).toContain(i18n.global.t('pokemon.statusAndCosts'))
+  })
+
+  it('costes: «Subir de nivel» con las estadísticas, de 20 a 40 de entrada', () => {
+    const entrada = { stats: { atk: 223, def: 173, hp: 186 } }
+    const w = mount(FichaCostes, {
+      props: { flags: ['notTradeable'], costs: [], entrada },
+      ...conPlugins()
+    })
+    const texto = w.text()
+    expect(texto).toContain(i18n.global.t('pokemon.levelUp.title'))
+    expect(texto).toContain('225.000')
+    expect(texto).toContain('248')
+    // Sin versión oscura ni intercambio, no hay variantes que elegir.
+    expect(texto).not.toContain(i18n.global.t('pokemon.levelUp.lucky'))
+    expect(w.findAll('input[type="range"]')).toHaveLength(2)
   })
 
   it('PC: incursión con y sin clima, y el huevo marca el combate Max si puede dinamaxizar', () => {
@@ -178,7 +220,9 @@ describe('secciones de la ficha', () => {
     expect(pastillas).toHaveLength(4)
     expect(pastillas[0].text()).toContain('2000')
     expect(pastillas[1].text()).toContain('2500')
-    expect(pastillas[1].attributes('title')).toContain(i18n.global.t('pokemon.cpWeather').toLowerCase())
+    expect(pastillas[1].attributes('title')).toContain(
+      i18n.global.t('pokemon.cpWeather').toLowerCase()
+    )
     expect(pastillas[2].text()).toContain(i18n.global.t('pokemon.cpFromEggMax'))
     expect(pastillas[3].text()).toContain('1500')
     expect(subir.findAll('strong').map((n) => n.text())).toEqual(['4000', '5000'])
@@ -233,7 +277,10 @@ describe('BaseSegmented y la casilla de BasePillButton', async () => {
   const { default: BasePillButton } = await import('../src/components/base/BasePillButton.vue')
 
   it('el selector marca la parte elegida y emite la que se pulsa', async () => {
-    const opciones = [{ value: 'raids', label: 'Incursiones' }, { value: 'eggs', label: 'Huevos' }]
+    const opciones = [
+      { value: 'raids', label: 'Incursiones' },
+      { value: 'eggs', label: 'Huevos' }
+    ]
     const w = mount(BaseSegmented, { props: { modelValue: 'raids', options: opciones } })
     const [a, b] = w.findAll('button')
     expect(a.attributes('aria-pressed')).toBe('true')
@@ -243,8 +290,14 @@ describe('BaseSegmented y la casilla de BasePillButton', async () => {
   })
 
   it('la casilla lleva ✓ solo encendida, y el nombre accesible no cambia', () => {
-    const on = mount(BasePillButton, { props: { casilla: true, active: true }, slots: { default: 'Élite' } })
-    const off = mount(BasePillButton, { props: { casilla: true, active: false }, slots: { default: 'Élite' } })
+    const on = mount(BasePillButton, {
+      props: { casilla: true, active: true },
+      slots: { default: 'Élite' }
+    })
+    const off = mount(BasePillButton, {
+      props: { casilla: true, active: false },
+      slots: { default: 'Élite' }
+    })
     expect(on.text()).toBe('✓Élite')
     expect(on.find('[aria-hidden="true"]').text()).toBe('✓')
     expect(off.text()).toBe('Élite')

@@ -105,6 +105,19 @@
     },
     "status": "Avisos",
     "costs": "Costes",
+    "levelUp": {
+      "title": "Subir de nivel",
+      "level": "Nv.",
+      "from": "Desde el nivel",
+      "to": "Hasta el nivel",
+      "dust": "Polvo",
+      "candy": "Caramelos",
+      "xl": "Caramelos XL",
+      "normal": "Normal",
+      "shadow": "Oscuro",
+      "purified": "Purificado",
+      "lucky": "Con suerte"
+    },
     "stardust": "polvo",
     "flags": {
       "notReleased": "Aún no está en Pokémon GO",
@@ -660,7 +673,19 @@
     "method1": "El Ataque Max de un Dinamax es del tipo de su ataque rápido; el de un Gigamax es su ataque propio, fijo.",
     "method2": "Se ordena por el daño de ese ataque, con la fórmula del juego: potencia × ataque × STAB. Los ataques Gigamax y los exclusivos (Zacian y Zamazenta coronados, Eternatus) tienen 450 de potencia; los Ataques Max, 350.",
     "exclusiveMove": "Ataque Max exclusivo",
-    "gmaxBorderLegend": "Borde fucsia: Gigamax, con su ataque propio"
+    "gmaxBorderLegend": "Borde fucsia: Gigamax, con su ataque propio",
+    "roles": {
+      "title": "Papeles",
+      "atacante": "Atacante",
+      "tanque": "Tanque",
+      "sanador": "Sanador"
+    },
+    "rolesLegend": {
+      "atacante": "Atacante: su puesto en esta lista, por daño",
+      "tanque": "Tanque: aguanta con Maxibarrera (defensa × PS)",
+      "sanador": "Sanador: cura con Maxivigor (PS)"
+    },
+    "methodRoles": "Las tres letras de cada fila: como atacante, por su puesto en esta lista; como tanque, por defensa × PS, lo que aguanta usando Maxibarrera; y como sanador, por sus PS, porque Maxivigor cura según los PS. Tanque y sanador se cuentan entre todos los que pueden dinamaxizar. El juego no publica cuánto protege Maxibarrera ni cuánto cura Maxivigor: es una ordenación, no una predicción."
   },
   "language": {
     "label": "Idioma",

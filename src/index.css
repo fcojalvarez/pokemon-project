@@ -105,6 +105,62 @@
   }
 
   /*
+     * Deslizador de dos tiradores (Subir de nivel): dos <input type="range">
+     * uno encima de otro, sin pista propia; la pista y el tramo elegido son
+     * dos divs debajo. Los inputs no reciben toques salvo en el tirador, así
+     * que se puede agarrar cualquiera de los dos. `--tirador` es su tamaño:
+     * el centro del tirador nunca llega al borde, y la pista se recorta lo
+     * mismo para que el relleno empiece y acabe justo en él.
+     */
+  .rango-doble {
+    --tirador: 1.75rem;
+    @apply relative;
+    height: var(--tirador);
+  }
+  .rango-marcas {
+    --tirador: 1.75rem;
+  }
+  .rango-pista,
+  .rango-relleno {
+    @apply absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full;
+  }
+  .rango-pista {
+    @apply bg-gray-200 dark:bg-gray-700;
+    left: calc(var(--tirador) / 2);
+    right: calc(var(--tirador) / 2);
+  }
+  .rango-relleno {
+    @apply bg-gray-500 dark:bg-gray-300;
+  }
+  .rango-doble input[type='range'] {
+    @apply absolute inset-0 w-full m-0 bg-transparent appearance-none pointer-events-none;
+    height: var(--tirador);
+  }
+  .rango-doble input[type='range']::-webkit-slider-runnable-track {
+    @apply bg-transparent;
+    height: var(--tirador);
+  }
+  .rango-doble input[type='range']::-webkit-slider-thumb {
+    @apply appearance-none pointer-events-auto cursor-grab rounded-full bg-white border-2 border-solid border-gray-500 dark:border-white shadow-md;
+    width: var(--tirador);
+    height: var(--tirador);
+  }
+  .rango-doble input[type='range']::-moz-range-thumb {
+    @apply pointer-events-auto cursor-grab rounded-full bg-white border-2 border-solid border-gray-500 dark:border-white shadow-md;
+    width: var(--tirador);
+    height: var(--tirador);
+  }
+  .rango-doble input[type='range']:focus-visible::-webkit-slider-thumb {
+    @apply outline outline-2 outline-offset-2 outline-blue-600 dark:outline-blue-400;
+  }
+  .rango-doble input[type='range']:focus-visible::-moz-range-thumb {
+    @apply outline outline-2 outline-offset-2 outline-blue-600 dark:outline-blue-400;
+  }
+  .rango-doble input[type='range']:focus {
+    @apply outline-none;
+  }
+
+  /*
      * Insignia: una etiqueta que informa y no se pulsa (Legendario, Supermega,
      * el tipo de evento, STAB, Tiene versión oscura). Fondo suave y sin borde,
      * porque el borde es de lo que se pulsa (botones y filtros), y sin

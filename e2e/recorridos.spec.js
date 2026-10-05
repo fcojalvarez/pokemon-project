@@ -27,7 +27,9 @@ async function abrirSugerencias(page) {
   await expect(page.getByRole('dialog', { name: 'Enviar una sugerencia' })).toBeVisible()
 }
 
-test('la Pokédex carga más al bajar, también después de buscar y borrar la búsqueda', async ({ page }) => {
+test('la Pokédex carga más al bajar, también después de buscar y borrar la búsqueda', async ({
+  page
+}) => {
   await page.goto('/')
   const tarjetas = page.locator('[data-dex-tile]')
   await expect(tarjetas).toHaveCount(100)
@@ -59,7 +61,8 @@ test('el orden de las secciones de la ficha se guarda y se puede restablecer', a
   await expect(page.getByRole('heading', { level: 1, name: 'Charizard' })).toBeVisible()
   // El orden en la página (en escritorio van en dos columnas, así que lo
   // que cuenta es el del DOM y no la posición en pantalla).
-  const orden = () => page.locator('section[id^="ficha-"]').evaluateAll((els) => els.map((el) => el.id))
+  const orden = () =>
+    page.locator('section[id^="ficha-"]').evaluateAll((els) => els.map((el) => el.id))
   const antes = async (a, b) => {
     const ids = await orden()
     return ids.indexOf(`ficha-${a}`) < ids.indexOf(`ficha-${b}`)
@@ -123,7 +126,10 @@ test('la galería de formas se recorre con las flechas y se cierra con Escape', 
   const galeria = page.getByRole('dialog', { name: /Pikachu/ })
   await expect(galeria).toBeVisible()
 
-  await galeria.getByRole('button', { name: /^Ver .* en grande$/ }).first().click()
+  await galeria
+    .getByRole('button', { name: /^Ver .* en grande$/ })
+    .first()
+    .click()
   // En grande: la imagen lleva el nombre de la forma y debajo va «1 / N».
   await expect(galeria.getByText(/^1 \/ \d+$/)).toBeVisible()
   const nombre = () => galeria.getByRole('img').first().getAttribute('alt')
@@ -139,10 +145,16 @@ test('la galería de formas se recorre con las flechas y se cierra con Escape', 
   await expect(boton).toBeFocused()
 })
 
-test('el detalle de un evento se cierra con Escape y con «atrás», sin salir de Eventos', async ({ page }) => {
+test('el detalle de un evento se cierra con Escape y con «atrás», sin salir de Eventos', async ({
+  page
+}) => {
   await page.goto('/events')
   const detalle = page.getByRole('dialog', { name: 'Detalle del evento' })
-  const abrir = () => page.locator('article').first().click({ position: { x: 20, y: 20 } })
+  const abrir = () =>
+    page
+      .locator('article')
+      .first()
+      .click({ position: { x: 20, y: 20 } })
 
   await expect(page.locator('article').first()).toBeVisible()
   await abrir()
@@ -250,7 +262,9 @@ test('la semana de Eventos va por días y cada fila abre su detalle', async ({ p
   await expect(page.getByRole('dialog', { name: 'Detalle del evento' })).toBeVisible()
 })
 
-test('los iconos de LeekDuck se ven aunque lleguen sin una cabecera CORS válida', async ({ page }) => {
+test('los iconos de LeekDuck se ven aunque lleguen sin una cabecera CORS válida', async ({
+  page
+}) => {
   // Lo que pasaba en Android: la imagen existe, pero la cabecera CORS no vale
   // para nuestra web y, pedida con crossorigin, el navegador la rechaza. Sin
   // ninguna cabecera no se puede simular: Playwright pone la suya al contestar.
@@ -407,4 +421,24 @@ test('el idioma elegido se queda al recargar', async ({ page }) => {
   await expect(page).toHaveTitle(/Top · PoGoDex/)
   // Una etiqueta de la app, ya en inglés (en móvil, el botón de los filtros).
   await expect(page.getByRole('button', { name: /^(Open menu|Open settings)$/ })).toBeVisible()
+})
+
+test('la calculadora de subida cambia con los tiradores y la variante', async ({ page }) => {
+  await page.goto('/pokemon/6')
+  const seccion = page.locator('#ficha-costes')
+  await expect(seccion).toBeVisible()
+  const plegada = seccion.locator('h2 button[aria-expanded="false"]')
+  if (await plegada.count()) await plegada.click()
+  const cifras = seccion.locator('dl')
+  // De incursión (20) a 40, de entrada.
+  await expect(cifras).toContainText('225.000')
+  await expect(cifras).toContainText('248')
+  // El de «hasta», al 50 con el teclado: aparecen los caramelos XL.
+  await seccion.getByLabel('Hasta el nivel').focus()
+  await page.keyboard.press('End')
+  await expect(cifras).toContainText('475.000')
+  await expect(cifras).toContainText('296')
+  // Con suerte, la mitad de polvo.
+  await seccion.getByRole('button', { name: 'Con suerte', exact: true }).click()
+  await expect(cifras).toContainText('237.500')
 })

@@ -20,6 +20,7 @@ import BaseSprite from '../base/BaseSprite.vue'
 import { localName, formatDecimal } from '../../composables/useTranslate'
 import StabBadge from '../base/StabBadge.vue'
 import BaseNivel from '../base/BaseNivel.vue'
+import PapelesMax from './PapelesMax.vue'
 import MaxMoveLines from './MaxMoveLines.vue'
 import { fichaDeFila, movesOf, rowKey } from '../../utils/rankingRows'
 import { useGameDataStore } from '../../stores/gameData'
@@ -41,6 +42,9 @@ const props = defineProps({
 })
 
 const UNITS = { dps: 'DPS', tdo: 'TDO', er: 'ER' }
+
+/** Top Max: cada fila lleva sus letras de atacante, tanque y sanador. */
+const conPapeles = computed(() => props.rows.some((row) => row.papeles))
 
 const gameData = useGameDataStore()
 const fichaDe = (row) => fichaDeFila(row, gameData.fichaBase)
@@ -84,6 +88,8 @@ const percent = (row) => Math.round((barra(row) / max.value) * 100)
         :class="[
           nivel
             ? 'grid-cols-[3.25rem_minmax(0,1fr)_64px_1.5rem] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px_1.5rem]'
+            : conPapeles
+            ? 'grid-cols-[3.25rem_minmax(0,1fr)_64px_2rem] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px_2rem]'
             : 'grid-cols-[3.25rem_minmax(0,1fr)_72px] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px]',
           row.version === 'gigantamax'
             ? 'border-fuchsia-500 dark:border-fuchsia-400'
@@ -170,6 +176,12 @@ const percent = (row) => Math.round((barra(row) / max.value) * 100)
           v-if="nivel"
           :rank="row.rank"
           :por-tipo="nivel === 'tipo'"
+          class="justify-self-end"
+        />
+        <papeles-max
+          v-else-if="conPapeles && row.papeles"
+          :rank="row.rank"
+          :papeles="row.papeles"
           class="justify-self-end"
         />
       </component>

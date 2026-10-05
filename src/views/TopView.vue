@@ -11,6 +11,7 @@ import AttackerTable from '../components/rankings/AttackerTable.vue'
 import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
 import StabBadge from '../components/base/StabBadge.vue'
+import IconoPapel from '../components/base/IconoPapel.vue'
 import BaseChevron from '../components/base/BaseChevron.vue'
 import BaseSegmented from '../components/base/BaseSegmented.vue'
 import { useMedia } from '../composables/useMedia'
@@ -23,6 +24,9 @@ const { t } = useTranslate()
 
 const mode = ref('pve')
 const type = ref('all')
+
+/** Los papeles de las tres letras del Top Max, en el orden de la fila. */
+const PAPELES = ['atacante', 'tanque', 'sanador']
 
 /**
  * La letra de cada puesto: en PvE y PvP (el Max no tiene un orden que se
@@ -513,6 +517,11 @@ watch(
                 aria-hidden="true"
               ></span>
               {{ $t('max.gmaxBorderLegend') }}
+            </li>
+            <!-- Las tres letras de cada fila: un papel por línea, con su icono. -->
+            <li v-for="papel in PAPELES" :key="papel" class="flex items-center gap-1.5">
+              <icono-papel :papel="papel" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+              {{ $t(`max.rolesLegend.${papel}`) }}
             </li>
           </ul>
         </div>

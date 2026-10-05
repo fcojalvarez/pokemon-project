@@ -27,6 +27,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { CPM_BY_LEVEL } from '../src/utils/formulas.js'
+import { POLVO_POR_NIVEL, CARAMELOS_POR_NIVEL, XL_POR_NIVEL } from '../src/utils/subida.js'
 import { normalizeText } from '../src/utils/gameText.js'
 import { spriteUrl } from '../src/utils/sprites.js'
 import { loadEnv } from './lib/env.mjs'
@@ -2042,6 +2043,20 @@ async function main() {
     console.warn('    Actualízalo antes de fiarte de los PC.\n')
   }
 
+  // Lo mismo con los costes de subir de nivel de src/utils/subida.js. El
+  // GAME_MASTER rellena con ceros los niveles que no se pagan en caramelos.
+  const sinCeros = (lista = []) => lista.filter((v) => v > 0)
+  const igual = (vivo, nuestro) => {
+    const a = sinCeros(vivo)
+    return a.length === nuestro.length && a.every((v, i) => v === nuestro[i])
+  }
+  const subida = gmRaw.find((t) => t.templateId === 'POKEMON_UPGRADE_SETTINGS')?.data.pokemonUpgrades
+  if (subida && !(igual(subida.stardustCost, POLVO_POR_NIVEL) &&
+    igual(subida.candyCost, CARAMELOS_POR_NIVEL) && igual(subida.xlCandyCost, XL_POR_NIVEL))) {
+    console.warn('\n  ⚠ Los costes de subida del GAME_MASTER ya no coinciden con src/utils/subida.js')
+    console.warn('    Actualízalos antes de fiarte de la calculadora de la ficha.\n')
+  }
+
   const chart = buildTypeChart(gmRaw)
   const moves = buildMoves(gmRaw, pvpGm, es, nombresDeAtaques(pgaRaw))
   await completarPve(moves, pbMoves)
@@ -2052,6 +2067,16 @@ async function main() {
   const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
   const conVariocolor = especiesConVariocolor(leekRaw)
   const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, conVariocolor, i18nMap(enRaw))
+  // Especies que suben con otra tabla (Eternatus paga treinta veces más
+  // caramelos). El polvo es el mismo: solo se guardan caramelos y XL.
+  for (const t of gmRaw.filter((x) => x.templateId?.startsWith('POKEMON_UPGRADE_OVERRIDE_SETTINGS_V'))) {
+    const dex = Number(/_V(\d{4})_/.exec(t.templateId)?.[1])
+    const u = t.data.pokemonUpgrades
+    if (!dex || !u) continue
+    for (const p of pokemon.filter((x) => x.dex === dex)) {
+      p.costesSubida = { caramelos: sinCeros(u.candyCost), xl: sinCeros(u.xlCandyCost) }
+    }
+  }
   await completarConElJuego(pokemon, gmRaw, moves, pbPokemon)
   await soloMaxLiberados(pokemon, leekRaw, pbRaids)
   const exclusivos = exclusivosPorForma(maxData.exclusivos, pokemon)

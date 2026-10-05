@@ -3,7 +3,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { leerFilas } from '../lib/filasDeDatos'
 import { computeCounters, computeTypeRankings, typeMatchups, evaluatePokemon } from '../utils/pve'
 import { calcCP } from '../utils/formulas'
-import { gigamaxDe, opcionesMax } from '../utils/maxBattle'
+import { gigamaxDe, opcionesMax, papelesMax } from '../utils/maxBattle'
 import { aShinyEnTodo, normalizeName, translateGameText } from '../utils/gameText'
 import { stripFormPrefix, translatePokemonName } from '../utils/eventName'
 import { useTranslate } from '../composables/useTranslate'
@@ -383,6 +383,9 @@ export const useGameDataStore = defineStore('gameData', () => {
       computeTypeRankings(roster.value, moves.value, { limit: 50, ...options })
     )
 
+  /** Puesto de tanque y de sanador de cada Pokémon que dinamaxiza (letras del Top Max). */
+  const papelesDeMax = () => cached('papelesMax', () => papelesMax(roster.value))
+
   /** Mejores counters contra un jefe con esos tipos. */
   const counters = (bossTypes, options = {}) =>
     cached(`cnt:${bossTypes.join('+')}:${JSON.stringify(options)}`, () =>
@@ -500,6 +503,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     maxLiveEdad,
     maxLiveCaducado,
     maxInfoFor,
+    papelesDeMax,
     datosMax,
     status,
     error,

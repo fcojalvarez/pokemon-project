@@ -13,6 +13,7 @@ import { computed } from 'vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import StabBadge from '../base/StabBadge.vue'
 import BaseNivel from '../base/BaseNivel.vue'
+import PapelesMax from './PapelesMax.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import BaseSprite from '../base/BaseSprite.vue'
 import { spriteUrl } from '../../utils/sprites'
@@ -38,6 +39,9 @@ const gameData = useGameDataStore()
 const fichaDe = (row) => fichaDeFila(row, gameData.fichaBase)
 
 const METRICAS = ['dps', 'tdo', 'er']
+
+/** Top Max: cada fila lleva sus letras de atacante, tanque y sanador. */
+const conPapeles = computed(() => props.rows.some((row) => row.papeles))
 
 /** La columna que manda: la de la barra. */
 const principal = computed(() => (props.mode === 'pve' ? props.sortBy : 'value'))
@@ -102,6 +106,9 @@ const ordenar = (metrica) => {
           </template>
           <th v-if="nivel" scope="col" class="px-3 py-2 font-semibold text-center">
             {{ $t('top.tierColumn') }}
+          </th>
+          <th v-else-if="conPapeles" scope="col" class="px-3 py-2 font-semibold text-right">
+            {{ $t('max.roles.title') }}
           </th>
         </tr>
       </thead>
@@ -227,6 +234,9 @@ const ordenar = (metrica) => {
           </template>
           <td v-if="nivel" class="px-3 py-1.5 text-center">
             <base-nivel :rank="row.rank" :por-tipo="nivel === 'tipo'" />
+          </td>
+          <td v-else-if="conPapeles" class="px-3 py-1.5">
+            <papeles-max v-if="row.papeles" :rank="row.rank" :papeles="row.papeles" />
           </td>
         </tr>
       </tbody>

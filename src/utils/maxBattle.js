@@ -275,3 +275,46 @@ export function maxCounters(jefe, roster, chart, options = {}) {
     tanks: mejores('tankScore')
   }
 }
+
+/**
+ * Los papeles de cada Pokémon que puede dinamaxizar, para las letras del Top
+ * Max: su puesto como tanque y como sanador entre todos ellos, sin un jefe
+ * concreto (el de atacante es su puesto en la propia lista del Top).
+ *
+ *   - Tanque: defensa × PS, lo mismo que «Para aguantar» sin la resistencia
+ *     al jefe. Es quien aguanta usando Maxibarrera.
+ *   - Sanador: los PS (y, a igualdad, el aguante). Maxivigor cura según los
+ *     PS de cada uno, así que lo que cuenta es tener muchos y seguir en pie.
+ *
+ * El juego no publica cuánto protege Maxibarrera ni cuánto cura Maxivigor:
+ * es una ordenación, como el resto del top Max. Las formas con las mismas
+ * estadísticas (los Pikachu con gorro) cuentan una vez y comparten puesto.
+ *
+ * @returns {Map<string, {tanque: number, sanador: number}>} por id del roster
+ */
+export function papelesMax(roster) {
+  const grupos = new Map()
+  for (const entry of roster ?? []) {
+    if (!entry.dynamax && !entry.gigantamax) continue
+    if (!entry.stats?.def || !entry.stats?.hp) continue
+    const clave = `${entry.dex}-${entry.stats.atk}-${entry.stats.def}-${entry.stats.hp}`
+    if (!grupos.has(clave)) grupos.set(clave, { stats: entry.stats, ids: [] })
+    grupos.get(clave).ids.push(entry.id)
+  }
+  const lista = [...grupos.values()].map((g) => ({
+    ...g,
+    aguante: g.stats.def * g.stats.hp,
+    ps: g.stats.hp
+  }))
+  const puestos = (orden) => {
+    const mapa = new Map()
+    ;[...lista].sort(orden).forEach((g, i) => mapa.set(g, i + 1))
+    return mapa
+  }
+  const tanque = puestos((a, b) => b.aguante - a.aguante)
+  const sanador = puestos((a, b) => b.ps - a.ps || b.aguante - a.aguante)
+  const out = new Map()
+  for (const g of lista)
+    for (const id of g.ids) out.set(id, { tanque: tanque.get(g), sanador: sanador.get(g) })
+  return out
+}
