@@ -9,6 +9,8 @@ import { spriteUrl } from '../../utils/sprites'
 import { localName } from '../../composables/useTranslate'
 import { construirArbol, nodosDe } from '../../utils/evolutionTree'
 import EvolutionTramo from './EvolutionTramo.vue'
+import ConversionDibujo from './ConversionDibujo.vue'
+import { conversionesDeEspecie } from '../../utils/cambiosForma'
 
 const props = defineProps({
   pokemon: { type: Object, required: true },
@@ -94,8 +96,34 @@ provide('cadenaEvolutiva', {
   formId: toRef(props, 'formId'),
   shiny: toRef(props, 'shiny')
 })
+
+/** Las fusiones o cambios de forma de la especie (utils/cambiosForma). */
+const conversiones = computed(() => {
+  if (!gameData.isReady) return []
+  const ids = (gameData.formsByDex.get(props.pokemon.pokemon_id) ?? []).map((forma) => forma.id)
+  return conversionesDeEspecie(ids).filter((c) => gameData.byId.get(c.a))
+})
 </script>
 
 <template>
   <evolution-tramo v-if="arbol" :nodo="arbol" principal />
+  <!--
+    Fusiones y cambios de forma, debajo del árbol: no son evoluciones, pero
+    es donde se mira en qué se convierte. En las fusiones no se repite el
+    de arriba: «+ Lunala → Alas del Alba».
+  -->
+  <div v-if="conversiones.length" class="mt-4 px-2 lg:px-0">
+    <p class="text-mini text-gray-600 dark:text-gray-300 mb-1.5">
+      {{ $t(`pokemon.conversion.${conversiones[0].tipo}`) }}
+    </p>
+    <ul class="grid grid-cols-2 gap-2 lg:max-w-xl lg:mx-auto">
+      <li
+        v-for="c in conversiones"
+        :key="`${c.desde}-${c.a}`"
+        class="p-1.5 rounded-xl bg-gray-100 dark:bg-gray-800"
+      >
+        <conversion-dibujo :conversion="c" :con-origen="c.tipo !== 'fusion'" tam="sm" />
+      </li>
+    </ul>
+  </div>
 </template>

@@ -105,6 +105,42 @@
     },
     "status": "Avisos",
     "costs": "Costes",
+    "conversion": {
+      "fusion": "Fusiones",
+      "cambio": "Cambios de forma",
+      "notCaughtFusion": "No se atrapa: se consigue fusionando.",
+      "notCaughtCambio": "No se atrapa: se consigue cambiando de forma.",
+      "summaryFusion": "Fusionando {desde} con {con}",
+      "summaryCambio": "Cambiando de forma a {desde}",
+      "energyFrom": "Con {cantidad} de {energia}, que se consigue derrotando a {forma} en incursiones.",
+      "cells": "Con {n} células de Zygarde.",
+      "candyDust": "Con {caramelos} caramelos y {polvo} de polvo.",
+      "unfuseFree": "Separarlos es gratis.",
+      "energyNote": "La energía sale al derrotar a cada una en incursiones.",
+      "back": "Volver",
+      "free": "gratis",
+      "keeps": "Conserva el nivel y los IV.",
+      "pcFusion": "Al fusionarlo",
+      "pcCambio": "Al cambiarlo",
+      "pcKeeps": "Conserva el nivel de tu {nombre}: según de dónde lo sacaste.",
+      "energy": {
+        "solar": "Energía Fusión Solar",
+        "lunar": "Energía Fusión Lunar",
+        "voltaje": "Energía Fusión Voltaje",
+        "llama": "Energía Fusión Llama",
+        "espadaSuprema": "Energía Espada Suprema",
+        "escudoSupremo": "Energía Escudo Supremo"
+      },
+      "energyShort": {
+        "solar": "Solar",
+        "lunar": "Lunar",
+        "voltaje": "Voltaje",
+        "llama": "Llama",
+        "espadaSuprema": "Espada Suprema",
+        "escudoSupremo": "Escudo Supremo"
+      },
+      "cellsShort": "células"
+    },
     "levelUp": {
       "title": "Subir de nivel",
       "level": "Nv.",

@@ -11,6 +11,10 @@
  * Cada insignia lleva a «Ahora en juego» con ese Pokémon señalado: antes
  * decía «sale en incursiones» y tocaba ir a buscarlo a ojo entre cincuenta
  * tarjetas.
+ *
+ * Las formas que no se atrapan (Necrozma Alas del Alba, Zacian Espada
+ * Suprema…) dicen cómo se consiguen: fusionando o cambiando de forma, con
+ * dibujos y lo que hace falta. Antes decía que no estaba en incursiones.
  */
 import { computed } from 'vue'
 import { useLiveStore } from '../../stores/live'
@@ -19,10 +23,19 @@ import FichaSeccion from './FichaSeccion.vue'
 import { useTranslate } from '../../composables/useTranslate'
 import MaxMark from './MaxMark.vue'
 import BaseSprite from '../base/BaseSprite.vue'
+import ConversionDibujo from './ConversionDibujo.vue'
+import { comoSeConsigue } from '../../utils/cambiosForma'
+import { useConversion } from '../../composables/useConversion'
 
 const props = defineProps({
-  pokemon: { type: Object, required: true }
+  pokemon: { type: Object, required: true },
+  /** La forma que se ve (la `entrada` de useFichaDatos). */
+  entrada: { type: Object, default: null }
 })
+
+const { comoTexto, resumenTexto } = useConversion()
+/** Si la forma solo se consigue fusionando o cambiando de forma, cómo. */
+const conversion = computed(() => comoSeConsigue(props.entrada?.id))
 
 const live = useLiveStore()
 const { t } = useTranslate()
@@ -72,6 +85,7 @@ const plainText = (html) =>
 
 /** Plegada, la sección dice de dónde sale ahora, sin el detalle. */
 const resumen = computed(() => {
+  if (conversion.value) return resumenTexto(conversion.value)
   if (!hasWhereToFind.value) return t('pokemon.notAvailableNow')
   const where = whereToFind.value
   return [
@@ -93,7 +107,25 @@ const resumen = computed(() => {
     :title="$t('pokemon.whereToFind')"
     :summary="resumen"
   >
-    <p v-if="!hasWhereToFind" class="mt-2 text-xs text-gray-600 dark:text-gray-300">
+    <!-- No se atrapa: cómo se consigue, con los dibujos de la fusión o el cambio. -->
+    <div v-if="conversion" class="mt-2">
+      <p class="text-xs text-gray-600 dark:text-gray-300">
+        {{
+          $t(
+            conversion.tipo === 'fusion'
+              ? 'pokemon.conversion.notCaughtFusion'
+              : 'pokemon.conversion.notCaughtCambio'
+          )
+        }}
+      </p>
+      <conversion-dibujo
+        :conversion="conversion"
+        class="mt-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
+      />
+      <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">{{ comoTexto(conversion) }}</p>
+    </div>
+
+    <p v-else-if="!hasWhereToFind" class="mt-2 text-xs text-gray-600 dark:text-gray-300">
       {{ $t('pokemon.notAvailableNow') }}
     </p>
 
@@ -102,7 +134,7 @@ const resumen = computed(() => {
       gris: antes título y tareas iban en el mismo gris y casi del mismo tamaño,
       y no se sabía qué era qué.
     -->
-    <template v-else>
+    <template v-if="hasWhereToFind">
       <div v-if="esDitto" class="mt-3">
         <h3 class="subtitulo">
           {{ $t('pokemon.dittoWild') }}

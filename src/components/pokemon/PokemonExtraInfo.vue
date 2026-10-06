@@ -11,6 +11,7 @@ import { useLiveStore } from '../../stores/live'
 import { useOrdenFicha } from '../../composables/useOrdenFicha'
 import { useFichaDatos } from '../../composables/useFichaDatos'
 import { ICONOS_FICHA } from '../../utils/iconosFicha'
+import { comoSeConsigue } from '../../utils/cambiosForma'
 import WhereToFind from './WhereToFind.vue'
 import MaxBattlePanel from './MaxBattlePanel.vue'
 import FichaCostes from './ficha/FichaCostes.vue'
@@ -267,7 +268,7 @@ onBeforeUnmount(alSoltarAsa)
       >
         <!-- bloquesVisibles ya deja fuera las que este Pokémon no tiene. -->
         <!-- Va lo primero de fábrica porque es lo único de la ficha que caduca. -->
-        <where-to-find v-if="id === 'donde'" :pokemon="pokemon" />
+        <where-to-find v-if="id === 'donde'" :pokemon="pokemon" :entrada="entrada" />
         <ficha-costes
           v-else-if="id === 'costes'"
           :flags="flags"
@@ -276,7 +277,12 @@ onBeforeUnmount(alSoltarAsa)
           :entrada="entrada"
         />
         <max-battle-panel v-else-if="id === 'max'" :entry="entrada" />
-        <ficha-pc v-else-if="id === 'pc'" :cp-table="cpTable" :es-max="esMax" />
+        <ficha-pc
+          v-else-if="id === 'pc'"
+          :cp-table="cpTable"
+          :es-max="esMax"
+          :conversion="comoSeConsigue(entrada?.id)"
+        />
         <ficha-pve v-else-if="id === 'pve'" :ranks="pveRanks" :con-nombre="conNombre" />
         <ficha-pvp
           v-else-if="id === 'pvp'"

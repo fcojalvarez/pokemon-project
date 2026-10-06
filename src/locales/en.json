@@ -105,6 +105,42 @@
     },
     "status": "Heads-up",
     "costs": "Costs",
+    "conversion": {
+      "fusion": "Fusions",
+      "cambio": "Form changes",
+      "notCaughtFusion": "It is not caught: you get it by fusing.",
+      "notCaughtCambio": "It is not caught: you get it by changing form.",
+      "summaryFusion": "Fusing {desde} with {con}",
+      "summaryCambio": "Changing {desde}'s form",
+      "energyFrom": "With {cantidad} {energia}, earned by defeating {forma} in raids.",
+      "cells": "With {n} Zygarde Cells.",
+      "candyDust": "With {caramelos} Candy and {polvo} Stardust.",
+      "unfuseFree": "Unfusing is free.",
+      "energyNote": "The energy comes from defeating each one in raids.",
+      "back": "Back",
+      "free": "free",
+      "keeps": "It keeps its level and IVs.",
+      "pcFusion": "When fused",
+      "pcCambio": "When changed",
+      "pcKeeps": "It keeps your {nombre}'s level: depends on where you got it.",
+      "energy": {
+        "solar": "Solar Fusion Energy",
+        "lunar": "Lunar Fusion Energy",
+        "voltaje": "Volt Fusion Energy",
+        "llama": "Blaze Fusion Energy",
+        "espadaSuprema": "Crowned Sword Energy",
+        "escudoSupremo": "Crowned Shield Energy"
+      },
+      "energyShort": {
+        "solar": "Solar",
+        "lunar": "Lunar",
+        "voltaje": "Volt",
+        "llama": "Blaze",
+        "espadaSuprema": "Crowned Sword",
+        "escudoSupremo": "Crowned Shield"
+      },
+      "cellsShort": "cells"
+    },
     "levelUp": {
       "title": "Power up",
       "level": "Lv.",

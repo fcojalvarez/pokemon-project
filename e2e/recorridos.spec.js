@@ -461,3 +461,16 @@ test('cada fila del Top de incursiones lleva su cifra con clima', async ({ page 
   const fila = page.locator('[data-fila-top]').first()
   await expect(fila.locator('[title^="Con Soleado"]')).toBeVisible()
 })
+
+test('una fusión dice cómo se consigue, lo que cuesta y su PC al fusionarla', async ({ page }) => {
+  await page.goto('/pokemon/800?form=necrozma_dawn_wings')
+  for (const id of ['donde', 'costes', 'pc']) {
+    const plegada = page.locator(`#ficha-${id} h2 button[aria-expanded="false"]`)
+    if (await plegada.count()) await plegada.click()
+  }
+  await expect(page.locator('#ficha-donde')).toContainText('se consigue fusionando')
+  await expect(page.locator('#ficha-donde')).toContainText('Energía Fusión Lunar')
+  await expect(page.locator('#ficha-costes')).toContainText('Fusiones')
+  await expect(page.locator('#ficha-costes')).toContainText('Melena Crepuscular')
+  await expect(page.locator('#ficha-pc')).toContainText('Al fusionarlo')
+})

@@ -36,6 +36,8 @@ import { maxLiberados } from './lib/maxLiberados.mjs'
 import { buildFormas } from './lib/formas.mjs'
 import { ataquesDelJuego, completarAtaques, idDelJuego, idDelJuegoParaPvp, listaDelJuego } from './lib/ataques.mjs'
 import { POKEBATTLER, ataquesPorPokemon, maxDePokebattler, nivelesMax } from './lib/pokebattler.mjs'
+import { diferenciasCambiosForma } from './lib/cambiosForma.mjs'
+import { CONVERSIONES } from '../src/utils/cambiosForma.js'
 import { createRequire } from 'node:module'
 
 // La última lista de variocolores de pogoapi, congelada (ver especiesConVariocolor).
@@ -948,13 +950,23 @@ const SOURCES = {
   pokebattlerRaids: POKEBATTLER.raids,
 }
 
-/** pvpoke nombra las formas distinto que PokeAPI. */
+/**
+ * pvpoke nombra las formas distinto que PokeAPI. Sin el alias, la forma cae
+ * al sprite de la especie: los Tauros de Paldea salían como el de Kanto y
+ * Necrozma Alas del Alba como Necrozma.
+ */
 const FORM_ALIASES = [
-  [/-alolan$/, '-alola'],
-  [/-galarian$/, '-galar'],
-  [/-hisuian$/, '-hisui'],
+  [/-alolan(-|$)/, '-alola$1'],
+  // También en medio: darmanitan-galarian-zen es darmanitan-galar-zen.
+  [/-galarian(-|$)/, '-galar$1'],
+  [/-hisuian(-|$)/, '-hisui$1'],
   [/-paldean/, '-paldea'],
   [/-therian$/, '-therian'],
+  [/^tauros-(aqua|blaze|combat)$/, 'tauros-paldea-$1-breed'],
+  [/^necrozma-dawn-wings$/, 'necrozma-dawn'],
+  [/^necrozma-dusk-mane$/, 'necrozma-dusk'],
+  [/^(zacian|zamazenta)-crowned-(sword|shield)$/, '$1-crowned'],
+  [/^calyrex-(ice|shadow)-rider$/, 'calyrex-$1'],
 ]
 
 /**
@@ -2069,6 +2081,14 @@ async function main() {
   if (climaDistinto) {
     console.warn('\n  ⚠ Los climas del GAME_MASTER ya no coinciden con src/utils/clima.js')
     console.warn('    Actualízalos antes de fiarte de la cifra con clima del Top.\n')
+  }
+
+  // Y las fusiones y cambios de forma de src/utils/cambiosForma.js.
+  const cambiosDistintos = diferenciasCambiosForma(gmRaw, CONVERSIONES)
+  if (cambiosDistintos.length) {
+    console.warn('\n  ⚠ Las fusiones y cambios de forma del GAME_MASTER ya no coinciden con src/utils/cambiosForma.js:')
+    for (const fallo of cambiosDistintos) console.warn(`    ${fallo}`)
+    console.warn('')
   }
 
   const chart = buildTypeChart(gmRaw)

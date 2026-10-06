@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
+import { createPinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import i18n from '../src/plugins/i18n'
 import BaseModal from '../src/components/base/BaseModal.vue'
@@ -24,7 +25,8 @@ const router = () =>
     ]
   })
 
-const conPlugins = (extra = []) => ({ global: { plugins: [i18n, ...extra] } })
+// Con Pinia: hay secciones (Costes, PC) que leen el store de datos del juego.
+const conPlugins = (extra = []) => ({ global: { plugins: [i18n, createPinia(), ...extra] } })
 
 describe('BaseModal', () => {
   let r

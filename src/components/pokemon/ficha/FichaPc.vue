@@ -8,6 +8,7 @@ import FichaSeccion from '../FichaSeccion.vue'
 import MaxMark from '../MaxMark.vue'
 import IconoMascara from '../../base/IconoMascara.vue'
 import { useTranslate } from '../../../composables/useTranslate'
+import { useConversion } from '../../../composables/useConversion'
 import iconoClima from '../../../assets/weather/partly_cloudy.png'
 import iconoCaramelo from '../../../assets/icons/candy_icon.png'
 import iconoCarameloXl from '../../../assets/icons/candy_xl.png'
@@ -19,8 +20,16 @@ const props = defineProps({
   /** [{ level, cp }] (useFichaDatos). */
   cpTable: { type: Array, required: true },
   /** Puede dinamaxizar: el nivel 20 es también el de un combate Max. */
-  esMax: Boolean
+  esMax: Boolean,
+  /**
+   * Si la forma no se atrapa y sale de fusionar o cambiar otra (utils/
+   * cambiosForma), la conversión. Entonces no es «al atraparlo» sino «al
+   * fusionarlo»: conserva el nivel del Pokémon de partida.
+   */
+  conversion: { type: Object, default: null }
 })
+
+const { nombre } = useConversion()
 
 const { t } = useTranslate()
 
@@ -38,29 +47,32 @@ const nivelPc = (level) => props.cpTable.find((row) => row.level === level) ?? {
  * cualquier nivel del 1 al 30 (35 con clima), y un solo número engañaba. Al
  * subirlo: el 40 sin caramelos XL y el 50 con ellos.
  */
-const pcAtrapar = computed(() => [
-  {
-    clave: 'raid',
-    iconos: ['raid'],
-    texto: t('pokemon.cpFromRaid'),
-    normal: nivelPc(20),
-    clima: nivelPc(25)
-  },
-  {
-    clave: 'egg',
-    iconos: props.esMax ? ['egg', 'max'] : ['egg'],
-    texto: t(props.esMax ? 'pokemon.cpFromEggMax' : 'pokemon.cpFromEgg'),
-    normal: nivelPc(20),
-    clima: null
-  },
-  {
-    clave: 'research',
-    iconos: ['research'],
-    texto: t('pokemon.cpFromResearch'),
-    normal: nivelPc(15),
-    clima: null
-  }
-])
+const pcAtrapar = computed(() =>
+  [
+    {
+      clave: 'raid',
+      iconos: ['raid'],
+      texto: t('pokemon.cpFromRaid'),
+      normal: nivelPc(20),
+      clima: nivelPc(25)
+    },
+    {
+      clave: 'egg',
+      iconos: props.esMax ? ['egg', 'max'] : ['egg'],
+      texto: t(props.esMax ? 'pokemon.cpFromEggMax' : 'pokemon.cpFromEgg'),
+      normal: nivelPc(20),
+      clima: null
+    },
+    {
+      clave: 'research',
+      iconos: ['research'],
+      texto: t('pokemon.cpFromResearch'),
+      normal: nivelPc(15),
+      clima: null
+    }
+    // Una fusión parte de lo que ya tienes: de una misión no sale nada que fusionar.
+  ].filter((fila) => !(props.conversion && fila.clave === 'research'))
+)
 
 /** Las pastillas de «Al atraparlo»: la del clima, detrás de la de incursión. */
 const pastillasAtrapar = computed(() =>
@@ -109,7 +121,20 @@ const resumen = computed(() => {
       pastilla, detrás de la de incursión. Cada pastilla lleva su texto para
       lectores de pantalla y en el title.
     -->
-    <h3 :class="ETIQUETA" class="mt-2">{{ $t('pokemon.cpCatch') }}</h3>
+    <h3 :class="ETIQUETA" class="mt-2">
+      {{
+        conversion
+          ? $t(
+              conversion.tipo === 'fusion'
+                ? 'pokemon.conversion.pcFusion'
+                : 'pokemon.conversion.pcCambio'
+            )
+          : $t('pokemon.cpCatch')
+      }}
+    </h3>
+    <p v-if="conversion" class="-mt-1 mb-1.5 text-mini text-gray-600 dark:text-gray-300">
+      {{ $t('pokemon.conversion.pcKeeps', { nombre: nombre(conversion.desde) }) }}
+    </p>
     <ul class="flex flex-wrap gap-x-5 gap-y-1.5 tabular-nums">
       <li
         v-for="pastilla in pastillasAtrapar"

@@ -7,6 +7,9 @@ import iconoCaramelo from '../../../assets/icons/candy_icon.png'
 import BaseMegaEnergyIcon from '../../base/BaseMegaEnergyIcon.vue'
 import IconoMascara from '../../base/IconoMascara.vue'
 import FichaSubida from './FichaSubida.vue'
+import ConversionDibujo from '../ConversionDibujo.vue'
+import { useGameDataStore } from '../../../stores/gameData'
+import { conversionesDeEspecie } from '../../../utils/cambiosForma'
 
 const props = defineProps({
   /** Claves de pokemon.flags.* (useFichaDatos). */
@@ -19,7 +22,7 @@ const props = defineProps({
   entrada: { type: Object, default: null }
 })
 
-const { t, tc, formatNumber } = useTranslate()
+const { t, tc, formatNumber, localName } = useTranslate()
 
 const costeTexto = (row) => {
   if (row.texto) return row.texto
@@ -49,6 +52,51 @@ const piezas = (row) => {
   }
   if (row.energy) return [{ n: formatNumber(row.energy), icono: 'mega', palabra: t('megaenergy') }]
   return [{ texto: `${formatNumber(row.km)} ${t('unitDistance')}` }]
+}
+
+const gameData = useGameDataStore()
+
+/**
+ * Las fusiones o cambios de forma de la especie (Necrozma con Solgaleo y
+ * Lunala, Zacian a Espada Suprema…), con lo que cuestan: en la ficha de
+ * cualquiera de sus formas.
+ */
+const conversiones = computed(() => {
+  const dex = props.entrada?.dex
+  if (!dex || !gameData.isReady) return []
+  const ids = (gameData.formsByDex.get(dex) ?? []).map((forma) => forma.id)
+  return conversionesDeEspecie(ids).filter((c) => gameData.byId.get(c.a))
+})
+const tipoConversiones = computed(() => conversiones.value[0]?.tipo ?? null)
+
+/** Lo que cuesta, en piezas con su icono: energía, caramelos, polvo o células. */
+const costeConversion = (c) =>
+  [
+    c.energia && {
+      n: formatNumber(c.cantidad),
+      icono: 'energia',
+      texto: t(`pokemon.conversion.energyShort.${c.energia}`)
+    },
+    c.caramelos && { n: formatNumber(c.caramelos), icono: 'candy' },
+    c.caramelosCon && {
+      n: `+ ${formatNumber(c.caramelosCon)}`,
+      icono: 'candy',
+      texto: gameData.byId.get(c.con) ? localName(gameData.byId.get(c.con)) : ''
+    },
+    c.polvo && { n: formatNumber(c.polvo), signo: '✧' },
+    c.celulas && { n: formatNumber(c.celulas), texto: t('pokemon.conversion.cellsShort') }
+  ].filter(Boolean)
+
+/** «Volver: 10 caramelos · 2.000 polvo» o «Volver: gratis». */
+const vueltaTexto = (vuelta) => {
+  const partes = [
+    vuelta.caramelos &&
+      `${formatNumber(vuelta.caramelos)} ${tc('candy', vuelta.caramelos).toLowerCase()}`,
+    vuelta.polvo && `${formatNumber(vuelta.polvo)} ${t('pokemon.stardust')}`
+  ].filter(Boolean)
+  return `${t('pokemon.conversion.back')}: ${
+    partes.length ? partes.join(' · ') : t('pokemon.conversion.free')
+  }`
 }
 
 /** «Subir de nivel» necesita las estadísticas, para el PC de cada nivel. */
@@ -135,5 +183,64 @@ const resumen = computed(() => {
       :con-suerte="!flags.includes('notTradeable')"
       :class="flags.length || costs.length ? 'mt-4' : 'mt-2'"
     />
+
+    <!-- Fusiones o cambios de forma: una tarjeta por cada uno, con sus dibujos y lo que cuesta. -->
+    <div v-if="conversiones.length" class="mt-4">
+      <h3 class="subtitulo">{{ $t(`pokemon.conversion.${tipoConversiones}`) }}</h3>
+      <ul class="mt-2 flex flex-col gap-2">
+        <li
+          v-for="c in conversiones"
+          :key="`${c.desde}-${c.a}`"
+          class="p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
+        >
+          <conversion-dibujo :conversion="c" tam="sm" />
+          <p
+            class="mt-1.5 flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-xs font-semibold tabular-nums"
+          >
+            <span
+              v-for="(pieza, i) in costeConversion(c)"
+              :key="i"
+              class="inline-flex items-center gap-1"
+            >
+              {{ pieza.n }}
+              <svg
+                v-if="pieza.icono === 'energia'"
+                viewBox="0 0 24 24"
+                class="w-3.5 h-3.5 text-amber-500"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path d="M13 2 3 14h7l-1 8 10-12h-7z" />
+              </svg>
+              <icono-mascara
+                v-else-if="pieza.icono === 'candy'"
+                :src="iconoCaramelo"
+                class="w-3.5 h-3.5"
+              />
+              <span
+                v-else-if="pieza.signo"
+                aria-hidden="true"
+                class="font-normal text-gray-600 dark:text-gray-300"
+                >{{ pieza.signo }}</span
+              >
+              <span v-if="pieza.texto" class="font-normal">{{ pieza.texto }}</span>
+            </span>
+          </p>
+          <p
+            v-if="c.vuelta && c.tipo !== 'fusion'"
+            class="mt-1 text-center text-mini text-gray-600 dark:text-gray-300"
+          >
+            {{ vueltaTexto(c.vuelta) }}
+          </p>
+        </li>
+      </ul>
+      <p
+        v-if="tipoConversiones === 'fusion'"
+        class="mt-2 text-mini text-gray-600 dark:text-gray-300"
+      >
+        {{ $t('pokemon.conversion.unfuseFree') }} {{ $t('pokemon.conversion.energyNote') }}
+        {{ $t('pokemon.conversion.keeps') }}
+      </p>
+    </div>
   </ficha-seccion>
 </template>
