@@ -421,16 +421,16 @@ watch(
           :clima="mode === 'pve'"
         />
 
-        <top-calculo
-          v-if="ancho && mode !== 'pvp'"
-          :modo="mode"
-          class="pt-3 border-t border-gray-300 dark:border-gray-700"
         <!-- En escritorio, la leyenda del Max y cómo se calcula, bajo los filtros en todos los modos. -->
         <leyenda-max
           v-if="ancho && mode === 'max' && gameData.isReady && rowsShown"
           :marcas="leyendaMax"
           class="pt-3 border-t border-gray-300 dark:border-gray-700"
         />
+        <top-calculo
+          v-if="ancho && mode !== 'pvp'"
+          :modo="mode"
+          class="pt-3 border-t border-gray-300 dark:border-gray-700"
         />
       </base-sidebar>
 

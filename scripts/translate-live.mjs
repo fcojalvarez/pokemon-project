@@ -54,9 +54,11 @@ async function bajarJson(url) {
 /**
  * Una llamada a Gemini, con reintentos si el fallo es pasajero (cuota por
  * minuto, 5xx). Un 4xx de otro tipo es de configuración y no se arregla
- * reintentando.
+ * reintentando. Los 503 por saturación del modelo duran a veces minutos, así
+ * que las esperas crecen hasta un minuto (unos 4 minutos en total, dentro de
+ * los 10 del workflow).
  */
-async function llamarGemini(cuerpo, intentos = 3) {
+async function llamarGemini(cuerpo, intentos = 5) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODELO}:generateContent`
   let ultimo
   for (let i = 1; i <= intentos; i++) {
@@ -70,9 +72,11 @@ async function llamarGemini(cuerpo, intentos = 3) {
     const detalle = (await res.text()).slice(0, 400)
     ultimo = new Error(`Gemini respondió HTTP ${res.status}: ${detalle}`)
     const pasajero = res.status === 429 || res.status >= 500
+    ultimo.pasajero = pasajero
     if (!pasajero || i === intentos) throw ultimo
-    console.log(`  intento ${i}: HTTP ${res.status}, reintento en ${i * 10} s`)
-    await new Promise((r) => setTimeout(r, i * 10_000))
+    const espera = Math.min(i * 15, 60)
+    console.log(`  intento ${i}: HTTP ${res.status}, reintento en ${espera} s`)
+    await new Promise((r) => setTimeout(r, espera * 1000))
   }
   throw ultimo
 }
@@ -139,19 +143,32 @@ async function main() {
 
     const pares = glosario(en, es)
     const nuevas = new Map()
+    let soloPasajeros = true
     for (const [indice, lote] of lotes(ahora, POR_LOTE).entries()) {
       try {
         const respuesta = await llamarGemini(peticionGemini(lote, pares))
         const leidas = leerRespuesta(respuesta, lote)
         for (const [original, texto] of leidas) nuevas.set(original, texto)
+        // Respondió pero sin nada aprovechable: eso no es saturación.
+        if (!leidas.size) soloPasajeros = false
         console.log(`  lote ${indice + 1}: ${leidas.size} de ${lote.length} traducidos`)
       } catch (err) {
         // Un lote fallido no tira lo que ya se ha traducido: se guarda lo que
         // haya y lo demás se reintenta en la próxima pasada.
         console.log(`  lote ${indice + 1}: ${err.message}`)
+        if (!err.pasajero) soloPasajeros = false
       }
     }
 
+    if (!nuevas.size && soloPasajeros) {
+      // Gemini saturado o con la cuota agotada: no es un fallo nuestro y no se
+      // pierde nada, los textos siguen pendientes para la próxima pasada.
+      const aviso = 'Gemini no está disponible ahora mismo; se reintenta en la próxima pasada'
+      console.log(`
+${aviso}`)
+      console.log(`::warning title=pnpm traducir::${aviso}`)
+      return
+    }
     if (!nuevas.size) throw new Error('Gemini no ha devuelto ninguna traducción válida')
 
     for (const [original, texto] of nuevas) console.log(`    · ${original}  →  ${texto}`)
