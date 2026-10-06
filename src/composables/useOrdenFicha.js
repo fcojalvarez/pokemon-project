@@ -13,6 +13,7 @@ import { ref } from 'vue'
 export const BLOQUES_FICHA = [
   'donde',
   'costes',
+  'subir',
   'max',
   'pc',
   'pve',

@@ -12,6 +12,8 @@ export const ICONOS_FICHA = {
   ],
   // Monedas
   costes: ['M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2z', 'M18.1 10.4A6 6 0 1 1 10.3 18', 'M7 6h1v4'],
+  // Flecha hacia arriba: subir de nivel
+  subir: ['M12 19V5', 'M5 12l7-7 7 7'],
   // Flechas hacia fuera: crecer
   max: ['M15 3h6v6', 'M9 21H3v-6', 'M21 3l-7 7', 'M3 21l7-7'],
   // Línea que sube

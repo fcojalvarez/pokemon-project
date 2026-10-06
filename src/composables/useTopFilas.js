@@ -1,6 +1,6 @@
 import { computed } from 'vue'
 import { useGameDataStore } from '../stores/gameData'
-import { POTENCIA_MAX, mejorRapido, pesoAtaqueMax } from '../utils/maxBattle'
+import { filasMaxOrdenadas, mejorRapido } from '../utils/maxBattle'
 import { gigamaxSpriteId } from '../utils/gigamax'
 import { origenDe, origenesPresentes } from '../utils/moveOrigins'
 
@@ -143,65 +143,30 @@ export function useTopFilas(filtros) {
   const maxRows = computed(() => {
     if (!gameData.isReady || mode.value !== 'max') return []
 
-    const vistos = new Set()
-    const filas = []
-    for (const entry of gameData.roster) {
-      if (!entry.dynamax && !entry.gigantamax) continue
-      if (!includeLegendary.value && (entry.legendary || entry.mythical)) continue
-      const opciones = gameData.maxInfoFor(entry)?.opciones ?? []
-      // Una fila por cada puntuación distinta: los Ataques Max de su tipo pegan
-      // igual (misma potencia, con STAB) y van juntos; los ajenos a su tipo,
-      // sin STAB, pegan menos y salen en otra fila más abajo. Así Alakazam
-      // queda arriba con Maxionda y más abajo con Maxipuño, y Excadrill sale
-      // una sola vez con Maxitemblor y Maximetal, que son de sus dos tipos.
-      const grupos = new Map()
-      for (const opcion of opciones) {
-        if (type.value !== 'all' && opcion.max.type !== type.value) continue
-        const version = opcion.gigamax ? 'gigantamax' : 'dynamax'
-        const peso = pesoAtaqueMax(entry, opcion)
-        const clave = `${entry.dex}-${version}-${Math.round(peso)}`
-        if (!grupos.has(clave))
-          grupos.set(clave, { version, peso, stab: opcion.stab, opciones: [] })
-        grupos.get(clave).opciones.push(opcion)
-      }
-      for (const [clave, grupo] of grupos) {
-        // Los Pikachu con gorro comparten stats con el normal: una fila basta.
-        if (vistos.has(clave)) continue
-        vistos.add(clave)
-        filas.push({
-          entry,
-          version: grupo.version,
-          maxId: grupo.opciones.map((opcion) => opcion.max.id).join('+'),
-          maxLines: grupo.opciones.map((opcion) => lineaMax(opcion, entry)),
-          stab: grupo.stab,
-          // Potencia × ataque × STAB, en la escala del ataque: el de un Dinamax
-          // sin STAB (base + 15 de IV). Un Gigamax pega 450 en vez de 350.
-          value: grupo.peso / POTENCIA_MAX
-        })
-      }
-    }
+    const filas = filasMaxOrdenadas(
+      gameData.roster,
+      (entry) => gameData.maxInfoFor(entry)?.opciones ?? [],
+      { tipo: type.value, legendarios: includeLegendary.value }
+    )
 
-    return filas
-      .sort((a, b) => b.value - a.value)
-      .slice(0, LIMITE)
-      .map(({ entry, version, maxId, maxLines, stab, value }, indice) => ({
-        id: `${entry.id}-${maxId}`,
-        formId: entry.id,
-        // Sus puestos como tanque y sanador, para las tres letras de la fila.
-        papeles: gameData.papelesDeMax().get(entry.id) ?? null,
-        version,
-        maxLines,
-        rank: indice + 1,
-        dex: entry.dex,
-        // La fila Gigamax, con su sprite gigamaxizado.
-        spriteId: version === 'gigantamax' ? gigamaxSpriteId(entry.spriteId) : entry.spriteId,
-        name: entry.name,
-        nameEs: entry.nameEs,
-        types: entry.types,
-        moves: [],
-        stab,
-        value
-      }))
+    return filas.slice(0, LIMITE).map(({ entry, version, opciones, stab, value }, indice) => ({
+      id: `${entry.id}-${opciones.map((opcion) => opcion.max.id).join('+')}`,
+      formId: entry.id,
+      // Sus puestos como tanque y sanador, para las tres letras de la fila.
+      papeles: gameData.papelesDeMax().get(entry.id) ?? null,
+      version,
+      maxLines: opciones.map((opcion) => lineaMax(opcion, entry)),
+      rank: indice + 1,
+      dex: entry.dex,
+      // La fila Gigamax, con su sprite gigamaxizado.
+      spriteId: version === 'gigantamax' ? gigamaxSpriteId(entry.spriteId) : entry.spriteId,
+      name: entry.name,
+      nameEs: entry.nameEs,
+      types: entry.types,
+      moves: [],
+      stab,
+      value
+    }))
   })
 
   /** Las filas del modo que se está viendo. */

@@ -16,6 +16,8 @@ import TypeIcons from '../base/TypeIcons.vue'
 import MaxMark from './MaxMark.vue'
 import MaxTeamPanel from '../raids/MaxTeamPanel.vue'
 import StabBadge from '../base/StabBadge.vue'
+import BaseNivel from '../base/BaseNivel.vue'
+import IconoPapel from '../base/IconoPapel.vue'
 import { maxCounters } from '../../utils/maxBattle'
 import { calcCP } from '../../utils/formulas'
 
@@ -100,6 +102,21 @@ const exclusivo = computed(
 )
 const nombresRapidos = (opcion) => opcion.rapidos.map((rapido) => localName(rapido)).join(' / ')
 
+/**
+ * Sus tres papeles en el Top Max, con la letra en la esquina, como Puesto
+ * PvE: atacante (su puesto en la lista de daño), tanque y sanador.
+ */
+const papeles = computed(() => {
+  const id = props.entry?.id
+  if (!id || !gameData.isReady) return []
+  const otros = gameData.papelesDeMax().get(id)
+  return [
+    { papel: 'atacante', rank: gameData.puestoMaxAtacante(id) },
+    { papel: 'tanque', rank: otros?.tanque ?? null },
+    { papel: 'sanador', rank: otros?.sanador ?? null }
+  ].filter((p) => p.rank)
+})
+
 /** Plegada: el PC de un 100 %, los Ataques Max (y el Gigamax, si lo tiene). */
 const resumen = computed(() => {
   const info = maxInfo.value
@@ -143,6 +160,25 @@ const resumen = computed(() => {
         </dd>
       </div>
     </dl>
+
+    <!-- Sus papeles en el Top Max: pastillas con la letra en la esquina. -->
+    <ul v-if="papeles.length" class="mt-4 flex flex-wrap gap-x-3 gap-y-2.5">
+      <li
+        v-for="p in papeles"
+        :key="p.papel"
+        class="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs tabular-nums"
+        :title="$t(`max.rolesLegend.${p.papel}`)"
+      >
+        <icono-papel :papel="p.papel" class="w-[13px] h-[13px]" />
+        {{ $t(`max.roles.${p.papel}`) }}
+        <strong>#{{ p.rank }}</strong>
+        <base-nivel
+          :rank="p.rank"
+          pequena
+          class="absolute -top-2 -right-2 ring-2 ring-white dark:ring-gray-900"
+        />
+      </li>
+    </ul>
 
     <!--
       Un Ataque Max por cada tipo de ataque rápido: con qué rápido se saca cada

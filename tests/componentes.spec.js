@@ -9,6 +9,7 @@ import BaseFilterList from '../src/components/base/BaseFilterList.vue'
 import MoveTag from '../src/components/pokemon/MoveTag.vue'
 import MoveLegend from '../src/components/pokemon/MoveLegend.vue'
 import FichaCostes from '../src/components/pokemon/ficha/FichaCostes.vue'
+import FichaSubida from '../src/components/pokemon/ficha/FichaSubida.vue'
 import FichaPc from '../src/components/pokemon/ficha/FichaPc.vue'
 import FichaDebilidades from '../src/components/pokemon/ficha/FichaDebilidades.vue'
 
@@ -198,10 +199,9 @@ describe('secciones de la ficha', () => {
     expect(w.find('h2').text()).toContain(i18n.global.t('pokemon.statusAndCosts'))
   })
 
-  it('costes: «Subir de nivel» con las estadísticas, de 20 a 40 de entrada', () => {
-    const entrada = { stats: { atk: 223, def: 173, hp: 186 } }
-    const w = mount(FichaCostes, {
-      props: { flags: ['notTradeable'], costs: [], entrada },
+  it('«Subir de nivel», su propia sección: de 20 a 40 de entrada', () => {
+    const w = mount(FichaSubida, {
+      props: { stats: { atk: 223, def: 173, hp: 186 } },
       ...conPlugins()
     })
     const texto = w.text()

@@ -10,7 +10,7 @@ import {
 } from '../utils/pve'
 import { CLIMAS, climaDeTipo } from '../utils/clima'
 import { calcCP } from '../utils/formulas'
-import { gigamaxDe, opcionesMax, papelesMax } from '../utils/maxBattle'
+import { filasMaxOrdenadas, gigamaxDe, opcionesMax, papelesMax } from '../utils/maxBattle'
 import { aShinyEnTodo, normalizeName, translateGameText } from '../utils/gameText'
 import { stripFormPrefix, translatePokemonName } from '../utils/eventName'
 import { useTranslate } from '../composables/useTranslate'
@@ -390,6 +390,21 @@ export const useGameDataStore = defineStore('gameData', () => {
       computeTypeRankings(roster.value, moves.value, { limit: 50, ...options })
     )
 
+  /**
+   * Su puesto como atacante en el Top Max (todos los tipos, con legendarios),
+   * sin el corte de 50 del Top: la ficha lo enseña aunque quede más abajo.
+   */
+  const puestoMaxAtacante = (id) =>
+    cached('puestoMax', () => {
+      const puestos = new Map()
+      filasMaxOrdenadas(roster.value, (entry) => maxInfoFor(entry)?.opciones ?? []).forEach(
+        (fila, i) => {
+          if (!puestos.has(fila.entry.id)) puestos.set(fila.entry.id, i + 1)
+        }
+      )
+      return puestos
+    }).get(id) ?? null
+
   /** Los defensores de gimnasio, todos, del mejor al peor (Top y ficha). */
   const defensores = (options = {}) =>
     cached(`def:${JSON.stringify(options)}`, () =>
@@ -538,6 +553,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     maxLiveCaducado,
     maxInfoFor,
     papelesDeMax,
+    puestoMaxAtacante,
     defensores,
     defensorPara,
     conClima,

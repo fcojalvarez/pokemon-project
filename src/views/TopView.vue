@@ -10,8 +10,7 @@ import AttackerList from '../components/rankings/AttackerList.vue'
 import AttackerTable from '../components/rankings/AttackerTable.vue'
 import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
-import StabBadge from '../components/base/StabBadge.vue'
-import IconoPapel from '../components/base/IconoPapel.vue'
+import LeyendaMax from '../components/rankings/LeyendaMax.vue'
 import BaseChevron from '../components/base/BaseChevron.vue'
 import BaseSegmented from '../components/base/BaseSegmented.vue'
 import { useMedia } from '../composables/useMedia'
@@ -24,9 +23,6 @@ const { t } = useTranslate()
 
 const mode = ref('pve')
 const type = ref('all')
-
-/** Los papeles de las tres letras del Top Max, en el orden de la fila. */
-const PAPELES = ['atacante', 'tanque', 'sanador']
 
 /**
  * La letra de cada puesto: en PvE, PvP y Gimnasio (el Max lleva sus tres
@@ -418,11 +414,23 @@ watch(
         >
           <span v-for="n in 3" :key="n" class="esqueleto h-3 w-14 rounded-full"></span>
         </div>
-        <move-legend v-else :class="ancho ? '' : 'mb-3'" v-bind="origenes" />
+        <move-legend
+          v-else
+          :class="ancho ? '' : 'mb-3'"
+          v-bind="origenes"
+          :clima="mode === 'pve'"
+        />
 
         <top-calculo
-          v-if="ancho && mode === 'pve'"
+          v-if="ancho && mode !== 'pvp'"
+          :modo="mode"
           class="pt-3 border-t border-gray-300 dark:border-gray-700"
+        <!-- En escritorio, la leyenda del Max y cómo se calcula, bajo los filtros en todos los modos. -->
+        <leyenda-max
+          v-if="ancho && mode === 'max' && gameData.isReady && rowsShown"
+          :marcas="leyendaMax"
+          class="pt-3 border-t border-gray-300 dark:border-gray-700"
+        />
         />
       </base-sidebar>
 
@@ -508,48 +516,24 @@ watch(
           v-else
           :rows="pvpRows"
           sort-by="score"
-          unit=""
+          :unit="$t('top.pvpUnit')"
           :show-bar="false"
           :show-secondary="false"
           :nivel="nivel"
         />
 
-        <!-- Cómo se calcula el top Max (y el de gimnasio): debajo de la lista. -->
-        <top-calculo
-          v-if="gameData.isReady && (mode === 'max' || mode === 'gym') && rowsShown"
-          :modo="mode"
-          class="mt-3"
-        />
-
-        <!-- Leyenda del Max: solo lo que sale en la lista. -->
-        <div
-          v-if="gameData.isReady && mode === 'max' && rowsShown"
-          class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700 text-mini text-gray-600 dark:text-gray-300"
-        >
-          <p id="leyenda-max" class="mb-1.5 text-xs font-semibold text-gray-800 dark:text-gray-100">
-            {{ $t('legend.title') }}:
-          </p>
-          <!-- Un significado por fila. -->
-          <ul aria-labelledby="leyenda-max" class="flex flex-col gap-1.5">
-            <li v-if="leyendaMax.stab" class="flex items-center gap-1.5">
-              <stab-badge />
-              {{ $t('max.stabLegend') }}
-            </li>
-            <!-- Sin marca junto al nombre: el Gigamax se reconoce por su borde, su ataque y su sprite. -->
-            <li v-if="leyendaMax.gigantamax" class="flex items-center gap-1.5">
-              <span
-                class="w-5 h-3.5 shrink-0 rounded border-2 border-fuchsia-500 dark:border-fuchsia-400"
-                aria-hidden="true"
-              ></span>
-              {{ $t('max.gmaxBorderLegend') }}
-            </li>
-            <!-- Las tres letras de cada fila: un papel por línea, con su icono. -->
-            <li v-for="papel in PAPELES" :key="papel" class="flex items-center gap-1.5">
-              <icono-papel :papel="papel" class="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
-              {{ $t(`max.rolesLegend.${papel}`) }}
-            </li>
-          </ul>
-        </div>
+        <!--
+          Max y Gimnasio en el móvil: cómo se calcula y la leyenda, debajo de la
+          lista. En escritorio van en la barra lateral, como los de incursiones.
+        -->
+        <template v-if="!ancho && gameData.isReady && rowsShown">
+          <top-calculo v-if="mode === 'max' || mode === 'gym'" :modo="mode" class="mt-3" />
+          <leyenda-max
+            v-if="mode === 'max'"
+            :marcas="leyendaMax"
+            class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
+          />
+        </template>
 
         <base-empty-state
           v-if="gameData.isReady && !rowsShown"

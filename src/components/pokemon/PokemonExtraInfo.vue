@@ -11,7 +11,8 @@ import { useLiveStore } from '../../stores/live'
 import { useOrdenFicha } from '../../composables/useOrdenFicha'
 import { useFichaDatos } from '../../composables/useFichaDatos'
 import { ICONOS_FICHA } from '../../utils/iconosFicha'
-import { comoSeConsigue } from '../../utils/cambiosForma'
+import { comoSeConsigue, conversionesDeEspecie } from '../../utils/cambiosForma'
+import FichaSubida from './ficha/FichaSubida.vue'
 import WhereToFind from './WhereToFind.vue'
 import MaxBattlePanel from './MaxBattlePanel.vue'
 import FichaCostes from './ficha/FichaCostes.vue'
@@ -57,6 +58,7 @@ const ordenando = ref(false)
 const TITULOS = {
   donde: 'pokemon.whereToFind',
   costes: 'pokemon.statusAndCosts',
+  subir: 'pokemon.levelUp.title',
   max: 'max.title',
   pc: 'pokemon.cp100',
   pve: 'pokemon.pveRanks',
@@ -69,6 +71,12 @@ const TITULOS = {
   comparar: 'pokemon.compare.title'
 }
 
+/** Si la especie se fusiona o cambia de forma: sus costes van en «Avisos y costes». */
+const hayConversiones = computed(() => {
+  const ids = (gameData.formsByDex.get(props.pokemon?.pokemon_id) ?? []).map((forma) => forma.id)
+  return conversionesDeEspecie(ids).length > 0
+})
+
 /**
  * Los bloques que este Pokémon tiene: sin ellos, la lista dejaba huecos (un
  * Pokémon sin efectos en combate) y las flechas de ordenar se saltaban uno
@@ -76,7 +84,8 @@ const TITULOS = {
  */
 const tiene = computed(() => ({
   donde: live.status === 'ready',
-  costes: flags.value.length > 0 || costs.value.length > 0 || Boolean(entrada.value?.stats?.atk),
+  costes: flags.value.length > 0 || costs.value.length > 0 || hayConversiones.value,
+  subir: Boolean(entrada.value?.stats?.atk),
   max: Boolean(maxInfo.value),
   pc: cpTable.value.length > 0,
   pve: true,
@@ -275,6 +284,13 @@ onBeforeUnmount(alSoltarAsa)
           :costs="costs"
           :dex-mega="pokemon.pokemon_id"
           :entrada="entrada"
+        />
+        <ficha-subida
+          v-else-if="id === 'subir'"
+          :stats="entrada.stats"
+          :propia="entrada.costesSubida ?? null"
+          :con-oscuro="flags.includes('canBeShadow')"
+          :con-suerte="!flags.includes('notTradeable')"
         />
         <max-battle-panel v-else-if="id === 'max'" :entry="entrada" />
         <ficha-pc

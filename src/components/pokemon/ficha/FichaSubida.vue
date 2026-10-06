@@ -1,8 +1,9 @@
 <script setup>
 /**
  * «Subir de nivel»: cuánto polvo, caramelos y caramelos XL cuesta llevarlo de
- * un nivel a otro, con dos tiradores sobre una barra del 1 al 50. Va al final
- * de «Avisos y costes».
+ * un nivel a otro, con dos tiradores sobre una barra del 1 al 50. Es su propia
+ * sección: dentro de «Avisos y costes», con las fusiones, la hacía de dos
+ * pantallas, y no es un coste fijo sino una herramienta.
  *
  * Empieza en 20 → 40: lo que sale de una incursión o un huevo y hasta donde
  * se sube sin caramelos XL. Oscuro y purificado solo si tiene versión oscura;
@@ -15,6 +16,7 @@
 import { computed, ref, watch } from 'vue'
 import BaseSegmented from '../../base/BaseSegmented.vue'
 import IconoMascara from '../../base/IconoMascara.vue'
+import FichaSeccion from '../FichaSeccion.vue'
 import { useTranslate } from '../../../composables/useTranslate'
 import { calcCP } from '../../../utils/formulas'
 import { costeSubida, NIVEL_MAX, NIVEL_MIN } from '../../../utils/subida'
@@ -30,7 +32,7 @@ const props = defineProps({
   conSuerte: Boolean
 })
 
-const { t, formatNumber } = useTranslate()
+const { t, tc, formatNumber } = useTranslate()
 
 const IV_PERFECTOS = { atk: 15, def: 15, hp: 15 }
 const MARCAS = [1, 10, 20, 30, 40, 50]
@@ -71,6 +73,19 @@ const enBarra = (nivel) =>
 
 const nivelTexto = (nivel) => formatNumber(nivel)
 
+/** Plegada: lo elegido y lo que cuesta («Nv. 20 → 40: 225.000 polvo · 248 caramelos»). */
+const resumen = computed(() => {
+  const c = coste.value
+  const partes = [
+    `${formatNumber(c.polvo)} ${t('pokemon.stardust')}`,
+    c.caramelos && `${formatNumber(c.caramelos)} ${tc('candy', c.caramelos).toLowerCase()}`,
+    c.xl && `${formatNumber(c.xl)} XL`
+  ].filter(Boolean)
+  return `${t('pokemon.levelUp.level')} ${nivelTexto(desde.value)} → ${nivelTexto(
+    hasta.value
+  )}: ${partes.join(' · ')}`
+})
+
 const cifras = computed(() => [
   { clave: 'dust', valor: coste.value.polvo, signo: '✧' },
   { clave: 'candy', valor: coste.value.caramelos, icono: iconoCaramelo },
@@ -79,9 +94,7 @@ const cifras = computed(() => [
 </script>
 
 <template>
-  <div>
-    <h3 class="subtitulo">{{ $t('pokemon.levelUp.title') }}</h3>
-
+  <ficha-seccion id="subir" :title="$t('pokemon.levelUp.title')" :summary="resumen">
     <div class="mt-2 flex justify-between gap-3 text-sm tabular-nums">
       <span>
         {{ $t('pokemon.levelUp.level') }} <strong>{{ nivelTexto(desde) }}</strong>
@@ -162,5 +175,5 @@ const cifras = computed(() => [
       :options="variantes"
       class="mt-3"
     />
-  </div>
+  </ficha-seccion>
 </template>

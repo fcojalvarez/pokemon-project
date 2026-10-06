@@ -318,3 +318,44 @@ export function papelesMax(roster) {
     for (const id of g.ids) out.set(id, { tanque: tanque.get(g), sanador: sanador.get(g) })
   return out
 }
+
+/**
+ * La lista del Top Max entera, de más a menos daño: una fila por cada
+ * puntuación distinta de cada Pokémon. Los Ataques Max de su tipo pegan igual
+ * (misma potencia, con STAB) y van juntos; los ajenos a su tipo, sin STAB,
+ * pegan menos y salen en otra fila más abajo. Así Alakazam queda arriba con
+ * Maxionda y más abajo con Maxipuño, y Excadrill sale una sola vez con
+ * Maxitemblor y Maximetal, que son de sus dos tipos.
+ *
+ * La usan el Top (que la corta) y la ficha (el puesto como atacante, que
+ * puede estar más allá del corte). `opcionesDe(entry)` son sus opciones de
+ * Ataque Max (gameData.maxInfoFor(entry).opciones).
+ *
+ * @returns {{entry, version, peso, stab, opciones, value}[]}
+ */
+export function filasMaxOrdenadas(roster, opcionesDe, { tipo = 'all', legendarios = true } = {}) {
+  const vistos = new Set()
+  const filas = []
+  for (const entry of roster ?? []) {
+    if (!entry.dynamax && !entry.gigantamax) continue
+    if (!legendarios && (entry.legendary || entry.mythical)) continue
+    const grupos = new Map()
+    for (const opcion of opcionesDe(entry)) {
+      if (tipo !== 'all' && opcion.max.type !== tipo) continue
+      const version = opcion.gigamax ? 'gigantamax' : 'dynamax'
+      const peso = pesoAtaqueMax(entry, opcion)
+      const clave = `${entry.dex}-${version}-${Math.round(peso)}`
+      if (!grupos.has(clave)) grupos.set(clave, { version, peso, stab: opcion.stab, opciones: [] })
+      grupos.get(clave).opciones.push(opcion)
+    }
+    for (const [clave, grupo] of grupos) {
+      // Los Pikachu con gorro comparten stats con el normal: una fila basta.
+      if (vistos.has(clave)) continue
+      vistos.add(clave)
+      // Potencia × ataque × STAB, en la escala del ataque: el de un Dinamax
+      // sin STAB (base + 15 de IV). Un Gigamax pega 450 en vez de 350.
+      filas.push({ entry, ...grupo, value: grupo.peso / POTENCIA_MAX })
+    }
+  }
+  return filas.sort((a, b) => b.value - a.value)
+}

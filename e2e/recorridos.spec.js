@@ -86,6 +86,11 @@ test('el orden de las secciones de la ficha se guarda y se puede restablecer', a
 })
 
 test('al ordenar, una sección se puede arrastrar por su asa', async ({ page }) => {
+  // Alta de sobra para que la lista entera quepa en pantalla: en un móvil
+  // normal la última fila queda bajo la barra de abajo (al arrastrar, la
+  // página hace scroll sola cerca del borde; aquí se prueba el arrastre).
+  const { width } = page.viewportSize()
+  await page.setViewportSize({ width, height: 1400 })
   await page.goto('/pokemon/6')
   await expect(page.getByRole('heading', { level: 1, name: 'Charizard' })).toBeVisible()
   await expect(page.locator('#ficha-comparar')).toBeAttached()
@@ -425,7 +430,7 @@ test('el idioma elegido se queda al recargar', async ({ page }) => {
 
 test('la calculadora de subida cambia con los tiradores y la variante', async ({ page }) => {
   await page.goto('/pokemon/6')
-  const seccion = page.locator('#ficha-costes')
+  const seccion = page.locator('#ficha-subir')
   await expect(seccion).toBeVisible()
   const plegada = seccion.locator('h2 button[aria-expanded="false"]')
   if (await plegada.count()) await plegada.click()

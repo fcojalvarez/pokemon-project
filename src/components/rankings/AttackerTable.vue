@@ -13,7 +13,7 @@ import { computed } from 'vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import StabBadge from '../base/StabBadge.vue'
 import BaseNivel from '../base/BaseNivel.vue'
-import PapelesMax from './PapelesMax.vue'
+import IconoPapel from '../base/IconoPapel.vue'
 import IconoClima from '../base/IconoClima.vue'
 import { useTituloClima } from '../../composables/useTituloClima'
 import MoveTag from '../pokemon/MoveTag.vue'
@@ -46,6 +46,9 @@ const METRICAS = ['dps', 'tdo', 'er']
 const conPapeles = computed(() => props.rows.some((row) => row.papeles))
 
 /** La columna que manda: la de la barra. */
+const PAPELES = ['atacante', 'tanque', 'sanador']
+/** Atacante: su puesto en esta lista; tanque y sanador, entre todos los que dinamaxizan. */
+const puestoPapel = (row, papel) => (papel === 'atacante' ? row.rank : row.papeles?.[papel])
 const principal = computed(() => (props.mode === 'pve' ? props.sortBy : 'value'))
 const valor = (row, clave) => row[clave] ?? row.value ?? 0
 // En «Todos» la barra sigue a la puntuación por la que se ordena (la suma de
@@ -64,7 +67,7 @@ const tituloValor = computed(() =>
     ? t('max.damageUnit')
     : props.mode === 'gym'
     ? t('top.gym.unit')
-    : t('top.score')
+    : t('top.pvpUnit')
 )
 const ordenar = (metrica) => {
   if (metrica !== props.sortBy) emit('update:sortBy', metrica)
@@ -118,9 +121,19 @@ const ordenar = (metrica) => {
           <th v-if="nivel" scope="col" class="px-3 py-2 font-semibold text-center">
             {{ $t('top.tierColumn') }}
           </th>
-          <th v-else-if="conPapeles" scope="col" class="px-3 py-2 font-semibold text-right">
-            {{ $t('max.roles.title') }}
-          </th>
+          <!-- Max: una columna por papel, con su icono, como la de «Nivel». -->
+          <template v-else-if="conPapeles">
+            <th
+              v-for="papel in PAPELES"
+              :key="papel"
+              scope="col"
+              class="px-2 py-2 text-center"
+              :title="$t(`max.rolesLegend.${papel}`)"
+            >
+              <icono-papel :papel="papel" class="inline-block w-4 h-4" />
+              <span class="sr-only">{{ $t(`max.roles.${papel}`) }}</span>
+            </th>
+          </template>
         </tr>
       </thead>
       <tbody>
@@ -263,9 +276,11 @@ const ordenar = (metrica) => {
           <td v-if="nivel" class="px-3 py-1.5 text-center">
             <base-nivel :rank="row.rank" :por-tipo="nivel === 'tipo'" />
           </td>
-          <td v-else-if="conPapeles" class="px-3 py-1.5">
-            <papeles-max v-if="row.papeles" :rank="row.rank" :papeles="row.papeles" />
-          </td>
+          <template v-else-if="conPapeles">
+            <td v-for="papel in PAPELES" :key="papel" class="px-2 py-1.5 text-center">
+              <base-nivel v-if="puestoPapel(row, papel)" :rank="puestoPapel(row, papel)" />
+            </td>
+          </template>
         </tr>
       </tbody>
     </table>

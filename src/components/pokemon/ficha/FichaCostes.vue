@@ -6,7 +6,6 @@ import { useTranslate } from '../../../composables/useTranslate'
 import iconoCaramelo from '../../../assets/icons/candy_icon.png'
 import BaseMegaEnergyIcon from '../../base/BaseMegaEnergyIcon.vue'
 import IconoMascara from '../../base/IconoMascara.vue'
-import FichaSubida from './FichaSubida.vue'
 import ConversionDibujo from '../ConversionDibujo.vue'
 import { useGameDataStore } from '../../../stores/gameData'
 import { conversionesDeEspecie } from '../../../utils/cambiosForma'
@@ -18,7 +17,7 @@ const props = defineProps({
   costs: { type: Array, required: true },
   /** Número de la especie: los colores de su megaenergía. */
   dexMega: { type: Number, default: null },
-  /** La forma que se ve (la `entrada` de useFichaDatos): para «Subir de nivel». */
+  /** La forma que se ve (la `entrada` de useFichaDatos): para sus fusiones o cambios de forma. */
   entrada: { type: Object, default: null }
 })
 
@@ -99,11 +98,8 @@ const vueltaTexto = (vuelta) => {
   }`
 }
 
-/** «Subir de nivel» necesita las estadísticas, para el PC de cada nivel. */
-const conSubida = computed(() => Boolean(props.entrada?.stats?.atk))
-
 const titulo = computed(() => {
-  if (props.flags.length && (props.costs.length || conSubida.value))
+  if (props.flags.length && (props.costs.length || conversiones.value.length))
     return t('pokemon.statusAndCosts')
   return props.flags.length ? t('pokemon.status') : t('pokemon.costs')
 })
@@ -121,7 +117,7 @@ const resumen = computed(() => {
 <template>
   <ficha-seccion id="costes" :title="titulo" :summary="resumen">
     <div v-if="flags.length" :class="costs.length ? 'mb-4' : ''">
-      <h3 v-if="costs.length || conSubida" class="subtitulo">
+      <h3 v-if="costs.length || conversiones.length" class="subtitulo">
         {{ $t('pokemon.status') }}
       </h3>
       <div class="flex flex-wrap gap-1.5 mt-2">
@@ -174,15 +170,6 @@ const resumen = computed(() => {
         </li>
       </ul>
     </div>
-
-    <ficha-subida
-      v-if="conSubida"
-      :stats="entrada.stats"
-      :propia="entrada.costesSubida ?? null"
-      :con-oscuro="flags.includes('canBeShadow')"
-      :con-suerte="!flags.includes('notTradeable')"
-      :class="flags.length || costs.length ? 'mt-4' : 'mt-2'"
-    />
 
     <!-- Fusiones o cambios de forma: una tarjeta por cada uno, con sus dibujos y lo que cuesta. -->
     <div v-if="conversiones.length" class="mt-4">

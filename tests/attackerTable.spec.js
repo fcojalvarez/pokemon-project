@@ -112,7 +112,7 @@ describe('tabla del Top', () => {
       ]
     })
     expect(w.findAll('th button')).toHaveLength(0)
-    expect(w.findAll('th').at(-1).text()).toBe('Puntuación')
+    expect(w.findAll('th').at(-1).text()).toBe('Puntos')
     expect(w.findAll('tbody td').at(-1).text()).toBe('94,3')
   })
 })
