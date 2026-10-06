@@ -1807,31 +1807,42 @@ function buildPokemon(pvpGm, es, moves, forms, megaEnergy, max, conShiny, en = n
   return out
 }
 
+/**
+ * La entrada del roster de una fila de pvpoke. Si su id no está (la forma que
+ * pvpoke rankea se descartó del roster, como Aegislash Escudo, cuyos rápidos
+ * AEGISLASH_CHARGE_… no son ataques del juego), vale la única otra forma de la
+ * misma especie: sin esto salía en inglés, sin tipos y sin enlace a la ficha.
+ */
+function entradaDelRoster(id, byId, roster) {
+  if (byId.has(id)) return byId.get(id)
+  const especie = id.split('_')[0]
+  const otras = roster.filter((p) => p.id.split('_')[0] === especie && !p.shadow && !p.mega)
+  return otras.length === 1 ? otras[0] : null
+}
+
 function trimRankings(list, roster, limit) {
   const byId = new Map(roster.map((p) => [p.id, p]))
+  const rival = (c) => {
+    const p = entradaDelRoster(c.opponent, byId, roster)
+    return { id: p?.id ?? c.opponent, nameEs: p?.nameEs ?? c.opponent, rating: c.rating }
+  }
   return list.slice(0, limit).map((r, i) => {
-    const p = byId.get(r.speciesId)
+    const p = entradaDelRoster(r.speciesId, byId, roster)
     return {
       rank: i + 1,
-      id: r.speciesId,
+      id: p?.id ?? r.speciesId,
       name: p?.name ?? r.speciesName,
       nameEs: p?.nameEs ?? r.speciesName,
       types: p?.types ?? [],
       score: r.score,
       // Con los nombres de moves.json (FUTURE_SIGHT es FUTURESIGHT). Los Poder
       // Oculto de cada tipo se quedan como los da pvpoke: en PvP el tipo cuenta.
-      moveset: (r.moveset ?? []).map(idDelJuegoParaPvp),
+      // Los AEGISLASH_CHARGE_… son el truco de pvpoke para simular el cambio
+      // de forma; en el juego el ataque es el normal (Psicocorte).
+      moveset: (r.moveset ?? []).map((id) => idDelJuegoParaPvp(id.replace(/^AEGISLASH_CHARGE_/, ''))),
       stats: r.stats ?? null,
-      counters: (r.counters ?? []).slice(0, 5).map((c) => ({
-        id: c.opponent,
-        nameEs: byId.get(c.opponent)?.nameEs ?? c.opponent,
-        rating: c.rating,
-      })),
-      wins: (r.matchups ?? []).slice(0, 5).map((c) => ({
-        id: c.opponent,
-        nameEs: byId.get(c.opponent)?.nameEs ?? c.opponent,
-        rating: c.rating,
-      })),
+      counters: (r.counters ?? []).slice(0, 5).map((c) => rival(c)),
+      wins: (r.matchups ?? []).slice(0, 5).map((c) => rival(c)),
       notes: r.editorNotes ?? null,
     }
   })

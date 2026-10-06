@@ -89,14 +89,20 @@ export function useTopFilas(filtros) {
           name: row.name,
           nameEs: row.nameEs,
           types: row.types,
-          // Sin el movimiento en moves.json queda el id, que es mejor que nada.
-          moves: (row.moveset ?? []).map((id) => ({
-            id,
-            name: gameData.moves[id]?.name ?? id,
-            nameEs: gameData.moves[id]?.nameEs ?? id,
-            type: moveType(id),
-            ...origen(id)
-          })),
+          moves: (row.moveset ?? []).map((id) => {
+            // El Poder Oculto llega con su tipo (HIDDEN_POWER_ICE): en PvP el
+            // tipo cuenta. Se pinta como Poder Oculto, del color de ese tipo.
+            const oculto = /^HIDDEN_POWER_([A-Z]+)$/.exec(id)
+            const base = oculto ? gameData.moves.HIDDEN_POWER : gameData.moves[id]
+            return {
+              id,
+              // Sin el movimiento en moves.json queda el id, que es mejor que nada.
+              name: base?.name ?? id,
+              nameEs: base?.nameEs ?? id,
+              type: oculto ? oculto[1].toLowerCase() : moveType(id),
+              ...origen(oculto ? 'HIDDEN_POWER' : id)
+            }
+          }),
           value: row.score
         }
       }

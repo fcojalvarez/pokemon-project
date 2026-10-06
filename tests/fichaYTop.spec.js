@@ -244,4 +244,18 @@ describe('filas del Top', () => {
     const conTipo = top(filtros({ mode: ref('pvp'), type: ref('fairy') })).pvpRows.value
     expect(conTipo.every((f) => f.types.includes('fairy'))).toBe(true)
   })
+
+  it('PvP: ningún ataque se queda con el id del juego en vez del nombre', () => {
+    for (const liga of ['great', 'ultra', 'master']) {
+      const filas = top(filtros({ mode: ref('pvp'), league: ref(liga) })).pvpRows.value
+      for (const fila of filas) {
+        expect(fila.types.length, `${liga}: ${fila.id} sin tipos`).toBeGreaterThan(0)
+        for (const m of fila.moves) expect(m.nameEs, `${liga}: ${fila.id}`).not.toMatch(/^[A-Z_]+$/)
+      }
+    }
+    // El Poder Oculto llega con su tipo: se pinta como Poder Oculto de ese tipo.
+    const master = top(filtros({ mode: ref('pvp'), league: ref('master') })).pvpRows.value
+    const oculto = master.flatMap((f) => f.moves).find((m) => m.id === 'HIDDEN_POWER_ICE')
+    if (oculto) expect(oculto).toMatchObject({ nameEs: 'Poder Oculto', type: 'ice' })
+  })
 })
