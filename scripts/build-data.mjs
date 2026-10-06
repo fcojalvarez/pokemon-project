@@ -37,6 +37,7 @@ import { buildFormas } from './lib/formas.mjs'
 import { ataquesDelJuego, completarAtaques, idDelJuego, idDelJuegoParaPvp, listaDelJuego } from './lib/ataques.mjs'
 import { POKEBATTLER, ataquesPorPokemon, maxDePokebattler, nivelesMax } from './lib/pokebattler.mjs'
 import { diferenciasCambiosForma } from './lib/cambiosForma.mjs'
+import { especiesConNivelMega4 } from './lib/nivelMega.mjs'
 import { CONVERSIONES } from '../src/utils/cambiosForma.js'
 import { createRequire } from 'node:module'
 
@@ -921,7 +922,14 @@ async function uploadToSupabase(data, roster, conVariocolor, gm, en, es) {
 const PVPOKE_REPO = 'https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/'
 
 const SOURCES = {
-  gm: 'https://raw.githubusercontent.com/PokeMiners/game_masters/master/latest/latest.json',
+  // El GAME_MASTER de alexelgt, que se actualiza a diario, con el mismo
+  // formato. El de PokeMiners se paró el 29 de agosto de 2026 y no traía ni la
+  // megaevolución de Staraptor ni el nivel mega 4 de Beedrill, Houndoom y
+  // Staraptor. Queda de respaldo.
+  gm: [
+    'https://raw.githubusercontent.com/alexelgt/game_masters/master/GAME_MASTER.json',
+    'https://raw.githubusercontent.com/PokeMiners/game_masters/master/latest/latest.json'
+  ],
   es: 'https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Texts/Latest%20APK/JSON/i18n_spanish.json',
   en: 'https://raw.githubusercontent.com/PokeMiners/pogo_assets/master/Texts/Latest%20APK/JSON/i18n_english.json',
   // pvpoke, desde su repositorio de GitHub y no desde su web: la web responde
@@ -1535,7 +1543,7 @@ function buildMaxData(gm, en, es) {
     const ps = t.data?.pokemonSettings
     if (ps?.breadTierGroup) {
       const m = /^V(\d+)_POKEMON_/.exec(t.templateId ?? '')
-      if (m) grupoCoste[Number(m[1])] ??= ps.breadTierGroup
+      if (m) grupoCoste[Number(m[1])] ??= nombreGrupoMax(ps.breadTierGroup)
     }
   }
 
@@ -1570,10 +1578,33 @@ function buildMaxData(gm, en, es) {
   const costes = {}
   for (const t of gm) {
     const bm = t.data?.breadMoveLevelSettings
-    if (bm?.group) costes[bm.group] = { attack: bm.aSettings, guard: bm.bSettings, spirit: bm.cSettings }
+    if (!bm?.group) continue
+    // En su sitio, para que el fichero no cambie según la fuente.
+    const niveles = (lista) =>
+      lista?.map((nivel) =>
+        Object.fromEntries(Object.entries(nivel).map(([k, v]) => [k === 'xpRewards' ? 'xpReward' : k, v]))
+      )
+    costes[nombreGrupoMax(bm.group)] = {
+      attack: niveles(bm.aSettings),
+      guard: niveles(bm.bSettings),
+      spirit: niveles(bm.cSettings),
+    }
   }
 
   return { movimientos, vfx, porTipo, gmaxPorEspecie, gigamax, dinamax, grupoCoste, costes, exclusivos }
+}
+
+/**
+ * El nombre del grupo de coste de los ataques Max. El GAME_MASTER de alexelgt
+ * deja algunos como número de enum sin resolver (7 y 8) donde el de PokeMiners
+ * pone el nombre: la plantilla BREAD_MOVE_LEVEL_SETTINGS_GROUP_7 es GROUP_Z, y
+ * el 8, GROUP_8. Sin esto, Zacian, Zamazenta y Eternatus (GROUP_Z) se quedaban
+ * sin costes de mejora en la ficha. También renombra `xpRewards` a `xpReward`
+ * (ver buildMaxData), para que el fichero no cambie según la fuente.
+ */
+function nombreGrupoMax(grupo) {
+  if (typeof grupo !== 'number') return grupo
+  return grupo === 7 ? 'GROUP_Z' : `GROUP_${grupo}`
 }
 
 /**
@@ -2101,6 +2132,10 @@ async function main() {
   const maxData = buildMaxData(gmRaw, i18nMap(enRaw), es)
   const conVariocolor = especiesConVariocolor(leekRaw)
   const pokemon = buildPokemon(pvpGm, es, moves, forms, megaEnergy, maxData, conVariocolor, i18nMap(enRaw))
+  // Las megas con el nivel mega 4 (Super Max) abierto: solo ellas usan su
+  // ataque «+» en el Top. Cuando Niantic abra el de otra especie, entra sola.
+  const conNivel4 = especiesConNivelMega4(gmRaw)
+  for (const p of pokemon) p.superMax = p.mega && conNivel4.has(p.dex)
   // Legendario, singular y ultraente, del GAME_MASTER (`pokemonClass`), que
   // manda en las tres: las etiquetas de pvpoke se dejaban 59 formas (Arceus,
   // Silvally, Cosmog…) y ponían a Necrozma de ultraente, que es legendario.

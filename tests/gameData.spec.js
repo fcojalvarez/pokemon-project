@@ -7,6 +7,7 @@ import {
   computeTypeRankings,
   evaluatePokemon,
   puedeDefender,
+  SUPERMEGA_PLUS,
   typeMatchups
 } from '../src/utils/pve'
 import { CLIMAS, climaDeTipo } from '../src/utils/clima'
@@ -102,12 +103,12 @@ describe('computeTypeRankings', () => {
   })
 
   it('ordena la lista general por la suma de los dos mejores tipos', () => {
-    const { overall } = computeTypeRankings(roster, moves, { limit: 50, sortBy: 'er' })
+    const { overall } = computeTypeRankings(roster, moves, { limit: 50, sortBy: 'edps' })
     for (let i = 1; i < overall.length; i++)
       expect(overall[i - 1].general).toBeGreaterThanOrEqual(overall[i].general)
     // La fila enseña su mejor tipo: la suma nunca pasa del doble de él.
     for (const row of overall) {
-      expect(row.general).toBeLessThanOrEqual(row.er * 2 + 1e-9)
+      expect(row.general).toBeLessThanOrEqual(row.edps * 2 + 1e-9)
       expect(row.tiposGeneral[0]).toBe(row.charged.type)
     }
     // Versátiles arriba (psíquico y lucha): Mewtwo Mega X, como en GO Hub.
@@ -306,7 +307,8 @@ describe('movimientos exclusivos de supermega', () => {
   })
 
   it('lo rankea en cuanto el GAME_MASTER publique sus stats de PvE', () => {
-    const beedrill = roster.find((p) => p.id === 'beedrill_mega')
+    // Con el nivel mega 4 abierto, que es cuando puede usar el «+».
+    const beedrill = { ...roster.find((p) => p.id === 'beedrill_mega'), superMax: true }
     const conPve = {
       ...moves,
       FELL_STINGER_PLUS: {
@@ -316,6 +318,38 @@ describe('movimientos exclusivos de supermega', () => {
     }
     const sets = evaluatePokemon(beedrill, conPve)
     expect(sets.some((s) => s.charged.id === 'FELL_STINGER_PLUS')).toBe(true)
+  })
+
+  it('sin el nivel mega 4 abierto no usa su «+», aunque pvpoke ya lo traiga', () => {
+    // Una mega con su «+» en pvpoke pero sin el nivel 4 (Beedrill antes de
+    // abrírselo): no se lo cuenta.
+    const beedrill = { ...roster.find((p) => p.id === 'beedrill_mega'), superMax: false }
+    const sets = evaluatePokemon(beedrill, moves)
+    expect(sets.some((s) => s.charged.id === 'FELL_STINGER_PLUS')).toBe(false)
+    // Las que lo tienen abierto, sí: Mega Raichu X con Placaje Eléctrico+.
+    const raichu = roster.find((p) => p.id === 'raichu_mega_x')
+    expect(raichu.superMax).toBe(true)
+    expect(evaluatePokemon(raichu, moves).some((s) => s.charged.id === 'VOLT_TACKLE_PLUS')).toBe(true)
+  })
+
+  it('el ataque «+» pega ×1,3, lo de su nivel mega 4: pesa como el normal con un 30 % más de potencia', () => {
+    const raichu = roster.find((p) => p.id === 'raichu_mega_x')
+    const plus = moves.VOLT_TACKLE_PLUS
+    // El mismo ataque sin ser exclusivo y con la potencia ya multiplicada.
+    const comoNormal = {
+      ...raichu,
+      charged: [...raichu.charged, 'CLON'],
+      megaMoves: []
+    }
+    const conClon = {
+      ...moves,
+      CLON: { ...plus, pve: { ...plus.pve, power: plus.pve.power * SUPERMEGA_PLUS } }
+    }
+    const deUno = (sets, id) => sets.find((s) => s.fast.id === 'THUNDER_SHOCK' && s.charged.id === id)
+    const real = deUno(evaluatePokemon(raichu, moves), 'VOLT_TACKLE_PLUS')
+    const clon = deUno(evaluatePokemon(comoNormal, conClon), 'CLON')
+    expect(SUPERMEGA_PLUS).toBe(1.3)
+    expect(real.dps).toBeCloseTo(clon.dps, 6)
   })
 })
 

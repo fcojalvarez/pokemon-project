@@ -6,11 +6,11 @@ import AttackerTable from '../src/components/rankings/AttackerTable.vue'
 
 /**
  * La tabla del Top en escritorio ancho. En PvE se ordena desde las cabeceras
- * de DPS, TDO y ER (y va a la par con el selector «Ordenar por», que escucha
+ * de eDPS, DPS y TDO (y va a la par con el selector «Ordenar por», que escucha
  * el mismo v-model); en Dinamax y PvP las columnas son otras.
  */
 const movimiento = (nameEs, type = 'fire') => ({ id: nameEs.toUpperCase(), nameEs, type })
-const fila = (rank, nameEs, dps, tdo, er) => ({
+const fila = (rank, nameEs, dps, tdo, edps) => ({
   id: `p${rank}`,
   rank,
   dex: rank,
@@ -21,7 +21,7 @@ const fila = (rank, nameEs, dps, tdo, er) => ({
   charged: movimiento('Llamarada'),
   dps,
   tdo,
-  er
+  edps
 })
 const montar = (props) =>
   mount(AttackerTable, {
@@ -41,16 +41,22 @@ describe('tabla del Top', () => {
     })
     const cabeceras = w.findAll('th[aria-sort]')
     expect(cabeceras.map((th) => th.attributes('aria-sort'))).toEqual([
-      'descending',
       'none',
+      'descending',
       'none'
     ])
+    // La e del eDPS, en minúscula.
+    expect(w.findAll('th button').map((b) => b.text().replace(/[▼↕]/, '').trim())).toEqual([
+      'eDPS',
+      'DPS',
+      'TDO'
+    ])
 
-    await w.findAll('th button')[1].trigger('click')
+    await w.findAll('th button')[2].trigger('click')
     expect(w.emitted('update:sortBy')).toEqual([['tdo']])
 
     // Pulsar la que ya manda no emite nada.
-    await w.findAll('th button')[0].trigger('click')
+    await w.findAll('th button')[1].trigger('click')
     expect(w.emitted('update:sortBy')).toHaveLength(1)
   })
 
@@ -68,7 +74,7 @@ describe('tabla del Top', () => {
     expect(celdas[1]).toContain('Charizard')
     // Rápido y cargado, juntos en la columna «Ataques» y en ese orden.
     expect(celdas[2]).toMatch(/Ascuas.*Llamarada/)
-    expect(celdas.slice(3)).toEqual(['20,5', '900', '60,1'])
+    expect(celdas.slice(3)).toEqual(['60,1', '20,5', '900'])
     // Toda la fila es el enlace a la ficha.
     expect(w.get('tbody a').attributes('href')).toBe('/pokemon/1')
   })

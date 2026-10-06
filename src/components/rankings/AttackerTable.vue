@@ -1,10 +1,10 @@
 <script setup>
 /**
  * El ranking del Top en tabla, para escritorio ancho. Mismas filas que
- * <attacker-list>, pero con cada dato en su columna: así DPS, TDO y ER quedan
+ * <attacker-list>, pero con cada dato en su columna: así eDPS, DPS y TDO quedan
  * alineados y se comparan de un vistazo.
  *
- * En PvE se ordena pulsando la cabecera de DPS, TDO o ER (sustituye al
+ * En PvE se ordena pulsando la cabecera de eDPS, DPS o TDO (sustituye al
  * selector «Ordenar por»). En Dinamax y PvP el orden es fijo.
  *
  * Toda la fila es el enlace a la ficha: el del nombre se estira sobre la fila.
@@ -28,7 +28,7 @@ const props = defineProps({
   rows: { type: Array, required: true },
   /** 'pve' | 'max' | 'pvp' */
   mode: { type: String, default: 'pve' },
-  sortBy: { type: String, default: 'dps' },
+  sortBy: { type: String, default: 'edps' },
   /**
    * La letra de cada puesto, al final de la fila: 'general' (la lista general
    * y las de PvP), 'tipo' (la de un tipo, con cortes más cortos) o nada.
@@ -40,15 +40,17 @@ const { t, localName } = useTranslate()
 const gameData = useGameDataStore()
 const fichaDe = (row) => fichaDeFila(row, gameData.fichaBase)
 
-const METRICAS = ['dps', 'tdo', 'er']
+const METRICAS = ['edps', 'dps', 'tdo']
+/** La sigla de cada columna: «eDPS» lleva la e minúscula. */
+const SIGLAS = { edps: 'eDPS', dps: 'DPS', tdo: 'TDO' }
 
 /** Top Max: cada fila lleva sus letras de atacante, tanque y sanador. */
 const conPapeles = computed(() => props.rows.some((row) => row.papeles))
-
-/** La columna que manda: la de la barra. */
 const PAPELES = ['atacante', 'tanque', 'sanador']
 /** Atacante: su puesto en esta lista; tanque y sanador, entre todos los que dinamaxizan. */
 const puestoPapel = (row, papel) => (papel === 'atacante' ? row.rank : row.papeles?.[papel])
+
+/** La columna que manda: la de la barra. */
 const principal = computed(() => (props.mode === 'pve' ? props.sortBy : 'value'))
 const valor = (row, clave) => row[clave] ?? row.value ?? 0
 // En «Todos» la barra sigue a la puntuación por la que se ordena (la suma de
@@ -96,7 +98,7 @@ const ordenar = (metrica) => {
             >
               <button
                 type="button"
-                class="inline-flex items-center gap-1 uppercase tracking-wider rounded-md"
+                class="inline-flex items-center gap-1 normal-case tracking-wider rounded-md"
                 :class="
                   sortBy === metrica
                     ? 'text-gray-900 dark:text-gray-100'
@@ -105,7 +107,7 @@ const ordenar = (metrica) => {
                 :title="$t(`top.${metrica}Help`)"
                 @click="ordenar(metrica)"
               >
-                {{ metrica }}
+                {{ SIGLAS[metrica] }}
                 <span aria-hidden="true" class="text-[10px]">{{
                   sortBy === metrica ? '▼' : '↕'
                 }}</span>

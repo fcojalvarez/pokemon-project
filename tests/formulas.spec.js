@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { calcCP, calcHP, cpm, damage, effectiveStats, movesetPerformance } from '../src/utils/formulas'
+import {
+  calcCP,
+  calcHP,
+  cpm,
+  damage,
+  effectiveStats,
+  movesetPerformance,
+  TIEMPO_POR_CAIDA
+} from '../src/utils/formulas'
 
 const PERFECT = { atk: 15, def: 15, hp: 15 }
 
@@ -86,7 +94,29 @@ describe('movesetPerformance', () => {
     const result = movesetPerformance({ stats, fast, charged, target })
     expect(result.dps).toBeGreaterThan(0)
     expect(result.tdo).toBeCloseTo(result.dps * result.timeAlive, 6)
-    expect(result.er).toBeCloseTo(Math.pow(Math.pow(result.dps, 3) * result.tdo, 0.25), 6)
+    expect(result.edps).toBeCloseTo(
+      (result.dps * result.timeAlive) / (result.timeAlive + TIEMPO_POR_CAIDA),
+      6
+    )
+    expect(result.edps).toBeLessThan(result.dps)
+  })
+
+  it('el eDPS castiga al de cristal: con el mismo DPS, rinde menos el que cae antes', () => {
+    const cristal = movesetPerformance({ stats: { ...stats, def: 80 }, fast, charged, target })
+    const tanque = movesetPerformance({ stats: { ...stats, def: 300 }, fast, charged, target })
+    expect(cristal.edps / cristal.dps).toBeLessThan(tanque.edps / tanque.dps)
+  })
+
+  it('la energía que queda al caer se pierde: pesa más en un cargado de una barra', () => {
+    const corto = movesetPerformance({ stats, fast, charged, target })
+    const largo = movesetPerformance({ stats: { ...stats, hp: 1600 }, fast, charged, target })
+    // Con diez veces más vida, el medio cargado perdido se reparte y el DPS sube.
+    expect(largo.dps).toBeGreaterThan(corto.dps)
+    const unaBarra = { ...charged, power: 200, energy: -100 }
+    const perdidaUna =
+      movesetPerformance({ stats: { ...stats, hp: 1600 }, fast, charged: unaBarra, target }).dps -
+      movesetPerformance({ stats, fast, charged: unaBarra, target }).dps
+    expect(perdidaUna).toBeGreaterThan(largo.dps - corto.dps)
   })
 
   it('más defensa se traduce en más aguante', () => {

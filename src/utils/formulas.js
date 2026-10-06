@@ -84,18 +84,39 @@ export function damage(power, atk, def, mods = {}) {
 }
 
 /**
- * DPS, TDO y ER de un moveset contra un objetivo genérico.
+ * Lo que pega el jefe: su DPS contra un atacante es esto entre la defensa del
+ * atacante. Antes era 900, el jefe genérico de GamePress, que pega flojo: los
+ * atacantes duraban de más y los de cristal salían demasiado arriba. 1333 es
+ * el jefe de Dittobase (sale de sus TDO publicados: casi todos dan
+ * exactamente esto), más parecido a un jefe de incursión de nivel 5.
+ */
+export const JEFE_DPS = 4000 / 3
+
+/**
+ * Segundos que se pierden cada vez que un atacante se debilita: lo que tarda
+ * en entrar el siguiente y la parte que le toca de volver a la sala (10 s cada
+ * equipo de seis). Calibrado con el eDPS de Dittobase: su descuento equivale a
+ * unos 2,3 s por caída.
+ */
+export const TIEMPO_POR_CAIDA = 2.3
+
+/**
+ * DPS, TDO y eDPS de un moveset contra un objetivo genérico.
  *
  * Modelo continuo, el estándar de la comunidad:
- *   r = (EPSrápido + 0.5·y) / (coste + EPSrápido · duraciónCargado)
+ *   r = (EPSrápido + 0.5·y − coste/2/vida) / (coste + EPSrápido · duraciónCargado)
  *       (ritmo de cargados por segundo; el 0.5·y es la energía que genera el
- *        daño recibido)
- *   DPS = DPSrápido + r · (dañoCargado − DPSrápido · duraciónCargado)
- *   y   = 900 / defensa efectiva  (DPS entrante de un enemigo genérico)
- *   TDO = DPS · PS / y
- *   ER  = (DPS³ · TDO)^(1/4)
+ *        daño recibido, y coste/2/vida la que se pierde al debilitarse)
+ *   DPS  = DPSrápido + r · (dañoCargado − DPSrápido · duraciónCargado)
+ *   y    = JEFE_DPS / defensa efectiva  (DPS entrante del jefe)
+ *   TDO  = DPS · PS / y
+ *   eDPS = DPS · vida / (vida + TIEMPO_POR_CAIDA)
+ *          (el DPS real de una incursión: el que cae pronto pierde más tiempo
+ *           entrando de nuevo, y eso es lo que separa a un atacante de cristal
+ *           de uno que aguanta; sustituye al ER, (DPS³·TDO)^¼, que lo
+ *           mezclaba a ojo)
  *
- * No modela esquivar, relevos ni ventanas de daño exactas: sirve para ordenar
+ * No modela esquivar ni ventanas de daño exactas: sirve para ordenar
  * atacantes entre sí, no para predecir un combate concreto al segundo.
  */
 export function movesetPerformance({ stats, fast, charged, target }) {
@@ -116,18 +137,22 @@ export function movesetPerformance({ stats, fast, charged, target }) {
   const fEps = fast.energy / fDur
   const cost = Math.abs(charged.energy)
 
-  const y = 900 / def
+  const y = JEFE_DPS / def
+  const timeAlive = hp / y
   const denom = cost + fEps * cDur
-  let r = denom > 0 ? (fEps + 0.5 * y) / denom : 0
+  // La energía que queda al debilitarse se pierde: de media, medio cargado.
+  // Castiga a los cargados de una barra y a los que caen pronto, que en una
+  // incursión lanzan menos cargados de los que dice el ritmo continuo.
+  const perdida = cost / 2 / timeAlive
+  let r = denom > 0 ? Math.max(0, fEps + 0.5 * y - perdida) / denom : 0
   r = Math.min(r, 1 / cDur)
 
   const fDps = fDmg / fDur
   const dps = Math.max(fDps, fDps + r * (cDmg - fDps * cDur))
-  const timeAlive = hp / y
   const tdo = dps * timeAlive
-  const er = Math.pow(Math.pow(dps, 3) * tdo, 0.25)
+  const edps = (dps * timeAlive) / (timeAlive + TIEMPO_POR_CAIDA)
 
-  return { dps, tdo, er, fastDamage: fDmg, chargedDamage: cDmg, timeAlive }
+  return { dps, tdo, edps, fastDamage: fDmg, chargedDamage: cDmg, timeAlive }
 }
 
 /** Efectividad de un tipo atacante contra uno o dos tipos defensores. */

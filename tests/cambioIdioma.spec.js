@@ -65,7 +65,7 @@ describe('tabla del Top al cambiar de idioma', () => {
         sortBy: 'dps',
         rows: [{
           id: 'charizard_mega_x', rank: 1, dex: 6, spriteId: 6, name: 'Charizard (Mega X)', nameEs: 'Mega Charizard X',
-          types: ['fire'], fast: movimiento('Ember', 'Ascuas'), charged: movimiento('Fire Blast', 'Llamarada'), dps: 20, tdo: 900, er: 60
+          types: ['fire'], fast: movimiento('Ember', 'Ascuas'), charged: movimiento('Fire Blast', 'Llamarada'), dps: 20, tdo: 900, edps: 60
         }]
       },
       global: { plugins: [i18n], stubs: { RouterLink: { props: ['to'], template: '<a :href="to"><slot /></a>' } } }

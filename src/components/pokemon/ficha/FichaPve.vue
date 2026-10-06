@@ -71,8 +71,8 @@ const resumen = computed(() => {
             :key="`${entry.type}-${entry.id}`"
             class="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs tabular-nums"
             :title="`${$t(`types.${entry.type}`)}: #${entry.rank} · ${formatDecimal(
-              entry.dps
-            )} DPS`"
+              entry.edps
+            )} eDPS`"
           >
             <type-icons :types="[entry.type]" size="13" />
             <strong>#{{ entry.rank }}</strong>

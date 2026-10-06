@@ -32,7 +32,10 @@ const type = ref('all')
 const nivel = computed(() =>
   mode.value === 'max' ? '' : mode.value === 'pve' && type.value !== 'all' ? 'tipo' : 'general'
 )
-const sortBy = ref('dps')
+// Por defecto el eDPS: el que dice a quién merece la pena subir (ver pve.js).
+const sortBy = ref('edps')
+const METRICAS_PVE = ['edps', 'dps', 'tdo']
+const SIGLAS_PVE = { edps: 'eDPS', dps: 'DPS', tdo: 'TDO' }
 const league = ref('great')
 // Desde xl, barra lateral fija con los filtros y el ranking en tabla.
 const ancho = useMedia('(min-width: 1280px)')
@@ -112,7 +115,7 @@ useFiltrosEnUrl({
     defecto: 'all',
     leer: (texto) => (/^[a-z]+$/.test(texto) ? texto : undefined)
   },
-  sort: { valor: sortBy, defecto: 'dps', leer: entre(['dps', 'tdo', 'er']) },
+  sort: { valor: sortBy, defecto: 'edps', leer: entre(METRICAS_PVE) },
   league: { valor: league, defecto: 'great', leer: entre(['great', 'ultra', 'master']) },
   without: {
     valor: excluidos,
@@ -132,7 +135,7 @@ const typeOptions = computed(() => [
  * e Incluir.
  */
 const sortOptions = computed(() =>
-  ['dps', 'tdo', 'er'].map((valor) => ({
+  METRICAS_PVE.map((valor) => ({
     value: valor,
     label: t(`top.${valor}`),
     description: t(`top.${valor}Help`)
@@ -207,7 +210,7 @@ const resumenFiltros = computed(() => {
   const partes = [variante, etiqueta(typeOptions.value, type.value)]
   if (mode.value === 'pve') {
     // La sigla: «Daño por segundo (DPS)» entero no cabe en la línea.
-    partes.push(sortBy.value.toUpperCase())
+    partes.push(SIGLAS_PVE[sortBy.value])
     const quitados = [
       !includeMega.value && t('top.megas'),
       !includeShadow.value && t('top.shadows'),
@@ -235,7 +238,7 @@ const resumenFiltros = computed(() => {
 const filtrosCambiados = computed(
   () =>
     (type.value !== 'all' ? 1 : 0) +
-    (mode.value === 'pve' && sortBy.value !== 'dps' ? 1 : 0) +
+    (mode.value === 'pve' && sortBy.value !== 'edps' ? 1 : 0) +
     (mode.value === 'pve'
       ? excluidos.value.filter((quitado) => quitado !== 'legendary').length
       : 0) +

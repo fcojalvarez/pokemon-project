@@ -384,7 +384,7 @@ export const useGameDataStore = defineStore('gameData', () => {
   const pvpListo = computed(() => estadoAparte.value.pvp === 'ready')
   const cargarTextos = () => cargarAparte('texts')
 
-  /** Rankings PvE por tipo. Admite includeMega, includeShadow y sortBy. */
+  /** Rankings PvE por tipo. Admite includeMega, includeShadow y sortBy (eDPS por defecto). */
   const pveRankings = (options = {}) =>
     cached(`pve:${JSON.stringify(options)}`, () =>
       computeTypeRankings(roster.value, moves.value, { limit: 50, ...options })
@@ -418,7 +418,7 @@ export const useGameDataStore = defineStore('gameData', () => {
   /**
    * Una fila del Top PvE con el clima que potencia el tipo de su cargado:
    * el mismo conjunto, contra el mismo jefe débil a ese tipo, con los ataques
-   * de los tipos de ese clima ×1,2. Devuelve { clima, dps, tdo, er }.
+   * de los tipos de ese clima ×1,2. Devuelve { clima, dps, tdo, edps }.
    */
   const conClima = (row) =>
     cached(`clima:${row.id}:${row.fast.id}:${row.charged.id}`, () => {
@@ -429,7 +429,7 @@ export const useGameDataStore = defineStore('gameData', () => {
         debilA: row.charged.type,
         clima: CLIMAS[clima]
       }).find((otro) => otro.fast.id === row.fast.id && otro.charged.id === row.charged.id)
-      return igual ? { clima, dps: igual.dps, tdo: igual.tdo, er: igual.er } : null
+      return igual ? { clima, dps: igual.dps, tdo: igual.tdo, edps: igual.edps } : null
     })
 
   /** Puesto de tanque y de sanador de cada Pokémon que dinamaxiza (letras del Top Max). */
@@ -459,7 +459,7 @@ export const useGameDataStore = defineStore('gameData', () => {
   /** Mejores conjuntos de ataques de un Pokémon del roster. */
   const bestMovesets = (entry, limit = 5) =>
     cached(`sets:${entry.id}:${limit}`, () =>
-      evaluatePokemon(entry, moves.value, { sortBy: 'dps' }).slice(0, limit)
+      evaluatePokemon(entry, moves.value).slice(0, limit)
     )
 
   /**
@@ -468,7 +468,7 @@ export const useGameDataStore = defineStore('gameData', () => {
    */
   const conjuntosContra = (entry, tipo) =>
     cached(`contra:${entry.id}:${tipo}`, () =>
-      evaluatePokemon(entry, moves.value, { sortBy: 'dps', debilA: tipo })
+      evaluatePokemon(entry, moves.value, { debilA: tipo })
     )
 
   /**

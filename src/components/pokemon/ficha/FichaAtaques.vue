@@ -96,7 +96,7 @@ const conTusAtaques = computed(() => {
   // al tipo de su cargado, y la general, por la suma de sus dos mejores tipos.
   const tipos = new Set(todos.map((uno) => uno.charged.type))
   const mejorPorTipo = Object.fromEntries(
-    [...tipos].map((tipo) => [tipo, gameData.conjuntosContra(props.entrada, tipo)[0]?.dps ?? 0])
+    [...tipos].map((tipo) => [tipo, gameData.conjuntosContra(props.entrada, tipo)[0]?.edps ?? 0])
   )
   const contraSuTipo = (uno) =>
     gameData
@@ -119,7 +119,7 @@ const conTusAtaques = computed(() => {
     puesto: puesto(conjunto),
     mejor,
     puestoMejor: puesto(mejor, gameData.conjuntosContra(props.entrada, tipoMejor)[0] ?? mejor),
-    porcentaje: Math.round((conjunto.dps / mejor.dps) * 100),
+    porcentaje: Math.round((conjunto.edps / mejor.edps) * 100),
     esElMejor: conjunto === mejor
   }
 })
@@ -152,8 +152,8 @@ const resumen = computed(() => {
   const mejor = props.bestMovesets[0]
   if (mejor)
     return `${localName(mejor.fast)} + ${localName(mejor.charged)} · ${formatDecimal(
-      mejor.dps
-    )} DPS`
+      mejor.edps
+    )} eDPS`
   return [...props.movepool.fast, ...props.movepool.charged].map(localName).join(' · ')
 })
 </script>
@@ -183,7 +183,7 @@ const resumen = computed(() => {
           :legacy="set.charged.legacy"
           :mega="set.charged.mega"
         />
-        <span class="ml-auto font-bold">{{ formatDecimal(set.dps) }} DPS</span>
+        <span class="ml-auto font-bold">{{ formatDecimal(set.edps) }} eDPS</span>
       </li>
     </ol>
 
@@ -269,7 +269,7 @@ const resumen = computed(() => {
               {{ localName(conTusAtaques.conjunto.charged) }}</span
             >
             <span class="shrink-0 font-bold"
-              >{{ formatDecimal(conTusAtaques.conjunto.dps) }} DPS</span
+              >{{ formatDecimal(conTusAtaques.conjunto.edps) }} eDPS</span
             >
           </div>
           <dl class="mt-2 grid grid-cols-2 gap-2">

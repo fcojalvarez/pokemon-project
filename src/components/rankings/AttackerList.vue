@@ -9,7 +9,7 @@
  * props opcionales activadas por defecto, así que quien ya lo usaba no cambia.
  *
  * Cada fila admite dos formas:
- *   - PvE: `{ fast, charged, dps, tdo, er }` tal y como sale de evaluatePokemon.
+ *   - PvE: `{ fast, charged, dps, tdo, edps }` tal y como sale de evaluatePokemon.
  *   - PvP: `{ moves: [{ name, nameEs, type }], value }` ya normalizada por la vista.
  */
 import { computed } from 'vue'
@@ -29,7 +29,7 @@ import { useGameDataStore } from '../../stores/gameData'
 
 const props = defineProps({
   rows: { type: Array, required: true },
-  sortBy: { type: String, default: 'dps' },
+  sortBy: { type: String, default: 'edps' },
   // Etiqueta de la métrica. Por defecto la que corresponda a `sortBy`.
   unit: { type: String, default: null },
   // La barra compara cada fila con la primera: sin ranking ordenado no aporta.
@@ -43,7 +43,7 @@ const props = defineProps({
   nivel: { type: String, default: '' }
 })
 
-const UNITS = { dps: 'DPS', tdo: 'TDO', er: 'ER' }
+const UNITS = { edps: 'eDPS', dps: 'DPS', tdo: 'TDO' }
 
 /** Top Max: cada fila lleva sus letras de atacante, tanque y sanador. */
 const conPapeles = computed(() => props.rows.some((row) => row.papeles))

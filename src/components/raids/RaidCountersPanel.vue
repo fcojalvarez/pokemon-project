@@ -82,10 +82,10 @@ const origins = computed(() =>
               />
             </div>
           </div>
-          <!-- Con su unidad: la cifra sola no decía que era el DPS contra él. -->
+          <!-- Con su unidad: la cifra sola no decía que era el eDPS contra él. -->
           <span class="shrink-0 flex flex-col items-end leading-tight tabular-nums">
-            <span class="text-xs font-bold">{{ formatDecimal(counter.dps) }}</span>
-            <span class="text-mini text-gray-600 dark:text-gray-300">DPS</span>
+            <span class="text-xs font-bold">{{ formatDecimal(counter.edps) }}</span>
+            <span class="text-mini text-gray-600 dark:text-gray-300">eDPS</span>
           </span>
         </component>
       </li>

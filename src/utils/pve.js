@@ -28,6 +28,24 @@ export const CLIMA = 1.2
  */
 const SIN_DEBILES = new Set(['normal'])
 
+/**
+ * La métrica con la que se ordena todo lo de incursiones (Top, counters,
+ * mejores conjuntos de la ficha): el eDPS, el DPS descontando el tiempo que se
+ * pierde al debilitarse. Es la que dice a quién merece la pena subir; el DPS
+ * a secas premiaba a los de cristal (ver movesetPerformance).
+ */
+export const METRICA_PVE = 'edps'
+
+/**
+ * Lo que pega de más el ataque «+» de una supermega en su nivel mega 4 (Super
+ * Max): ×1 en el nivel 1, ×1,1 en el 2, ×1,2 en el 3 y ×1,3 en el 4. El
+ * GAME_MASTER no lo publica (sus niveles mega solo traen el bonus a los
+ * compañeros); son los valores observados por la comunidad, los mismos que usa
+ * Dittobase. Se toma el del nivel 4: el Top dice a quién subir, y una mega que
+ * se sube se acaba llevando a tope.
+ */
+export const SUPERMEGA_PLUS = 1.3
+
 /** Movimientos que no son una opción real para un atacante optimizado. */
 const EXCLUDED_MOVES = new Set(['FRUSTRATION', 'RETURN', 'STRUGGLE'])
 
@@ -59,7 +77,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
   const target = options.target ?? DEFAULT_TARGET
   const chart = options.chart ?? null
   const defenderTypes = options.defenderTypes ?? null
-  const sortBy = options.sortBy ?? 'dps'
+  const sortBy = options.sortBy ?? METRICA_PVE
   // Contra un jefe débil a este tipo: solo sus ataques cargados de ese tipo,
   // y cada ataque de ese tipo (rápido o cargado) pega ×1,6; el resto, ×1.
   const debilA = options.debilA ?? null
@@ -88,12 +106,15 @@ export function evaluatePokemon(entry, moves, options = {}) {
     (options.includeLegacy !== false || !legacySet.has(id)) &&
     (options.includeElite !== false || !eliteSet.has(id))
 
-  // El movimiento exclusivo de las supermegas entra en la baraja como uno más.
-  // Hoy se descarta solo, porque `usable` exige stats de PvE y el GAME_MASTER
-  // todavía no las publica; el día que aparezcan, se rankea sin tocar nada.
-  const chargedPool = (
-    entry.megaMoves?.length ? [...entry.charged, ...entry.megaMoves] : entry.charged
-  ).filter(alcanzable)
+  // El movimiento exclusivo de las supermegas («+») entra en la baraja como
+  // uno más, con su potencia ×SUPERMEGA_PLUS, pero solo si su especie tiene
+  // abierto el nivel mega 4 (`superMax`, del GAME_MASTER): pvpoke trae el «+»
+  // de alguna que aún no puede usarlo. Si el GAME_MASTER aún no publica sus
+  // stats de PvE, `usable` lo descarta solo.
+  const megaMoves = entry.superMax ? entry.megaMoves ?? [] : []
+  const chargedPool = (megaMoves.length ? [...entry.charged, ...megaMoves] : entry.charged).filter(
+    alcanzable
+  )
 
   const fastPool = entry.fast.filter(alcanzable)
 
@@ -101,7 +122,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
   // pinte (rankings, counters, ficha) pueda marcarlo sin volver al roster.
   const elite = eliteSet
   const legacy = legacySet
-  const exclusive = new Set(entry.megaMoves ?? [])
+  const exclusive = new Set(megaMoves)
   const describe = (id, move) => ({
     id,
     name: move.name,
@@ -134,7 +155,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
           effectiveness: fastEff
         },
         charged: {
-          power: cm.pve.power,
+          power: cm.pve.power * (exclusive.has(chargedId) ? SUPERMEGA_PLUS : 1),
           energy: cm.pve.energy,
           duration: cm.pve.duration,
           stab: entry.types.includes(cm.type),
@@ -158,7 +179,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
         charged: describe(chargedId, cm),
         dps: perf.dps,
         tdo: perf.tdo,
-        er: perf.er
+        edps: perf.edps
       })
     }
   }
@@ -193,7 +214,7 @@ function keep(best, key, candidate, sortBy) {
  * @returns {{byType: Record<string, object[]>, overall: object[]}}
  */
 export function computeTypeRankings(pokemon, moves, options = {}) {
-  const sortBy = options.sortBy ?? 'dps'
+  const sortBy = options.sortBy ?? METRICA_PVE
   const limit = options.limit ?? 40
   const byType = new Map()
   const overall = new Map()
@@ -245,7 +266,7 @@ export function computeTypeRankings(pokemon, moves, options = {}) {
  * efectividad real de cada movimiento contra los tipos del jefe.
  */
 export function computeCounters(pokemon, moves, chart, boss, options = {}) {
-  const sortBy = options.sortBy ?? 'dps'
+  const sortBy = options.sortBy ?? METRICA_PVE
   const limit = options.limit ?? 20
   const best = new Map()
   const opts = {
