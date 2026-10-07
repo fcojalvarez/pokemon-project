@@ -256,7 +256,17 @@ const filtrosCambiados = computed(
     (mode.value === 'gym' ? [!includeLegacy.value, !includeElite.value].filter(Boolean).length : 0)
 )
 
-const { pveRows, pvpRows, maxRows, gymRows, filasVisibles, origenes, leyendaMax } = useTopFilas({
+// `marcasMax` y no `leyendaMax`: con ese nombre la etiqueta <leyenda-max> se
+// confundía con la variable, y el linter daba el componente por no usado.
+const {
+  pveRows,
+  pvpRows,
+  maxRows,
+  gymRows,
+  filasVisibles,
+  origenes,
+  leyendaMax: marcasMax
+} = useTopFilas({
   mode,
   type,
   sortBy,
@@ -438,7 +448,7 @@ watch(
         <!-- En escritorio, la leyenda del Max y cómo se calcula, bajo los filtros en todos los modos. -->
         <leyenda-max
           v-if="ancho && mode === 'max' && gameData.isReady && rowsShown"
-          :marcas="leyendaMax"
+          :marcas="marcasMax"
           class="pt-3 border-t border-gray-300 dark:border-gray-700"
         />
         <top-calculo
@@ -556,7 +566,7 @@ watch(
           <top-calculo v-if="mode === 'max' || mode === 'gym'" :modo="mode" class="mt-3" />
           <leyenda-max
             v-if="mode === 'max'"
-            :marcas="leyendaMax"
+            :marcas="marcasMax"
             class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
           />
         </template>

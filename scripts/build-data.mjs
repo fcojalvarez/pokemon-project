@@ -1369,9 +1369,18 @@ function buildMoves(gm, pvpGm, es, nombresPga = new Map()) {
       const base = moves[idDelJuego(entry.id.slice(0, -5))]
       if (base?.nameEs) entry.nameEs = `${base.nameEs}+`
     }
-    if (!entry.nameEs) entry.nameEs = entry.name
+    if (!entry.nameEs) entry.nameEs = NOMBRES_ES_A_MANO[entry.id] ?? entry.name
   }
   return moves
+}
+
+/**
+ * Ataques que ninguna fuente trae en español (ni los textos de PokeMiners ni
+ * pokemon-go-api) y que no se llaman igual que en inglés. Surf, Poltergeist o
+ * Triple Axel no están aquí porque en español se llaman así.
+ */
+const NOMBRES_ES_A_MANO = {
+  SECRET_SWORD: 'Espada Mística',
 }
 
 /**
