@@ -105,6 +105,40 @@ describe('leerFilas', () => {
     await expect(leerFilas(['roster'])).rejects.toThrow('sin red')
   })
 
+  it('con alActualizar, lo guardado sale al momento y lo nuevo llega después', async () => {
+    const { leerFilas } = await nuevo()
+    await leerFilas(['roster', 'moves'])
+    await guardado()
+    pedidas.length = 0
+
+    tabla.roster = { updated_at: '2026-09-28T06:00:00Z', payload: [{ id: 'ivysaur' }] }
+    let llegadas = null
+    const filas = await leerFilas(['roster', 'moves'], {
+      alActualizar: (nuevas) => {
+        llegadas = nuevas
+      }
+    })
+    // Al momento, lo guardado, aunque haya una versión nueva…
+    expect(filas.roster).toEqual([{ id: 'bulbasaur' }])
+    // …que llega por detrás, sola.
+    await guardado()
+    expect(llegadas).toEqual({ roster: [{ id: 'ivysaur' }] })
+    expect(pedidas).toEqual(['roster'])
+  })
+
+  it('con alActualizar pero sin lo imprescindible guardado, espera a Supabase como siempre', async () => {
+    const { leerFilas } = await nuevo()
+    let llamada = false
+    const filas = await leerFilas(['roster', 'moves'], {
+      alActualizar: () => {
+        llamada = true
+      },
+      imprescindibles: ['roster']
+    })
+    expect(filas.roster).toEqual([{ id: 'bulbasaur' }])
+    expect(llamada).toBe(false)
+  })
+
   it('sin IndexedDB, se baja todo cada vez', async () => {
     const { leerFilas } = await nuevo()
     const original = window.indexedDB

@@ -101,23 +101,20 @@ function soloGuardadas(guardadas, error) {
 }
 
 /**
- * Las filas de `game_data` con esos nombres: { nombre: payload }. Las que no
- * existen en la tabla no vienen. Si Supabase falla, las guardadas en el
- * dispositivo; si tampoco hay, lanza el error.
+ * Pregunta a Supabase las versiones y baja las filas que han cambiado (o que
+ * no estaban guardadas). Devuelve { filas, nuevas }: todas las que hay, y de
+ * ellas las que se han bajado ahora. Si Supabase falla, lanza el error.
  */
-export async function leerFilas(nombres) {
-  const [versiones, guardadas] = await Promise.all([
-    supabase
-      .from('game_data')
-      .select('name,updated_at')
-      .in('name', nombres)
-      .then(
-        (respuesta) => respuesta,
-        (error) => ({ error })
-      ),
-    leerGuardadas(nombres)
-  ])
-  if (versiones.error) return soloGuardadas(guardadas, new Error(versiones.error.message))
+async function comprobar(nombres, guardadas) {
+  const versiones = await supabase
+    .from('game_data')
+    .select('name,updated_at')
+    .in('name', nombres)
+    .then(
+      (respuesta) => respuesta,
+      (error) => ({ error })
+    )
+  if (versiones.error) throw new Error(versiones.error.message ?? String(versiones.error))
 
   const filas = {}
   const faltan = []
@@ -127,24 +124,60 @@ export async function leerFilas(nombres) {
       filas[name] = guardada.payload
     else faltan.push(name)
   }
+  if (!faltan.length) return { filas, nuevas: {} }
 
-  if (faltan.length) {
-    const { data, error } = await supabase
-      .from('game_data')
-      .select('name,payload,updated_at')
-      .in('name', faltan)
-    if (error) {
-      // La consulta de versiones fue bien pero la de contenidos no: lo guardado
-      // de las que faltan, aunque esté por detrás.
-      for (const nombre of faltan) {
-        const guardada = guardadas.get(nombre)
-        if (guardada?.payload != null) filas[nombre] = guardada.payload
-      }
-      if (!Object.keys(filas).length) throw new Error(error.message)
-      return filas
+  const { data, error } = await supabase
+    .from('game_data')
+    .select('name,payload,updated_at')
+    .in('name', faltan)
+  if (error) {
+    // La consulta de versiones fue bien pero la de contenidos no: lo guardado
+    // de las que faltan, aunque esté por detrás.
+    for (const nombre of faltan) {
+      const guardada = guardadas.get(nombre)
+      if (guardada?.payload != null) filas[nombre] = guardada.payload
     }
-    for (const fila of data ?? []) filas[fila.name] = fila.payload
-    guardar(data ?? [])
+    if (!Object.keys(filas).length) throw new Error(error.message)
+    return { filas, nuevas: {} }
   }
-  return filas
+  const nuevas = {}
+  for (const fila of data ?? []) {
+    filas[fila.name] = fila.payload
+    nuevas[fila.name] = fila.payload
+  }
+  guardar(data ?? [])
+  return { filas, nuevas }
+}
+
+/**
+ * Las filas de `game_data` con esos nombres: { nombre: payload }. Las que no
+ * existen en la tabla no vienen. Si Supabase falla, las guardadas en el
+ * dispositivo; si tampoco hay, lanza el error.
+ *
+ * Con `alActualizar`, si en el dispositivo están ya todas las
+ * `imprescindibles`, se devuelven al momento, sin esperar a Supabase: abrir
+ * la app ya no espera a la red (de 0,5 a 1 s en el móvil). Las versiones se
+ * comprueban por detrás y, si alguna fila ha cambiado, se baja y se llama a
+ * `alActualizar({ nombre: payload })` con las nuevas.
+ */
+export async function leerFilas(nombres, { alActualizar = null, imprescindibles = nombres } = {}) {
+  const guardadas = await leerGuardadas(nombres)
+
+  const deGuardadas = () => soloGuardadas(guardadas, new Error('sin datos guardados'))
+  if (alActualizar && imprescindibles.every((nombre) => guardadas.get(nombre)?.payload != null)) {
+    comprobar(nombres, guardadas)
+      .then(({ nuevas }) => {
+        if (Object.keys(nuevas).length) alActualizar(nuevas)
+      })
+      .catch(() => {
+        /* sin red: se sigue con lo guardado, como al arrancar sin conexión */
+      })
+    return deGuardadas()
+  }
+
+  try {
+    return (await comprobar(nombres, guardadas)).filas
+  } catch (err) {
+    return soloGuardadas(guardadas, err)
+  }
 }

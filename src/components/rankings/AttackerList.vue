@@ -13,6 +13,7 @@
  *   - PvP: `{ moves: [{ name, nameEs, type }], value }` ya normalizada por la vista.
  */
 import { computed } from 'vue'
+import { usePorTandas } from '../../composables/usePorTandas'
 import TypeIcons from '../base/TypeIcons.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import { spriteUrl } from '../../utils/sprites'
@@ -42,6 +43,9 @@ const props = defineProps({
    */
   nivel: { type: String, default: '' }
 })
+
+/** Las filas por tandas: lo que cabe en pantalla primero (ver usePorTandas). */
+const filas = usePorTandas(() => props.rows)
 
 const UNITS = { edps: 'eDPS', dps: 'DPS', tdo: 'TDO' }
 
@@ -80,7 +84,7 @@ const cifraClima = (row) => {
 
 <template>
   <ol class="flex flex-col gap-2">
-    <li data-fila-top v-for="row in rows" :key="rowKey(row)">
+    <li data-fila-top v-for="row in filas" :key="rowKey(row)">
       <!--
         El enlace ocupa la fila entera: se llega con el tabulador y se puede
         abrir en otra pestaña, cosa que un <li> con @click no permitía.
@@ -158,7 +162,8 @@ const cifraClima = (row) => {
         </div>
 
         <div class="text-right">
-          <div class="font-bold text-gray-800 dark:text-gray-100 leading-tight">
+          <!-- En una línea: «eDPS» bajaba solo en algunas filas (30,2 / eDPS). -->
+          <div class="font-bold text-gray-800 dark:text-gray-100 leading-tight whitespace-nowrap">
             {{ mainValue(row) }}
             <span v-if="unitLabel" class="text-mini font-normal text-gray-600 dark:text-gray-300">
               {{ unitLabel }}

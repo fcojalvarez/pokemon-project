@@ -1,5 +1,24 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+/**
+ * Al volver atrás, la posición guardada, pero cuando la página ya sea lo
+ * bastante alta para llegar a ella: las listas largas se pintan por tandas
+ * (ver usePorTandas) y los datos pueden tardar, y saltando enseguida se
+ * quedaba arriba. Como mucho se espera un segundo y medio.
+ */
+function cuandoQuepa(posicion, plazo = 1500) {
+  const alto = (posicion.top ?? 0) + window.innerHeight
+  const inicio = performance.now()
+  return new Promise((resolve) => {
+    const mirar = () => {
+      if (document.documentElement.scrollHeight >= alto || performance.now() - inicio > plazo)
+        resolve(posicion)
+      else setTimeout(mirar, 50)
+    }
+    mirar()
+  })
+}
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   /**
@@ -9,7 +28,7 @@ const router = createRouter({
    * mueve.
    */
   scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) return savedPosition
+    if (savedPosition) return cuandoQuepa(savedPosition)
     if (to.path === from.path) return false
     return { top: 0 }
   },

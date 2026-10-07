@@ -10,6 +10,7 @@
  * Toda la fila es el enlace a la ficha: el del nombre se estira sobre la fila.
  */
 import { computed } from 'vue'
+import { usePorTandas } from '../../composables/usePorTandas'
 import TypeIcons from '../base/TypeIcons.vue'
 import StabBadge from '../base/StabBadge.vue'
 import BaseNivel from '../base/BaseNivel.vue'
@@ -35,6 +36,9 @@ const props = defineProps({
    */
   nivel: { type: String, default: '' }
 })
+
+/** Las filas por tandas: lo que cabe en pantalla primero (ver usePorTandas). */
+const filas = usePorTandas(() => props.rows)
 const emit = defineEmits(['update:sortBy'])
 const { t, localName } = useTranslate()
 const gameData = useGameDataStore()
@@ -140,7 +144,7 @@ const ordenar = (metrica) => {
       </thead>
       <tbody>
         <tr
-          v-for="row in rows"
+          v-for="row in filas"
           :key="rowKey(row)"
           data-fila-top
           class="relative border-t border-gray-300 dark:border-gray-700 first:border-t-0 even:bg-gray-50 dark:even:bg-gray-800/40 hover:bg-gray-150 hover:dark:bg-gray-800"

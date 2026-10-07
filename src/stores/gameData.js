@@ -7,7 +7,8 @@ import {
   computeTypeRankings,
   typeMatchups,
   evaluatePokemon,
-  MEGA_OTRO_TIPO
+  MEGA_OTRO_TIPO,
+  METRICA_PVE
 } from '../utils/pve'
 import { CLIMAS, climaDeTipo } from '../utils/clima'
 import { calcCP } from '../utils/formulas'
@@ -79,10 +80,15 @@ export function cargarFormas() {
  * que actualizar los datos no obligue a redesplegar la app. Las que no han
  * cambiado desde la última visita salen del dispositivo (ver filasDeDatos.js).
  */
-async function desdeSupabase() {
+async function desdeSupabase(alActualizar) {
   // Solo las filas que se usan al arrancar: en la tabla hay más (las formas y
   // disfraces, la memoria de Max liberados) y no hace falta bajarlas siempre.
-  const porNombre = await leerFilas([...FICHEROS, ...OPCIONALES])
+  // Si ya están en el dispositivo, salen al momento y las versiones se
+  // comprueban por detrás (ver leerFilas): abrir la app no espera a la red.
+  const porNombre = await leerFilas([...FICHEROS, ...OPCIONALES], {
+    alActualizar,
+    imprescindibles: FICHEROS
+  })
   // Si falta alguna imprescindible (sin red y sin copia de esa en el
   // dispositivo), solo esa sale de los ficheros: el resto sigue siendo lo más
   // reciente que hay.
@@ -307,6 +313,22 @@ export const useGameDataStore = defineStore('gameData', () => {
     return cache.get(key)
   }
 
+  /**
+   * Pone los datos en la store. Al arrancar llegan todos; después, si al
+   * comprobar las versiones por detrás alguna fila había cambiado, solo esas.
+   * Los cálculos guardados se tiran: eran de los datos de antes.
+   */
+  const aplicar = (datos) => {
+    if ('roster' in datos) roster.value = datos.roster
+    if ('moves' in datos) moves.value = datos.moves
+    if ('typechart' in datos) typeChart.value = datos.typechart
+    if ('maxbattles' in datos) maxBattles.value = datos.maxbattles
+    if ('maxlive' in datos) maxLive.value = datos.maxlive ?? null
+    if ('traducciones' in datos) traducciones.value = datos.traducciones?.es ?? {}
+    if ('meta' in datos) meta.value = datos.meta
+    cache.clear()
+  }
+
   /** De dónde salieron los datos que hay cargados: 'supabase' o 'ficheros'. */
   const origen = ref(null)
 
@@ -317,7 +339,7 @@ export const useGameDataStore = defineStore('gameData', () => {
 
     let datos = null
     try {
-      datos = await desdeSupabase()
+      datos = await desdeSupabase(aplicar)
       origen.value = 'supabase'
     } catch (err) {
       // Que no responda la base de datos no puede dejar la app en blanco:
@@ -333,15 +355,10 @@ export const useGameDataStore = defineStore('gameData', () => {
       }
     }
 
-    roster.value = datos.roster
-    moves.value = datos.moves
-    typeChart.value = datos.typechart
-    maxBattles.value = datos.maxbattles
-    maxLive.value = datos.maxlive ?? null
-    traducciones.value = datos.traducciones?.es ?? {}
-    meta.value = datos.meta
-    cache.clear()
+    aplicar(datos)
     status.value = 'ready'
+    // Con la pantalla ya pintada, lo que más se pide (ver precalcular).
+    precalcular()
   }
 
   /**
@@ -361,7 +378,16 @@ export const useGameDataStore = defineStore('gameData', () => {
       let fila = null
       if (origen.value !== 'ficheros') {
         try {
-          fila = (await leerFilas([nombre]))[nombre] ?? null
+          // Lo guardado al momento; si en Supabase hay una versión nueva, se
+          // cambia en cuanto llega.
+          fila =
+            (
+              await leerFilas([nombre], {
+                alActualizar: (nuevas) => {
+                  if (nuevas[nombre] != null) aparte[nombre].value = nuevas[nombre]
+                }
+              })
+            )[nombre] ?? null
         } catch (err) {
           console.warn(`${nombre} no disponible en game_data, se usa el fichero:`, err.message)
         }
@@ -386,10 +412,44 @@ export const useGameDataStore = defineStore('gameData', () => {
   const cargarTextos = () => cargarAparte('texts')
 
   /** Rankings PvE por tipo. Admite includeMega, includeShadow y sortBy (eDPS por defecto). */
-  const pveRankings = (options = {}) =>
-    cached(`pve:${JSON.stringify(options)}`, () =>
-      computeTypeRankings(roster.value, moves.value, { limit: 50, ...options })
+  /**
+   * Las opciones de un cálculo, con los valores por defecto puestos y siempre
+   * en el mismo orden: el Top pide { includeMega: true, … } y la ficha {}, y
+   * con claves distintas se calculaba dos veces lo mismo.
+   */
+  const claveDe = (options, defecto) =>
+    JSON.stringify(
+      Object.fromEntries(Object.keys(defecto).map((k) => [k, options[k] ?? defecto[k]]))
     )
+  const PVE_DEFECTO = {
+    includeMega: true,
+    includeShadow: true,
+    includeLegacy: true,
+    includeElite: true,
+    sortBy: METRICA_PVE
+  }
+
+  /**
+   * El ranking se calcula entero una vez por combinación de filtros, y cada
+   * quien se queda con los que necesita: el Top los 50 primeros, la ficha y
+   * las clases del Top los 500. Antes eran dos cálculos completos.
+   */
+  const pveRankings = (options = {}) => {
+    const clave = claveDe(options, PVE_DEFECTO)
+    const limit = options.limit ?? 50
+    const completo = cached(`pve:${clave}`, () =>
+      computeTypeRankings(roster.value, moves.value, {
+        ...JSON.parse(clave),
+        limit: Infinity
+      })
+    )
+    return cached(`pve:${clave}:${limit}`, () => ({
+      overall: completo.overall.slice(0, limit),
+      byType: Object.fromEntries(
+        Object.entries(completo.byType).map(([tipo, lista]) => [tipo, lista.slice(0, limit)])
+      )
+    }))
+  }
 
   /**
    * Su puesto como atacante en el Top Max (todos los tipos, con legendarios),
@@ -407,10 +467,12 @@ export const useGameDataStore = defineStore('gameData', () => {
     }).get(id) ?? null
 
   /** Los defensores de gimnasio, todos, del mejor al peor (Top y ficha). */
-  const defensores = (options = {}) =>
-    cached(`def:${JSON.stringify(options)}`, () =>
-      computeDefenders(roster.value, moves.value, options)
+  const defensores = (options = {}) => {
+    const clave = claveDe(options, { includeLegacy: true, includeElite: true })
+    return cached(`def:${clave}`, () =>
+      computeDefenders(roster.value, moves.value, JSON.parse(clave))
     )
+  }
 
   /** Su fila de defensor (con `rank`), si puede defender un gimnasio. */
   const defensorPara = (id) =>
@@ -436,6 +498,38 @@ export const useGameDataStore = defineStore('gameData', () => {
   /** Puesto de tanque y de sanador de cada Pokémon que dinamaxiza (letras del Top Max). */
   const papelesDeMax = () => cached('papelesMax', () => papelesMax(roster.value))
 
+  /**
+   * Lo que más se pide, calculado de antemano cuando el navegador está libre:
+   * el ranking por defecto (Top y puestos de la ficha), los defensores y los
+   * papeles Max. Una tarea por hueco libre, para no bloquear de golpe: así el
+   * primer Top y la primera ficha salen sin esperar al cálculo. Si los datos
+   * cambian a medias, cache.clear() tira lo hecho y se vuelve a pedir cuando
+   * haga falta.
+   */
+  const enReposo = (tarea) =>
+    typeof window !== 'undefined' && 'requestIdleCallback' in window
+      ? window.requestIdleCallback(tarea, { timeout: 4000 })
+      : setTimeout(tarea, 300)
+  const precalcular = () => {
+    const tareas = [
+      () => pveRankings(),
+      () => defensorPara(''),
+      () => papelesDeMax(),
+      () => puestoMaxAtacante('')
+    ]
+    const siguiente = () => {
+      const tarea = tareas.shift()
+      if (!tarea || status.value !== 'ready') return
+      try {
+        tarea()
+      } catch (err) {
+        console.warn('No se ha podido precalcular:', err)
+      }
+      if (tareas.length) enReposo(siguiente)
+    }
+    enReposo(siguiente)
+  }
+
   /** Mejores counters contra un jefe con esos tipos. */
   const counters = (bossTypes, options = {}) =>
     cached(`cnt:${bossTypes.join('+')}:${JSON.stringify(options)}`, () =>
@@ -459,9 +553,7 @@ export const useGameDataStore = defineStore('gameData', () => {
 
   /** Mejores conjuntos de ataques de un Pokémon del roster. */
   const bestMovesets = (entry, limit = 5) =>
-    cached(`sets:${entry.id}:${limit}`, () =>
-      evaluatePokemon(entry, moves.value).slice(0, limit)
-    )
+    cached(`sets:${entry.id}:${limit}`, () => evaluatePokemon(entry, moves.value).slice(0, limit))
 
   /**
    * Sus conjuntos contra un jefe débil a `tipo`, como las listas por tipo del

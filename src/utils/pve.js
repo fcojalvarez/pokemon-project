@@ -83,6 +83,54 @@ function usable(entry, options) {
 }
 
 /**
+ * Los ataques que puede llevar en el cálculo: sus rápidos y sus cargados, sin
+ * los legacy o élite si se piden fuera, y con el «+» de las supermegas.
+ * La comparten evaluatePokemon y computeTypeRankings.
+ */
+function baraja(entry, options = {}) {
+  // Los legacy ya no se pueden conseguir, ni con MT Élite. Se pueden dejar
+  // fuera para ver el ranking que de verdad está al alcance: hay Pokémon que
+  // suben mucho gracias a uno y sin él pegan bastante menos —Zamazenta pierde
+  // casi un tercio de DPS sin Embate Supremo— y el ranking enseñaba solo su
+  // mejor conjunto, sin decir a qué distancia queda el alcanzable.
+  const legacySet = new Set(entry.legacyMoves ?? [])
+  // Los élite sí se consiguen, pero solo gastando una MT Élite o en eventos
+  // concretos. Apagarlos deja el ranking de lo que se aprende con MT normales.
+  const eliteSet = new Set(entry.eliteMoves ?? [])
+  const alcanzable = (id) =>
+    (options.includeLegacy !== false || !legacySet.has(id)) &&
+    (options.includeElite !== false || !eliteSet.has(id))
+
+  // El movimiento exclusivo de las supermegas («+») entra en la baraja como
+  // uno más, con su potencia ×SUPERMEGA_PLUS, pero solo si su especie tiene
+  // abierto el nivel mega 4 (`superMax`, del GAME_MASTER): pvpoke trae el «+»
+  // de alguna que aún no puede usarlo. Si el GAME_MASTER aún no publica sus
+  // stats de PvE, `usable` lo descarta solo.
+  const megaMoves = entry.superMax ? entry.megaMoves ?? [] : []
+  const chargedPool = (megaMoves.length ? [...entry.charged, ...megaMoves] : entry.charged).filter(
+    alcanzable
+  )
+
+  const fastPool = entry.fast.filter(alcanzable)
+
+  return { fastPool, chargedPool, legacySet, eliteSet, megaMoves }
+}
+
+/**
+ * Los tipos de sus ataques cargados que entran en el cálculo, sin evaluar
+ * ninguna combinación (si no tiene un rápido que sirva, ninguno). Antes el
+ * ranking evaluaba a cada Pokémon entero solo para saber esto, y luego otra
+ * vez por cada tipo: casi un tercio del trabajo era esa primera pasada.
+ */
+function tiposDeCargados(entry, moves, options) {
+  const { fastPool, chargedPool } = baraja(entry, options)
+  if (!fastPool.some((id) => usableMove(moves[id], id))) return []
+  return [
+    ...new Set(chargedPool.filter((id) => usableMove(moves[id], id)).map((id) => moves[id].type))
+  ]
+}
+
+/**
  * Evalúa todos los movesets de un Pokémon y devuelve el mejor por cada tipo
  * de ataque cargado, más el mejor absoluto.
  */
@@ -113,30 +161,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
   const stats = effectiveStats(entry.stats, ivs, level, { shadow: entry.shadow })
   const results = []
 
-  // Los legacy ya no se pueden conseguir, ni con MT Élite. Se pueden dejar
-  // fuera para ver el ranking que de verdad está al alcance: hay Pokémon que
-  // suben mucho gracias a uno y sin él pegan bastante menos —Zamazenta pierde
-  // casi un tercio de DPS sin Embate Supremo— y el ranking enseñaba solo su
-  // mejor conjunto, sin decir a qué distancia queda el alcanzable.
-  const legacySet = new Set(entry.legacyMoves ?? [])
-  // Los élite sí se consiguen, pero solo gastando una MT Élite o en eventos
-  // concretos. Apagarlos deja el ranking de lo que se aprende con MT normales.
-  const eliteSet = new Set(entry.eliteMoves ?? [])
-  const alcanzable = (id) =>
-    (options.includeLegacy !== false || !legacySet.has(id)) &&
-    (options.includeElite !== false || !eliteSet.has(id))
-
-  // El movimiento exclusivo de las supermegas («+») entra en la baraja como
-  // uno más, con su potencia ×SUPERMEGA_PLUS, pero solo si su especie tiene
-  // abierto el nivel mega 4 (`superMax`, del GAME_MASTER): pvpoke trae el «+»
-  // de alguna que aún no puede usarlo. Si el GAME_MASTER aún no publica sus
-  // stats de PvE, `usable` lo descarta solo.
-  const megaMoves = entry.superMax ? entry.megaMoves ?? [] : []
-  const chargedPool = (megaMoves.length ? [...entry.charged, ...megaMoves] : entry.charged).filter(
-    alcanzable
-  )
-
-  const fastPool = entry.fast.filter(alcanzable)
+  const { fastPool, chargedPool, legacySet, eliteSet, megaMoves } = baraja(entry, options)
 
   // De dónde sale cada movimiento. Viaja con el resultado para que quien lo
   // pinte (rankings, counters, ficha) pueda marcarlo sin volver al roster.
@@ -242,7 +267,7 @@ export function computeTypeRankings(pokemon, moves, options = {}) {
   for (const entry of pokemon) {
     if (!usable(entry, options)) continue
     // Una pasada por cada tipo de cargado que tenga, contra un jefe débil a él.
-    const tipos = new Set(evaluatePokemon(entry, moves, options).map((r) => r.charged.type))
+    const tipos = tiposDeCargados(entry, moves, options)
     const suyos = []
     for (const type of tipos) {
       if (!byType.has(type)) byType.set(type, new Map())

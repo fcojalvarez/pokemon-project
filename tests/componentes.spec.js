@@ -268,7 +268,9 @@ describe('router', () => {
   it('al volver recupera el scroll; con solo otra query, no se mueve', async () => {
     const { default: r } = await import('../src/router/index.js')
     const scroll = r.options.scrollBehavior
-    expect(scroll({ path: '/top' }, { path: '/' }, { top: 500 })).toEqual({ top: 500 })
+    // Al volver, la posición guardada, cuando la página ya llega a ella (o al
+    // cabo de un momento, si no llega nunca: en jsdom la altura es 0).
+    expect(await scroll({ path: '/top' }, { path: '/' }, { top: 500 })).toEqual({ top: 500 })
     expect(scroll({ path: '/pokemon/6' }, { path: '/pokemon/6' }, null)).toBe(false)
     expect(scroll({ path: '/top' }, { path: '/' }, null)).toEqual({ top: 0 })
   })

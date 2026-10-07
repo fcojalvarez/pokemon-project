@@ -21,6 +21,18 @@
   .zona-tactil {
     position: relative;
   }
+
+  /*
+     * Un bloque largo que el navegador no maqueta ni pinta mientras está fuera
+     * de pantalla: «Ahora» tiene casi 3.000 elementos y en el móvil tardaba
+     * en aparecer. `auto` en el tamaño hace que, una vez visto, recuerde el
+     * suyo y la barra de desplazamiento no salte. Recorta lo que sobresale
+     * (el anillo de una tarjeta resaltada): quien lo use deja un margen dentro.
+     */
+  .diferido {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 640px;
+  }
   .zona-tactil::after {
     content: '';
     position: absolute;

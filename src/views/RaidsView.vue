@@ -28,6 +28,7 @@ import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { formatDuration } from '../utils/time'
 import { plainText } from '../utils/gameText'
 import { vDifuminado } from '../composables/useDifuminado'
+import { usePorTandas } from '../composables/usePorTandas'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
@@ -343,6 +344,21 @@ onMounted(() => {
   live.load()
   gameData.load()
 })
+/**
+ * Los grupos se pintan por tandas (ver usePorTandas): «Ahora» tiene casi
+ * 3.000 elementos y en el móvil tardaba en salir. Los combates Max van
+ * debajo de las incursiones, así que empiezan en la segunda tanda. Si se
+ * llega señalado desde una ficha, todo de golpe, para poder llevarlo a la vista.
+ */
+const todoDeGolpe = () => destacado.value !== null
+const incursionesPorTandas = usePorTandas(incursionesVisibles, {
+  primera: 3,
+  paso: 2,
+  completa: todoDeGolpe
+})
+const maxPorTandas = usePorTandas(maxVisibles, { primera: 0, paso: 1, completa: todoDeGolpe })
+const huevosPorTandas = usePorTandas(huevosVisibles, { primera: 3, paso: 3, completa: todoDeGolpe })
+const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, completa: todoDeGolpe })
 </script>
 
 <template>
@@ -458,10 +474,10 @@ onMounted(() => {
           />
 
           <section
-            v-for="group in incursionesVisibles"
+            v-for="group in incursionesPorTandas"
             :id="idIncursion(group)"
             :key="group.name"
-            class="mb-5 scroll-mt-36"
+            class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
           >
             <h2 class="text-sm font-bold mb-2">
               {{ group.shadow ? $t('raids.tiers.shadow') : tierLabel(group.name) }}
@@ -527,10 +543,10 @@ onMounted(() => {
             </p>
 
             <section
-              v-for="grupo in maxVisibles"
+              v-for="grupo in maxPorTandas"
               :id="idMax(grupo)"
               :key="grupo.tier"
-              class="mb-5 scroll-mt-36"
+              class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
             >
               <h3 class="text-sm font-bold mb-2">
                 {{ $t('max.tier', { n: grupo.tier }) }}
@@ -600,10 +616,10 @@ onMounted(() => {
           <base-empty-state v-if="live.eggsByType.length === 0" :message="$t('raids.noEggs')" />
 
           <section
-            v-for="group in huevosVisibles"
+            v-for="group in huevosPorTandas"
             :id="idHuevo(group)"
             :key="group.name"
-            class="mb-5 scroll-mt-36"
+            class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
           >
             <h2 class="text-sm font-bold mb-2">
               {{ group.name }}
@@ -646,7 +662,7 @@ onMounted(() => {
               v-for="grupo in rocketVisibles"
               :id="idRocket(grupo)"
               :key="grupo.grupo"
-              class="mb-5 scroll-mt-36"
+              class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
             >
               <h2 class="text-sm font-bold mb-2">
                 {{ $t(`raids.rocket.groups.${grupo.grupo}`) }}
@@ -676,10 +692,10 @@ onMounted(() => {
 
           <!-- scroll-mt: al saltar desde los chips, que el título no quede debajo de la cabecera y de ellos. -->
           <section
-            v-for="group in tareasVisibles"
+            v-for="group in tareasPorTandas"
             :id="idTarea(group)"
             :key="group.type"
-            class="mb-5 scroll-mt-36"
+            class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
           >
             <h2 class="text-sm font-bold mb-2">
               {{ group.label }}
