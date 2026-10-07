@@ -298,6 +298,7 @@ onBeforeUnmount(alSoltarAsa)
           :cp-table="cpTable"
           :es-max="esMax"
           :conversion="comoSeConsigue(entrada?.id)"
+          :stats="entrada?.stats ?? null"
         />
         <ficha-pve v-else-if="id === 'pve'" :ranks="pveRanks" :con-nombre="conNombre" />
         <ficha-pvp

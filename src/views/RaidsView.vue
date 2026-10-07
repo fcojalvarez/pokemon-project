@@ -277,10 +277,15 @@ const toggleBoss = (boss) => {
   openBoss.value = openBoss.value === boss.name ? null : boss.name
 }
 
+/** «Solo lo común»: los counters sin megas, oscuros, legendarios ni ultraentes. */
+const soloComunes = ref(false)
+
 /** Counters del jefe abierto, con la efectividad real contra sus tipos. */
 const counters = computed(() => {
   const boss = jefeAbierto.value
-  return boss && gameData.isReady ? gameData.counters(bossTypes(boss), { limit: 10 }) : []
+  return boss && gameData.isReady
+    ? gameData.counters(bossTypes(boss), { limit: 10, soloComunes: soloComunes.value })
+    : []
 })
 
 const weaknesses = computed(() => {
@@ -500,8 +505,10 @@ onMounted(() => {
                   v-if="openBoss === boss.name"
                   class="col-span-full p-3 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
                   :weaknesses="weaknesses"
+                  v-model:solo-comunes="soloComunes"
                   :weather="climaAbierto"
                   :counters="counters"
+                  :nivel="boss.tier"
                 />
               </template>
             </div>
@@ -622,6 +629,7 @@ onMounted(() => {
                 :dex="dexFromImage(egg.image)"
                 :combat-power="egg.combatPower"
                 :can-be-shiny="gameData.shinyReleased(dexFromImage(egg.image), egg.canBeShiny)"
+                :rareza="egg.rarity ?? 0"
               />
             </div>
           </section>

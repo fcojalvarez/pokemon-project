@@ -61,7 +61,8 @@ const SOLO = {
   shiny: 'onlyShiny',
   shadow: 'onlyShadow',
   dynamax: 'onlyDynamax',
-  gigantamax: 'onlyGigantamax'
+  gigantamax: 'onlyGigantamax',
+  cheapevo: 'onlyCheapEvo'
 }
 const solo = computed({
   get: () =>

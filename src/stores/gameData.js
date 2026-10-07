@@ -6,7 +6,8 @@ import {
   computeDefenders,
   computeTypeRankings,
   typeMatchups,
-  evaluatePokemon
+  evaluatePokemon,
+  MEGA_OTRO_TIPO
 } from '../utils/pve'
 import { CLIMAS, climaDeTipo } from '../utils/clima'
 import { calcCP } from '../utils/formulas'
@@ -472,6 +473,56 @@ export const useGameDataStore = defineStore('gameData', () => {
     )
 
   /**
+   * Las megas (y primigenios) que más le suben el eDPS en una incursión, con
+   * su mejor conjunto: ×1,3 a los ataques de sus tipos y ×1,1 al resto. Un
+   * primigenio potencia los tipos de su clima (Kyogre los de lluvia, Groudon
+   * los de sol). La propia forma no cuenta: una mega no se potencia a sí misma.
+   * Devuelve [{ entry, ganancia }] (0,3 es un 30 %), de más a menos.
+   */
+  /**
+   * Lo que cuesta evolucionar la forma base de un número de Pokédex, si es
+   * barato: 12, 25 o 'intercambio' (ver evolucionBarata en build-data). La
+   * Pokédex lo usa para su filtro y su marca.
+   */
+  const evolucionBarataPorDex = computed(() => {
+    const porDex = new Map()
+    for (const e of roster.value) {
+      if (e.shadow || e.mega || e.regional || porDex.has(e.dex)) continue
+      porDex.set(e.dex, e.evolucionBarata ?? null)
+    }
+    return porDex
+  })
+  const evolucionBarataDe = (dex) => evolucionBarataPorDex.value.get(dex) ?? null
+  const dexConEvolucionBarata = computed(() =>
+    [...evolucionBarataPorDex.value].filter(([, valor]) => valor).map(([dex]) => dex)
+  )
+
+  const potenciadores = (entry, limite = 5) =>
+    cached(`potencian:${entry.id}:${limite}`, () => {
+      const base = evaluatePokemon(entry, moves.value)[0]?.edps
+      if (!base) return []
+      const porTipos = new Map()
+      const filas = []
+      for (const mega of roster.value) {
+        if (!mega.mega || !mega.released || mega.id === entry.id) continue
+        const tipos = /_primal$/.test(mega.id)
+          ? CLIMAS[climaDeTipo(mega.types[0])] ?? mega.types
+          : mega.types
+        const clave = [...tipos].sort().join('+')
+        if (!porTipos.has(clave)) {
+          const con = evaluatePokemon(entry, moves.value, { potencia: tipos })[0]?.edps ?? base
+          porTipos.set(clave, con / base - 1)
+        }
+        filas.push({ entry: mega, ganancia: porTipos.get(clave) })
+      }
+      // Solo las que le dan más que cualquier mega (el ×1,1 a todo).
+      return filas
+        .filter((f) => f.ganancia > MEGA_OTRO_TIPO - 1 + 1e-6)
+        .sort((a, b) => b.ganancia - a.ganancia || a.entry.nameEs.localeCompare(b.entry.nameEs))
+        .slice(0, limite)
+    })
+
+  /**
    * PC con IVs 15/15/15 en los niveles que importan: 20 (incursión, tarea o
    * huevo), 25 (con clima), 30 y 35 (salvaje) y los topes 40 y 50.
    */
@@ -577,6 +628,9 @@ export const useGameDataStore = defineStore('gameData', () => {
     matchups,
     bestMovesets,
     conjuntosContra,
+    potenciadores,
+    evolucionBarataDe,
+    dexConEvolucionBarata,
     perfectCP,
     pveRanksFor,
     pvpRanksFor,

@@ -16,7 +16,7 @@ import BaseSegmented from '../components/base/BaseSegmented.vue'
 import { useMedia } from '../composables/useMedia'
 import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useTranslate } from '../composables/useTranslate'
-import { useTopFilas } from '../composables/useTopFilas'
+import { CLASES_PVE, useTopFilas } from '../composables/useTopFilas'
 
 const gameData = useGameDataStore()
 const { t } = useTranslate()
@@ -54,6 +54,8 @@ const includeElite = ref(true)
  * conseguir cualquier día en un nodo energético.
  */
 const includeLegendary = ref(true)
+/** La clase del Top de incursiones: Todos, Megas, Oscuros… (ver useTopFilas). */
+const clase = ref('todos')
 
 /**
  * Los botones de «Incluir» de cada modo. En Dinamax solo hay uno, los
@@ -116,6 +118,7 @@ useFiltrosEnUrl({
     leer: (texto) => (/^[a-z]+$/.test(texto) ? texto : undefined)
   },
   sort: { valor: sortBy, defecto: 'edps', leer: entre(METRICAS_PVE) },
+  class: { valor: clase, defecto: 'todos', leer: entre(CLASES_PVE) },
   league: { valor: league, defecto: 'great', leer: entre(['great', 'ultra', 'master']) },
   without: {
     valor: excluidos,
@@ -178,6 +181,13 @@ const pveKindOptions = computed(() => [
   { value: 'max', label: t('top.short.max') },
   { value: 'gym', label: t('top.short.gym') }
 ])
+// En el móvil «Sin legendarios» no cabe con las otras cuatro: va abreviado.
+const claseOptions = computed(() =>
+  CLASES_PVE.map((valor) => ({
+    value: valor,
+    label: t(`top.clases.${valor}${movil.value && valor === 'sinLegendarios' ? 'Corto' : ''}`)
+  }))
+)
 const leagueOptions = computed(() =>
   ['great', 'ultra', 'master'].map((liga) => ({ value: liga, label: t(`top.${liga}`) }))
 )
@@ -255,7 +265,8 @@ const { pveRows, pvpRows, maxRows, gymRows, filasVisibles, origenes, leyendaMax 
   includeShadow,
   includeLegacy,
   includeElite,
-  includeLegendary
+  includeLegendary,
+  clase
 })
 
 /** Si la pestaña activa tiene algo que pintar; si no, sale el vacío. */
@@ -438,6 +449,18 @@ watch(
       </base-sidebar>
 
       <div class="min-w-0">
+        <!--
+          Las clases, encima del ranking y no entre los filtros: es la pregunta
+          que se hace mirando la lista («¿y si no tengo legendarios?»).
+        -->
+        <base-segmented
+          v-if="mode === 'pve'"
+          v-model="clase"
+          role="group"
+          :aria-label="$t('top.clases.titulo')"
+          :options="claseOptions"
+          class="mb-3"
+        />
         <!-- Filas con la forma de las de verdad: sprite, nombre, ataques y métrica. -->
         <skeleton-loader v-if="cargando">
           <div class="flex flex-col gap-2">

@@ -47,7 +47,7 @@ const TYPES = Object.keys(typesSVG)
 const GENERATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 const RARITIES = ['standard', 'legendary', 'mythic', 'ultra_beast']
 /** Los interruptores «Solo…», por su clave en los filtros (y en filters.* de los idiomas). */
-const SOLO = ['onlyShiny', 'onlyShadow', 'onlyDynamax', 'onlyGigantamax']
+const SOLO = ['onlyShiny', 'onlyShadow', 'onlyDynamax', 'onlyGigantamax', 'onlyCheapEvo']
 
 /**
  * «Filtrar» es un desplegable de varias, como el «Incluir» del Top: cerrado

@@ -7,8 +7,11 @@ import BaseSprite from './base/BaseSprite.vue'
 import { typesSVG } from '../utils/Settings'
 import { formatDex } from '../utils/dex'
 import { usePokemonsStore } from '../stores/pokemons'
+import { useGameDataStore } from '../stores/gameData'
 
-const { setIsSearching } = usePokemonsStore()
+const pokemonsStore = usePokemonsStore()
+const { setIsSearching } = pokemonsStore
+const gameData = useGameDataStore()
 
 const props = defineProps({
   /**
@@ -22,6 +25,13 @@ const numero = computed(() => formatDex(props.pokemon.pokemon_id))
 const liberado = computed(() => Boolean(props.pokemon.is_released))
 /** Los tipos que tienen icono (se ignora cualquiera desconocido). */
 const tipos = computed(() => (props.pokemon.types ?? []).filter((type) => typesSVG[type]))
+/**
+ * Con el filtro «Evoluciona barato», lo que cuesta: 12, 25 o gratis al
+ * intercambiar. Sin el filtro no sale: en todas las tarjetas sería ruido.
+ */
+const barata = computed(() =>
+  pokemonsStore.filters.onlyCheapEvo ? gameData.evolucionBarataDe(props.pokemon.pokemon_id) : null
+)
 </script>
 
 <template>
@@ -62,6 +72,12 @@ const tipos = computed(() => (props.pokemon.types ?? []).filter((type) => typesS
         :label="$t('pokemon.shinyLegend')"
         class="absolute top-0 right-0 z-10 scale-[0.8] origin-top-right"
       />
+      <span
+        v-if="barata"
+        class="absolute top-0 left-0 z-10 px-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-mini font-bold text-gray-800 dark:text-gray-100"
+        :title="$t(barata === 'intercambio' ? 'filters.evoGratis' : 'filters.evoCaramelos', { n: barata })"
+        >{{ barata === 'intercambio' ? $t('filters.evoGratisCorto') : barata }}</span
+      >
       <!--
                 Abajo, una en cada esquina, para no pelearse con la marca de
                 shiny (que va arriba a la derecha) ni tapar al Pokémon.

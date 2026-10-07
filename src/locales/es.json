@@ -185,11 +185,55 @@
       "intro": "En una liga con tope de PC gana el que más aguanta bajo el tope, no el 100 %. Escribe los IV del tuyo para ver en qué puesto queda.",
       "yours": "Los IV del tuyo",
       "yoursShort": "El tuyo",
+      "topTitulo": "Los {n} mejores",
       "best": "El mejor",
       "atk": "Ataque",
       "def": "Defensa",
       "hp": "PS",
       "master": "En la Master Liga no hay tope: el mejor es el 100 % a nivel 50."
+    },
+    "aventura": {
+      "titulo": "Efecto de aventura",
+      "coste": "{min} min · {polvo} de polvo y {caramelos} caramelos",
+      "tipos": {
+        "SPACE_BONUS": "Los Pokémon salvajes salen y se pueden atrapar desde más lejos.",
+        "TIME_BONUS": "Pausa la cuenta atrás del incienso, el huevo suerte y el trozo estrella.",
+        "DAY_BONUS": "Atrae más Pokémon de los que salen de día.",
+        "NIGHT_BONUS": "Atrae más Pokémon de los que salen de noche.",
+        "FREEZE_BONUS": "Congela el círculo de captura y facilita atraparlos.",
+        "SLOW_BONUS": "Ralentiza el círculo de captura y facilita atraparlos.",
+        "ATTACK_BONUS": "Más ataque en incursiones (×1,1) y en combates Max (×1,05).",
+        "DEFENSE_BONUS": "Más defensa en incursiones (×1,1) y en combates Max (×1,05).",
+        "MAX_MOVE_BONUS": "Sube un nivel todos los ataques Max de tu equipo."
+      }
+    },
+    "rasgos": {
+      "favor": "A favor",
+      "contra": "En contra",
+      "si": {
+        "abrir": "Bueno abriendo",
+        "cerrar": "Bueno al final, sin escudos",
+        "cambiar": "Seguro para cambiar",
+        "cargar": "Rinde con energía acumulada",
+        "atacar": "Aguanta en desventaja de escudos",
+        "consistencia": "Constante, sin depender de cebos"
+      },
+      "no": {
+        "abrir": "Flojo abriendo",
+        "cerrar": "Flojo al final, sin escudos",
+        "cambiar": "Arriesgado para cambiar",
+        "cargar": "Saca poco de la energía acumulada",
+        "atacar": "Sufre en desventaja de escudos",
+        "consistencia": "Depende de cebar escudos"
+      }
+    },
+    "hundoFuncional": {
+      "titulo": "Hundo funcional",
+      "texto": "A nivel {niveles}, un 15/15/14 tiene los mismos PS que un 100 % y rinde exactamente igual: no hace falta buscar otro."
+    },
+    "potencian": {
+      "titulo": "Con qué mega rinde más",
+      "nota": "Con una mega de otro jugador en la incursión, los ataques de sus tipos pegan ×1,3 y el resto ×1,1. Cualquier otra mega le da un 10 %."
     },
     "howToBeat": "Cómo ganarle",
     "compare": {
@@ -264,6 +308,15 @@
     "allTypes": "Todos los tipos",
     "overall": "Mejores en general",
     "sortBy": "Ordenar por",
+    "clases": {
+      "titulo": "Clase",
+      "todos": "Todos",
+      "megas": "Megas",
+      "oscuros": "Oscuros",
+      "sinLegendarios": "Sin legendarios",
+      "sinLegendariosCorto": "Sin legend.",
+      "comunes": "Comunes"
+    },
     "edps": "DPS efectivo (eDPS)",
     "dps": "Daño por segundo (DPS)",
     "tdo": "Daño total aguantando (TDO)",
@@ -421,7 +474,13 @@
     "weakTo": "Débil a",
     "weak": "Débil",
     "boostedBy": "Potenciado con",
+    "soloComunes": "Solo lo común",
+    "soloComunesHelp": "Sin megas, oscuros, legendarios ni ultraentes: lo que tiene casi todo el mundo.",
+    "jugadores": "≈ {n} jugador | ≈ {n} jugadores",
+    "jugadoresNota": "Jugadores: los que harían falta llevando seis de ese Pokémon cada uno para ganarle en los {s} s de la incursión. Es una estimación.",
+    "sinComunes": "Ningún counter común le hace daño de verdad.",
     "cpRange": "PC",
+    "rareza": "Rareza {n} de 5 (5 es lo más raro)",
     "noRaids": "No hay jefes de incursión publicados.",
     "noEggs": "No hay datos de huevos publicados.",
     "noResearch": "No hay misiones publicadas.",
@@ -523,7 +582,8 @@
       "onlyShiny": "Con el shiny ya liberado",
       "onlyShadow": "Que tienen forma oscura",
       "onlyDynamax": "Que pueden Dinamax",
-      "onlyGigantamax": "Con forma Gigamax"
+      "onlyGigantamax": "Con forma Gigamax",
+      "onlyCheapEvo": "Con 12 o 25 caramelos, o gratis al intercambiarlo"
     },
     "clear": "Limpiar",
     "results": "{count} resultados",
@@ -533,6 +593,10 @@
     "onlyShadow": "Oscuros",
     "onlyDynamax": "Dinamax",
     "onlyGigantamax": "Gigamax",
+    "onlyCheapEvo": "Evoluciona barato",
+    "evoCaramelos": "Evoluciona con {n} caramelos",
+    "evoGratis": "Evoluciona gratis al intercambiarlo",
+    "evoGratisCorto": "Gratis",
     "rarities": {
       "standard": "Normal",
       "legendary": "Legendario",

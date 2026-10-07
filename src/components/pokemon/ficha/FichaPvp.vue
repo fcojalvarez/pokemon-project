@@ -4,8 +4,9 @@
  * recomendado con cuántos rápidos hacen falta para cada cargado (contar
  * rápidos es la base del PvP) y a quién gana y con quién pierde.
  *
- * De entrada, solo los puestos de las tres ligas, que se comparan de un
- * vistazo. Ataques y rivales, tras «Ver ataques y rivales»: con todo abierto
+ * De entrada, los puestos de las tres ligas, que se comparan de un vistazo,
+ * y sus rasgos: en qué escenarios destaca y en cuáles flojea frente al resto
+ * de la liga (de las puntuaciones de pvpoke, ver scripts/lib/extrasFicha.mjs). Ataques y rivales, tras «Ver ataques y rivales»: con todo abierto
  * la sección ocupaba tres pantallas y casi siempre interesa una liga.
  */
 import { computed, ref } from 'vue'
@@ -27,6 +28,10 @@ const props = defineProps({
 const { t, localName } = useTranslate()
 
 const conDetalles = ref(false)
+
+const SIN_RASGOS = { favor: [], contra: [] }
+/** Los rasgos de su mejor forma en la liga (los trae pvp.json en cada fila). */
+const rasgosDe = (liga) => liga.entries[0]?.rasgos ?? SIN_RASGOS
 const hayDetalles = computed(() =>
   props.porLiga.some((liga) => liga.conjunto || liga.gana.length || liga.pierde.length)
 )
@@ -69,6 +74,35 @@ const resumen = computed(() => {
             #{{ entry.rank }} · <strong>{{ formatDecimal(entry.score) }}</strong>
           </span>
         </span>
+
+        <!-- Sus rasgos, los de su mejor forma en esa liga. -->
+        <div
+          v-if="rasgosDe(liga).favor.length || rasgosDe(liga).contra.length"
+          class="mt-1.5 grid grid-cols-2 gap-2"
+        >
+          <div class="min-w-0">
+            <span class="block text-mini font-bold text-green-700 dark:text-green-400">{{
+              $t('pokemon.rasgos.favor')
+            }}</span>
+            <span v-for="r in rasgosDe(liga).favor" :key="r" class="block">{{
+              $t(`pokemon.rasgos.si.${r}`)
+            }}</span>
+            <span v-if="!rasgosDe(liga).favor.length" class="block text-gray-600 dark:text-gray-300"
+              >—</span
+            >
+          </div>
+          <div class="min-w-0">
+            <span class="block text-mini font-bold text-red-700 dark:text-red-400">{{
+              $t('pokemon.rasgos.contra')
+            }}</span>
+            <span v-for="r in rasgosDe(liga).contra" :key="r" class="block">{{
+              $t(`pokemon.rasgos.no.${r}`)
+            }}</span>
+            <span v-if="!rasgosDe(liga).contra.length" class="block text-gray-600 dark:text-gray-300"
+              >—</span
+            >
+          </div>
+        </div>
 
         <template v-if="conDetalles && liga.conjunto">
           <span class="block mt-2 text-mini text-gray-600 dark:text-gray-300">

@@ -1,14 +1,21 @@
 <script setup>
 /**
  * Con quién ganarle a un jefe de incursión: a qué es débil, qué clima lo
- * potencia y la lista de counters con sus ataques y DPS. Sale desplegado bajo
- * el jefe.
+ * potencia y la lista de counters con sus ataques y su eDPS. Sale desplegado
+ * bajo el jefe.
+ *
+ * Con el nivel de la incursión, cada counter dice además cuántos jugadores
+ * harían falta llevando seis de él (una estimación, ver utils/incursion.js).
+ * «Solo lo común» deja los que tiene todo el mundo: sin megas, oscuros,
+ * legendarios ni ultraentes.
  */
 import { computed } from 'vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import TypeIcons from '../base/TypeIcons.vue'
 import MoveLegend from '../pokemon/MoveLegend.vue'
 import BaseSprite from '../base/BaseSprite.vue'
+import BasePillButton from '../base/BasePillButton.vue'
+import { datosIncursion, jugadoresNecesarios } from '../../utils/incursion'
 import { spriteUrl } from '../../utils/sprites'
 import { useTranslate, formatDecimal } from '../../composables/useTranslate'
 import { origenesPresentes } from '../../utils/moveOrigins'
@@ -17,10 +24,18 @@ const props = defineProps({
   weaknesses: { type: Array, default: () => [] },
   /** Climas que lo potencian, ya traducidos. */
   weather: { type: Array, default: () => [] },
-  counters: { type: Array, default: () => [] }
+  counters: { type: Array, default: () => [] },
+  /** El nivel de la incursión, como lo da ScrapedDuck ('5-Star Raids'). */
+  nivel: { type: String, default: '' },
+  soloComunes: Boolean
 })
+defineEmits(['update:soloComunes'])
 
 const { localName } = useTranslate()
+
+/** Los segundos de la incursión, para la nota; sin nivel conocido no hay cifra. */
+const segundos = computed(() => datosIncursion(props.nivel)?.segundos ?? null)
+const jugadores = (counter) => jugadoresNecesarios(counter.edps, props.nivel)
 
 /** Qué procedencias salen entre los counters, para la leyenda de colores. */
 const origins = computed(() =>
@@ -30,7 +45,7 @@ const origins = computed(() =>
 
 <template>
   <div>
-    <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
       <span v-if="weaknesses.length" class="flex items-center gap-2">
         <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('raids.weakTo') }}</span>
         <type-icons :types="weaknesses" size="14" />
@@ -39,6 +54,14 @@ const origins = computed(() =>
         <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('raids.boostedBy') }}</span>
         <span class="text-mini">{{ weather.join(' · ') }}</span>
       </span>
+      <base-pill-button
+        casilla
+        :active="soloComunes"
+        class="ml-auto"
+        :title="$t('raids.soloComunesHelp')"
+        @click="$emit('update:soloComunes', !soloComunes)"
+        >{{ $t('raids.soloComunes') }}</base-pill-button
+      >
     </div>
 
     <ol class="mt-2 grid gap-1.5 grid-cols-[repeat(auto-fill,minmax(230px,1fr))]">
@@ -86,11 +109,22 @@ const origins = computed(() =>
           <span class="shrink-0 flex flex-col items-end leading-tight tabular-nums">
             <span class="text-xs font-bold">{{ formatDecimal(counter.edps) }}</span>
             <span class="text-mini text-gray-600 dark:text-gray-300">eDPS</span>
+            <span
+              v-if="jugadores(counter)"
+              class="mt-0.5 px-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-mini font-bold"
+              >{{ $tc('raids.jugadores', jugadores(counter), { n: jugadores(counter) }) }}</span
+            >
           </span>
         </component>
       </li>
     </ol>
 
+    <p v-if="segundos" class="mt-2 text-mini text-gray-600 dark:text-gray-300">
+      {{ $t('raids.jugadoresNota', { s: segundos }) }}
+    </p>
+    <p v-if="soloComunes && !counters.length" class="mt-2 text-mini">
+      {{ $t('raids.sinComunes') }}
+    </p>
     <move-legend class="mt-2" v-bind="origins" />
   </div>
 </template>

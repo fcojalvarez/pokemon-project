@@ -7,8 +7,9 @@ import { computed } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import MaxMark from '../MaxMark.vue'
 import IconoMascara from '../../base/IconoMascara.vue'
-import { useTranslate } from '../../../composables/useTranslate'
+import { useTranslate, intlLocale } from '../../../composables/useTranslate'
 import { useConversion } from '../../../composables/useConversion'
+import { calcHP } from '../../../utils/formulas'
 import iconoClima from '../../../assets/weather/partly_cloudy.png'
 import iconoCaramelo from '../../../assets/icons/candy_icon.png'
 import iconoCarameloXl from '../../../assets/icons/candy_xl.png'
@@ -26,8 +27,26 @@ const props = defineProps({
    * cambiosForma), la conversión. Entonces no es «al atraparlo» sino «al
    * fusionarlo»: conserva el nivel del Pokémon de partida.
    */
-  conversion: { type: Object, default: null }
+  conversion: { type: Object, default: null },
+  /** Estadísticas base { atk, def, hp }, para el aviso de hundo funcional. */
+  stats: { type: Object, default: null }
 })
+
+/**
+ * Hundo funcional: a los niveles en que un 15/15/14 tiene los mismos PS que un
+ * 15/15/15 (el PS se redondea hacia abajo), rinde exactamente igual. A 40 (sin
+ * caramelos XL), 50 (el tope) y 51 (con mejor amigo).
+ */
+const NIVELES_HUNDO = [40, 50, 51]
+const hundoFuncional = computed(() => {
+  if (!props.stats) return null
+  const niveles = NIVELES_HUNDO.filter(
+    (nivel) => calcHP(props.stats, 15, nivel) === calcHP(props.stats, 14, nivel)
+  )
+  return niveles.length ? niveles : null
+})
+const listaNiveles = (niveles) =>
+  new Intl.ListFormat(intlLocale(), { type: 'conjunction' }).format(niveles.map(String))
 
 const { nombre } = useConversion()
 
@@ -176,5 +195,13 @@ const resumen = computed(() => {
         >
       </li>
     </ul>
+
+    <p v-if="hundoFuncional" class="mt-3 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs">
+      <span
+        class="mr-1 px-2 rounded-full bg-gray-200 dark:bg-gray-700 text-mini font-bold text-green-700 dark:text-green-400"
+        >{{ $t('pokemon.hundoFuncional.titulo') }}</span
+      >
+      {{ $t('pokemon.hundoFuncional.texto', { niveles: listaNiveles(hundoFuncional) }) }}
+    </p>
   </ficha-seccion>
 </template>

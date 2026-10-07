@@ -206,6 +206,33 @@ describe('filas del Top', () => {
     expect(t.filasVisibles.value).toBe(t.pveRows.value)
   })
 
+  it('las clases filtran sobre la lista larga y conservan el puesto de cada uno', () => {
+    const todos = top(filtros({ type: ref('electric') })).pveRows.value
+    const comunes = top(filtros({ type: ref('electric'), clase: ref('comunes') })).pveRows.value
+    expect(comunes.length).toBeGreaterThan(10)
+    for (const fila of comunes) {
+      const e = gameData.byId.get(fila.id)
+      expect(e.mega || e.shadow || e.legendary || e.mythical || e.ultraBeast, fila.id).toBeFalsy()
+    }
+    // El puesto es el de la lista completa: el primero común no es el n.º 1.
+    expect(comunes[0].rank).toBeGreaterThan(1)
+    expect(todos.some((f) => f.mega)).toBe(true)
+    const megas = top(filtros({ type: ref('electric'), clase: ref('megas') })).pveRows.value
+    expect(megas.every((f) => f.mega)).toBe(true)
+  })
+
+  it('la ficha dice con qué mega rinde más, de más a menos', () => {
+    const raikou = gameData.byId.get('raikou')
+    const filas = gameData.potenciadores(raikou)
+    expect(filas.length).toBeGreaterThan(0)
+    // Las eléctricas (y Kyogre Primigenio, que potencia los tipos de la
+    // lluvia) le dan casi un 30 %.
+    expect(filas.some((f) => f.entry.id === 'kyogre_primal')).toBe(true)
+    expect(filas.some((f) => f.entry.types.includes('electric'))).toBe(true)
+    expect(filas[0].ganancia).toBeGreaterThan(0.2)
+    for (let i = 1; i < filas.length; i++) expect(filas[i - 1].ganancia).toBeGreaterThanOrEqual(filas[i].ganancia)
+  })
+
   it('sin élite ni legacy, la leyenda no los enciende', () => {
     const t = top(filtros({ includeElite: ref(false), includeLegacy: ref(false) }))
     expect(t.origenes.value.elite).toBe(false)

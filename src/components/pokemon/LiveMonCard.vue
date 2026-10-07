@@ -52,7 +52,12 @@ const props = defineProps({
    */
   vertical: Boolean,
   /** Sin borde ni fondo: va dentro de otra tarjeta (la de su misión). */
-  sinCaja: Boolean
+  sinCaja: Boolean,
+  /**
+   * Rareza en el huevo, de 1 (lo más común) a 5 (lo más raro), como los
+   * iconos de huevo del juego. Con 0 o sin ella, no sale.
+   */
+  rareza: { type: Number, default: 0 }
 })
 
 const colorTipo = computed(() => typesSVG[props.tipos.find((t) => typesSVG[t])]?.color ?? null)
@@ -189,6 +194,20 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
         $t('raids.cpRange')
       }}</span></span
     >
+    <span
+      v-if="rareza > 0"
+      class="mt-0.5 flex gap-0.5"
+      role="img"
+      :aria-label="$t('raids.rareza', { n: rareza })"
+      :title="$t('raids.rareza', { n: rareza })"
+    >
+      <span
+        v-for="n in 5"
+        :key="n"
+        class="w-1.5 h-2 rounded-[50%]"
+        :class="n <= rareza ? 'bg-gray-700 dark:bg-gray-200' : 'border border-gray-400 dark:border-gray-600'"
+      ></span>
+    </span>
   </component>
 
   <component

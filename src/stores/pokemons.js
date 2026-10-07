@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore, acceptHMRUpdate } from 'pinia'
 import { supabase } from '../lib/supabaseClient'
 import { NEXT_LOAD_LENGTH_ITEMS } from '../utils/Settings'
+import { useGameDataStore } from './gameData'
 
 /**
  * Lo que pinta cada resultado del buscador: número (y con él el sprite),
@@ -26,7 +27,8 @@ export const FILTROS_VACIOS = Object.freeze({
   onlyShiny: false,
   onlyShadow: false,
   onlyDynamax: false,
-  onlyGigantamax: false
+  onlyGigantamax: false,
+  onlyCheapEvo: false
 })
 
 /** La primera página del listado. `range` de PostgREST incluye los dos extremos. */
@@ -81,6 +83,9 @@ export const usePokemonsStore = defineStore('pokemon', () => {
     if (active.onlyShadow) query = query.eq('is_shadow_released', true)
     if (active.onlyDynamax) query = query.eq('can_dynamax', true)
     if (active.onlyGigantamax) query = query.eq('can_gigantamax', true)
+    // No hay columna: los números salen del roster (evolucionBarata), que la
+    // consulta espera a tener cargado (ver fetchPokemonsRange).
+    if (active.onlyCheapEvo) query = query.in('pokemon_id', useGameDataStore().dexConEvolucionBarata)
     return query
   }
 
@@ -91,6 +96,7 @@ export const usePokemonsStore = defineStore('pokemon', () => {
   // en cada página le costaba a Supabase unos 200 ms por petición.
   const fetchPokemonsRange = async ({ start, end }) => {
     const contar = start === 0 && activeFilterCount.value > 0
+    if (filters.value.onlyCheapEvo) await useGameDataStore().load()
     const query = applyFilters(
       supabase.from('pokemons').select(COLUMNAS_TARJETA, contar ? { count: 'exact' } : undefined)
     )
@@ -290,7 +296,8 @@ export const usePokemonsStore = defineStore('pokemon', () => {
       (active.onlyShiny ? 1 : 0) +
       (active.onlyShadow ? 1 : 0) +
       (active.onlyDynamax ? 1 : 0) +
-      (active.onlyGigantamax ? 1 : 0)
+      (active.onlyGigantamax ? 1 : 0) +
+      (active.onlyCheapEvo ? 1 : 0)
     )
   })
 

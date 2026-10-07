@@ -185,6 +185,7 @@
       "intro": "In a league with a CP cap, the bulkiest under the cap wins, not the 100%. Type your IVs to see where yours ranks.",
       "yours": "Your IVs",
       "yoursShort": "Yours",
+      "topTitulo": "Top {n}",
       "best": "Best",
       "atk": "Attack",
       "def": "Defense",
@@ -210,6 +211,49 @@
         "pve": "Raid rank",
         "bestType": "Best type"
       }
+    },
+    "aventura": {
+      "titulo": "Adventure effect",
+      "coste": "{min} min · {polvo} Stardust and {caramelos} Candy",
+      "tipos": {
+        "SPACE_BONUS": "Wild Pokémon appear and can be caught from farther away.",
+        "TIME_BONUS": "Pauses the timer of Incense, Lucky Eggs and Star Pieces.",
+        "DAY_BONUS": "Attracts more Pokémon that appear during the day.",
+        "NIGHT_BONUS": "Attracts more Pokémon that appear at night.",
+        "FREEZE_BONUS": "Freezes the catch circle and makes catching easier.",
+        "SLOW_BONUS": "Slows the catch circle and makes catching easier.",
+        "ATTACK_BONUS": "More attack in raids (×1.1) and Max Battles (×1.05).",
+        "DEFENSE_BONUS": "More defense in raids (×1.1) and Max Battles (×1.05).",
+        "MAX_MOVE_BONUS": "Raises every Max Move of your team by one level."
+      }
+    },
+    "rasgos": {
+      "favor": "Strengths",
+      "contra": "Weaknesses",
+      "si": {
+        "abrir": "Good lead",
+        "cerrar": "Good closer, no shields",
+        "cambiar": "Safe switch",
+        "cargar": "Strong with banked energy",
+        "atacar": "Holds up when down on shields",
+        "consistencia": "Consistent, no baiting needed"
+      },
+      "no": {
+        "abrir": "Weak lead",
+        "cerrar": "Weak closer, no shields",
+        "cambiar": "Risky switch",
+        "cargar": "Gets little from banked energy",
+        "atacar": "Struggles when down on shields",
+        "consistencia": "Relies on baiting shields"
+      }
+    },
+    "hundoFuncional": {
+      "titulo": "Functional hundo",
+      "texto": "At level {niveles}, a 15/15/14 has the same HP as a hundo and performs exactly the same: no need to hunt for another."
+    },
+    "potencian": {
+      "titulo": "Which Mega boosts it most",
+      "nota": "With another trainer's Mega in the raid, moves of its types deal ×1.3 and the rest ×1.1. Any other Mega gives it 10%."
     },
     "howToBeat": "How to beat it",
     "howToBeatHelp": "The ones that deal it the most damage per second, with their best moves: the same as for a raid boss.",
@@ -264,6 +308,15 @@
     "allTypes": "All types",
     "overall": "Best overall",
     "sortBy": "Sort by",
+    "clases": {
+      "titulo": "Class",
+      "todos": "All",
+      "megas": "Megas",
+      "oscuros": "Shadows",
+      "sinLegendarios": "No legendaries",
+      "sinLegendariosCorto": "No legend.",
+      "comunes": "Common"
+    },
     "edps": "Effective DPS (eDPS)",
     "dps": "Damage per second (DPS)",
     "tdo": "Total damage output (TDO)",
@@ -421,7 +474,13 @@
     "weakTo": "Weak to",
     "weak": "Weak",
     "boostedBy": "Boosted by",
+    "soloComunes": "Common only",
+    "soloComunesHelp": "No Megas, Shadows, legendaries or Ultra Beasts: what almost everyone has.",
+    "jugadores": "≈ {n} trainer | ≈ {n} trainers",
+    "jugadoresNota": "Trainers: how many would be needed, each with six of that Pokémon, to win within the raid's {s} s. It is an estimate.",
+    "sinComunes": "No common counter really hurts it.",
     "cpRange": "CP",
+    "rareza": "Rarity {n} of 5 (5 is the rarest)",
     "noRaids": "No raid bosses published.",
     "noEggs": "No egg data published.",
     "noResearch": "No tasks published.",
@@ -523,7 +582,8 @@
       "onlyShiny": "Shiny already released",
       "onlyShadow": "With a Shadow form",
       "onlyDynamax": "Can Dynamax",
-      "onlyGigantamax": "With a Gigantamax form"
+      "onlyGigantamax": "With a Gigantamax form",
+      "onlyCheapEvo": "With 12 or 25 Candy, or free when traded"
     },
     "clear": "Clear",
     "results": "{count} results",
@@ -533,6 +593,10 @@
     "onlyShadow": "Shadow",
     "onlyDynamax": "Dynamax",
     "onlyGigantamax": "Gigantamax",
+    "onlyCheapEvo": "Cheap evolution",
+    "evoCaramelos": "Evolves with {n} Candy",
+    "evoGratis": "Evolves for free when traded",
+    "evoGratisCorto": "Free",
     "rarities": {
       "standard": "Standard",
       "legendary": "Legendary",

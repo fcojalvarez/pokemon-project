@@ -38,6 +38,7 @@ import { ataquesDelJuego, completarAtaques, idDelJuego, idDelJuegoParaPvp, lista
 import { POKEBATTLER, ataquesPorPokemon, maxDePokebattler, nivelesMax } from './lib/pokebattler.mjs'
 import { diferenciasCambiosForma } from './lib/cambiosForma.mjs'
 import { especiesConNivelMega4 } from './lib/nivelMega.mjs'
+import { cortesDeRasgos, efectosAventura, evolucionesBaratas, rasgosPvp } from './lib/extrasFicha.mjs'
 import { CONVERSIONES } from '../src/utils/cambiosForma.js'
 import { createRequire } from 'node:module'
 
@@ -1826,10 +1827,14 @@ function trimRankings(list, roster, limit) {
     const p = entradaDelRoster(c.opponent, byId, roster)
     return { id: p?.id ?? c.opponent, nameEs: p?.nameEs ?? c.opponent, rating: c.rating }
   }
-  return list.slice(0, limit).map((r, i) => {
+  const filas = list.slice(0, limit)
+  // Los rasgos se miden contra el resto de la liga (ver rasgosPvp).
+  const cortes = cortesDeRasgos(filas)
+  return filas.map((r, i) => {
     const p = entradaDelRoster(r.speciesId, byId, roster)
     return {
       rank: i + 1,
+      rasgos: rasgosPvp(r.scores, cortes),
       id: p?.id ?? r.speciesId,
       name: p?.name ?? r.speciesName,
       nameEs: p?.nameEs ?? r.speciesName,
@@ -2136,6 +2141,8 @@ async function main() {
   const chart = buildTypeChart(gmRaw)
   const moves = buildMoves(gmRaw, pvpGm, es, nombresDeAtaques(pgaRaw))
   await completarPve(moves, pbMoves)
+  // Los ataques con efecto de aventura (Corte Vacío, Distorsión…).
+  for (const [id, efecto] of Object.entries(efectosAventura(gmRaw))) if (moves[id]) moves[id].aventura = efecto
   const forms = new Map(
     formsRaw.results.map((r) => [r.name, Number(r.url.split('/').filter(Boolean).pop())])
   )
@@ -2147,6 +2154,16 @@ async function main() {
   // ataque «+» en el Top. Cuando Niantic abra el de otra especie, entra sola.
   const conNivel4 = especiesConNivelMega4(gmRaw)
   for (const p of pokemon) p.superMax = p.mega && conNivel4.has(p.dex)
+  // Lo que cuesta evolucionarlo, si es barato (12 o 25 caramelos, o gratis al
+  // intercambiar). Un oscuro no se puede intercambiar.
+  const baratas = evolucionesBaratas(gmRaw)
+  for (const p of pokemon) {
+    p.evolucionBarata = null
+    if (p.mega) continue
+    const clave = [...gmFormNames(p.id), gmFormNames(p.id.replace(/_shadow$/, ''))[0]].find((k) => baratas.has(k))
+    const valor = clave ? baratas.get(clave) : null
+    p.evolucionBarata = p.shadow && valor === 'intercambio' ? null : valor
+  }
   // Legendario, singular y ultraente, del GAME_MASTER (`pokemonClass`), que
   // manda en las tres: las etiquetas de pvpoke se dejaban 59 formas (Arceus,
   // Silvally, Cosmog…) y ponían a Necrozma de ultraente, que es legendario.

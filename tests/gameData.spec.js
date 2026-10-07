@@ -587,3 +587,32 @@ describe('clima', () => {
     expect(con.dps / sin.dps).toBeLessThan(1.25)
   })
 })
+
+describe('ideas de Dittobase', () => {
+  it('«Solo lo común» deja fuera megas, oscuros, legendarios y ultraentes', () => {
+    const lista = computeCounters(roster, moves, typechart.chart, { types: ['steel', 'dragon'] }, {
+      limit: 30,
+      soloComunes: true
+    })
+    const porId = new Map(roster.map((p) => [p.id, p]))
+    expect(lista.length).toBeGreaterThan(0)
+    for (const fila of lista) {
+      const e = porId.get(fila.id)
+      expect(e.mega || e.shadow || e.legendary || e.mythical || e.ultraBeast, fila.id).toBeFalsy()
+    }
+    // Contra Dialga Oscuro, los de Lucha de siempre.
+    expect(ids(lista.slice(0, 5))).toContain('lucario')
+  })
+
+  it('con una mega del grupo, sus tipos pegan ×1,3 y el resto ×1,1', () => {
+    const raichu = roster.find((p) => p.id === 'raikou')
+    const base = evaluatePokemon(raichu, moves)[0].edps
+    const conElectrica = evaluatePokemon(raichu, moves, { potencia: ['electric'] })[0].edps
+    const conOtra = evaluatePokemon(raichu, moves, { potencia: ['grass'] })[0].edps
+    // El eDPS no sube del todo un 30 %: la vida no cambia, pero sí la energía.
+    expect(conElectrica / base).toBeGreaterThan(1.25)
+    expect(conElectrica / base).toBeLessThan(1.31)
+    expect(conOtra / base).toBeGreaterThan(1.07)
+    expect(conOtra / base).toBeLessThan(1.11)
+  })
+})

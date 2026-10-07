@@ -7,6 +7,20 @@ import { origenDe, origenesPresentes } from '../utils/moveOrigins'
 /** Cuántos atacantes salen en cada top. */
 const LIMITE = 50
 
+/**
+ * Las clases del Top de incursiones («Todos», «Megas»…): responden a «¿qué
+ * subo si no tengo legendarios?» sin tocar «Incluir». Cada fila conserva su
+ * puesto en la lista completa, para que la letra siga diciendo lo mismo.
+ */
+export const CLASES_PVE = ['todos', 'megas', 'oscuros', 'sinLegendarios', 'comunes']
+const deClase = {
+  megas: (row) => row.mega,
+  oscuros: (row) => row.shadow,
+  sinLegendarios: (row, entry) => !row.legendary && !row.mythical && !entry?.ultraBeast,
+  comunes: (row, entry) =>
+    !row.mega && !row.shadow && !row.legendary && !row.mythical && !entry?.ultraBeast
+}
+
 const chipRapido = (movimiento) => ({
   id: movimiento.id,
   name: movimiento.name,
@@ -32,20 +46,27 @@ export function useTopFilas(filtros) {
     includeShadow,
     includeLegacy,
     includeElite,
-    includeLegendary
+    includeLegendary,
+    clase
   } = filtros
 
   const pveRows = computed(() => {
     if (!gameData.isReady || mode.value !== 'pve') return []
+    const filtro = deClase[clase?.value]
     const rankings = gameData.pveRankings({
       includeMega: includeMega.value,
       includeShadow: includeShadow.value,
       includeLegacy: includeLegacy.value,
       includeElite: includeElite.value,
       sortBy: sortBy.value,
-      limit: LIMITE
+      // Con una clase se filtra sobre la lista larga: los 50 primeros comunes
+      // no están entre los 50 primeros de todos.
+      limit: filtro ? 500 : LIMITE
     })
-    const filas = type.value === 'all' ? rankings.overall : rankings.byType[type.value] ?? []
+    const todas = type.value === 'all' ? rankings.overall : rankings.byType[type.value] ?? []
+    const filas = filtro
+      ? todas.filter((row) => filtro(row, gameData.byId.get(row.id))).slice(0, LIMITE)
+      : todas
     // Cada fila, también con el clima que potencia su tipo (la cifra en ámbar).
     return filas.map((row) => ({ ...row, conClima: gameData.conClima(row) }))
   })

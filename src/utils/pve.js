@@ -22,6 +22,15 @@ export const SUPER_EFICAZ = 1.6
 export const CLIMA = 1.2
 
 /**
+ * Lo que da una mega (o un primigenio) activa en la incursión a los demás:
+ * ×1,3 a los ataques de sus tipos y ×1,1 al resto. Es MEGA_EVOLUTION_LEVEL del
+ * GAME_MASTER (sameTypeAttackBoost y differentTypeAttackBoost), igual en
+ * todos los niveles mega.
+ */
+export const MEGA_MISMO_TIPO = 1.3
+export const MEGA_OTRO_TIPO = 1.1
+
+/**
  * Tipos a los que no es débil nadie: su lista va contra un jefe neutro. Sin
  * esto, Regigigas Oscuro sumaba su tipo Normal a ×1,6, un daño que en el juego
  * no se da nunca, y salía entre los cinco primeros de la lista general.
@@ -64,6 +73,12 @@ function usable(entry, options) {
   if (options.includeMega === false && entry.mega) return false
   if (options.includeShadow === false && entry.shadow) return false
   if (options.includeLegendary === false && (entry.legendary || entry.mythical)) return false
+  // Lo que tiene todo el mundo: sin megas, oscuros, legendarios ni ultraentes.
+  if (
+    options.soloComunes &&
+    (entry.mega || entry.shadow || entry.legendary || entry.mythical || entry.ultraBeast)
+  )
+    return false
   return true
 }
 
@@ -83,12 +98,17 @@ export function evaluatePokemon(entry, moves, options = {}) {
   const debilA = options.debilA ?? null
   // Con clima: los ataques de los tipos que potencia pegan ×1,2.
   const clima = options.clima ?? null
+  // Con una mega de otro jugador en la incursión: ×1,3 a los ataques de sus
+  // tipos y ×1,1 al resto (ver potenciaMega).
+  const potencia = options.potencia ?? null
   const eficacia = (tipo) =>
     (chart && defenderTypes
       ? effectivenessAgainst(chart, tipo, defenderTypes)
       : debilA && tipo === debilA && !SIN_DEBILES.has(debilA)
       ? SUPER_EFICAZ
-      : 1) * (clima?.includes(tipo) ? CLIMA : 1)
+      : 1) *
+    (clima?.includes(tipo) ? CLIMA : 1) *
+    (potencia ? (potencia.includes(tipo) ? MEGA_MISMO_TIPO : MEGA_OTRO_TIPO) : 1)
 
   const stats = effectiveStats(entry.stats, ivs, level, { shadow: entry.shadow })
   const results = []

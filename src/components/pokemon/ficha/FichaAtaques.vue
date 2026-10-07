@@ -14,8 +14,9 @@ import { computed, ref, watch } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import MoveTag from '../MoveTag.vue'
 import MoveLegend from '../MoveLegend.vue'
+import FichaPotencian from './FichaPotencian.vue'
 import BaseChevron from '../../base/BaseChevron.vue'
-import { useTranslate, formatDecimal } from '../../../composables/useTranslate'
+import { useTranslate, formatDecimal, formatNumber } from '../../../composables/useTranslate'
 import { useGameDataStore } from '../../../stores/gameData'
 import { puestoDeConjunto, puntuacionGeneral } from '../../../utils/puestoAtaques'
 
@@ -27,7 +28,7 @@ const props = defineProps({
   entrada: { type: Object, default: null }
 })
 
-const { localName } = useTranslate()
+const { localName, te } = useTranslate()
 const gameData = useGameDataStore()
 
 /**
@@ -76,6 +77,13 @@ const elegirCargado = (id) => {
  * Solo hay desplegable si hay conjuntos que puntuar: con Applin, que solo
  * tiene Forcejeo, no habría nada que decir. Y solo se elige con él abierto.
  */
+/** Sus ataques con efecto de aventura que sabemos explicar (Corte Vacío, Distorsión…). */
+const conAventura = computed(() =>
+  [...props.movepool.fast, ...props.movepool.charged].filter(
+    (move) => move.aventura && te(`pokemon.aventura.tipos.${move.aventura.tipo}`)
+  )
+)
+
 const puedeElegir = computed(() => Boolean(props.entrada) && props.bestMovesets.length > 0)
 const elegible = computed(() => puedeElegir.value && abiertoOtros.value)
 
@@ -187,6 +195,13 @@ const resumen = computed(() => {
       </li>
     </ol>
 
+    <!-- Con qué mega conviene ir: lo que le sube el daño cada una. -->
+    <ficha-potencian
+      v-if="entrada && bestMovesets.length"
+      :entrada="entrada"
+      class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
+    />
+
     <div
       :class="
         bestMovesets.length ? 'mt-3 pt-3 border-t border-gray-300 dark:border-gray-700' : 'mt-2'
@@ -234,6 +249,30 @@ const resumen = computed(() => {
             :selected="cargado === move.id"
           />
         </component>
+      </div>
+
+      <!-- Los ataques que, además, dan un efecto fuera del combate. -->
+      <div
+        v-for="move in conAventura"
+        :key="`aventura-${move.id}`"
+        class="mt-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-xs"
+      >
+        <div class="flex flex-wrap items-center gap-2">
+          <move-tag chip :name="localName(move)" :type="move.type" />
+          <span class="px-2 rounded-full bg-gray-200 dark:bg-gray-700 text-mini font-bold">{{
+            $t('pokemon.aventura.titulo')
+          }}</span>
+        </div>
+        <p class="mt-1">{{ $t(`pokemon.aventura.tipos.${move.aventura.tipo}`) }}</p>
+        <p class="text-mini text-gray-600 dark:text-gray-300 tabular-nums">
+          {{
+            $t('pokemon.aventura.coste', {
+              min: move.aventura.minutos,
+              polvo: formatNumber(move.aventura.polvo),
+              caramelos: move.aventura.caramelos
+            })
+          }}
+        </p>
       </div>
 
       <!-- El desplegable: cerrado no ocupa más que esta línea. -->
