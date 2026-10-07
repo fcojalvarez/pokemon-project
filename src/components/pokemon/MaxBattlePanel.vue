@@ -18,6 +18,7 @@ import MaxTeamPanel from '../raids/MaxTeamPanel.vue'
 import StabBadge from '../base/StabBadge.vue'
 import BaseNivel from '../base/BaseNivel.vue'
 import IconoPapel from '../base/IconoPapel.vue'
+import TituloAyuda from '../base/TituloAyuda.vue'
 import { maxCounters } from '../../utils/maxBattle'
 import { calcCP } from '../../utils/formulas'
 
@@ -134,7 +135,13 @@ const resumen = computed(() => {
 
 <template>
   <!-- ---------- Combates Max ---------- -->
-  <ficha-seccion v-if="maxInfo" id="max" :title="$t('max.title')" :summary="resumen">
+  <ficha-seccion
+    v-if="maxInfo"
+    id="max"
+    :title="$t('max.title')"
+    :summary="resumen"
+    :ayuda="$t('max.intro')"
+  >
     <template #titulo>
       <span class="flex items-center gap-1.5 text-gray-800 dark:text-gray-200">
         <max-mark variant="dynamax" :size="18" />
@@ -142,11 +149,7 @@ const resumen = computed(() => {
       </span>
     </template>
 
-    <p class="mt-2 text-xs text-gray-600 dark:text-gray-300">
-      {{ $t('max.intro') }}
-    </p>
-
-    <dl class="mt-3 flex flex-col gap-2">
+    <dl class="mt-2 flex flex-col gap-2">
       <div
         v-if="pc100"
         class="flex items-center justify-between gap-2 p-2 rounded-xl bg-gray-100 dark:bg-gray-800"
@@ -185,7 +188,14 @@ const resumen = computed(() => {
       uno. El STAB, marcado, y explicado debajo.
     -->
     <template v-if="deRapidos.length">
-      <h3 class="mt-3 mb-1.5 subtitulo">
+      <titulo-ayuda
+        v-if="deRapidos.some((opcion) => opcion.stab)"
+        class="mt-3 mb-1.5"
+        :texto="$t('max.stabHelp')"
+        :tema="$t('max.byFastMove')"
+        >{{ $t('max.byFastMove') }}</titulo-ayuda
+      >
+      <h3 v-else class="mt-3 mb-1.5 subtitulo">
         {{ $t('max.byFastMove') }}
       </h3>
       <ul class="flex flex-col gap-1.5">
@@ -206,13 +216,6 @@ const resumen = computed(() => {
           </span>
         </li>
       </ul>
-      <p
-        v-if="deRapidos.some((opcion) => opcion.stab)"
-        class="mt-1.5 flex items-start gap-1.5 text-mini text-gray-600 dark:text-gray-300"
-      >
-        <stab-badge class="mt-px" />
-        <span>{{ $t('max.stabHelp') }}</span>
-      </p>
     </template>
 
     <dl v-if="exclusivo" class="mt-3 flex flex-col gap-2">
@@ -246,9 +249,9 @@ const resumen = computed(() => {
       merece la pena gastarse las partículas en este Pokémon.
     -->
     <div v-if="upgradeRows.length" class="mt-4 pt-3 border-t border-gray-300 dark:border-gray-700">
-      <h3 class="subtitulo">
-        {{ $t('max.upgradeTitle') }}
-      </h3>
+      <titulo-ayuda :texto="$t('max.upgradeNote')" :tema="$t('max.upgradeTitle')">{{
+        $t('max.upgradeTitle')
+      }}</titulo-ayuda>
       <!--
         Una tabla y no una frase por movimiento: en móvil la frase
         («1800 Partículas Max · 150 Caramelos · 40 Caramelos XL») se partía en
@@ -284,16 +287,16 @@ const resumen = computed(() => {
           </tr>
         </tbody>
       </table>
-      <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">
-        {{ $t('max.upgradeNote') }}
-      </p>
     </div>
 
     <div v-if="equipo" class="mt-4 pt-3 border-t border-gray-300 dark:border-gray-700">
-      <h3 class="subtitulo mb-2">
-        {{ $t('max.teamAgainst', { pokemon: localName(entry) }) }}
-      </h3>
-      <max-team-panel :boss-name="localName(entry)" :team="equipo" />
+      <titulo-ayuda
+        class="mb-2"
+        :texto="[$t('max.teamIntro', { pokemon: localName(entry) }), $t('max.teamNote')]"
+        :tema="$t('max.teamAgainst', { pokemon: localName(entry) })"
+        >{{ $t('max.teamAgainst', { pokemon: localName(entry) }) }}</titulo-ayuda
+      >
+      <max-team-panel :boss-name="localName(entry)" :team="equipo" :con-notas="false" />
     </div>
   </ficha-seccion>
 </template>

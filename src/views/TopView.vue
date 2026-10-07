@@ -519,11 +519,13 @@ watch(
         />
 
         <!-- PvE -->
+        <!-- Sin barra: con la cifra, la de clima y la letra, la fila ya iba llena. -->
         <attacker-list
           v-else-if="mode === 'pve'"
           :rows="pveRows"
           :sort-by="sortBy"
           :nivel="nivel"
+          :show-bar="false"
         />
 
         <!--

@@ -113,9 +113,9 @@ test('el Top cambia entre PvE y PvP sin romperse', async ({ page }) => {
   await expect(filas.first()).toBeVisible()
   const cuantasPve = await filas.count()
   expect(cuantasPve).toBeGreaterThan(5)
-  // La métrica: en la fila (lista) o en la cabecera (tabla). Suelto, "DPS"
+  // La métrica: en la fila (lista) o en la cabecera (tabla). Suelto, "eDPS"
   // engancharía también las opciones del desplegable de ordenación.
-  await expect(await etiquetaDeMetrica(page, filas, /^dps$/i)).toBeVisible()
+  await expect(await etiquetaDeMetrica(page, filas, /^edps$/i)).toBeVisible()
 
   // Ya no es un <select> nativo: es el desplegable propio, que se abre y se
   // elige con clics como haría cualquiera.
@@ -368,15 +368,16 @@ test.describe('Top en escritorio ancho', () => {
   test('cabecera y selector ordenan a la par', async ({ page }) => {
     await page.goto('/top')
     const orden = page.getByRole('combobox', { name: /ordenar/i })
-    await expect(page.locator('th[aria-sort="descending"]')).toContainText(/dps/i)
+    // Por defecto, el eDPS.
+    await expect(page.locator('th[aria-sort="descending"]')).toContainText(/edps/i)
 
     await page.getByRole('button', { name: /^tdo/i }).click()
     await expect(page.locator('th[aria-sort="descending"]')).toContainText(/tdo/i)
     await expect(orden).toContainText('TDO')
 
     await orden.click()
-    await page.getByRole('option', { name: /\(ER\)/ }).click()
-    await expect(page.locator('th[aria-sort="descending"]')).toContainText(/er/i)
+    await page.getByRole('option', { name: /\(DPS\)/ }).click()
+    await expect(page.locator('th[aria-sort="descending"]')).toContainText(/^\s*DPS/)
   })
 })
 

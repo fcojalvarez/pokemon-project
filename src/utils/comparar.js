@@ -86,7 +86,7 @@ export function filasComparar(a, b) {
     fila('def', a.stats.def, b.stats.def, 'mayor'),
     fila('hp', a.stats.hp, b.stats.hp, 'mayor'),
     fila('cp', a.cp, b.cp, 'mayor'),
-    fila('dps', a.mejor?.dps ?? null, b.mejor?.dps ?? null, 'mayor'),
+    fila('edps', a.mejor?.edps ?? null, b.mejor?.edps ?? null, 'mayor'),
     fila('tdo', a.mejor?.tdo ?? null, b.mejor?.tdo ?? null, 'mayor'),
     fila('pve', a.pve, b.pve, 'menor'),
     // El de cada uno en su tipo: con `tipos` para el icono y las letras por tipo.

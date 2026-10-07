@@ -13,6 +13,7 @@
 import { computed, reactive, ref } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import BaseSegmented from '../../base/BaseSegmented.vue'
+import BaseChevron from '../../base/BaseChevron.vue'
 import { rankIVsForLeague } from '../../../utils/formulas'
 import { useTranslate } from '../../../composables/useTranslate'
 
@@ -71,8 +72,12 @@ const filas = computed(() =>
  * Los diez mejores de una liga, en tabla: ver que el 2.º y el 3.º rinden casi
  * igual que el 1.º ayuda a no obsesionarse con el perfecto.
  */
+/** La tabla va plegada: de entrada bastan tus IV y el mejor de cada liga. */
+const conTabla = ref(false)
 const ligaTabla = ref('great')
-const ligaOptions = computed(() => LIGAS.map(({ league }) => ({ value: league, label: t(`top.${league}`) })))
+const ligaOptions = computed(() =>
+  LIGAS.map(({ league }) => ({ value: league, label: t(`top.${league}`) }))
+)
 const TOP = 10
 const mejores = computed(
   () => rankings.value.find((r) => r.league === ligaTabla.value)?.todas.slice(0, TOP) ?? []
@@ -90,9 +95,12 @@ const resumen = computed(() =>
 </script>
 
 <template>
-  <ficha-seccion id="pvpIv" :title="$t('pokemon.pvpIv.title')" :summary="resumen">
-    <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.pvpIv.intro') }}</p>
-
+  <ficha-seccion
+    id="pvpIv"
+    :title="$t('pokemon.pvpIv.title')"
+    :summary="resumen"
+    :ayuda="[$t('pokemon.pvpIv.intro'), $t('pokemon.pvpIv.master')]"
+  >
     <fieldset class="mt-2">
       <legend class="rotulo">
         {{ $t('pokemon.pvpIv.yours') }}
@@ -146,43 +154,55 @@ const resumen = computed(() =>
       </li>
     </ul>
 
-    <h3 class="mt-3 rotulo">{{ $t('pokemon.pvpIv.topTitulo', { n: TOP }) }}</h3>
-    <base-segmented
-      v-model="ligaTabla"
-      role="group"
-      :aria-label="$t('top.league')"
-      :options="ligaOptions"
-      class="mt-1"
-    />
-    <div class="mt-1.5 overflow-x-auto">
-      <table class="w-full text-xs tabular-nums">
-        <thead class="text-mini text-gray-600 dark:text-gray-300">
-          <tr class="border-b border-gray-300 dark:border-gray-700">
-            <th scope="col" class="py-1 pr-2 text-left font-semibold">#</th>
-            <th scope="col" class="py-1 pr-2 text-left font-semibold">IV</th>
-            <th scope="col" class="py-1 pr-2 text-right font-semibold">
-              {{ $t('common.levelShort') }}
-            </th>
-            <th scope="col" class="py-1 pr-2 text-right font-semibold">{{ $t('raids.cpRange') }}</th>
-            <th scope="col" class="py-1 text-right font-semibold">%</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="e in mejores"
-            :key="`${e.ivs.atk}-${e.ivs.def}-${e.ivs.hp}`"
-            class="border-b last:border-b-0 border-gray-300 dark:border-gray-700"
-            :class="esElMio(e) ? 'font-bold bg-gray-100 dark:bg-gray-800' : ''"
-          >
-            <td class="py-1 pr-2">{{ e.rank }}</td>
-            <td class="py-1 pr-2 font-code-sans">{{ ivTexto(e.ivs) }}</td>
-            <td class="py-1 pr-2 text-right">{{ nivel(e.level) }}</td>
-            <td class="py-1 pr-2 text-right">{{ formatNumber(e.cp) }}</td>
-            <td class="py-1 text-right">{{ formatNumber(Math.round(e.percent * 10) / 10) }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <button
+      type="button"
+      class="mt-3 ver-mas"
+      :aria-expanded="conTabla"
+      aria-controls="iv-pvp-tabla"
+      @click="conTabla = !conTabla"
+    >
+      {{ $t('pokemon.pvpIv.topTitulo', { n: TOP }) }}
+      <base-chevron :open="conTabla" size="w-3.5 h-3.5" />
+    </button>
+    <div v-show="conTabla" id="iv-pvp-tabla">
+      <base-segmented
+        v-model="ligaTabla"
+        role="group"
+        :aria-label="$t('top.league')"
+        :options="ligaOptions"
+        class="mt-1"
+      />
+      <div class="mt-1.5 overflow-x-auto">
+        <table class="w-full text-xs tabular-nums">
+          <thead class="text-mini text-gray-600 dark:text-gray-300">
+            <tr class="border-b border-gray-300 dark:border-gray-700">
+              <th scope="col" class="py-1 pr-2 text-left font-semibold">#</th>
+              <th scope="col" class="py-1 pr-2 text-left font-semibold">IV</th>
+              <th scope="col" class="py-1 pr-2 text-right font-semibold">
+                {{ $t('common.levelShort') }}
+              </th>
+              <th scope="col" class="py-1 pr-2 text-right font-semibold">
+                {{ $t('raids.cpRange') }}
+              </th>
+              <th scope="col" class="py-1 text-right font-semibold">%</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="e in mejores"
+              :key="`${e.ivs.atk}-${e.ivs.def}-${e.ivs.hp}`"
+              class="border-b last:border-b-0 border-gray-300 dark:border-gray-700"
+              :class="esElMio(e) ? 'font-bold bg-gray-100 dark:bg-gray-800' : ''"
+            >
+              <td class="py-1 pr-2">{{ e.rank }}</td>
+              <td class="py-1 pr-2 font-code-sans">{{ ivTexto(e.ivs) }}</td>
+              <td class="py-1 pr-2 text-right">{{ nivel(e.level) }}</td>
+              <td class="py-1 pr-2 text-right">{{ formatNumber(e.cp) }}</td>
+              <td class="py-1 text-right">{{ formatNumber(Math.round(e.percent * 10) / 10) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">{{ $t('pokemon.pvpIv.master') }}</p>
   </ficha-seccion>
 </template>

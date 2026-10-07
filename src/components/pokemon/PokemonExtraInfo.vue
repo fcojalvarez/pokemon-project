@@ -22,6 +22,7 @@ import FichaPvp from './ficha/FichaPvp.vue'
 import FichaIvPvp from './ficha/FichaIvPvp.vue'
 import FichaAtaques from './ficha/FichaAtaques.vue'
 import FichaEfectos from './ficha/FichaEfectos.vue'
+import FichaPotencian from './ficha/FichaPotencian.vue'
 import FichaDebilidades from './ficha/FichaDebilidades.vue'
 import FichaGanarle from './ficha/FichaGanarle.vue'
 import FichaComparar from './ficha/FichaComparar.vue'
@@ -65,6 +66,7 @@ const TITULOS = {
   pvp: 'pokemon.pvpRanks',
   pvpIv: 'pokemon.pvpIv.title',
   ataques: 'pokemon.bestMoves',
+  potencian: 'pokemon.potencian.titulo',
   efectos: 'moves.effectsTitle',
   debilidades: 'pokemon.weaknesses',
   ganarle: 'pokemon.howToBeat',
@@ -93,6 +95,11 @@ const tiene = computed(() => ({
   // Sin estadísticas (una especie que el roster aún no trae) no hay qué calcular.
   pvpIv: Boolean(entrada.value?.stats?.atk),
   ataques: bestMovesets.value.length > 0 || movepool.value.fast.length > 0,
+  // Solo si alguna mega le da más que cualquier otra (ver gameData.potenciadores).
+  potencian:
+    Boolean(entrada.value) &&
+    bestMovesets.value.length > 0 &&
+    gameData.potenciadores(entrada.value).length > 0,
   efectos: moveEffects.value.length > 0,
   debilidades: matchups.value.weak.length > 0 || matchups.value.resist.length > 0,
   ganarle: counters.value.length > 0,
@@ -314,9 +321,14 @@ onBeforeUnmount(alSoltarAsa)
           :movepool="movepool"
           :entrada="entrada"
         />
+        <ficha-potencian v-else-if="id === 'potencian'" :entrada="entrada" />
         <ficha-efectos v-else-if="id === 'efectos'" :efectos="moveEffects" />
         <ficha-debilidades v-else-if="id === 'debilidades'" :matchups="matchups" />
-        <ficha-ganarle v-else-if="id === 'ganarle'" :counters="counters" />
+        <ficha-ganarle
+          v-else-if="id === 'ganarle'"
+          :counters="counters"
+          :tipos="entrada?.types ?? []"
+        />
         <ficha-comparar v-else-if="id === 'comparar'" :entrada="entrada" />
       </div>
     </div>

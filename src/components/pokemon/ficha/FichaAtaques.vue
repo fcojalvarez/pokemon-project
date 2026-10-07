@@ -14,7 +14,6 @@ import { computed, ref, watch } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import MoveTag from '../MoveTag.vue'
 import MoveLegend from '../MoveLegend.vue'
-import FichaPotencian from './FichaPotencian.vue'
 import BaseChevron from '../../base/BaseChevron.vue'
 import { useTranslate, formatDecimal, formatNumber } from '../../../composables/useTranslate'
 import { useGameDataStore } from '../../../stores/gameData'
@@ -194,13 +193,6 @@ const resumen = computed(() => {
         <span class="ml-auto font-bold">{{ formatDecimal(set.edps) }} eDPS</span>
       </li>
     </ol>
-
-    <!-- Con qué mega conviene ir: lo que le sube el daño cada una. -->
-    <ficha-potencian
-      v-if="entrada && bestMovesets.length"
-      :entrada="entrada"
-      class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
-    />
 
     <div
       :class="

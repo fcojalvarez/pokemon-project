@@ -64,6 +64,18 @@ const origins = computed(() =>
       >
     </div>
 
+    <!--
+      La unidad, una vez sobre la lista y no en cada fila: en el móvil va en una
+      columna y «eDPS» se repetía diez veces. Con varias columnas (md) no hay
+      un sitio común encima de todas, así que allí sigue en cada fila.
+    -->
+    <p
+      v-if="counters.length"
+      class="md:hidden mt-2 -mb-1 pr-2 text-right text-mini text-gray-600 dark:text-gray-300"
+      aria-hidden="true"
+    >
+      eDPS
+    </p>
     <ol class="mt-2 grid gap-1.5 grid-cols-[repeat(auto-fill,minmax(230px,1fr))]">
       <li
         v-for="(counter, i) in counters"
@@ -105,10 +117,11 @@ const origins = computed(() =>
               />
             </div>
           </div>
-          <!-- Con su unidad: la cifra sola no decía que era el eDPS contra él. -->
           <span class="shrink-0 flex flex-col items-end leading-tight tabular-nums">
-            <span class="text-xs font-bold">{{ formatDecimal(counter.edps) }}</span>
-            <span class="text-mini text-gray-600 dark:text-gray-300">eDPS</span>
+            <span class="text-xs font-bold"
+              >{{ formatDecimal(counter.edps) }}<span class="sr-only md:hidden"> eDPS</span></span
+            >
+            <span class="hidden md:inline text-mini text-gray-600 dark:text-gray-300">eDPS</span>
             <span
               v-if="jugadores(counter)"
               class="mt-0.5 px-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-mini font-bold"

@@ -44,7 +44,7 @@ describe('candidatosComparar', () => {
 
 describe('resumenComparable y filasComparar', () => {
   const gameData = {
-    bestMovesets: (entry) => [{ dps: entry.id === 'a' ? 15 : 12, tdo: 400 }],
+    bestMovesets: (entry) => [{ edps: entry.id === 'a' ? 15 : 12, tdo: 400 }],
     pveRanksFor: () => [
       { id: 'a', overall: { rank: 10 }, byType: [{ type: 'fire', rank: 44 }] },
       { id: 'b', overall: null, byType: [{ type: 'water', rank: 98 }] }
@@ -74,7 +74,7 @@ describe('resumenComparable y filasComparar', () => {
       atk: 'a',
       def: 'b',
       hp: null,
-      dps: 'a',
+      edps: 'a',
       tdo: null,
       pve: null,
       bestType: 'a',

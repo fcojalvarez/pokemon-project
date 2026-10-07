@@ -20,6 +20,7 @@ export const BLOQUES_FICHA = [
   'pvp',
   'pvpIv',
   'ataques',
+  'potencian',
   'efectos',
   'debilidades',
   'ganarle',

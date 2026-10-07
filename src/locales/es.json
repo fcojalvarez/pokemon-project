@@ -30,6 +30,7 @@
     "sections": "Secciones"
   },
   "common": {
+    "ayudaDe": "Ayuda: {tema}",
     "selectAll": "Marcar todo",
     "clearAll": "Quitar todo",
     "loading": "Cargando…",
@@ -94,6 +95,7 @@
     "noPvpRank": "Fuera del top 400",
     "pveRanks": "Puesto PvE",
     "noPveRank": "Fuera del top 500",
+    "pveMasTipos": "Ver {n} tipos más",
     "regionalForms": "Formas regionales",
     "shadowShort": "Oscuro",
     "superMega": "Supermega",
@@ -233,6 +235,7 @@
     },
     "potencian": {
       "titulo": "Con qué mega rinde más",
+      "resumen": "{nombre} y {n} más · {pct}",
       "nota": "Con una mega de otro jugador en la incursión, los ataques de sus tipos pegan ×1,3 y el resto ×1,1. Cualquier otra mega le da un 10 %."
     },
     "howToBeat": "Cómo ganarle",
@@ -250,7 +253,7 @@
         "def": "Defensa",
         "hp": "PS",
         "cp": "PC máx. (nv. 50)",
-        "dps": "DPS",
+        "edps": "eDPS",
         "tdo": "Daño total",
         "pve": "Puesto incursiones",
         "bestType": "Mejor tipo"
@@ -258,8 +261,8 @@
     },
     "howToBeatHelp": "Los que más daño le hacen por segundo, con sus mejores ataques: los mismos que para un jefe de incursión.",
     "pvpCombat": {
-      "showDetails": "Ver ataques y rivales",
-      "hideDetails": "Ocultar ataques y rivales",
+      "showDetails": "Ver ataques, rivales y rasgos",
+      "hideDetails": "Ocultar ataques, rivales y rasgos",
       "fastPerCharged": "Rápidos para cada cargado, con su conjunto recomendado",
       "count": "{n} rápidos · {turnos} turnos",
       "wins": "Gana a",

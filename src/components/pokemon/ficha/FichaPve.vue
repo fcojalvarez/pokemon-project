@@ -1,6 +1,12 @@
 <script setup>
-/** Puestos en PvE por forma, como el PvP: la que se ve y debajo la oscura. */
-import { computed } from 'vue'
+/**
+ * Puestos en PvE por forma, como el PvP: la que se ve y debajo la oscura.
+ *
+ * Cada forma enseña sus tres mejores tipos y un «+N» para ver el resto: con
+ * todos, Mewtwo (cinco formas) llevaba 34 pastillas. La letra va dentro de la
+ * pastilla y no en la esquina, donde se montaba sobre la fila de abajo.
+ */
+import { computed, ref } from 'vue'
 import FichaSeccion from '../FichaSeccion.vue'
 import TypeIcons from '../../base/TypeIcons.vue'
 import BaseNivel from '../../base/BaseNivel.vue'
@@ -15,6 +21,16 @@ const props = defineProps({
 })
 
 const { t, localName } = useTranslate()
+
+/** Cuántos tipos se ven de cada forma antes del «+N». */
+const TIPOS_A_LA_VISTA = 3
+/** Las formas con todos sus tipos desplegados (por id). */
+const desplegadas = ref(new Set())
+const desplegar = (id) => {
+  desplegadas.value = new Set([...desplegadas.value, id])
+}
+const tiposDe = (forma) =>
+  desplegadas.value.has(forma.id) ? forma.byType : forma.byType.slice(0, TIPOS_A_LA_VISTA)
 
 /** Plegada: la forma principal y, detrás, el mejor puesto de la oscura. */
 const resumen = computed(() => {
@@ -64,42 +80,42 @@ const resumen = computed(() => {
           >
           <base-nivel :rank="forma.overall.rank" pequena />
         </p>
-        <!-- La letra, en la esquina de cada pastilla: sobresale, de ahí el hueco de más. -->
-        <ul v-if="forma.byType.length" class="mt-2.5 flex flex-wrap gap-x-3 gap-y-2.5">
+        <ul v-if="forma.byType.length" class="mt-1.5 flex flex-wrap gap-1.5">
           <li
-            v-for="entry in forma.byType"
+            v-for="entry in tiposDe(forma)"
             :key="`${entry.type}-${entry.id}`"
-            class="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs tabular-nums"
+            class="flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs tabular-nums"
             :title="`${$t(`types.${entry.type}`)}: #${entry.rank} · ${formatDecimal(
               entry.edps
             )} eDPS`"
           >
             <type-icons :types="[entry.type]" size="13" />
             <strong>#{{ entry.rank }}</strong>
-            <base-nivel
-              :rank="entry.rank"
-              por-tipo
-              pequena
-              class="absolute -top-2 -right-2 ring-2 ring-white dark:ring-gray-900"
-            />
+            <base-nivel :rank="entry.rank" por-tipo pequena />
+          </li>
+          <li v-if="tiposDe(forma).length < forma.byType.length">
+            <button
+              type="button"
+              class="zona-tactil px-2.5 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs font-bold"
+              :aria-label="$t('pokemon.pveMasTipos', { n: forma.byType.length - TIPOS_A_LA_VISTA })"
+              @click="desplegar(forma.id)"
+            >
+              +{{ forma.byType.length - TIPOS_A_LA_VISTA }}
+            </button>
           </li>
         </ul>
         <!-- Defendiendo un gimnasio: su puesto entre los que pueden, con su letra. -->
         <template v-if="forma.defensor">
-          <p class="mt-3 text-mini text-gray-600 dark:text-gray-300">{{ $t('top.gym.ficha') }}</p>
-          <ul class="mt-2.5 flex">
+          <p class="mt-2 text-mini text-gray-600 dark:text-gray-300">{{ $t('top.gym.ficha') }}</p>
+          <ul class="mt-1.5 flex">
             <li
-              class="relative flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-xs tabular-nums"
+              class="flex items-center gap-1.5 pl-2.5 pr-1 py-0.5 rounded-full bg-gray-100 dark:bg-gray-800 text-xs tabular-nums"
               :title="`${$t('top.gym.pill')}: #${forma.defensor.rank}`"
             >
               <icono-papel papel="tanque" class="w-[13px] h-[13px]" />
               <span class="sr-only">{{ $t('top.gym.pill') }}:</span>
               <strong>#{{ forma.defensor.rank }}</strong>
-              <base-nivel
-                :rank="forma.defensor.rank"
-                pequena
-                class="absolute -top-2 -right-2 ring-2 ring-white dark:ring-gray-900"
-              />
+              <base-nivel :rank="forma.defensor.rank" pequena />
             </li>
           </ul>
         </template>

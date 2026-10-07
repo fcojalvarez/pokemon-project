@@ -30,6 +30,7 @@
     "sections": "Sections"
   },
   "common": {
+    "ayudaDe": "Help: {tema}",
     "selectAll": "Select all",
     "clearAll": "Clear all",
     "loading": "Loading…",
@@ -94,6 +95,7 @@
     "noPvpRank": "Outside the top 400",
     "pveRanks": "PvE rank",
     "noPveRank": "Outside the top 500",
+    "pveMasTipos": "Show {n} more types",
     "regionalForms": "Regional forms",
     "shadowShort": "Shadow",
     "superMega": "Super Mega",
@@ -206,7 +208,7 @@
         "def": "Defense",
         "hp": "HP",
         "cp": "Max CP (lv. 50)",
-        "dps": "DPS",
+        "edps": "eDPS",
         "tdo": "Total damage",
         "pve": "Raid rank",
         "bestType": "Best type"
@@ -253,13 +255,14 @@
     },
     "potencian": {
       "titulo": "Which Mega boosts it most",
+      "resumen": "{nombre} and {n} more · {pct}",
       "nota": "With another trainer's Mega in the raid, moves of its types deal ×1.3 and the rest ×1.1. Any other Mega gives it 10%."
     },
     "howToBeat": "How to beat it",
     "howToBeatHelp": "The ones that deal it the most damage per second, with their best moves: the same as for a raid boss.",
     "pvpCombat": {
-      "showDetails": "Show moves and matchups",
-      "hideDetails": "Hide moves and matchups",
+      "showDetails": "Show moves, matchups and traits",
+      "hideDetails": "Hide moves, matchups and traits",
       "fastPerCharged": "Fast moves for each charged move, with its recommended moveset",
       "count": "{n} fast · {turnos} turns",
       "wins": "Beats",

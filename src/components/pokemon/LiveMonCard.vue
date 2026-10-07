@@ -119,29 +119,33 @@ const conMargen = computed(() => Boolean(props.image) && !props.image.includes('
       }}</span>
       <slot />
     </span>
-    <span
-      v-if="cpLabel"
-      class="block text-mini text-gray-600 dark:text-gray-300 truncate"
-      :title="`${$t('raids.cpRange')} ${cpLabel}`"
-    >
-      {{ cpLabel }}
-      <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
-        $t('raids.cpRange')
-      }}</span>
+    <!--
+      Los PC y, a su derecha, su tipo: antes el tipo iba en su propia fila
+      («Tipo») abajo, y era una línea más en cada tarjeta.
+    -->
+    <span class="flex items-center gap-2 min-w-0">
+      <span
+        v-if="cpLabel"
+        class="text-mini text-gray-600 dark:text-gray-300 truncate"
+        :title="`${$t('raids.cpRange')} ${cpLabel}`"
+      >
+        {{ cpLabel }}
+        <span class="text-[0.8em] font-normal text-gray-600 dark:text-gray-300">{{
+          $t('raids.cpRange')
+        }}</span>
+      </span>
+      <type-icons :types="tipos" size="14" class="!gap-1 shrink-0" />
     </span>
     <span v-if="badge" class="block text-mini text-gray-600 dark:text-gray-300">{{ badge }}</span>
     <!--
-      Abajo, bajo una raya y como una ficha técnica, lo que hace falta para
-      preparar el equipo: su tipo y a qué es débil (hasta cuatro, los que más
-      daño le hacen), cada uno con su rótulo. Sin rótulos, los iconos sueltos
-      no se entendían. Debajo, a lo ancho, el botón de counters con su texto: al
-      lado de las debilidades no cabía en las tarjetas estrechas del móvil.
+      Abajo, bajo una raya, a qué es débil (hasta cuatro, los que más daño le
+      hacen), con su rótulo: sin él, los iconos sueltos no se entendían. Debajo,
+      a lo ancho, el botón de counters con su texto: al lado de las debilidades
+      no cabía en las tarjetas estrechas del móvil.
     -->
     <span
       class="mt-auto pt-1.5 border-t border-gray-300/70 dark:border-gray-700 grid grid-cols-[auto_1fr] items-center gap-x-2 gap-y-1"
     >
-      <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('filters.type') }}</span>
-      <type-icons :types="tipos" size="14" class="!gap-1 min-w-0" />
       <template v-if="debil.length">
         <span class="text-mini text-gray-600 dark:text-gray-300">{{ $t('raids.weak') }}</span>
         <type-icons :types="debil.slice(0, 4)" size="14" class="!gap-1 min-w-0" />

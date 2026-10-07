@@ -4,9 +4,10 @@
  * recomendado con cuántos rápidos hacen falta para cada cargado (contar
  * rápidos es la base del PvP) y a quién gana y con quién pierde.
  *
- * De entrada, los puestos de las tres ligas, que se comparan de un vistazo,
- * y sus rasgos: en qué escenarios destaca y en cuáles flojea frente al resto
- * de la liga (de las puntuaciones de pvpoke, ver scripts/lib/extrasFicha.mjs). Ataques y rivales, tras «Ver ataques y rivales»: con todo abierto
+ * De entrada, solo los puestos de las tres ligas, que se comparan de un
+ * vistazo. Los rasgos (en qué escenarios destaca y en cuáles flojea frente al
+ * resto de la liga, de las puntuaciones de pvpoke: scripts/lib/extrasFicha.mjs)
+ * van con los ataques y los rivales: de entrada saturaban la sección. Ataques y rivales, tras «Ver ataques y rivales»: con todo abierto
  * la sección ocupaba tres pantallas y casi siempre interesa una liga.
  */
 import { computed, ref } from 'vue'
@@ -33,7 +34,14 @@ const SIN_RASGOS = { favor: [], contra: [] }
 /** Los rasgos de su mejor forma en la liga (los trae pvp.json en cada fila). */
 const rasgosDe = (liga) => liga.entries[0]?.rasgos ?? SIN_RASGOS
 const hayDetalles = computed(() =>
-  props.porLiga.some((liga) => liga.conjunto || liga.gana.length || liga.pierde.length)
+  props.porLiga.some(
+    (liga) =>
+      liga.conjunto ||
+      liga.gana.length ||
+      liga.pierde.length ||
+      rasgosDe(liga).favor.length ||
+      rasgosDe(liga).contra.length
+  )
 )
 
 /** Plegada: el mejor puesto de cada liga, del mejor al peor. */
@@ -77,7 +85,7 @@ const resumen = computed(() => {
 
         <!-- Sus rasgos, los de su mejor forma en esa liga. -->
         <div
-          v-if="rasgosDe(liga).favor.length || rasgosDe(liga).contra.length"
+          v-if="conDetalles && (rasgosDe(liga).favor.length || rasgosDe(liga).contra.length)"
           class="mt-1.5 grid grid-cols-2 gap-2"
         >
           <div class="min-w-0">

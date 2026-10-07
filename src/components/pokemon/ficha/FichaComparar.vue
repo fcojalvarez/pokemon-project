@@ -60,7 +60,7 @@ const filas = computed(() => (b.value ? filasComparar(a.value, b.value) : []))
 const formato = (fila, valor) => {
   if (valor == null) return '—'
   if (fila.mejor === 'menor') return `#${valor}`
-  if (fila.clave === 'dps') return formatNumber(Math.round(valor * 10) / 10)
+  if (fila.clave === 'edps') return formatNumber(Math.round(valor * 10) / 10)
   return formatNumber(Math.round(valor))
 }
 

@@ -8,8 +8,15 @@
  * numeradas con el sprite, el nombre y los ataques en pastillas. Antes eran
  * tarjetas con el ataque escrito con flechas («Hoja Afilada → Gigarredoble ·
  * evolucionando a Grookey»), y siendo lo mismo se veían distinto.
+ *
+ * Por debajo de md, las dos listas van en pestañas («Para aguantar» / «Para
+ * pegar»): una debajo de otra eran doce filas y la sección más larga de la
+ * ficha. Desde md caben en dos columnas.
  */
+import { computed, ref } from 'vue'
 import BaseEmptyState from '../base/BaseEmptyState.vue'
+import BaseSegmented from '../base/BaseSegmented.vue'
+import { useMedia } from '../../composables/useMedia'
 import BaseSprite from '../base/BaseSprite.vue'
 import MoveTag from '../pokemon/MoveTag.vue'
 import { spriteUrl } from '../../utils/sprites'
@@ -19,7 +26,12 @@ defineProps({
   /** Nombre del jefe, ya traducido. */
   bossName: { type: String, required: true },
   /** { tanks, attackers } de maxCounters. */
-  team: { type: Object, required: true }
+  team: { type: Object, required: true },
+  /**
+   * La introducción y la nota. En la ficha van tras el «?» de su título
+   * (MaxBattlePanel), así que allí se quitan.
+   */
+  conNotas: { type: Boolean, default: true }
 })
 
 const { t, localName } = useTranslate()
@@ -35,17 +47,32 @@ const GRUPOS = [
   { clave: 'tanks', titulo: 'max.tank' },
   { clave: 'attackers', titulo: 'max.attackers', vacio: 'max.noAttackers' }
 ]
+
+const conPestanas = useMedia('(max-width: 767px)')
+const pestana = ref('tanks')
+const pestanas = computed(() => GRUPOS.map((g) => ({ value: g.clave, label: t(g.titulo) })))
+const visibles = computed(() =>
+  conPestanas.value ? GRUPOS.filter((g) => g.clave === pestana.value) : GRUPOS
+)
 </script>
 
 <template>
   <div>
-    <p class="text-mini text-gray-600 dark:text-gray-300 mb-3">
+    <p v-if="conNotas" class="text-mini text-gray-600 dark:text-gray-300 mb-3">
       {{ $t('max.teamIntro', { pokemon: bossName }) }}
     </p>
 
+    <base-segmented
+      v-if="conPestanas"
+      v-model="pestana"
+      role="group"
+      :aria-label="$t('max.teamAgainst', { pokemon: bossName })"
+      :options="pestanas"
+      class="mb-2"
+    />
     <div class="grid gap-4 grid-cols-1 md:grid-cols-2">
-      <div v-for="grupo in GRUPOS" :key="grupo.clave">
-        <h4 class="subtitulo mb-2">{{ $t(grupo.titulo) }}</h4>
+      <div v-for="grupo in visibles" :key="grupo.clave">
+        <h4 v-if="!conPestanas" class="subtitulo mb-2">{{ $t(grupo.titulo) }}</h4>
         <base-empty-state
           v-if="grupo.vacio && team[grupo.clave].length === 0"
           :message="$t(grupo.vacio)"
@@ -90,7 +117,7 @@ const GRUPOS = [
       </div>
     </div>
 
-    <p class="mt-3 text-mini text-gray-600 dark:text-gray-300">
+    <p v-if="conNotas" class="mt-3 text-mini text-gray-600 dark:text-gray-300">
       {{ $t('max.teamNote') }}
     </p>
   </div>

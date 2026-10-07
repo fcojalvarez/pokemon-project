@@ -41,6 +41,8 @@ export const ICONOS_FICHA = {
   pvpIv: ['M4 20V10', 'M10 20V4', 'M16 20v-7', 'M22 20H2'],
   // Rayo
   ataques: ['M13 2L4 14h7l-1 8 9-12h-7z'],
+  // Gema: la de la megaevolución
+  potencian: ['M6 3h12l4 6-10 12L2 9z', 'M2 9h20', 'M12 21L8 9l4-6 4 6z'],
   // Pulso
   efectos: ['M22 12h-4l-3 9L9 3l-3 9H2'],
   // Escudo tachado
