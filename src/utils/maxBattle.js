@@ -18,18 +18,26 @@
  *   potencia sí cuenta entre un Dinamax y un Gigamax: el ataque Gigamax pega
  *   450 y el Ataque Max, 350.
  *
- *   - Atacante: potencia × ataque × STAB × efectividad, con el rápido que
- *     mejor le pegue (o su ataque Gigamax, si le sale mejor).
- *   - Tanque:   (defensa × PS) × lo que resiste los tipos del jefe.
+ *   - Atacante: el daño de su Ataque Max (potencia × ataque × STAB ×
+ *     efectividad, con el rápido que mejor le pegue o su ataque Gigamax) y
+ *     lo que aguanta, como (daño³ × aguante)^¼: el que cae pronto deja de
+ *     pegar y de llenar el medidor. Sin el aguante salían arriba frágiles
+ *     súper eficaces (Butterfree Gigamax o Haunter contra los lagos) y se
+ *     quedaban fuera Zacian y Zamazenta coronados, que Pokebattler pone
+ *     primeros al simular el combate entero.
+ *   - Tanque:   (defensa × PS) entre lo que le pega el jefe.
  *
- *   Del jefe se asume que pega de sus propios tipos, que es lo normal y lo
- *   único que se puede saber sin tener su conjunto de ataques.
+ *   Lo que pega el jefe sale de sus ataques reales (ver danoRecibido en
+ *   pve.js): Uxie es psíquico pero lleva ataques de otros tipos. Sin datos
+ *   de movimientos, se asume que pega de sus tipos y se toma el peor caso.
  *
  * Es una ordenación relativa, no una predicción de daño: sirve para elegir a
  * quién llevar, no para decir cuánto va a durar el combate.
  */
 
 /** El STAB: un 20 % más si el Pokémon es del tipo del ataque. */
+import { danoRecibido, perfilDeAtaques } from './pve.js'
+
 export const STAB = 1.2
 
 /**
@@ -191,6 +199,9 @@ export function maxCounters(jefe, roster, chart, options = {}) {
     }
   }
 
+  // Lo que pega el jefe, por los tipos de sus ataques (si se tienen).
+  const perfil = options.moves && jefe.fast ? perfilDeAtaques(jefe, options.moves) : null
+
   const candidatos = []
   for (const entry of roster) {
     // Solo quien puede dinamaxizar: en un combate Max no entra nadie más.
@@ -234,9 +245,15 @@ export function maxCounters(jefe, roster, chart, options = {}) {
     const tipoMax = mejor.tipo
     const ataque = efectividad(chart, tipoMax, tiposJefe)
 
-    // Lo que le hace el jefe: se asume que pega de sus tipos, y se toma el
-    // peor caso, que es el que decide si el tanque aguanta o no.
-    const recibe = Math.max(...tiposJefe.map((t) => efectividad(chart, t, entry.types)))
+    // Lo que le hace el jefe frente a uno neutro: con sus ataques reales, la
+    // media; sin ellos, se asume que pega de sus tipos y se toma el peor caso.
+    const recibe = perfil?.size
+      ? danoRecibido(chart, perfil, entry.types)
+      : Math.max(...tiposJefe.map((t) => efectividad(chart, t, entry.types)))
+    // La resistencia entra como divisor: recibir el doble vale lo mismo que
+    // tener la mitad de aguante.
+    const aguante = (entry.stats.def * entry.stats.hp) / recibe
+    const dano = pesoAtaqueMax(entry, mejor) * ataque
 
     candidatos.push({
       id: entry.id,
@@ -259,10 +276,8 @@ export function maxCounters(jefe, roster, chart, options = {}) {
       availableNow: disponibles ? disponibles.has(entry.dex) : null,
       // De quién habría que evolucionar, si no sale él directamente.
       availableFrom: desdeEvolucion.get(entry.id) ?? null,
-      attackScore: pesoAtaqueMax(entry, mejor) * ataque,
-      // La resistencia entra como divisor: recibir el doble vale lo mismo que
-      // tener la mitad de aguante.
-      tankScore: (entry.stats.def * entry.stats.hp) / recibe
+      attackScore: (dano ** 3 * aguante) ** 0.25,
+      tankScore: aguante
     })
   }
 
@@ -344,7 +359,10 @@ export function filasMaxOrdenadas(roster, opcionesDe, { tipo = 'all', legendario
       if (tipo !== 'all' && opcion.max.type !== tipo) continue
       const version = opcion.gigamax ? 'gigantamax' : 'dynamax'
       const peso = pesoAtaqueMax(entry, opcion)
-      const clave = `${entry.dex}-${version}-${Math.round(peso)}`
+      // Por especie, tipos y daño: los Pikachu con gorro se juntan, pero no
+      // Urshifu Golpe Único y Fluido, que pegan igual con Maxipuño y son de
+      // tipos distintos (antes el Único quedaba tapado en lucha).
+      const clave = `${entry.dex}-${entry.types.join('+')}-${version}-${Math.round(peso)}`
       if (!grupos.has(clave)) grupos.set(clave, { version, peso, stab: opcion.stab, opciones: [] })
       grupos.get(clave).opciones.push(opcion)
     }

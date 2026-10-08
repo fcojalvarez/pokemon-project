@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+  filasMaxOrdenadas,
   maxCounters,
   mejorRapido,
   opcionesMax,
@@ -97,7 +98,30 @@ describe('Ataques Max según el ataque rápido', () => {
       // Con un ataque fijo (Gigamax, exclusivo) el rápido es el que mejor carga.
       if (uno.fastMove && !uno.maxFijo) expect(uno.fastMove.type).toBe(uno.maxType)
     }
-    expect(attackers[0].maxType).toBe('rock')
+    // Roca es lo que más le pega (×2,56); con el aguante en la cuenta, entre
+    // los primeros también salen los de acero que resisten sus ataques.
+    expect(attackers.slice(0, 3).some((uno) => uno.maxType === 'rock')).toBe(true)
+  })
+
+  it('el aguante cuenta: contra Uxie, Zacian coronado entra aunque pegue neutro', () => {
+    // Como en Pokebattler, que simula el combate: los frágiles súper eficaces
+    // (Butterfree Gigamax) caen antes de llenar el medidor.
+    const uxie = roster.find((p) => p.id === 'uxie')
+    const { attackers } = maxCounters(uxie, roster, chart, { limit: 10, ...datos })
+    const ids = attackers.map((uno) => uno.id)
+    expect(ids).toContain('zacian_crowned_sword')
+    expect(ids.slice(0, 5)).not.toContain('butterfree')
+  })
+
+  it('el jefe pega con sus ataques reales, no solo con los de su tipo', () => {
+    // Uxie es psíquico, pero sin ataques un tanque de tipo siniestro recibiría
+    // ×0,39 de todo; con ellos, sus ataques de otros tipos sí le hacen daño.
+    const uxie = roster.find((p) => p.id === 'uxie')
+    const conAtaques = maxCounters(uxie, roster, chart, { limit: 200, ...datos }).tanks
+    const sinAtaques = maxCounters({ types: uxie.types }, roster, chart, { limit: 200 }).tanks
+    const umbreon = (lista) => lista.find((uno) => uno.id === 'umbreon')?.incoming
+    expect(umbreon(sinAtaques)).toBeCloseTo(0.390625, 6)
+    expect(umbreon(conAtaques)).toBeGreaterThan(0.390625)
   })
 })
 
@@ -215,5 +239,23 @@ describe('papelesMax', () => {
     const pikachus = roster.filter((e) => e.dex === 25 && (e.dynamax || e.gigantamax))
     const puestos = new Set(pikachus.map((e) => papeles.get(e.id)?.tanque))
     expect(puestos.size).toBe(1)
+  })
+})
+
+describe('Top Max', () => {
+  it('junta las formas iguales, pero no las de tipos distintos', () => {
+    const filas = filasMaxOrdenadas(roster, (entry) => opcionesMax(entry, datos), {
+      tipo: 'fighting'
+    })
+    const ids = filas.map((fila) => fila.entry.id)
+    // Urshifu Golpe Único (lucha/siniestro) y Fluido (lucha/agua) pegan igual
+    // con Maxipuño, pero son dos Pokémon: antes el Único quedaba tapado.
+    expect(ids).toContain('urshifu_single_strike')
+    expect(ids).toContain('urshifu_rapid_strike')
+    // Los Pikachu con gorro sí comparten fila.
+    const pikachus = filasMaxOrdenadas(roster, (entry) => opcionesMax(entry, datos), {
+      tipo: 'electric'
+    }).filter((fila) => fila.entry.dex === 25 && fila.version === 'dynamax')
+    expect(pikachus.length).toBeLessThanOrEqual(2)
   })
 })

@@ -33,6 +33,22 @@ describe('Dinamax liberados', () => {
     expect([...dinamax].sort()).toEqual(['charizard', 'meowth'])
   })
 
+  it('los disfraces no heredan el Dinamax de su especie', () => {
+    const conDisfraz = [
+      ...roster,
+      { id: 'pikachu', dex: 25, name: 'Pikachu', family: 'FAMILY_PIKACHU', evolutions: [], dynamax: true },
+      { id: 'pikachu_pop_star', dex: 25, name: 'Pikachu', family: 'FAMILY_PIKACHU', evolutions: [], dynamax: true }
+    ]
+    const disfraces = new Set(['pikachu_pop_star'])
+    const porSemilla = maxLiberados(conDisfraz, { semilla: { Pikachu: '2026-03-09' }, disfraces, hoy })
+    expect([...porSemilla.dinamax]).toEqual(['pikachu'])
+    const porVistos = maxLiberados(conDisfraz, { vistos: { dinamax: { 25: true } }, disfraces, hoy })
+    expect([...porVistos.dinamax]).toEqual(['pikachu'])
+    // Si Pokebattler lo da por su id, sí.
+    const porId = maxLiberados(conDisfraz, { disfraces, pokebattler: { dinamax: ['pikachu_pop_star'] }, hoy })
+    expect([...porId.dinamax]).toEqual(['pikachu_pop_star'])
+  })
+
   it('no inventa Dinamax que el juego no permite', () => {
     const { dinamax } = maxLiberados(roster, { semilla: { Applin: 'x' }, hoy })
     expect(dinamax.size).toBe(0)

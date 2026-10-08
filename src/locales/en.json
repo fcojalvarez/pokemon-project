@@ -781,7 +781,7 @@
     "attackers": "To attack",
     "noAttackers": "No Dynamax has a type advantage here.",
     "availableNow": "available now",
-    "teamNote": "Ranked by attack, STAB and type advantage, not by damage: Max Moves have no published power. The Max Move takes the type of the fast attack, so each one gets its best. Evolving keeps the Dynamax form.",
+    "teamNote": "To hit, the damage of its Max Move (attack, STAB and type advantage) and its bulk, because one that faints early stops hitting. To tank, defense × HP against this boss's moves. The Max Move takes the type of the fast attack, so each one gets its best. Evolving keeps the Dynamax form.",
     "availableVia": "by evolving {pokemon}",
     "globalPool": "Each Power Spot picks a random boss from this list and rotates.",
     "byFastMove": "Max Move by fast attack",

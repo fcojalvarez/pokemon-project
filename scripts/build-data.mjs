@@ -1913,6 +1913,7 @@ async function soloMaxLiberados(pokemon, leekRaw, pbRaids) {
     vistos,
     shinyLeekDuck: leekRaw,
     pokebattler: dePokebattler,
+    disfraces: new Set(Object.keys(DISFRACES)),
   })
 
   // Si una fuente no ha respondido, lo suyo se queda como en la pasada

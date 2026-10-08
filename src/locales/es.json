@@ -781,7 +781,7 @@
     "attackers": "Para pegar",
     "noAttackers": "Ningún Dinamax le saca ventaja de tipo.",
     "availableNow": "disponible ahora",
-    "teamNote": "Ordenado por ataque, STAB y ventaja de tipo, no por daño: los ataques Max no publican potencia. El Ataque Max es del tipo del ataque rápido, así que a cada uno se le pone el que mejor le pega. Al evolucionar se conserva la forma Dinamax.",
+    "teamNote": "Para pegar, el daño de su Ataque Max (ataque, STAB y ventaja de tipo) y lo que aguanta, porque el que cae pronto deja de pegar. Para aguantar, defensa × PS frente a los ataques de este jefe. El Ataque Max es del tipo del ataque rápido, así que a cada uno se le pone el que mejor le pega. Al evolucionar se conserva la forma Dinamax.",
     "availableVia": "evolucionando a {pokemon}",
     "globalPool": "Cada nodo energético saca un jefe al azar de esta lista y va cambiando.",
     "byFastMove": "Ataque Max según el ataque rápido",

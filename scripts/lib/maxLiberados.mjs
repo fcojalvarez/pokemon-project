@@ -39,15 +39,20 @@ const familiaLeekDuck = (familia) => `FAMILY_${String(familia ?? '').replace(/_\
  *          pokebattler?: {dinamax?: Iterable<string>, gigamax?: Iterable<string>}}} fuentes
  * @returns {{dinamax: Set<string>, gigamax: Set<string>}} ids del roster
  */
-export function maxLiberados(roster, { semilla = {}, vistos = {}, shinyLeekDuck = [], hoy = new Date(), pokebattler = {} } = {}) {
+export function maxLiberados(roster, { semilla = {}, vistos = {}, shinyLeekDuck = [], hoy = new Date(), pokebattler = {}, disfraces = new Set() } = {}) {
   const base = roster.filter(esFormaBase)
   const porId = new Map(roster.map((p) => [p.id, p]))
 
   // --- Dinamax ---------------------------------------------------------------
   const nombresSemilla = new Set(Object.keys(semilla).map(especie))
   const dexVistosD = new Set(Object.keys(vistos.dinamax ?? {}).map(Number))
+  // La semilla y lo visto van por especie, y los disfraces (Pikachu Superstar,
+  // Capitán Pikachu…) son de la misma especie: heredaban el Dinamax de Pikachu
+  // aunque en un combate Max solo sale el normal. Solo entran si Pokebattler
+  // los da por su id.
   const pendientes = base
-    .filter((p) => !p.regional && (nombresSemilla.has(especie(p.name)) || dexVistosD.has(p.dex)))
+    .filter((p) => !p.regional && !disfraces.has(p.id))
+    .filter((p) => nombresSemilla.has(especie(p.name)) || dexVistosD.has(p.dex))
     .map((p) => p.id)
   // Los de Pokebattler van por id, no por especie: Zacian Espada Suprema sí,
   // Zacian a secas no. Una forma regional cuenta si es la que dice.

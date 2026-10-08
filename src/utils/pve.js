@@ -157,7 +157,7 @@ export function puedeSerJefe(e) {
  * esto se sabe cuánto daño le hace a un atacante según sus tipos (ver
  * danoRecibido).
  */
-function perfilDeAtaques(e, moves) {
+export function perfilDeAtaques(e, moves) {
   const perfil = new Map()
   for (const lista of [e.fast, e.charged]) {
     const ataques = (lista ?? []).filter((id) => usableMove(moves[id], id))
@@ -177,7 +177,7 @@ function perfilDeAtaques(e, moves) {
  * recibe ×1,6 de sus ataques de dragón y cae antes; el que los resiste
  * aguanta más.
  */
-function danoRecibido(chart, perfil, tiposAtacante) {
+export function danoRecibido(chart, perfil, tiposAtacante) {
   if (!perfil?.size) return 1
   let total = 0
   let pesos = 0
