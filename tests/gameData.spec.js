@@ -5,6 +5,8 @@ import {
   computeCounters,
   computeDefenders,
   computeTypeRankings,
+  jefesDebilesA,
+  puedeSerJefe,
   evaluatePokemon,
   puedeDefender,
   SUPERMEGA_PLUS,
@@ -113,6 +115,66 @@ describe('computeTypeRankings', () => {
     }
     // Versátiles arriba (psíquico y lucha): Mewtwo Mega X, como en GO Hub.
     expect(ids(overall.slice(0, 5))).toContain('mewtwo_mega_x')
+  })
+
+  it('con la tabla de tipos, contra jefes reales: entran los conjuntos con un ataque del tipo', () => {
+    const conJefes = computeTypeRankings(roster, moves, { limit: 15, chart: typechart.chart })
+    for (const [type, list] of Object.entries(conJefes.byType)) {
+      for (const row of list) {
+        expect([row.fast.type, row.charged.type], `${type} ${row.id}`).toContain(type)
+        expect(row.tipo).toBe(type)
+      }
+    }
+    // Kyurem Negro: Cola Dragón y Rayo Gélido Fusión, que también hace ×1,6
+    // o más a casi todos los jefes dragón.
+    const kyurem = conJefes.byType.dragon.findIndex((row) => row.id === 'kyurem_black')
+    expect(kyurem).toBeGreaterThanOrEqual(0)
+    expect(kyurem).toBeLessThan(5)
+    expect(conJefes.byType.dragon[kyurem].charged.type).toBe('ice')
+    // Normal no tiene jefes débiles: sigue contra el genérico, con cargado Normal.
+    for (const row of conJefes.byType.normal) expect(row.charged.type).toBe('normal')
+  })
+
+  it('los jefes de cada tipo son débiles a él y no hay oscuros', () => {
+    const jefes = jefesDebilesA(roster, typechart.chart, 'dragon')
+    expect(jefes.length).toBeGreaterThan(3)
+    for (const jefe of jefes) {
+      expect(typechart.chart.dragon[jefe.types[0]] * (typechart.chart.dragon[jefe.types[1]] ?? 1)).toBeGreaterThan(1)
+      expect(jefe.peso).toBeGreaterThan(0)
+    }
+    expect(jefesDebilesA(roster, typechart.chart, 'normal')).toBeNull()
+    expect(jefesDebilesA(roster, null, 'dragon')).toBeNull()
+  })
+
+  it('solo cuentan como jefes los que han salido en incursiones', () => {
+    const porId = (id) => roster.find((e) => e.id === id)
+    expect(puedeSerJefe(porId('rayquaza'))).toBe(true)
+    expect(puedeSerJefe(porId('darkrai'))).toBe(true)
+    expect(puedeSerJefe(porId('garchomp_mega'))).toBe(true)
+    // Combates Max, fusiones o investigaciones: nunca jefes de incursión.
+    for (const id of ['eternatus', 'zacian_crowned_sword', 'zygarde_complete', 'mew'])
+      expect(puedeSerJefe(porId(id)), id).toBe(false)
+  })
+
+  it('el jefe pega según sus ataques: a un dragón, los jefes dragón le hacen más', () => {
+    const sinAtaques = jefesDebilesA(roster, typechart.chart, 'dragon')
+    const conAtaques = jefesDebilesA(roster, typechart.chart, 'dragon', moves)
+    const contra = (jefes, id) =>
+      evaluatePokemon(
+        roster.find((e) => e.id === id),
+        moves,
+        { debilA: 'dragon', chart: typechart.chart, jefes }
+      )[0]
+    // Mega Rayquaza (dragón y volador) recibe ×1,6 de dragón y ×2,56 de hielo:
+    // aguanta menos. Su eDPS casi no cambia, porque el daño recibido también
+    // le carga energía, como en el juego.
+    expect(contra(conAtaques, 'rayquaza_mega').tdo).toBeLessThan(
+      contra(sinAtaques, 'rayquaza_mega').tdo
+    )
+    // Dialga (acero y dragón) resiste el hielo de los jefes dragón: aguanta más
+    // que Mega Rayquaza con el mismo reparto.
+    const aguante = (id) => contra(conAtaques, id).tdo / contra(sinAtaques, id).tdo
+    expect(aguante('dialga')).toBeGreaterThan(aguante('rayquaza_mega'))
   })
 
   it('deja fuera megas y oscuros cuando se piden sin ellos', () => {

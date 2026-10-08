@@ -7,6 +7,7 @@ import {
   computeTypeRankings,
   typeMatchups,
   evaluatePokemon,
+  jefesDebilesA,
   MEGA_OTRO_TIPO,
   METRICA_PVE
 } from '../utils/pve'
@@ -440,6 +441,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     const completo = cached(`pve:${clave}`, () =>
       computeTypeRankings(roster.value, moves.value, {
         ...JSON.parse(clave),
+        chart: chart.value,
         limit: Infinity
       })
     )
@@ -478,20 +480,34 @@ export const useGameDataStore = defineStore('gameData', () => {
   const defensorPara = (id) =>
     cached('defPorId', () => new Map(defensores().map((fila) => [fila.id, fila]))).get(id) ?? null
 
+  /** Los jefes débiles a un tipo con los que se calcula su lista (ver jefesDebilesA). */
+  const jefesDe = (tipo) =>
+    cached(`jefes:${tipo}`, () => jefesDebilesA(roster.value, chart.value, tipo, moves.value))
+
+  /** Contra los jefes débiles a `tipo`, como las listas por tipo del Top. */
+  const contraTipo = (tipo, extra = {}) => ({
+    debilA: tipo,
+    chart: chart.value,
+    jefes: jefesDe(tipo),
+    ...extra
+  })
+
   /**
-   * Una fila del Top PvE con el clima que potencia el tipo de su cargado:
-   * el mismo conjunto, contra el mismo jefe débil a ese tipo, con los ataques
-   * de los tipos de ese clima ×1,2. Devuelve { clima, dps, tdo, edps }.
+   * Una fila del Top PvE con el clima que potencia el tipo de su lista:
+   * el mismo conjunto, contra los mismos jefes, con los ataques de los tipos
+   * de ese clima ×1,2. Devuelve { clima, dps, tdo, edps }.
    */
   const conClima = (row) =>
-    cached(`clima:${row.id}:${row.fast.id}:${row.charged.id}`, () => {
+    cached(`clima:${row.id}:${row.fast.id}:${row.charged.id}:${row.tipo}`, () => {
       const entry = byId.value.get(row.id)
-      const clima = climaDeTipo(row.charged.type)
+      const tipo = row.tipo ?? row.charged.type
+      const clima = climaDeTipo(tipo)
       if (!entry || !clima) return null
-      const igual = evaluatePokemon(entry, moves.value, {
-        debilA: row.charged.type,
-        clima: CLIMAS[clima]
-      }).find((otro) => otro.fast.id === row.fast.id && otro.charged.id === row.charged.id)
+      const igual = evaluatePokemon(
+        entry,
+        moves.value,
+        contraTipo(tipo, { clima: CLIMAS[clima] })
+      ).find((otro) => otro.fast.id === row.fast.id && otro.charged.id === row.charged.id)
       return igual ? { clima, dps: igual.dps, tdo: igual.tdo, edps: igual.edps } : null
     })
 
@@ -556,12 +572,12 @@ export const useGameDataStore = defineStore('gameData', () => {
     cached(`sets:${entry.id}:${limit}`, () => evaluatePokemon(entry, moves.value).slice(0, limit))
 
   /**
-   * Sus conjuntos contra un jefe débil a `tipo`, como las listas por tipo del
-   * Top: solo los de cargado de ese tipo, con el ×1,6.
+   * Sus conjuntos contra los jefes débiles a `tipo`, como las listas por tipo
+   * del Top: los que llevan algún ataque de ese tipo.
    */
   const conjuntosContra = (entry, tipo) =>
     cached(`contra:${entry.id}:${tipo}`, () =>
-      evaluatePokemon(entry, moves.value, { debilA: tipo })
+      evaluatePokemon(entry, moves.value, contraTipo(tipo))
     )
 
   /**

@@ -99,9 +99,11 @@ const conTusAtaques = computed(() => {
   if (!conjunto) return { sinDatos: true }
   const ranking = gameData.pveRankings({ limit: LIMITE })
   const mejor = todos[0]
-  // Los puestos, con las cuentas del Top: cada conjunto contra un jefe débil
-  // al tipo de su cargado, y la general, por la suma de sus dos mejores tipos.
-  const tipos = new Set(todos.map((uno) => uno.charged.type))
+  // Los puestos, con las cuentas del Top: cada conjunto contra los jefes
+  // débiles al tipo de su cargado, y la general, por la suma de sus dos
+  // mejores tipos (también los de sus rápidos: Kyurem Negro cuenta en dragón
+  // por Cola Dragón aunque su cargado sea de hielo).
+  const tipos = new Set(todos.flatMap((uno) => [uno.charged.type, uno.fast.type]))
   const mejorPorTipo = Object.fromEntries(
     [...tipos].map((tipo) => [tipo, gameData.conjuntosContra(props.entrada, tipo)[0]?.edps ?? 0])
   )

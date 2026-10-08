@@ -340,7 +340,7 @@
     "beatenBy": "Beaten by",
     "beats": "Beats",
     "howCalculated": "How is it calculated?",
-    "method1": "Level 40 with 15/15/15 IVs against a 180 defense boss weak to the list's type: moves of that type deal ×1.6 and the rest deal normal damage (in Normal, ×1 for all: no type is weak to it). A Pokémon appears under every charged move type it has. For a specific boss, check its counters on the raids page.",
+    "method1": "Level 40 with 15/15/15 IVs against the bosses weak to the list's type: the legendary, Ultra Beast, Mega and mythical Pokémon that have been raid bosses, with 180 defense. Each boss hits you according to its moves: if they are super effective against your Pokémon, it faints sooner. Each Pokémon uses its best moveset against them, which must include a move of that type (the other may be of another type: Black Kyurem appears in Dragon with Freeze Shock, which also hits them for ×1.6 or more), and each move deals to each boss what it would in the game; the figure is the average. Normal has no weak bosses, so it uses a neutral one with a Normal charged move. For a specific boss, check its counters on the raids page.",
     "methodTier": "The letter comes from the rank, with the cutoffs of GO Hub's overall list: S up to 20, A+ up to 50, A up to 100, B+ up to 150, B up to 200, C up to 250, D up to 300 and F beyond. In a single type's list the cutoffs are a fifth: S up to 4, A+ up to 10, A up to 20…",
     "tierColumn": "Tier",
     "tierRange": "Tier {letra}: ranks {desde} to {hasta}",

@@ -142,6 +142,17 @@ export function movesetPerformance({ stats, fast, charged, target }) {
     effectiveness: charged.effectiveness ?? 1
   })
 
+  const vida = porVida(fDmg, cDmg, fast, charged, def, hp, target.recibido ?? 1)
+  return { ...vida, fastDamage: fDmg, chargedDamage: cDmg }
+}
+
+/**
+ * Lo que rinde una vida con el daño de cada ataque ya calculado: el centro de
+ * movesetPerformance, aparte para que la media contra muchos jefes (pve.js)
+ * no repita lo que no cambia. `recibido` es lo que pega el jefe frente a uno
+ * neutro, por los tipos de sus ataques contra los del atacante.
+ */
+export function porVida(fDmg, cDmg, fast, charged, def, hp, recibido = 1) {
   const fDur = fast.duration
   const cDur = charged.duration
   // Cuándo hace daño el cargado desde que empieza; sin dato, al acabar.
@@ -150,7 +161,7 @@ export function movesetPerformance({ stats, fast, charged, target }) {
   const cost = Math.abs(charged.energy)
   const fDps = fDmg / fDur
 
-  const y = JEFE_DPS / def
+  const y = (JEFE_DPS * recibido) / def
   const timeAlive = hp / y
   const ritmo = fEps + 0.5 * y
   const t0 = cost / ritmo
@@ -167,7 +178,7 @@ export function movesetPerformance({ stats, fast, charged, target }) {
   const tdo = dps * timeAlive
   const edps = tdo / (timeAlive + TIEMPO_POR_CAIDA)
 
-  return { dps, tdo, edps, fastDamage: fDmg, chargedDamage: cDmg, timeAlive }
+  return { dps, tdo, edps, timeAlive }
 }
 
 /** Efectividad de un tipo atacante contra uno o dos tipos defensores. */
