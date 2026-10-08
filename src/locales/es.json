@@ -346,7 +346,7 @@
     "tierRange": "Nivel {letra}: puestos {desde} a {hasta}",
     "tierFrom": "Nivel {letra}: del puesto {desde} en adelante",
     "methodAll": "«Todos» ordena por la suma de sus dos mejores tipos, así que premia al que sirve para más de un jefe. La barra sigue esa suma; los ataques y las cifras son los de su mejor tipo.",
-    "method2": "Se ordena por eDPS, el daño por segundo que de verdad aporta en una incursión. El DPS sale del balance de energía del ciclo rápido/cargado, contando la que genera el daño recibido y la que se pierde al debilitarse (de media, medio ataque cargado). El jefe pega 1333 entre tu defensa por segundo, como uno de nivel 5; de ahí sale cuánto aguanta y su TDO. El eDPS descuenta 2,3 s por cada vez que cae (entrar el siguiente y volver a la sala cada seis): por eso un atacante de cristal baja aunque pegue mucho. Los ataques «+» de las supermegas pegan ×1,3, lo que dan en su nivel mega 4 (Super Max). No modela esquivar.",
+    "method2": "Se ordena por eDPS, el daño por segundo que de verdad aporta en una incursión. Cada vida empieza sin energía, como en el juego: primero rápidos hasta llenar la barra (también carga el daño recibido) y solo cuentan los cargados que llegan a pegar antes de caer. El jefe pega 1333 entre tu defensa por segundo, como uno de nivel 5; de ahí sale cuánto aguanta y su TDO. El eDPS descuenta 2,3 s por cada vez que cae (entrar el siguiente y volver a la sala cada seis): por eso un atacante de cristal baja aunque pegue mucho. Los ataques «+» de las supermegas pegan ×1,3, lo que dan en su nivel mega 4 (Super Max). No modela esquivar.",
     "method3": "Frustración y Retroceso quedan fuera: no son opciones reales para un atacante optimizado.",
     "include": "Incluir",
     "without": "sin {list}",

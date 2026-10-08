@@ -119,6 +119,28 @@ describe('movesetPerformance', () => {
     expect(perdidaUna).toBeGreaterThan(largo.dps - corto.dps)
   })
 
+  it('cada vida empieza sin energía: el de cristal cae antes de que pegue su cargado', () => {
+    // Cargado barato pero lento: con vida de sobra rinde; si cae antes de la
+    // ventana de daño, no llega a hacer nada y solo cuentan los rápidos.
+    const lento = { power: 150, energy: -33, duration: 4, damageWindow: 3.5, stab: true }
+    const cristal = movesetPerformance({
+      stats: { ...stats, def: 40, hp: 100 },
+      fast,
+      charged: lento,
+      target
+    })
+    const fDps = cristal.fastDamage / fast.duration
+    expect(cristal.timeAlive).toBeLessThan((lento.energy * -1) / 8 + lento.damageWindow)
+    expect(cristal.dps).toBeLessThan(fDps * 1.5)
+    const tanque = movesetPerformance({
+      stats: { ...stats, hp: 1600 },
+      fast,
+      charged: lento,
+      target
+    })
+    expect(tanque.dps).toBeGreaterThan(fDps * 2)
+  })
+
   it('más defensa se traduce en más aguante', () => {
     const soft = movesetPerformance({ stats: { ...stats, def: 80 }, fast, charged, target })
     const tanky = movesetPerformance({ stats: { ...stats, def: 300 }, fast, charged, target })

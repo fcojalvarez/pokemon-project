@@ -203,6 +203,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
           power: cm.pve.power * (exclusive.has(chargedId) ? SUPERMEGA_PLUS : 1),
           energy: cm.pve.energy,
           duration: cm.pve.duration,
+          damageWindow: cm.pve.damageWindow,
           stab: entry.types.includes(cm.type),
           effectiveness: chargedEff
         }

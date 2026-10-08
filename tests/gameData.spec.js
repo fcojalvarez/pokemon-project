@@ -609,8 +609,9 @@ describe('ideas de Dittobase', () => {
     const base = evaluatePokemon(raichu, moves)[0].edps
     const conElectrica = evaluatePokemon(raichu, moves, { potencia: ['electric'] })[0].edps
     const conOtra = evaluatePokemon(raichu, moves, { potencia: ['grass'] })[0].edps
-    // El eDPS no sube del todo un 30 %: la vida no cambia, pero sí la energía.
-    expect(conElectrica / base).toBeGreaterThan(1.25)
+    // El eDPS no sube del todo un 30 %: cada golpe lleva un +1 fijo que no
+    // se multiplica, y la vida no cambia.
+    expect(conElectrica / base).toBeGreaterThan(1.22)
     expect(conElectrica / base).toBeLessThan(1.31)
     expect(conOtra / base).toBeGreaterThan(1.07)
     expect(conOtra / base).toBeLessThan(1.11)

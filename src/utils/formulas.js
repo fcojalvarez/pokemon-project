@@ -103,21 +103,31 @@ export const TIEMPO_POR_CAIDA = 2.3
 /**
  * DPS, TDO y eDPS de un moveset contra un objetivo genérico.
  *
- * Modelo continuo, el estándar de la comunidad:
- *   r = (EPSrápido + 0.5·y − coste/2/vida) / (coste + EPSrápido · duraciónCargado)
- *       (ritmo de cargados por segundo; el 0.5·y es la energía que genera el
- *        daño recibido, y coste/2/vida la que se pierde al debilitarse)
- *   DPS  = DPSrápido + r · (dañoCargado − DPSrápido · duraciónCargado)
- *   y    = JEFE_DPS / defensa efectiva  (DPS entrante del jefe)
- *   TDO  = DPS · PS / y
- *   eDPS = DPS · vida / (vida + TIEMPO_POR_CAIDA)
- *          (el DPS real de una incursión: el que cae pronto pierde más tiempo
- *           entrando de nuevo, y eso es lo que separa a un atacante de cristal
- *           de uno que aguanta; sustituye al ER, (DPS³·TDO)^¼, que lo
- *           mezclaba a ojo)
+ * Cada vida se cuenta desde cero, como en una incursión:
+ *   y      = JEFE_DPS / defensa efectiva  (DPS entrante del jefe)
+ *   vida   = PS / y
+ *   ritmo  = EPSrápido + 0.5·y  (energía por segundo: la de los rápidos más
+ *            la del daño recibido, medio punto por PS)
+ *   t0     = coste / ritmo  (entra sin energía: hasta aquí, solo rápidos)
+ *   ciclo  = (coste + EPSrápido · duraciónCargado) / ritmo  (un cargado y los
+ *            rápidos hasta el siguiente; durante el cargado sigue entrando la
+ *            energía del daño)
+ *   cargados = (vida − t0 − ventana) / ciclo + 0.5  (solo cuentan los que
+ *            llegan a hacer daño antes de caer; el 0.5 es la media sobre lo
+ *            que varía la vida de un combate a otro)
+ *   TDO  = dañoCargado · cargados + DPSrápido · tiempo en rápidos
+ *   DPS  = TDO / vida
+ *   eDPS = TDO / (vida + TIEMPO_POR_CAIDA)
+ *          (el que cae pronto pierde más tiempo entrando de nuevo)
  *
- * No modela esquivar ni ventanas de daño exactas: sirve para ordenar
- * atacantes entre sí, no para predecir un combate concreto al segundo.
+ * Antes era el ritmo continuo de GamePress, que da por hecho que el atacante
+ * ya va cargado: a uno de cristal la energía del daño le salía en un cargado
+ * tras otro, aunque en el juego cae antes del primero. Deoxys Ataque salía
+ * el 2.º de psíquico y en Dittobase, DialgaDex y GO Hub no entra en el top 15.
+ * Con vidas largas los dos modelos dan lo mismo.
+ *
+ * No modela esquivar ni el ritmo exacto de golpes del jefe: sirve para
+ * ordenar atacantes entre sí, no para predecir un combate concreto al segundo.
  */
 export function movesetPerformance({ stats, fast, charged, target }) {
   const { atk, def, hp } = stats
@@ -134,23 +144,28 @@ export function movesetPerformance({ stats, fast, charged, target }) {
 
   const fDur = fast.duration
   const cDur = charged.duration
+  // Cuándo hace daño el cargado desde que empieza; sin dato, al acabar.
+  const ventana = charged.damageWindow > 0 ? Math.min(charged.damageWindow, cDur) : cDur
   const fEps = fast.energy / fDur
   const cost = Math.abs(charged.energy)
+  const fDps = fDmg / fDur
 
   const y = JEFE_DPS / def
   const timeAlive = hp / y
-  const denom = cost + fEps * cDur
-  // La energía que queda al debilitarse se pierde: de media, medio cargado.
-  // Castiga a los cargados de una barra y a los que caen pronto, que en una
-  // incursión lanzan menos cargados de los que dice el ritmo continuo.
-  const perdida = cost / 2 / timeAlive
-  let r = denom > 0 ? Math.max(0, fEps + 0.5 * y - perdida) / denom : 0
-  r = Math.min(r, 1 / cDur)
+  const ritmo = fEps + 0.5 * y
+  const t0 = cost / ritmo
+  const ciclo = Math.max(cDur, (cost + fEps * cDur) / ritmo)
 
-  const fDps = fDmg / fDur
-  const dps = Math.max(fDps, fDps + r * (cDmg - fDps * cDur))
+  const tras = Math.max(0, timeAlive - t0)
+  const cargados = Math.max(0, (tras - ventana) / ciclo + 0.5)
+  // El tiempo que se va en animaciones de cargado (también el que no llega a
+  // hacer daño) no es tiempo de rápidos.
+  const enCargados = Math.min(tras, (tras * cDur) / ciclo)
+  const danio = cargados * cDmg + fDps * (timeAlive - enCargados)
+
+  const dps = Math.max(fDps, danio / timeAlive)
   const tdo = dps * timeAlive
-  const edps = (dps * timeAlive) / (timeAlive + TIEMPO_POR_CAIDA)
+  const edps = tdo / (timeAlive + TIEMPO_POR_CAIDA)
 
   return { dps, tdo, edps, fastDamage: fDmg, chargedDamage: cDmg, timeAlive }
 }
