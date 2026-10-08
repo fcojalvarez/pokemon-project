@@ -41,7 +41,12 @@ const props = defineProps({
    * La letra de cada puesto, al final de la fila: 'general' (la lista general
    * y las de PvP), 'tipo' (la de un tipo, con cortes más cortos) o nada.
    */
-  nivel: { type: String, default: '' }
+  nivel: { type: String, default: '' },
+  /**
+   * En escritorio, dos columnas con las métricas por las que no se ordena
+   * (de eDPS, DPS y TDO), con su cabecera encima de la lista. Solo PvE.
+   */
+  columnas: { type: Boolean, default: false }
 })
 
 /** Las filas por tandas: lo que cabe en pantalla primero (ver usePorTandas). */
@@ -75,6 +80,37 @@ const mainValue = (row) => {
 
 const percent = (row) => Math.round((barra(row) / max.value) * 100)
 
+/** Las métricas de las columnas: las dos por las que no se ordena. */
+const metricasColumnas = computed(() =>
+  props.columnas ? ['edps', 'dps', 'tdo'].filter((m) => m !== props.sortBy) : []
+)
+
+const cifra = (row, metrica) =>
+  metrica === 'tdo' ? Math.round(row[metrica]) : formatDecimal(row[metrica])
+
+/**
+ * Columnas de la fila: sprite, nombre y ataques, métrica y, si hay, la letra
+ * o los papeles. Con `columnas`, desde lg entran las dos de cifras antes de la
+ * métrica. La cabecera usa las mismas para quedar alineada.
+ */
+const gridCols = computed(() => {
+  const [base, conColumnas] = props.nivel
+    ? [
+        'grid-cols-[3.25rem_minmax(0,1fr)_64px_1.5rem] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px_1.5rem]',
+        'lg:grid-cols-[3.75rem_minmax(0,1fr)_4.5rem_4.5rem_80px_1.5rem]'
+      ]
+    : conPapeles.value
+    ? [
+        'grid-cols-[3.25rem_minmax(0,1fr)_64px_2rem] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px_2rem]',
+        'lg:grid-cols-[3.75rem_minmax(0,1fr)_4.5rem_4.5rem_80px_2rem]'
+      ]
+    : [
+        'grid-cols-[3.25rem_minmax(0,1fr)_72px] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px]',
+        'lg:grid-cols-[3.75rem_minmax(0,1fr)_4.5rem_4.5rem_80px]'
+      ]
+  return props.columnas ? `${base} ${conColumnas}` : base
+})
+
 const tituloClima = useTituloClima()
 /** La cifra de la métrica que manda, con el clima. */
 const cifraClima = (row) => {
@@ -84,6 +120,17 @@ const cifraClima = (row) => {
 </script>
 
 <template>
+  <!-- Cabecera de las columnas, con la misma rejilla y relleno que las filas. -->
+  <div
+    v-if="metricasColumnas.length"
+    aria-hidden="true"
+    class="hidden lg:grid gap-x-3 px-2 pr-3 pb-1 border border-transparent text-mini text-right text-gray-600 dark:text-gray-300"
+    :class="gridCols"
+  >
+    <span v-for="(metrica, i) in metricasColumnas" :key="metrica" :class="i === 0 && 'col-start-3'">
+      {{ UNITS[metrica] }}
+    </span>
+  </div>
   <ol class="flex flex-col gap-2">
     <li data-fila-top v-for="row in filas" :key="rowKey(row)">
       <!--
@@ -100,11 +147,7 @@ const cifraClima = (row) => {
         :to="row.dex ? fichaDe(row) : undefined"
         class="grid items-center gap-x-3 p-2 pr-3 border rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
         :class="[
-          nivel
-            ? 'grid-cols-[3.25rem_minmax(0,1fr)_64px_1.5rem] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px_1.5rem]'
-            : conPapeles
-            ? 'grid-cols-[3.25rem_minmax(0,1fr)_64px_2rem] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px_2rem]'
-            : 'grid-cols-[3.25rem_minmax(0,1fr)_72px] sm:grid-cols-[3.75rem_minmax(0,1fr)_80px]',
+          gridCols,
           row.version === 'gigantamax'
             ? 'border-fuchsia-500 dark:border-fuchsia-400'
             : 'border-gray-300 dark:border-gray-700'
@@ -124,7 +167,11 @@ const cifraClima = (row) => {
           </span>
         </span>
 
-        <div class="min-w-0 flex flex-col gap-1">
+        <!--
+          Desde lg, nombre y ataques en una línea si caben; si no, los ataques
+          bajan enteros debajo del nombre, como en el móvil.
+        -->
+        <div class="min-w-0 flex flex-col gap-1 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3">
           <!-- flex-wrap: si no caben, bajan las marcas y no se parte el nombre («Chariz-ard»). -->
           <div class="min-w-0 flex flex-wrap items-center gap-x-2 gap-y-0.5">
             <span
@@ -141,13 +188,14 @@ const cifraClima = (row) => {
             line-class="min-w-0 text-mini text-gray-600 dark:text-gray-300"
           />
           <!--
-            PvE: rápido y cargado, cada uno en su fila. Casi nunca caben juntos, y
-            las pocas filas en que sí salían más bajas que el resto.
+            PvE: rápido y cargado, cada uno en su fila. En el móvil casi nunca
+            caben juntos, y las pocas filas en que sí salían más bajas que el
+            resto. En escritorio sobra sitio: van uno al lado del otro.
           -->
           <div
             v-else
             class="flex gap-1.5 text-mini text-gray-600 dark:text-gray-300"
-            :class="row.moves ? 'flex-wrap' : 'flex-col items-start'"
+            :class="row.moves ? 'flex-wrap' : 'flex-col items-start lg:flex-row lg:flex-wrap'"
           >
             <move-tag
               v-for="move in movesOf(row)"
@@ -161,6 +209,15 @@ const cifraClima = (row) => {
             />
           </div>
         </div>
+
+        <span
+          v-for="metrica in metricasColumnas"
+          :key="metrica"
+          class="hidden lg:block text-right text-sm tabular-nums text-gray-800 dark:text-gray-200"
+        >
+          <span class="sr-only">{{ UNITS[metrica] }}:</span>
+          {{ cifra(row, metrica) }}
+        </span>
 
         <div class="text-right">
           <!-- En una línea: «eDPS» bajaba solo en algunas filas (30,2 / eDPS). -->
@@ -200,7 +257,12 @@ const cifraClima = (row) => {
             <span>{{ row.psDefensor }} {{ $t('top.gym.hp') }}</span>
             <span>{{ row.defensa }} {{ $t('top.gym.def') }}</span>
           </div>
-          <div v-else-if="showSecondary" class="mt-0.5 text-mini text-gray-600 dark:text-gray-300">
+          <!-- Con columnas, en escritorio ya está en la suya. -->
+          <div
+            v-else-if="showSecondary"
+            class="mt-0.5 text-mini text-gray-600 dark:text-gray-300"
+            :class="columnas && 'lg:hidden'"
+          >
             <template v-if="sortBy !== 'dps'">{{ formatDecimal(row.dps) }} DPS</template>
             <template v-else>{{ Math.round(row.tdo) }} TDO</template>
           </div>
