@@ -23,6 +23,7 @@ import NotFoundView from '../views/NotFoundView.vue'
 import FormasGaleria from './pokemon/FormasGaleria.vue'
 import MaxMark from './pokemon/MaxMark.vue'
 import MarkLegend from './pokemon/MarkLegend.vue'
+import BaseModal from './base/BaseModal.vue'
 
 const pokemon = ref(null)
 // La consulta acabó y no hay ningún Pokémon con ese número (/pokemon/99999):
@@ -67,6 +68,9 @@ const hero = computed(() => {
       : p.sprites?.male
   }
 })
+
+/** El sprite de la cabecera, en grande en un modal al pulsarlo. */
+const spriteGrande = ref(false)
 
 /**
  * El PC al 100 % en la cabecera, que es lo que más se mira de un Pokémon: el
@@ -276,12 +280,21 @@ watch(
           Antes lo decía una línea «Liberado: …» que repetía esa leyenda.
         -->
         <span class="relative w-24 h-24 lg:w-32 lg:h-32 shrink-0">
-          <base-sprite
-            :src="hero.image"
-            :lazy="false"
-            class="w-full h-full"
-            img-class="drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
-          />
+          <!-- Al pulsarlo, en grande: la miniatura de la cabecera es de 256 px. -->
+          <button
+            type="button"
+            class="block w-full h-full rounded-xl cursor-zoom-in"
+            :aria-label="$t('forms.enlarge', { name: hero.name })"
+            :title="$t('forms.enlarge', { name: hero.name })"
+            @click="spriteGrande = true"
+          >
+            <base-sprite
+              :src="hero.image"
+              :lazy="false"
+              class="w-full h-full"
+              img-class="drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
+            />
+          </button>
           <shiny-mark
             v-if="pokemon.is_shiny_released"
             variant="dex"
@@ -367,6 +380,25 @@ watch(
           </nav>
         </div>
       </header>
+
+      <!--
+        El sprite en grande: la imagen original de 512 px (la cabecera pide la
+        miniatura), sobre la misma luz de sus tipos. Sigue a «Ver shiny».
+      -->
+      <base-modal
+        :open="spriteGrande"
+        :title="hero.name"
+        size="sm:max-w-xl"
+        @close="spriteGrande = false"
+      >
+        <div class="p-4 flex justify-center" :style="heroLuz">
+          <img
+            :src="hero.image"
+            :alt="hero.name"
+            class="w-full max-w-[512px] max-h-[70vh] aspect-square object-contain drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
+          />
+        </div>
+      </base-modal>
 
       <!-- Los botones, a la derecha; desde lg, en la misma fila que el Pokémon. -->
       <div
