@@ -89,11 +89,18 @@ const ordenar = (metrica) => {
       <thead class="bg-gray-100 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700">
         <tr class="text-mini uppercase tracking-wider text-gray-600 dark:text-gray-300">
           <th scope="col" class="w-10 px-3 py-2 font-semibold text-right">#</th>
-          <th scope="col" class="px-3 py-2 font-semibold">{{ $t('top.pokemonColumn') }}</th>
+          <!--
+            Pokémon y ataques comparten columna, como en la lista: cada fila los
+            pone en una línea si le caben. «Ataques» va donde empiezan en las
+            filas de nombre corto (sprite, hueco y el ancho mínimo del nombre).
+          -->
+          <th scope="col" class="px-3 py-2 font-semibold">
+            <span class="flex">
+              <span class="w-[14rem] shrink-0">{{ $t('top.pokemonColumn') }}</span>
+              <span>{{ $t('top.moves') }}</span>
+            </span>
+          </th>
           <template v-if="mode === 'pve'">
-            <!-- Una columna para los dos, el rápido delante: con dos, «Ataques
-                 cargados» saltaba de línea y repetían «Ataques». -->
-            <th scope="col" class="px-3 py-2 font-semibold">{{ $t('top.moves') }}</th>
             <th
               v-for="metrica in METRICAS"
               :key="metrica"
@@ -120,7 +127,6 @@ const ordenar = (metrica) => {
             </th>
           </template>
           <template v-else>
-            <th scope="col" class="px-3 py-2 font-semibold">{{ $t('top.moves') }}</th>
             <th scope="col" class="px-3 py-2 font-semibold text-right" aria-sort="descending">
               {{ tituloValor }}
             </th>
@@ -168,38 +174,47 @@ const ordenar = (metrica) => {
                 class="w-9 h-9 shrink-0"
                 img-class="drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
               />
-              <router-link
-                v-if="row.dex"
-                :to="fichaDe(row)"
-                class="text-sm font-semibold text-gray-800 dark:text-gray-200 after:absolute after:inset-0 after:content-['']"
-                >{{ localName(row) }}</router-link
-              >
-              <span v-else class="text-sm font-semibold text-gray-800 dark:text-gray-200">{{
-                localName(row)
-              }}</span>
-              <type-icons :types="row.types" size="12" class="shrink-0" />
+              <!--
+                Nombre y ataques en una línea si caben; si no, los ataques bajan
+                enteros debajo del nombre. El nombre nunca se parte («Mega /
+                Rayquaza») y tiene un ancho mínimo para que, en casi todas las
+                filas, los ataques empiecen a la misma altura.
+              -->
+              <div class="min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1">
+                <span class="min-w-[10.5rem] flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  <router-link
+                    v-if="row.dex"
+                    :to="fichaDe(row)"
+                    class="text-sm font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200 after:absolute after:inset-0 after:content-['']"
+                    >{{ localName(row) }}</router-link
+                  >
+                  <span
+                    v-else
+                    class="text-sm font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200"
+                    >{{ localName(row) }}</span
+                  >
+                  <type-icons :types="row.types" size="12" class="shrink-0" />
+                </span>
+                <div v-if="row.maxLines" class="flex flex-col gap-1.5 text-mini">
+                  <max-move-lines :lines="row.maxLines" />
+                </div>
+                <!-- El rápido delante. -->
+                <span v-else class="flex flex-wrap gap-1.5 whitespace-nowrap text-mini">
+                  <move-tag
+                    v-for="move in movesOf(row)"
+                    :key="move.id ?? move.nameEs"
+                    chip
+                    :name="localName(move)"
+                    :type="move.type"
+                    :elite="move.elite"
+                    :legacy="move.legacy"
+                    :mega="move.mega"
+                  />
+                </span>
+              </div>
             </div>
           </td>
           <template v-if="mode === 'pve'">
-            <td class="px-3 py-1.5 text-mini">
-              <span class="flex gap-1.5 whitespace-nowrap">
-                <move-tag
-                  chip
-                  :name="localName(row.fast)"
-                  :type="row.fast.type"
-                  :elite="row.fast.elite"
-                  :legacy="row.fast.legacy"
-                />
-                <move-tag
-                  chip
-                  :name="localName(row.charged)"
-                  :type="row.charged.type"
-                  :elite="row.charged.elite"
-                  :legacy="row.charged.legacy"
-                  :mega="row.charged.mega"
-                />
-              </span>
-            </td>
             <td
               v-for="metrica in METRICAS"
               :key="metrica"
@@ -211,9 +226,10 @@ const ordenar = (metrica) => {
               "
             >
               <span class="inline-flex items-center justify-end gap-2">
+                <!-- La barra, solo donde sobra sitio: en 1280 px echaba la tabla de lado. -->
                 <span
                   v-if="metrica === sortBy"
-                  class="w-14 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
+                  class="hidden 2xl:block w-14 h-1 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden"
                   aria-hidden="true"
                   ><span
                     class="block h-full bg-gray-600 dark:bg-gray-300"
@@ -235,25 +251,6 @@ const ordenar = (metrica) => {
             </td>
           </template>
           <template v-else>
-            <td v-if="row.maxLines" class="px-3 py-1.5 text-mini">
-              <div class="flex flex-col gap-1.5">
-                <max-move-lines :lines="row.maxLines" />
-              </div>
-            </td>
-            <td v-else class="px-3 py-1.5 text-mini">
-              <span class="flex flex-wrap gap-1.5">
-                <move-tag
-                  v-for="move in movesOf(row)"
-                  :key="move.id ?? move.nameEs"
-                  chip
-                  :name="localName(move)"
-                  :type="move.type"
-                  :elite="move.elite"
-                  :legacy="move.legacy"
-                  :mega="move.mega"
-                />
-              </span>
-            </td>
             <td
               class="px-3 py-1.5 text-right text-sm font-bold text-gray-900 dark:text-gray-100 tabular-nums"
             >
