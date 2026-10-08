@@ -208,7 +208,7 @@ export function jefesDebilesA(pokemon, chart, tipo, moves = null) {
   const grupos = new Map()
   for (const e of pokemon) {
     if (!puedeSerJefe(e)) continue
-    if (effectivenessAgainst(chart, tipo, e.types) <= 1) continue
+    if (tipo && effectivenessAgainst(chart, tipo, e.types) <= 1) continue
     const clave = [...e.types].sort().join('+')
     const grupo = grupos.get(clave) ?? { types: e.types, peso: 0, perfil: new Map() }
     grupo.peso++
@@ -291,7 +291,10 @@ export function evaluatePokemon(entry, moves, options = {}) {
   // Con `jefes` (ver jefesDebilesA), contra esos jefes de verdad: entra todo
   // conjunto con algún ataque de ese tipo, rápido o cargado, y la cifra es la
   // media contra todos ellos, cada ataque con su eficacia real.
-  const jefes = (debilA && chart && options.jefes) || null
+  const jefes = (chart && options.jefes) || null
+  // Solo estos conjuntos («rápido|cargado»), si se pide: la lista general
+  // mira únicamente los que ya destacan en algún tipo.
+  const conjuntos = options.conjuntos ?? null
   const tablas = jefes && tablasDe(chart, jefes)
   // Con clima: los ataques de los tipos que potencia pegan ×1,2.
   const clima = options.clima ?? null
@@ -346,6 +349,7 @@ export function evaluatePokemon(entry, moves, options = {}) {
       const cm = moves[chargedId]
       if (!usableMove(cm, chargedId)) continue
       if (debilA && cm.type !== debilA && !(jefes && fm.type === debilA)) continue
+      if (conjuntos && !conjuntos.has(`${fastId}|${chargedId}`)) continue
       const charged = {
         power: cm.pve.power * (exclusive.has(chargedId) ? SUPERMEGA_PLUS : 1),
         energy: cm.pve.energy,
@@ -441,12 +445,14 @@ function keep(best, key, candidate, sortBy) {
  * DialgaDex. Sin `chart`, contra un jefe genérico débil solo a ese tipo y con
  * el cargado de ese tipo.
  *
- * La lista general, por versatilidad: cada Pokémon puntúa la suma de sus dos
- * mejores tipos (con la métrica de `sortBy`), y su fila enseña el conjunto y
- * las cifras de su mejor tipo. Antes era el mejor DPS contra un jefe neutro y
- * salía primero Regigigas Oscuro, que pega mucho pero con ataques Normal, que
- * nunca son súper eficaces. Comparada con la lista general de GO Hub, la suma
- * de los dos mejores es la que más se le parece (39 de sus 50 primeros).
+ * La lista general, con `chart`: la media contra todos los jefes de
+ * incursión (ver puedeSerJefe), cada Pokémon con un solo conjunto, el que
+ * mejor rinde de media entre los que destacan en alguno de sus tipos (como
+ * DialgaDex). Premia al que sirve contra muchos jefes: Necrozma Alas del
+ * Alba, Zacian o Kyurem Negro. Antes era la suma de sus dos mejores tipos,
+ * que premiaba al que vale para dos listas concretas (Mega Blaziken, fuego y
+ * lucha) aunque contra el resto no haga nada. Sin `chart` sigue siendo esa
+ * suma.
  *
  * @returns {{byType: Record<string, object[]>, overall: object[]}}
  */
@@ -462,6 +468,8 @@ export function computeTypeRankings(pokemon, moves, options = {}) {
     if (!jefesDe.has(tipo)) jefesDe.set(tipo, jefesDebilesA(pokemon, chart, tipo, moves))
     return jefesDe.get(tipo)
   }
+  // Todos los jefes de incursión, para la lista general.
+  const todos = () => jefes(null)
 
   for (const entry of pokemon) {
     if (!usable(entry, options)) continue
@@ -478,7 +486,27 @@ export function computeTypeRankings(pokemon, moves, options = {}) {
       }
       suyos.push(...porTipo.values())
     }
-    // Por forma (un mismo dex puede traer varias): sus dos mejores tipos.
+    // Con jefes reales: la media contra todos, con el conjunto que mejor
+    // rinde de los que destacan en alguno de sus tipos.
+    if (chart && suyos.length) {
+      const conjuntos = new Set(suyos.map((r) => `${r.fast.id}|${r.charged.id}`))
+      const [mejor] = evaluatePokemon(entry, moves, {
+        ...options,
+        jefes: todos(),
+        conjuntos
+      })
+      if (mejor) {
+        overall.set(mejor.id, {
+          ...mejor,
+          tipo: null,
+          enGeneral: true,
+          general: mejor[sortBy],
+          tiposGeneral: [...new Set([mejor.charged.type, mejor.fast.type])]
+        })
+      }
+      continue
+    }
+    // Sin tabla de tipos: por forma, la suma de sus dos mejores tipos.
     const porForma = new Map()
     for (const r of suyos) {
       if (!porForma.has(r.id)) porForma.set(r.id, [])

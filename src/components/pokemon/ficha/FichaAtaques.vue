@@ -17,7 +17,7 @@ import MoveLegend from '../MoveLegend.vue'
 import BaseChevron from '../../base/BaseChevron.vue'
 import { useTranslate, formatDecimal, formatNumber } from '../../../composables/useTranslate'
 import { useGameDataStore } from '../../../stores/gameData'
-import { puestoDeConjunto, puntuacionGeneral } from '../../../utils/puestoAtaques'
+import { puestoDeConjunto } from '../../../utils/puestoAtaques'
 
 const props = defineProps({
   bestMovesets: { type: Array, required: true },
@@ -100,34 +100,31 @@ const conTusAtaques = computed(() => {
   const ranking = gameData.pveRankings({ limit: LIMITE })
   const mejor = todos[0]
   // Los puestos, con las cuentas del Top: cada conjunto contra los jefes
-  // débiles al tipo de su cargado, y la general, por la suma de sus dos
-  // mejores tipos (también los de sus rápidos: Kyurem Negro cuenta en dragón
-  // por Cola Dragón aunque su cargado sea de hielo).
-  const tipos = new Set(todos.flatMap((uno) => [uno.charged.type, uno.fast.type]))
-  const mejorPorTipo = Object.fromEntries(
-    [...tipos].map((tipo) => [tipo, gameData.conjuntosContra(props.entrada, tipo)[0]?.edps ?? 0])
-  )
+  // débiles al tipo de su cargado, y en la general, su media contra todos.
   const contraSuTipo = (uno) =>
     gameData
       .conjuntosContra(props.entrada, uno.charged.type)
       .find((otro) => otro.fast.id === uno.fast.id && otro.charged.id === uno.charged.id) ?? uno
-  const puesto = (uno, enSuTipo = contraSuTipo(uno)) =>
-    puestoDeConjunto(
-      enSuTipo,
-      props.entrada.id,
-      ranking,
-      LIMITE,
-      puntuacionGeneral(enSuTipo, mejorPorTipo)
-    )
+  const puesto = (
+    uno,
+    enSuTipo = contraSuTipo(uno),
+    general = gameData.generalDe(props.entrada, uno)
+  ) => puestoDeConjunto(enSuTipo, props.entrada.id, ranking, LIMITE, general)
   // El de su mejor conjunto, el mismo que el de «Puesto PvE»: en su tipo, el
   // mejor conjunto contra un jefe débil a él (con el ×1,6 puede no ser el del
   // DPS neutro).
+  // En la general, su fila del Top (que elige el conjunto con mejor media).
   const tipoMejor = mejor.charged.type
+  const generalMejor = ranking.overall.find((fila) => fila.id === props.entrada.id)?.general
   return {
     conjunto,
     puesto: puesto(conjunto),
     mejor,
-    puestoMejor: puesto(mejor, gameData.conjuntosContra(props.entrada, tipoMejor)[0] ?? mejor),
+    puestoMejor: puesto(
+      mejor,
+      gameData.conjuntosContra(props.entrada, tipoMejor)[0] ?? mejor,
+      generalMejor ?? gameData.generalDe(props.entrada, mejor)
+    ),
     porcentaje: Math.round((conjunto.edps / mejor.edps) * 100),
     esElMejor: conjunto === mejor
   }

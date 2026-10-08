@@ -484,6 +484,25 @@ export const useGameDataStore = defineStore('gameData', () => {
   const jefesDe = (tipo) =>
     cached(`jefes:${tipo}`, () => jefesDebilesA(roster.value, chart.value, tipo, moves.value))
 
+  /**
+   * Un conjunto concreto contra todos los jefes, como la lista general del
+   * Top: su media (`edps`, `dps`, `tdo`), o null si no puede llevarlo.
+   */
+  const enGeneral = (entry, conjunto, extra = {}) =>
+    evaluatePokemon(entry, moves.value, {
+      chart: chart.value,
+      jefes: jefesDe(null),
+      conjuntos: new Set([`${conjunto.fast.id}|${conjunto.charged.id}`]),
+      ...extra
+    })[0] ?? null
+
+  /** Lo que rinde ese conjunto en la lista general (ver enGeneral), en eDPS. */
+  const generalDe = (entry, conjunto) =>
+    cached(
+      `general:${entry.id}:${conjunto.fast.id}:${conjunto.charged.id}`,
+      () => enGeneral(entry, conjunto)?.edps ?? 0
+    )
+
   /** Contra los jefes débiles a `tipo`, como las listas por tipo del Top. */
   const contraTipo = (tipo, extra = {}) => ({
     debilA: tipo,
@@ -500,9 +519,21 @@ export const useGameDataStore = defineStore('gameData', () => {
   const conClima = (row) =>
     cached(`clima:${row.id}:${row.fast.id}:${row.charged.id}:${row.tipo}`, () => {
       const entry = byId.value.get(row.id)
+      // En la general, el clima de su cargado, contra todos los jefes.
       const tipo = row.tipo ?? row.charged.type
       const clima = climaDeTipo(tipo)
       if (!entry || !clima) return null
+      if (row.enGeneral) {
+        const conClimaGeneral = enGeneral(entry, row, { clima: CLIMAS[clima] })
+        return conClimaGeneral
+          ? {
+              clima,
+              dps: conClimaGeneral.dps,
+              tdo: conClimaGeneral.tdo,
+              edps: conClimaGeneral.edps
+            }
+          : null
+      }
       const igual = evaluatePokemon(
         entry,
         moves.value,
@@ -736,6 +767,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     matchups,
     bestMovesets,
     conjuntosContra,
+    generalDe,
     potenciadores,
     evolucionBarataDe,
     dexConEvolucionBarata,

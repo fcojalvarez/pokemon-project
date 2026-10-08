@@ -57,8 +57,9 @@ const puestoPapel = (row, papel) => (papel === 'atacante' ? row.rank : row.papel
 /** La columna que manda: la de la barra. */
 const principal = computed(() => (props.mode === 'pve' ? props.sortBy : 'value'))
 const valor = (row, clave) => row[clave] ?? row.value ?? 0
-// En «Todos» la barra sigue a la puntuación por la que se ordena (la suma de
-// sus dos mejores tipos), no a las cifras de la fila, que son las del mejor.
+// En «Todos» la barra sigue a la puntuación por la que se ordena (`general`:
+// la media contra todos los jefes; sin tabla de tipos, la suma de sus dos
+// mejores tipos).
 const barra = (row) => row.general ?? valor(row, principal.value)
 const tope = computed(() => Math.max(1e-9, ...props.rows.map(barra)))
 const porcentaje = (row) => Math.round((barra(row) / tope.value) * 100)

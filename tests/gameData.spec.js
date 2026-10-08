@@ -146,6 +146,24 @@ describe('computeTypeRankings', () => {
     expect(jefesDebilesA(roster, null, 'dragon')).toBeNull()
   })
 
+  it('con la tabla de tipos, la general es la media contra todos los jefes', () => {
+    const { overall } = computeTypeRankings(roster, moves, {
+      limit: 20,
+      chart: typechart.chart
+    })
+    for (let i = 1; i < overall.length; i++)
+      expect(overall[i - 1].general).toBeGreaterThanOrEqual(overall[i].general)
+    for (const row of overall) {
+      // Un solo conjunto: las cifras de la fila son su media, la que ordena.
+      expect(row.general).toBeCloseTo(row.edps, 9)
+      expect(row.enGeneral).toBe(true)
+    }
+    // Los que sirven contra casi todo, como en Dittobase y DialgaDex.
+    expect(ids(overall.slice(0, 10))).toEqual(
+      expect.arrayContaining(['rayquaza_mega', 'mewtwo_mega_y', 'necrozma_dawn_wings'])
+    )
+  })
+
   it('solo cuentan como jefes los que han salido en incursiones', () => {
     const porId = (id) => roster.find((e) => e.id === id)
     expect(puedeSerJefe(porId('rayquaza'))).toBe(true)

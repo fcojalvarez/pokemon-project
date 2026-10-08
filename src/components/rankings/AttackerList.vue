@@ -59,8 +59,9 @@ const unitLabel = computed(() => props.unit ?? UNITS[props.sortBy] ?? '')
 
 const valueOf = (row) => row.value ?? row[props.sortBy]
 
-// En «Todos» la barra sigue a la puntuación por la que se ordena (la suma de
-// sus dos mejores tipos), no a las cifras de la fila, que son las del mejor.
+// En «Todos» la barra sigue a la puntuación por la que se ordena (`general`:
+// la media contra todos los jefes; sin tabla de tipos, la suma de sus dos
+// mejores tipos).
 const barra = (row) => row.general ?? valueOf(row)
 const max = computed(() => Math.max(1e-9, ...props.rows.map(barra)))
 
