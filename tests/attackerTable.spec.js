@@ -71,10 +71,9 @@ describe('tabla del Top', () => {
       .findAll('td')
       .map((td) => td.text())
     expect(celdas[0]).toBe('1')
-    expect(celdas[1]).toContain('Charizard')
-    // Rápido y cargado, juntos en la columna «Ataques» y en ese orden.
-    expect(celdas[2]).toMatch(/Ascuas.*Llamarada/)
-    expect(celdas.slice(3)).toEqual(['60,1', '20,5', '900'])
+    // Nombre y ataques comparten columna, el rápido delante (en una línea si caben).
+    expect(celdas[1]).toMatch(/Charizard.*Ascuas.*Llamarada/)
+    expect(celdas.slice(2)).toEqual(['60,1', '20,5', '900'])
     // Toda la fila es el enlace a la ficha.
     expect(w.get('tbody a').attributes('href')).toBe('/pokemon/1')
   })
@@ -95,8 +94,10 @@ describe('tabla del Top', () => {
         }
       ]
     })
-    const cabeceras = w.findAll('th').map((th) => th.text())
-    expect(cabeceras).toEqual(['#', 'Pokémon', 'Ataques', 'Daño'])
+    // «Pokémon» y «Ataques», en la misma columna.
+    const cabeceras = w.findAll('th').map((th) => th.findAll('span > span').map((s) => s.text()))
+    expect(w.findAll('th').map((th) => th.text())).toEqual(['#', 'PokémonAtaques', 'Daño'])
+    expect(cabeceras[1]).toEqual(['Pokémon', 'Ataques'])
     expect(w.get('tbody tr').text()).toContain('Maxignición')
     expect(w.findAll('tbody td').at(-1).text()).toBe('223')
   })

@@ -292,8 +292,8 @@ export function evaluatePokemon(entry, moves, options = {}) {
   // conjunto con algún ataque de ese tipo, rápido o cargado, y la cifra es la
   // media contra todos ellos, cada ataque con su eficacia real.
   const jefes = (chart && options.jefes) || null
-  // Solo estos conjuntos («rápido|cargado»), si se pide: la lista general
-  // mira únicamente los que ya destacan en algún tipo.
+  // Solo estos conjuntos («rápido|cargado»), si se pide: un conjunto concreto
+  // contra todos los jefes (la fila de prueba del Top, la ficha).
   const conjuntos = options.conjuntos ?? null
   const tablas = jefes && tablasDe(chart, jefes)
   // Con clima: los ataques de los tipos que potencia pegan ×1,2.
@@ -447,9 +447,11 @@ function keep(best, key, candidate, sortBy) {
  *
  * La lista general, con `chart`: la media contra todos los jefes de
  * incursión (ver puedeSerJefe), cada Pokémon con un solo conjunto, el que
- * mejor rinde de media entre los que destacan en alguno de sus tipos (como
- * DialgaDex). Premia al que sirve contra muchos jefes: Necrozma Alas del
- * Alba, Zacian o Kyurem Negro. Antes era la suma de sus dos mejores tipos,
+ * mejor rinde de media de todos los que tiene, mixtos incluidos. Antes solo
+ * se miraban los que ganaban en alguna lista de tipo (como DialgaDex), y se
+ * perdían conjuntos que de media rinden más: Mega Mewtwo X con Psicocorte y
+ * Puño Dinámico+, Mega Starmie con Psicoonda. Premia al que sirve contra
+ * muchos jefes: Necrozma Alas del Alba, Zacian o Kyurem Negro. Antes era la suma de sus dos mejores tipos,
  * que premiaba al que vale para dos listas concretas (Mega Blaziken, fuego y
  * lucha) aunque contra el resto no haga nada. Sin `chart` sigue siendo esa
  * suma.
@@ -487,14 +489,9 @@ export function computeTypeRankings(pokemon, moves, options = {}) {
       suyos.push(...porTipo.values())
     }
     // Con jefes reales: la media contra todos, con el conjunto que mejor
-    // rinde de los que destacan en alguno de sus tipos.
+    // rinde de todos los suyos.
     if (chart && suyos.length) {
-      const conjuntos = new Set(suyos.map((r) => `${r.fast.id}|${r.charged.id}`))
-      const [mejor] = evaluatePokemon(entry, moves, {
-        ...options,
-        jefes: todos(),
-        conjuntos
-      })
+      const [mejor] = evaluatePokemon(entry, moves, { ...options, jefes: todos() })
       if (mejor) {
         overall.set(mejor.id, {
           ...mejor,
