@@ -503,6 +503,24 @@ export const useGameDataStore = defineStore('gameData', () => {
       () => enGeneral(entry, conjunto)?.edps ?? 0
     )
 
+  /**
+   * Un conjunto concreto («rápido|cargado») tal y como lo contaría el Top:
+   * en la lista de `tipo`, contra los jefes débiles a él (null si con esos
+   * ataques no entra en esa lista: ninguno es de ese tipo); con `tipo` null,
+   * en la general, contra todos los jefes. Es la fila fantasma del Top.
+   */
+  const conjuntoEnLista = (entry, fastId, chargedId, tipo) => {
+    if (!tipo) {
+      const fila = enGeneral(entry, { fast: { id: fastId }, charged: { id: chargedId } })
+      return fila && { ...fila, tipo: null, enGeneral: true }
+    }
+    return (
+      conjuntosContra(entry, tipo).find(
+        (otro) => otro.fast.id === fastId && otro.charged.id === chargedId
+      ) ?? null
+    )
+  }
+
   /** Contra los jefes débiles a `tipo`, como las listas por tipo del Top. */
   const contraTipo = (tipo, extra = {}) => ({
     debilA: tipo,
@@ -767,6 +785,7 @@ export const useGameDataStore = defineStore('gameData', () => {
     matchups,
     bestMovesets,
     conjuntosContra,
+    conjuntoEnLista,
     generalDe,
     potenciadores,
     evolucionBarataDe,

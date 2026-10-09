@@ -11,6 +11,7 @@ import AttackerTable from '../components/rankings/AttackerTable.vue'
 import TopCalculo from '../components/rankings/TopCalculo.vue'
 import MoveLegend from '../components/pokemon/MoveLegend.vue'
 import LeyendaMax from '../components/rankings/LeyendaMax.vue'
+import ProbarAtaques from '../components/rankings/ProbarAtaques.vue'
 import BaseChevron from '../components/base/BaseChevron.vue'
 import BaseSegmented from '../components/base/BaseSegmented.vue'
 import { useMedia } from '../composables/useMedia'
@@ -256,6 +257,19 @@ const filtrosCambiados = computed(
     (mode.value === 'gym' ? [!includeLegacy.value, !includeElite.value].filter(Boolean).length : 0)
 )
 
+/**
+ * «Probar otros ataques» (PvE): la fila que se está probando en el modal y la
+ * fila fantasma que ya está puesta en el Top ({ id, fast, charged }). Solo
+ * una a la vez; se quita al cambiar de modo o de tipo, porque el puesto era
+ * el de otra lista.
+ */
+const probando = ref(null)
+const fantasma = ref(null)
+watch([mode, type], () => {
+  probando.value = null
+  fantasma.value = null
+})
+
 // `marcasMax` y no `leyendaMax`: con ese nombre la etiqueta <leyenda-max> se
 // confundía con la variable, y el linter daba el componente por no usado.
 const {
@@ -265,7 +279,8 @@ const {
   gymRows,
   filasVisibles,
   origenes,
-  leyendaMax: marcasMax
+  leyendaMax: marcasMax,
+  probarConjunto
 } = useTopFilas({
   mode,
   type,
@@ -276,7 +291,8 @@ const {
   includeLegacy,
   includeElite,
   includeLegendary,
-  clase
+  clase,
+  fantasma
 })
 
 /** Si la pestaña activa tiene algo que pintar; si no, sale el vacío. */
@@ -530,6 +546,9 @@ watch(
           :rows="filasVisibles"
           :mode="mode"
           :nivel="nivel"
+          :probar="mode === 'pve'"
+          @probar="probando = $event"
+          @quitar-fantasma="fantasma = null"
         />
 
         <!-- PvE -->
@@ -541,6 +560,9 @@ watch(
           :nivel="nivel"
           :show-bar="false"
           columnas
+          probar
+          @probar="probando = $event"
+          @quitar-fantasma="fantasma = null"
         />
 
         <!--
@@ -587,6 +609,15 @@ watch(
             class="mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
           />
         </template>
+
+        <!-- «Probar otros ataques»: va en Teleport, así que da igual dónde esté. -->
+        <probar-ataques
+          :row="probando"
+          :sort-by="sortBy"
+          :probar="probarConjunto"
+          @poner="fantasma = $event"
+          @close="probando = null"
+        />
 
         <base-empty-state
           v-if="gameData.isReady && !rowsShown"

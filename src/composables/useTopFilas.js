@@ -6,6 +6,8 @@ import { origenDe, origenesPresentes } from '../utils/moveOrigins'
 
 /** Cuántos atacantes salen en cada top. */
 const LIMITE = 50
+/** Sobre cuántos se cuenta el puesto de la fila fantasma, como en la ficha. */
+const LIMITE_PUESTO = 500
 
 /**
  * Las clases del Top de incursiones («Todos», «Megas»…): responden a «¿qué
@@ -47,28 +49,101 @@ export function useTopFilas(filtros) {
     includeLegacy,
     includeElite,
     includeLegendary,
-    clase
+    clase,
+    fantasma
   } = filtros
+
+  /** Los filtros de «Incluir» y el orden, como los pide gameData.pveRankings. */
+  const opcionesPve = (limit) => ({
+    includeMega: includeMega.value,
+    includeShadow: includeShadow.value,
+    includeLegacy: includeLegacy.value,
+    includeElite: includeElite.value,
+    sortBy: sortBy.value,
+    limit
+  })
 
   const pveRows = computed(() => {
     if (!gameData.isReady || mode.value !== 'pve') return []
     const filtro = deClase[clase?.value]
-    const rankings = gameData.pveRankings({
-      includeMega: includeMega.value,
-      includeShadow: includeShadow.value,
-      includeLegacy: includeLegacy.value,
-      includeElite: includeElite.value,
-      sortBy: sortBy.value,
-      // Con una clase se filtra sobre la lista larga: los 50 primeros comunes
-      // no están entre los 50 primeros de todos.
-      limit: filtro ? 500 : LIMITE
-    })
+    // Con una clase se filtra sobre la lista larga: los 50 primeros comunes
+    // no están entre los 50 primeros de todos.
+    const rankings = gameData.pveRankings(opcionesPve(filtro ? LIMITE_PUESTO : LIMITE))
     const todas = type.value === 'all' ? rankings.overall : rankings.byType[type.value] ?? []
     const filas = filtro
       ? todas.filter((row) => filtro(row, gameData.byId.get(row.id))).slice(0, LIMITE)
       : todas
     // Cada fila, también con el clima que potencia su tipo (la cifra en ámbar).
     return filas.map((row) => ({ ...row, conClima: gameData.conClima(row) }))
+  })
+
+  /**
+   * Dónde quedaría un Pokémon de esta lista con otros ataques
+   * ({ id, fast, charged }, ids): la «fila fantasma» del Top.
+   *
+   * Con las cuentas del Top y de «¿Y con otros ataques?» de la ficha: en la
+   * lista de un tipo, contra los jefes débiles a él; en «Todos», su media
+   * contra todos los jefes. El puesto es cuántos otros rinden más, sobre los
+   * 500 primeros con los mismos filtros; su propia fila no cuenta.
+   *
+   * Devuelve { fila, puesto, baja, porcentaje, suya, esLaSuya }, o
+   * { fuera } (con esos ataques no entra en esta lista) o { sinDatos }.
+   */
+  const probarConjunto = ({ id, fast, charged }) => {
+    if (!gameData.isReady || mode.value !== 'pve') return null
+    const entry = gameData.byId.get(id)
+    if (!entry) return null
+    const enTodos = type.value === 'all'
+    const conjunto = gameData.conjuntoEnLista(entry, fast, charged, enTodos ? null : type.value)
+    if (!conjunto) {
+      // En la lista de un tipo, sin ningún ataque de ese tipo no entra; con
+      // alguno, es que le faltan datos de daño (el exclusivo de una supermega).
+      const delTipo = [fast, charged].some((uno) => gameData.moves[uno]?.type === type.value)
+      return enTodos || delTipo ? { sinDatos: true } : { fuera: true }
+    }
+
+    const metrica = sortBy.value
+    const valor = conjunto[metrica]
+    // En «Todos» se ordena por `general`, la media contra todos los jefes.
+    const deFila = (fila) => (enTodos ? fila.general : fila[metrica])
+    const ranking = gameData.pveRankings(opcionesPve(LIMITE_PUESTO))
+    const lista = enTodos ? ranking.overall : ranking.byType[type.value] ?? []
+    const delante = lista.filter((otro) => otro.id !== id && deFila(otro) > valor).length
+    const puesto = delante >= LIMITE_PUESTO ? null : delante + 1
+    const suya = lista.find((otro) => otro.id === id) ?? null
+
+    const fila = {
+      ...conjunto,
+      ...(enTodos ? { general: valor } : {}),
+      // Más allá del corte, la letra de un puesto que ya no la merece.
+      rank: puesto ?? LIMITE_PUESTO + 1,
+      fantasma: true
+    }
+    fila.conClima = gameData.conClima(fila)
+
+    return {
+      fila,
+      puesto,
+      baja: suya && puesto && puesto > suya.rank ? puesto - suya.rank : null,
+      porcentaje: suya ? Math.round((valor / deFila(suya)) * 100) : null,
+      suya,
+      esLaSuya: suya?.fast.id === fast && suya?.charged.id === charged
+    }
+  }
+
+  /**
+   * La fila fantasma que se está probando, justo debajo de la suya y con el
+   * puesto que tendría: no en ese puesto, porque si baja mucho había que ir a
+   * buscarla por la lista.
+   */
+  const pveConFantasma = computed(() => {
+    const prueba = fantasma?.value && probarConjunto(fantasma.value)
+    if (!prueba?.fila || prueba.esLaSuya) return pveRows.value
+    const filas = [...pveRows.value]
+    const suya = filas.findIndex((fila) => fila.id === prueba.fila.id)
+    if (suya === -1) return filas
+    filas.splice(suya + 1, 0, { ...prueba.fila, baja: prueba.baja, masAlla: !prueba.puesto })
+    return filas
   })
 
   /**
@@ -201,7 +276,7 @@ export function useTopFilas(filtros) {
     mode.value === 'max'
       ? maxRows.value
       : mode.value === 'pve'
-      ? pveRows.value
+      ? pveConFantasma.value
       : mode.value === 'gym'
       ? gymRows.value
       : pvpRows.value
@@ -225,5 +300,14 @@ export function useTopFilas(filtros) {
     gigantamax: maxRows.value.some((fila) => fila.version === 'gigantamax')
   }))
 
-  return { pveRows, pvpRows, maxRows, gymRows, filasVisibles, origenes, leyendaMax }
+  return {
+    pveRows: pveConFantasma,
+    pvpRows,
+    maxRows,
+    gymRows,
+    filasVisibles,
+    origenes,
+    leyendaMax,
+    probarConjunto
+  }
 }

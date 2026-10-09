@@ -297,6 +297,21 @@
       "method2": "Bulk is its score against the first one, which is 100. Legendary, mythical, Ultra Beast, Shadow and Mega Pokémon cannot defend gyms; filtering by type does not change the rank."
     },
     "pvpUnit": "Points",
+    "probar": {
+      "button": "Try {name} with other moves",
+      "title": "{name} with other moves",
+      "hint": "Pick a fast and a charged move. A dashed row shows up in the Top under its own, with the rank it would get.",
+      "place": "Put it in the Top",
+      "versus": "{percent}% of what it does with {fast} + {charged}.",
+      "drop": "{n} places below its row",
+      "beyond": "It would be beyond #{n}.",
+      "isBest": "These are the moves it already has in the Top.",
+      "notInList": "With these moves it does not enter the {type} list: neither move is of that type.",
+      "noData": "One of them has no raid damage data yet: the rank cannot be worked out.",
+      "ghost": "With your moves: it would be #{n}",
+      "ghostBeyond": "With your moves: beyond #{n}",
+      "remove": "Remove the test row for {name}"
+    },
     "weatherLegend": "Weather",
     "weatherLegendHelp": "In amber, the number with the weather that boosts its charged move type: its moves deal 20% more",
     "methodWeather": "In amber, below, the same with the weather that boosts its charged move type (Sunny for Fire, Rain for Water…): moves of that weather's types deal 20% more. The order does not change; it shows how much it would gain.",

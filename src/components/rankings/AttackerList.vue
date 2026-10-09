@@ -46,8 +46,12 @@ const props = defineProps({
    * En escritorio, dos columnas con las métricas por las que no se ordena
    * (de eDPS, DPS y TDO), con su cabecera encima de la lista. Solo PvE.
    */
-  columnas: { type: Boolean, default: false }
+  columnas: { type: Boolean, default: false },
+  /** PvE: cada fila lleva «Probar otros ataques» (ver ProbarAtaques). */
+  probar: { type: Boolean, default: false }
 })
+
+const emit = defineEmits(['probar', 'quitar-fantasma'])
 
 /** Las filas por tandas: lo que cabe en pantalla primero (ver usePorTandas). */
 const filas = usePorTandas(() => props.rows)
@@ -132,25 +136,35 @@ const cifraClima = (row) => {
     </span>
   </div>
   <ol class="flex flex-col gap-2">
-    <li data-fila-top v-for="row in filas" :key="rowKey(row)">
+    <li
+      v-for="row in filas"
+      :key="rowKey(row) + (row.fantasma ? '-fantasma' : '')"
+      :data-fila-top="row.fantasma ? undefined : ''"
+      :data-fila-fantasma="row.fantasma ? '' : undefined"
+    >
       <!--
-        El enlace ocupa la fila entera: se llega con el tabulador y se puede
-        abrir en otra pestaña, cosa que un <li> con @click no permitía.
+        El enlace es el nombre, estirado sobre la fila entera: se llega con el
+        tabulador y se puede abrir en otra pestaña, cosa que un <li> con @click
+        no permitía. No envuelve la fila porque dentro va el botón de «Probar
+        otros ataques», y un botón dentro de un enlace no vale.
 
         Tres columnas, cada una centrada en toda la altura: el sprite con el
         puesto en una esquina; el nombre y, debajo, los ataques; y la cifra con
         su barra. Así todo queda alineado de una fila a otra, aunque unas
         tengan más ataques que otras.
       -->
-      <component
-        :is="row.dex ? 'router-link' : 'div'"
-        :to="row.dex ? fichaDe(row) : undefined"
-        class="grid items-center gap-x-3 p-2 pr-3 border rounded-xl shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800"
+      <div
+        class="relative grid items-center gap-x-3 p-2 pr-3 rounded-xl"
         :class="[
           gridCols,
-          row.version === 'gigantamax'
-            ? 'border-fuchsia-500 dark:border-fuchsia-400'
-            : 'border-gray-300 dark:border-gray-700'
+          row.fantasma
+            ? 'border-2 border-dashed border-blue-500 dark:border-blue-400 bg-blue-50/60 dark:bg-blue-950/30'
+            : [
+                'border shadow-md bg-white dark:bg-gray-900 hover:bg-gray-150 hover:dark:bg-gray-800',
+                row.version === 'gigantamax'
+                  ? 'border-fuchsia-500 dark:border-fuchsia-400'
+                  : 'border-gray-300 dark:border-gray-700'
+              ]
         ]"
       >
         <span class="relative block">
@@ -174,7 +188,15 @@ const cifraClima = (row) => {
         <div class="min-w-0 flex flex-col gap-1 lg:flex-row lg:flex-wrap lg:items-center lg:gap-x-3">
           <!-- flex-wrap: si no caben, bajan las marcas y no se parte el nombre («Chariz-ard»). -->
           <div class="min-w-0 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <router-link
+              v-if="row.dex && !row.fantasma"
+              :to="fichaDe(row)"
+              class="min-w-0 text-sm font-semibold leading-snug text-gray-800 dark:text-gray-200 break-words after:absolute after:inset-0 after:rounded-xl after:content-['']"
+            >
+              {{ localName(row) }}
+            </router-link>
             <span
+              v-else
               class="min-w-0 text-sm font-semibold leading-snug text-gray-800 dark:text-gray-200 break-words"
             >
               {{ localName(row) }}
@@ -208,6 +230,23 @@ const cifraClima = (row) => {
               :mega="move.mega"
             />
           </div>
+          <!-- La fila de prueba dice que lo es y cuánto baja frente a la suya. -->
+          <p
+            v-if="row.fantasma"
+            class="text-mini font-semibold text-blue-700 dark:text-blue-300 lg:basis-full"
+          >
+            {{
+              row.masAlla
+                ? $t('top.probar.ghostBeyond', { n: 500 })
+                : $t('top.probar.ghost', { n: row.rank })
+            }}
+            <span
+              v-if="row.baja"
+              class="text-amber-700 dark:text-amber-400"
+              :title="$t('top.probar.drop', { n: row.baja })"
+              >· ▼ {{ row.baja }}</span
+            >
+          </p>
         </div>
 
         <span
@@ -270,19 +309,52 @@ const cifraClima = (row) => {
           <stab-badge v-if="row.stab" class="mt-1 inline-block" />
         </div>
 
-        <base-nivel
-          v-if="nivel"
-          :rank="row.rank"
-          :por-tipo="nivel === 'tipo'"
-          class="justify-self-end"
-        />
+        <!--
+          La letra y, debajo, «Probar otros ataques» (o, en la fila de prueba,
+          la ✕ que la quita). z-10: encima del enlace estirado del nombre.
+        -->
+        <div v-if="nivel" class="justify-self-end flex flex-col items-center gap-1.5">
+          <base-nivel :rank="row.rank" :por-tipo="nivel === 'tipo'" />
+          <button
+            v-if="row.fantasma"
+            type="button"
+            class="zona-tactil relative z-10 w-6 h-6 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-700"
+            :aria-label="$t('top.probar.remove', { name: localName(row) })"
+            :title="$t('top.probar.remove', { name: localName(row) })"
+            @click="emit('quitar-fantasma')"
+          >
+            ✕
+          </button>
+          <button
+            v-else-if="probar && row.fast"
+            type="button"
+            class="zona-tactil relative z-10 w-6 h-6 grid place-items-center rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-700"
+            :aria-label="$t('top.probar.button', { name: localName(row) })"
+            :title="$t('top.probar.button', { name: localName(row) })"
+            @click="emit('probar', row)"
+          >
+            <!-- Dos flechas en sentidos opuestos: cambiar unos ataques por otros. -->
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-4 h-4"
+            >
+              <path d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+            </svg>
+          </button>
+        </div>
         <papeles-max
           v-else-if="conPapeles && row.papeles"
           :rank="row.rank"
           :papeles="row.papeles"
           class="justify-self-end"
         />
-      </component>
+      </div>
     </li>
   </ol>
 </template>

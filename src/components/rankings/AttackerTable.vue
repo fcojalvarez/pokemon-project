@@ -34,12 +34,14 @@ const props = defineProps({
    * La letra de cada puesto, al final de la fila: 'general' (la lista general
    * y las de PvP), 'tipo' (la de un tipo, con cortes más cortos) o nada.
    */
-  nivel: { type: String, default: '' }
+  nivel: { type: String, default: '' },
+  /** PvE: cada fila lleva «Probar otros ataques» (ver ProbarAtaques). */
+  probar: { type: Boolean, default: false }
 })
 
 /** Las filas por tandas: lo que cabe en pantalla primero (ver usePorTandas). */
 const filas = usePorTandas(() => props.rows)
-const emit = defineEmits(['update:sortBy'])
+const emit = defineEmits(['update:sortBy', 'probar', 'quitar-fantasma'])
 const { t, localName } = useTranslate()
 const gameData = useGameDataStore()
 const fichaDe = (row) => fichaDeFila(row, gameData.fichaBase)
@@ -150,11 +152,18 @@ const ordenar = (metrica) => {
         </tr>
       </thead>
       <tbody>
+        <!-- La fila de prueba (fantasma), punteada: no es un Pokémon más de la lista. -->
         <tr
           v-for="row in filas"
-          :key="rowKey(row)"
-          data-fila-top
-          class="relative border-t border-gray-300 dark:border-gray-700 first:border-t-0 even:bg-gray-50 dark:even:bg-gray-800/40 hover:bg-gray-150 hover:dark:bg-gray-800"
+          :key="rowKey(row) + (row.fantasma ? '-fantasma' : '')"
+          :data-fila-top="row.fantasma ? undefined : ''"
+          :data-fila-fantasma="row.fantasma ? '' : undefined"
+          class="relative border-t border-gray-300 dark:border-gray-700 first:border-t-0"
+          :class="
+            row.fantasma
+              ? 'outline-2 outline-dashed -outline-offset-2 outline-blue-500 dark:outline-blue-400 bg-blue-50/60 dark:bg-blue-950/30'
+              : 'even:bg-gray-50 dark:even:bg-gray-800/40 hover:bg-gray-150 hover:dark:bg-gray-800'
+          "
         >
           <td
             class="px-3 py-1.5 text-right text-xs text-gray-600 dark:text-gray-300 tabular-nums"
@@ -183,7 +192,7 @@ const ordenar = (metrica) => {
               <div class="min-w-0 flex flex-wrap items-center gap-x-3 gap-y-1">
                 <span class="min-w-[10.5rem] flex flex-wrap items-center gap-x-2 gap-y-0.5">
                   <router-link
-                    v-if="row.dex"
+                    v-if="row.dex && !row.fantasma"
                     :to="fichaDe(row)"
                     class="text-sm font-semibold whitespace-nowrap text-gray-800 dark:text-gray-200 after:absolute after:inset-0 after:content-['']"
                     >{{ localName(row) }}</router-link
@@ -210,6 +219,22 @@ const ordenar = (metrica) => {
                     :legacy="move.legacy"
                     :mega="move.mega"
                   />
+                </span>
+                <span
+                  v-if="row.fantasma"
+                  class="text-mini font-semibold text-blue-700 dark:text-blue-300"
+                >
+                  {{
+              row.masAlla
+                ? $t('top.probar.ghostBeyond', { n: 500 })
+                : $t('top.probar.ghost', { n: row.rank })
+            }}
+                  <span
+                    v-if="row.baja"
+                    class="text-amber-700 dark:text-amber-400"
+                    :title="$t('top.probar.drop', { n: row.baja })"
+                    >· ▼ {{ row.baja }}</span
+                  >
                 </span>
               </div>
             </div>
@@ -277,8 +302,45 @@ const ordenar = (metrica) => {
               </span>
             </td>
           </template>
-          <td v-if="nivel" class="px-3 py-1.5 text-center">
-            <base-nivel :rank="row.rank" :por-tipo="nivel === 'tipo'" />
+          <!-- La letra y «Probar otros ataques» (o la ✕ de la fila de prueba). -->
+          <td v-if="nivel" class="px-3 py-1.5">
+            <span class="flex items-center justify-center gap-1.5">
+              <base-nivel :rank="row.rank" :por-tipo="nivel === 'tipo'" />
+              <button
+                v-if="row.fantasma"
+                type="button"
+                class="zona-tactil relative z-10 w-6 h-6 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-700"
+                :aria-label="$t('top.probar.remove', { name: localName(row) })"
+                :title="$t('top.probar.remove', { name: localName(row) })"
+                @click="emit('quitar-fantasma')"
+              >
+                ✕
+              </button>
+              <button
+                v-else-if="probar && row.fast"
+                type="button"
+                class="zona-tactil relative z-10 w-6 h-6 grid place-items-center rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-700"
+                :aria-label="$t('top.probar.button', { name: localName(row) })"
+                :title="$t('top.probar.button', { name: localName(row) })"
+                @click="emit('probar', row)"
+              >
+                <!-- Dos flechas en sentidos opuestos: cambiar unos ataques por otros. -->
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="w-4 h-4"
+                >
+                  <path
+                    d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+                  />
+                </svg>
+              </button>
+            </span>
           </td>
           <template v-else-if="conPapeles">
             <td v-for="papel in PAPELES" :key="papel" class="px-2 py-1.5 text-center">

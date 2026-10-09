@@ -297,6 +297,21 @@
       "method2": "El aguante es su puntuación frente al primero, que vale 100. No pueden defender gimnasios los legendarios, los singulares, los ultraentes, los oscuros ni las megas; filtrar por tipo no cambia el puesto."
     },
     "pvpUnit": "Puntos",
+    "probar": {
+      "button": "Probar {name} con otros ataques",
+      "title": "{name} con otros ataques",
+      "hint": "Elige un rápido y un cargado. En el Top sale una fila punteada debajo de la suya, con el puesto que tendría.",
+      "place": "Ponerlo en el Top",
+      "versus": "El {percent} % de lo que rinde con {fast} + {charged}.",
+      "drop": "{n} puestos por debajo de su fila",
+      "beyond": "Quedaría más allá del #{n}.",
+      "isBest": "Son los ataques con los que ya sale en el Top.",
+      "notInList": "Con estos ataques no entra en la lista de {type}: ninguno de los dos es de ese tipo.",
+      "noData": "Uno de los dos aún no tiene datos de daño en incursiones: no se puede calcular el puesto.",
+      "ghost": "Con tus ataques: quedaría #{n}",
+      "ghostBeyond": "Con tus ataques: más allá del #{n}",
+      "remove": "Quitar la fila de prueba de {name}"
+    },
     "weatherLegend": "Clima",
     "weatherLegendHelp": "En ámbar, la cifra con el clima que potencia el tipo de su ataque cargado: sus ataques pegan un 20 % más",
     "methodWeather": "En ámbar, debajo, lo mismo con el clima que potencia el tipo de su ataque cargado (Soleado para Fuego, Lluvia para Agua…): los ataques de los tipos de ese clima pegan un 20 % más. El orden no cambia; es para ver cuánto ganaría.",
