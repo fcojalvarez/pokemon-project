@@ -104,10 +104,15 @@ onUnmounted(() => escuchar(false))
           class="flex items-center gap-3 px-4 py-3 border-b border-gray-300 dark:border-gray-600"
         >
           <h2 :id="titulo" class="min-w-0 font-bold leading-snug">{{ title }}</h2>
+          <!-- Algún control del contenido junto al título (el «Ver shiny» del sprite). -->
+          <div v-if="$slots.acciones" class="ml-auto shrink-0 flex items-center gap-2">
+            <slot name="acciones" />
+          </div>
           <!-- La ✕ sin caja, como la lupa y los ajustes de la cabecera. -->
           <button
             type="button"
-            class="zona-tactil ml-auto shrink-0 w-9 h-9 rounded-xl text-gray-500 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-700"
+            :class="!$slots.acciones && 'ml-auto'"
+            class="zona-tactil shrink-0 w-9 h-9 rounded-xl text-gray-500 dark:text-gray-300 hover:bg-gray-200 hover:dark:bg-gray-700"
             :aria-label="$t('common.close')"
             @click="emit('close')"
           >

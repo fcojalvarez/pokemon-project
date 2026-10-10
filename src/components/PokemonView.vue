@@ -383,8 +383,8 @@ watch(
 
       <!--
         El sprite en grande: la imagen original de 512 px (la cabecera pide la
-        miniatura), sobre la misma luz de sus tipos. Debajo, el mismo «Ver
-        shiny» de la cabecera: van a la par, así que al cerrar sigue igual.
+        miniatura), sobre la misma luz de sus tipos. Junto al título, el mismo
+        «Ver shiny» de la cabecera: van a la par, así que al cerrar sigue igual.
       -->
       <base-modal
         :open="spriteGrande"
@@ -392,15 +392,17 @@ watch(
         size="sm:max-w-xl"
         @close="spriteGrande = false"
       >
-        <div class="p-4 flex flex-col items-center gap-3" :style="heroLuz">
-          <img
-            :src="hero.image"
-            :alt="hero.name"
-            class="w-full max-w-[512px] max-h-[60vh] aspect-square object-contain drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
-          />
+        <template #acciones>
           <base-pill-button casilla :active="isShowShiny" @click="isShowShiny = !isShowShiny">
             {{ $t('viewShiny') }}
           </base-pill-button>
+        </template>
+        <div class="p-4 flex justify-center" :style="heroLuz">
+          <img
+            :src="hero.image"
+            :alt="hero.name"
+            class="w-full max-w-[512px] max-h-[70vh] aspect-square object-contain drop-shadow-pokemon_light dark:drop-shadow-pokemon_dark"
+          />
         </div>
       </base-modal>
 
