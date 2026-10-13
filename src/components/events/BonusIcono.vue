@@ -12,6 +12,9 @@ import { iconoDeBonus } from '../../utils/iconoBonus'
 import iconoCaramelo from '../../assets/icons/candy_icon.png'
 import iconoCarameloXl from '../../assets/icons/candy_xl.png'
 import iconoCebo from '../../assets/icons/lure_icon.png'
+import iconoIncienso from '../../assets/icons/incense_icon.png'
+import iconoInciensoEvento from '../../assets/icons/incense_event.png'
+import iconoInciensoDiario from '../../assets/icons/incense_daily.png'
 import iconoHuevo from '../../assets/icons/egg.png'
 import iconoIntercambio from '../../assets/icons/ic_trade_ball.png'
 import iconoIncursion from '../../assets/icons/raid.png'
@@ -35,6 +38,9 @@ const IMAGENES = {
   candy: iconoCaramelo,
   candyXl: iconoCarameloXl,
   lure: iconoCebo,
+  incense: iconoIncienso,
+  incenseEvent: iconoInciensoEvento,
+  incenseDaily: iconoInciensoDiario,
   egg: iconoHuevo,
   trade: iconoIntercambio
 }

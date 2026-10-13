@@ -17,6 +17,12 @@ import {
 import { entre, lista, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { useRoute } from 'vue-router'
 import { useMedia } from '../composables/useMedia'
+import { useLiveStore } from '../stores/live'
+import { useGameDataStore } from '../stores/gameData'
+import { useBuscarAhora } from '../composables/useBuscarAhora'
+import { vDifuminado } from '../composables/useDifuminado'
+import ResultadoAhora from '../components/shared/ResultadoAhora.vue'
+import BaseChevron from '../components/base/BaseChevron.vue'
 
 const pokemonStore = usePokemonsStore()
 const route = useRoute()
@@ -209,6 +215,50 @@ watch(
 
 // El mismo corte que PokedexFilters y el Top: desde aquí, barra lateral.
 const ancho = useMedia('(min-width: 1280px)')
+
+/**
+ * Lo escrito en el buscador también se busca en lo que hay ahora en el juego,
+ * y los resultados se reparten en pestañas encima de la rejilla: «Pokémon»
+ * primero y, al lado, cada sección donde sale con cuántos hay («Misiones
+ * (2)»). Al tocar una, sus resultados salen aquí mismo en vez de la rejilla.
+ * Así «caramelo» o «bramblin» encuentran la misión también desde aquí. Con un
+ * número no: es un número de Pokédex.
+ */
+const live = useLiveStore()
+const gameData = useGameDataStore()
+const { buscar: buscarAhora } = useBuscarAhora()
+const textoBuscado = computed(() => {
+  const texto = searchTerm.value?.trim()
+  return texto && isNaN(texto) ? texto : ''
+})
+// Los datos del juego, para las misiones en español y los nombres.
+watch(
+  textoBuscado,
+  (texto) => {
+    if (!texto) return
+    live.load()
+    gameData.load()
+  },
+  { immediate: true }
+)
+const ahoraEnJuego = computed(() => (textoBuscado.value ? buscarAhora(textoBuscado.value) : []))
+
+/**
+ * La pestaña elegida: 'pokemon', la clave de una sección o null sin elegir.
+ * Sin elegir se ven los Pokémon, salvo que no haya ninguno y sí haya algo en
+ * el juego («caramelo»): entonces, la primera sección. Con otra búsqueda se
+ * vuelve a no elegir nada.
+ */
+const pestana = ref(null)
+watch(textoBuscado, () => {
+  pestana.value = null
+})
+const seccionActiva = computed(() => {
+  const elegida = ahoraEnJuego.value.find((seccion) => seccion.clave === pestana.value)
+  if (elegida) return elegida
+  const sinPokemon = !isLoading.value && pokemons.value.length === 0
+  return pestana.value === null && sinPokemon ? ahoraEnJuego.value[0] ?? null : null
+})
 </script>
 
 <template>
@@ -241,7 +291,67 @@ const ancho = useMedia('(min-width: 1280px)')
       </pokedex-filters>
 
       <div class="min-w-0">
-        <!--
+        <!-- Las pestañas: en una fila que se desliza si no caben. -->
+        <div
+          v-if="ahoraEnJuego.length"
+          v-difuminado
+          role="group"
+          :aria-label="$t('a11y.searchResults')"
+          class="mb-3 px-1 md:px-2 flex gap-2 overflow-x-auto [scrollbar-width:none]"
+        >
+          <button
+            v-for="opcion in [
+              {
+                clave: 'pokemon',
+                titulo: $t('buscador.pokemon'),
+                total: isLoading ? null : pokemons.length
+              },
+              ...ahoraEnJuego.map((seccion) => ({ ...seccion, total: seccion.items.length }))
+            ]"
+            :key="opcion.clave"
+            type="button"
+            class="shrink-0 px-3 py-1.5 text-xs rounded-full border"
+            :class="
+              (seccionActiva?.clave ?? 'pokemon') === opcion.clave
+                ? 'border-gray-800 bg-gray-800 text-white font-semibold dark:border-gray-100 dark:bg-gray-100 dark:text-gray-900'
+                : 'border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'
+            "
+            :aria-pressed="(seccionActiva?.clave ?? 'pokemon') === opcion.clave"
+            @click="pestana = opcion.clave"
+          >
+            {{ opcion.titulo }}
+            <span v-if="opcion.total !== null" class="font-normal tabular-nums"
+              >({{ opcion.total }})</span
+            >
+          </button>
+        </div>
+
+        <!-- Los resultados de la sección elegida, aquí mismo. -->
+        <div v-if="seccionActiva" class="px-1 md:px-2">
+          <ul
+            class="max-w-2xl flex flex-col border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900 overflow-hidden"
+          >
+            <li
+              v-for="item in seccionActiva.items"
+              :key="item.id"
+              class="border-t first:border-t-0 border-gray-300 dark:border-gray-700"
+            >
+              <router-link
+                :to="item.to"
+                class="flex items-center gap-2.5 px-3 py-2 text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+              >
+                <resultado-ahora :item="item" :seccion="seccionActiva.clave" />
+              </router-link>
+            </li>
+          </ul>
+          <router-link :to="seccionActiva.to" class="mt-3 ver-mas">
+            {{ $t('buscador.verEn', { seccion: seccionActiva.titulo }) }}
+            <base-chevron size="w-3.5 h-3.5" class="-rotate-90" />
+          </router-link>
+        </div>
+
+        <template v-else>
+          <!--
             Rejilla de verdad: antes cada tarjeta medía lo que su contenido y
             el flex-wrap metía las que cupieran, así que en un móvil de 375 px
             salía una por fila. Ahora, tres en móvil (como la Pokédex del
@@ -249,82 +359,88 @@ const ancho = useMedia('(min-width: 1280px)')
             tablet y de 168 en escritorio (cuatro y siete), que con más anchas
             se veían 20 Pokémon por pantalla en escritorio.
         -->
-        <div
-          v-if="pokemons.length > 0 || isLoading"
-          class="w-full grid grid-cols-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-x-1 gap-y-2 sm:gap-y-4 md:p-2"
-        >
-          <template v-if="pokemons.length > 0">
-            <div
-              v-for="pokemon in pokemons"
-              :key="pokemon.pokemon_id"
-              class="min-w-0 flex justify-center"
-            >
-              <item-pokemon-list :pokemon="pokemon" class="w-full max-w-[8rem] md:max-w-[12rem]" />
-            </div>
-          </template>
+          <div
+            v-if="pokemons.length > 0 || isLoading"
+            class="w-full grid grid-cols-3 sm:grid-cols-[repeat(auto-fill,minmax(150px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(140px,1fr))] xl:grid-cols-[repeat(auto-fill,minmax(168px,1fr))] gap-x-1 gap-y-2 sm:gap-y-4 md:p-2"
+          >
+            <template v-if="pokemons.length > 0">
+              <div
+                v-for="pokemon in pokemons"
+                :key="pokemon.pokemon_id"
+                class="min-w-0 flex justify-center"
+              >
+                <item-pokemon-list
+                  :pokemon="pokemon"
+                  class="w-full max-w-[8rem] md:max-w-[12rem]"
+                />
+              </div>
+            </template>
 
-          <!--
+            <!--
             Esqueletos con la misma caja que una tarjeta de verdad: al cargar la
             siguiente tanda con el scroll, la rejilla ya tiene el hueco hecho y
             no salta. Al entrar se pinta una pantalla entera; al hacer scroll,
             una fila corta al final de lo que ya hay.
         -->
-          <template v-if="isLoading">
-            <p class="sr-only" role="status">{{ $t('common.loading') }}</p>
-            <div
-              v-for="n in pokemons.length ? 10 : 20"
-              :key="`esqueleto-${n}`"
-              class="min-w-0 flex justify-center"
-              aria-hidden="true"
-            >
-              <div class="w-full max-w-[8rem] md:max-w-[12rem] p-2">
-                <div class="w-24 h-24 mx-auto flex items-center justify-center">
-                  <div class="w-[76%] h-[76%] rounded-full esqueleto"></div>
-                </div>
-                <div class="mt-3 h-5 flex items-center justify-center gap-1">
-                  <span class="h-3 w-8 rounded-full esqueleto"></span>
-                  <span class="h-3.5 w-16 rounded-full esqueleto"></span>
-                </div>
-                <div class="mt-1 flex justify-center gap-1">
-                  <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
-                  <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
+            <template v-if="isLoading">
+              <p class="sr-only" role="status">{{ $t('common.loading') }}</p>
+              <div
+                v-for="n in pokemons.length ? 10 : 20"
+                :key="`esqueleto-${n}`"
+                class="min-w-0 flex justify-center"
+                aria-hidden="true"
+              >
+                <div class="w-full max-w-[8rem] md:max-w-[12rem] p-2">
+                  <div class="w-24 h-24 mx-auto flex items-center justify-center">
+                    <div class="w-[76%] h-[76%] rounded-full esqueleto"></div>
+                  </div>
+                  <div class="mt-3 h-5 flex items-center justify-center gap-1">
+                    <span class="h-3 w-8 rounded-full esqueleto"></span>
+                    <span class="h-3.5 w-16 rounded-full esqueleto"></span>
+                  </div>
+                  <div class="mt-1 flex justify-center gap-1">
+                    <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
+                    <span class="w-3.5 h-3.5 rounded-full esqueleto"></span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </template>
-        </div>
+            </template>
+          </div>
 
-        <div
-          v-else-if="sinResultados"
-          class="mt-4 mx-auto max-w-md p-6 flex flex-col items-center gap-3 text-center border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
-          role="status"
-        >
-          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {{
-              searchTerm ? $t('filters.noneNamed', { texto: searchTerm }) : $t('filters.noneMatch')
-            }}
-          </p>
-          <template v-if="sugerencias.length">
-            <p class="text-xs text-gray-600 dark:text-gray-300">{{ $t('filters.didYouMean') }}</p>
-            <ul class="flex flex-wrap justify-center gap-4">
-              <li v-for="p in sugerencias" :key="p.pokemon_id">
-                <router-link
-                  :to="`/pokemon/${p.pokemon_id}`"
-                  class="flex flex-col items-center gap-1 p-1 rounded-xl text-xs font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
-                >
-                  <base-sprite :src="spriteUrl(p.pokemon_id)" class="w-14 h-14" />
-                  {{ p.name }}
-                </router-link>
-              </li>
-            </ul>
-          </template>
-          <p v-else-if="searchTerm" class="text-xs text-gray-600 dark:text-gray-300">
-            {{ $t('filters.tryOther') }}
-          </p>
-          <button v-if="activeFilterCount > 0" type="button" class="boton" @click="clearFilters">
-            {{ $t('filters.clearAll') }}
-          </button>
-        </div>
+          <div
+            v-else-if="sinResultados"
+            class="mt-4 mx-auto max-w-md p-6 flex flex-col items-center gap-3 text-center border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+            role="status"
+          >
+            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {{
+                searchTerm
+                  ? $t('filters.noneNamed', { texto: searchTerm })
+                  : $t('filters.noneMatch')
+              }}
+            </p>
+            <template v-if="sugerencias.length">
+              <p class="text-xs text-gray-600 dark:text-gray-300">{{ $t('filters.didYouMean') }}</p>
+              <ul class="flex flex-wrap justify-center gap-4">
+                <li v-for="p in sugerencias" :key="p.pokemon_id">
+                  <router-link
+                    :to="`/pokemon/${p.pokemon_id}`"
+                    class="flex flex-col items-center gap-1 p-1 rounded-xl text-xs font-semibold text-gray-800 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+                  >
+                    <base-sprite :src="spriteUrl(p.pokemon_id)" class="w-14 h-14" />
+                    {{ p.name }}
+                  </router-link>
+                </li>
+              </ul>
+            </template>
+            <p v-else-if="searchTerm" class="text-xs text-gray-600 dark:text-gray-300">
+              {{ $t('filters.tryOther') }}
+            </p>
+            <button v-if="activeFilterCount > 0" type="button" class="boton" @click="clearFilters">
+              {{ $t('filters.clearAll') }}
+            </button>
+          </div>
+        </template>
       </div>
     </div>
 

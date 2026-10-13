@@ -33,6 +33,22 @@ export function piezasRecluta(nombre) {
   }
 }
 
+/**
+ * Cómo se llama una alineación en el idioma de la app: «Recluta de tipo Fuego
+ * (chica)»; Giovanni y los líderes, tal cual. `t` es el de vue-i18n y
+ * `nombreTipo` traduce un tipo.
+ */
+export function nombreAlineacion(lineup, t, nombreTipo = (tipo) => tipo) {
+  const piezas = piezasRecluta(lineup?.name)
+  if (!piezas) return lineup?.name ?? ''
+  const base = piezas.senuelo
+    ? t('raids.rocket.decoy')
+    : piezas.tipo
+    ? t('raids.rocket.gruntType', { type: nombreTipo(piezas.tipo) })
+    : t('raids.rocket.grunt')
+  return `${base} (${t(`raids.rocket.${piezas.sexo}`)})`
+}
+
 /** Los tres puestos de una alineación; uno sin datos, como lista vacía. */
 export function puestosRocket(lineup) {
   return [lineup.firstPokemon, lineup.secondPokemon, lineup.thirdPokemon].map(

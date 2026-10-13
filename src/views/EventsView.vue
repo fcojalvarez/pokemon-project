@@ -1,5 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useLiveStore } from '../stores/live'
 import { useGameDataStore } from '../stores/gameData'
 import BaseEmptyState from '../components/base/BaseEmptyState.vue'
@@ -23,7 +24,7 @@ import { vDifuminado } from '../composables/useDifuminado'
 const live = useLiveStore()
 const gameData = useGameDataStore()
 const { t, locale } = useTranslate()
-const { tipoDeEvento, bonusDeEvento } = useEventos()
+const { tipoDeEvento, bonusDeEvento, debutsDeEvento } = useEventos()
 
 // Mismo corte que el Top: en escritorio ancho, filtros en una barra lateral.
 const ancho = useMedia('(min-width: 1280px)')
@@ -92,6 +93,35 @@ const tabOptions = computed(() => TABS.map((name) => ({ value: name, label: t(`e
 watch(tab, () => {
   typeFilter.value = 'all'
 })
+
+/**
+ * Llegada desde el buscador de la cabecera: ?event=<id> abre ese evento, en
+ * su pestaña. Es de un solo uso: se quita de la URL antes de abrirlo, porque
+ * el detalle mete en el historial una entrada con la misma URL (ver
+ * useCerrarConAtras) y, si no, al volver atrás se abriría otra vez.
+ */
+const route = useRoute()
+const router = useRouter()
+watch(
+  () => [route.query.event, live.events.length],
+  async ([id]) => {
+    if (!id) return
+    // En active/upcoming, que son los que se enseñan (con su estado ya puesto).
+    const esEste = (uno) => String(uno.eventID) === String(id)
+    const proximo = live.upcoming.find(esEste)
+    const evento = live.active.find(esEste) ?? proximo
+    // Mientras no llegan los eventos, se espera; si llegan y no está (o ya
+    // pasó), se olvida.
+    if (!evento && live.status !== 'ready') return
+    const query = { ...route.query }
+    delete query.event
+    await router.replace({ query })
+    if (!evento) return
+    tab.value = proximo ? 'upcoming' : 'active'
+    abierto.value = evento
+  },
+  { immediate: true }
+)
 
 /** Si lo que se está viendo son combates Max, se avisa de lo que no se sabe. */
 const TIPOS_MAX = ['max-mondays', 'max-battles']
@@ -275,6 +305,7 @@ onMounted(async () => {
             :key="event.eventID"
             :event="event"
             :bonus="bonusDeEvento(noticias, event)"
+            :debuts="debutsDeEvento(noticias, event)"
             @abrir="abierto = $event"
           />
         </div>

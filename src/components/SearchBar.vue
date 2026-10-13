@@ -2,9 +2,7 @@
 import { ref, watch, computed, nextTick } from 'vue'
 import BaseIcon from './base/BaseIcon.vue'
 import SpinnerComponent from './SpinnerComponent.vue'
-import BaseSprite from './base/BaseSprite.vue'
-import ShinyMark from './pokemon/ShinyMark.vue'
-import MaxMark from './pokemon/MaxMark.vue'
+import SpriteMarcado from './pokemon/SpriteMarcado.vue'
 import { spriteUrl } from '../utils/sprites'
 import { formatDex } from '../utils/dex'
 import { useRoute, useRouter } from 'vue-router'
@@ -16,9 +14,15 @@ import { useGameDataStore } from '../stores/gameData'
 import { calcCP } from '../utils/formulas'
 import IconoMascara from './base/IconoMascara.vue'
 import iconoClima from '../assets/weather/partly_cloudy.png'
+import { useLiveStore } from '../stores/live'
+import { useBuscarAhora } from '../composables/useBuscarAhora'
+import ResultadoAhora from './shared/ResultadoAhora.vue'
+import BaseChevron from './base/BaseChevron.vue'
 
 const mainStore = useMainStore()
 const gameData = useGameDataStore()
+const live = useLiveStore()
+const { buscar: buscarAhora } = useBuscarAhora()
 
 /**
  * Lo que más se mira de un Pokémon, en el propio resultado: el PC al 100 % de
@@ -128,6 +132,8 @@ const inputSearchModal = async () => {
   isShowModalSearch.value = true
   // Fuera del Top y la ficha puede que aún no estén: hacen falta para el 100 %.
   gameData.load()
+  // Y lo de ahora en el juego, que también se busca (ver seccionesAhora).
+  live.load()
   isLoadingPokemonNames.value = true
 
   const esta = ++ultimaBusqueda
@@ -143,6 +149,50 @@ const goToPokemonPage = (pokemonId) => {
   inputValue.value = null
   cerrar()
 }
+const irA = (to) => {
+  router.push(to)
+  inputValue.value = null
+  cerrar()
+}
+
+/**
+ * Debajo de los Pokémon, lo que hay ahora en el juego que casa con lo
+ * escrito: misiones, incursiones, huevos, Rocket y eventos. Busques lo que
+ * busques sale: «caramelo» da la misión, y «bramblin», además de su ficha, la
+ * misión que lo da. Tres por sección y «Ver todo», que lleva a la pestaña con
+ * la búsqueda puesta. Con un número no: es un número de Pokédex.
+ */
+const MAX_POR_SECCION = 3
+const pokemonVisibles = computed(() =>
+  isLoadingPokemonNames.value ? [] : pokemonsNamesArrFiltered.value
+)
+const seccionesAhora = computed(() => {
+  const texto = inputValue.value?.trim()
+  if (!isShowModalSearch.value || !texto || !isNaN(texto)) return []
+  // Hasta que lleguen los Pokémon, nada: si no, las secciones salían antes y
+  // al llegar ellos (que van primero) todo bajaba, y la opción elegida con las
+  // flechas pasaba a ser otra.
+  if (isLoadingPokemonNames.value) return []
+  let indice = pokemonVisibles.value.length
+  return buscarAhora(texto).map((seccion) => {
+    const items = seccion.items
+      .slice(0, MAX_POR_SECCION)
+      .map((item) => ({ ...item, indice: indice++ }))
+    const verTodo =
+      seccion.items.length > items.length ? { indice: indice++, to: seccion.to } : null
+    return { ...seccion, total: seccion.items.length, items, verTodo }
+  })
+})
+
+/** Todas las opciones en orden, para moverse con las flechas. */
+const opciones = computed(() => [
+  ...pokemonVisibles.value.map((pokemon) => () => goToPokemonPage(pokemon.pokemon_id)),
+  ...seccionesAhora.value.flatMap((seccion) =>
+    [...seccion.items, ...(seccion.verTodo ? [seccion.verTodo] : [])].map(
+      (opcion) => () => irA(opcion.to)
+    )
+  )
+])
 
 /**
  * Navegación con teclado por los resultados (patrón combobox): el foco se
@@ -150,19 +200,24 @@ const goToPokemonPage = (pokemonId) => {
  * con aria-activedescendant.
  */
 const activeIndex = ref(-1)
-const hasResults = computed(
-  () =>
-    isShowModalSearch.value &&
-    !isLoadingPokemonNames.value &&
-    pokemonsNamesArrFiltered.value.length > 0
-)
+const hasResults = computed(() => isShowModalSearch.value && opciones.value.length > 0)
 const activeId = computed(() =>
   hasResults.value && activeIndex.value >= 0 ? `search-option-${activeIndex.value}` : undefined
 )
 
-watch(pokemonsNamesArrFiltered, () => {
+// Se vuelve a empezar con otra búsqueda, no cada vez que se rehacen las
+// opciones: lo de ahora en el juego llega después que los Pokémon (y va
+// detrás), y al llegar se perdía la opción que ya se había elegido con las
+// flechas.
+watch([inputValue, pokemonsNamesArrFiltered], () => {
   activeIndex.value = -1
 })
+watch(
+  () => opciones.value.length,
+  (total) => {
+    if (activeIndex.value >= total) activeIndex.value = total - 1
+  }
+)
 
 const onKeydown = (event) => {
   if (event.key === 'Escape') {
@@ -173,7 +228,7 @@ const onKeydown = (event) => {
   }
   if (isListView.value) return
   if (!hasResults.value) return
-  const last = pokemonsNamesArrFiltered.value.length - 1
+  const last = opciones.value.length - 1
   if (event.key === 'ArrowDown') {
     event.preventDefault()
     activeIndex.value = activeIndex.value >= last ? 0 : activeIndex.value + 1
@@ -182,7 +237,7 @@ const onKeydown = (event) => {
     activeIndex.value = activeIndex.value <= 0 ? last : activeIndex.value - 1
   } else if (event.key === 'Enter' && activeIndex.value >= 0) {
     event.preventDefault()
-    goToPokemonPage(pokemonsNamesArrFiltered.value[activeIndex.value].pokemon_id)
+    opciones.value[activeIndex.value]()
   }
 }
 
@@ -286,82 +341,126 @@ router.isReady().then(leerDeLaUrl)
       <div class="overflow-y-scroll search-modal min-h-[120px] max-h-96">
         <SpinnerComponent v-if="isLoadingPokemonNames" />
 
-        <ul v-else id="search-results" role="listbox" :aria-label="$t('a11y.searchResults')">
-          <!--
+        <div v-else id="search-results" role="listbox" :aria-label="$t('a11y.searchResults')">
+          <ul v-if="pokemonVisibles.length" role="group" :aria-label="$t('buscador.pokemon')">
+            <!-- El título de cada sección, solo si hay más de una. -->
+            <li
+              v-if="seccionesAhora.length"
+              role="presentation"
+              aria-hidden="true"
+              class="px-3 pt-1 pb-1 text-mini font-semibold text-gray-600 dark:text-gray-300"
+            >
+              {{ $t('buscador.pokemon') }}
+            </li>
+            <!--
                         Cada resultado, con su sprite, su número y las marcas de
                         liberado, como en la Pokédex: con el nombre solo, las
                         formas y los nombres parecidos costaba reconocerlos.
                     -->
-          <li
-            v-for="(pokemon, index) in pokemonsNamesArrFiltered"
-            :id="`search-option-${index}`"
-            :key="pokemon.pokemon_id"
-            role="option"
-            :aria-selected="index === activeIndex"
-            class="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-            :class="index === activeIndex ? 'bg-gray-100 dark:bg-gray-700' : ''"
-            @click="goToPokemonPage(pokemon.pokemon_id)"
-          >
-            <!-- El sprite y, al lado, dos líneas: el nombre, que es lo que se busca, y debajo el número con las marcas. -->
-            <base-sprite :src="spriteUrl(pokemon.pokemon_id)" class="w-9 h-9 shrink-0" />
-            <span class="flex-1 min-w-0 flex flex-col leading-tight">
-              <span class="truncate">{{ pokemon.name }}</span>
-              <span class="flex items-center gap-2">
+            <li
+              v-for="(pokemon, index) in pokemonVisibles"
+              :id="`search-option-${index}`"
+              :key="pokemon.pokemon_id"
+              role="option"
+              :aria-selected="index === activeIndex"
+              class="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              :class="index === activeIndex ? 'bg-gray-100 dark:bg-gray-700' : ''"
+              @click="goToPokemonPage(pokemon.pokemon_id)"
+            >
+              <!-- El sprite y, al lado, dos líneas: el nombre, que es lo que se busca, y debajo el número con las marcas. -->
+              <span class="flex-1 min-w-0 flex flex-col leading-tight">
+                <span class="truncate">{{ pokemon.name }}</span>
                 <span class="text-mini tabular-nums text-gray-600 dark:text-gray-300"
                   >#{{ formatDex(pokemon.pokemon_id) }}</span
                 >
-                <span class="flex items-center gap-1.5">
-                  <shiny-mark
-                    v-if="pokemon.is_shiny_released"
-                    variant="dex"
-                    size="text-mini"
-                    inline
-                    :scale="0.65"
-                    :label="$t('legend.shiny')"
-                  />
-                  <max-mark
-                    v-if="pokemon.can_dynamax"
-                    variant="dynamax"
-                    :size="14"
-                    class="shrink-0"
-                  />
-                  <max-mark
-                    v-if="pokemon.can_gigantamax"
-                    variant="gigantamax"
-                    :size="14"
-                    class="shrink-0"
-                  />
+              </span>
+              <!-- Detrás en el HTML y delante a la vista: así se lee primero el nombre y luego sus marcas. -->
+              <sprite-marcado
+                class="order-first"
+                :src="spriteUrl(pokemon.pokemon_id)"
+                :shiny="pokemon.is_shiny_released"
+                :dynamax="pokemon.can_dynamax"
+                :gigantamax="pokemon.can_gigantamax"
+              />
+              <span
+                v-if="datosClave(pokemon.pokemon_id)"
+                class="shrink-0 flex flex-col items-end leading-tight tabular-nums"
+              >
+                <span
+                  class="flex items-center gap-1 text-sm font-semibold"
+                  :title="`${$t('pokemon.cp100')}: ${datosClave(pokemon.pokemon_id).pc} · ${$t(
+                    'pokemon.cpWeather'
+                  )}: ${datosClave(pokemon.pokemon_id).clima}`"
+                >
+                  {{ datosClave(pokemon.pokemon_id).pc }}
+                  <span
+                    class="flex items-center gap-0.5 font-normal text-gray-600 dark:text-gray-300"
+                    >/ {{ datosClave(pokemon.pokemon_id).clima }}
+                    <icono-mascara
+                      :src="iconoClima"
+                      class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"
+                  /></span>
                 </span>
+                <span
+                  v-if="datosClave(pokemon.pokemon_id).puesto"
+                  class="text-mini text-gray-600 dark:text-gray-300"
+                  >{{ $t(`types.${datosClave(pokemon.pokemon_id).puesto.tipo}`) }} #{{
+                    datosClave(pokemon.pokemon_id).puesto.rank
+                  }}</span
+                >
               </span>
-            </span>
-            <span
-              v-if="datosClave(pokemon.pokemon_id)"
-              class="shrink-0 flex flex-col items-end leading-tight tabular-nums"
+            </li>
+          </ul>
+
+          <ul
+            v-for="seccion in seccionesAhora"
+            :key="seccion.clave"
+            role="group"
+            :aria-label="seccion.titulo"
+          >
+            <li
+              role="presentation"
+              aria-hidden="true"
+              class="px-3 pt-2 pb-1 text-mini font-semibold text-gray-600 dark:text-gray-300"
             >
-              <span
-                class="flex items-center gap-1 text-sm font-semibold"
-                :title="`${$t('pokemon.cp100')}: ${datosClave(pokemon.pokemon_id).pc} · ${$t(
-                  'pokemon.cpWeather'
-                )}: ${datosClave(pokemon.pokemon_id).clima}`"
-              >
-                {{ datosClave(pokemon.pokemon_id).pc }}
-                <span class="flex items-center gap-0.5 font-normal text-gray-600 dark:text-gray-300"
-                  >/ {{ datosClave(pokemon.pokemon_id).clima }}
-                  <icono-mascara
-                    :src="iconoClima"
-                    class="w-3.5 h-3.5 text-sky-600 dark:text-sky-400"
-                /></span>
-              </span>
-              <span
-                v-if="datosClave(pokemon.pokemon_id).puesto"
-                class="text-mini text-gray-600 dark:text-gray-300"
-                >{{ $t(`types.${datosClave(pokemon.pokemon_id).puesto.tipo}`) }} #{{
-                  datosClave(pokemon.pokemon_id).puesto.rank
-                }}</span
-              >
-            </span>
-          </li>
-        </ul>
+              {{ seccion.titulo }}
+              <span class="font-normal tabular-nums">({{ seccion.total }})</span>
+            </li>
+            <li
+              v-for="item in seccion.items"
+              :id="`search-option-${item.indice}`"
+              :key="item.id"
+              role="option"
+              :aria-selected="item.indice === activeIndex"
+              class="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              :class="item.indice === activeIndex ? 'bg-gray-100 dark:bg-gray-700' : ''"
+              @click="irA(item.to)"
+            >
+              <resultado-ahora :item="item" :seccion="seccion.clave" />
+            </li>
+            <li
+              v-if="seccion.verTodo"
+              :id="`search-option-${seccion.verTodo.indice}`"
+              role="option"
+              :aria-selected="seccion.verTodo.indice === activeIndex"
+              class="px-3 py-1.5 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+              :class="seccion.verTodo.indice === activeIndex ? 'bg-gray-100 dark:bg-gray-700' : ''"
+              @click="irA(seccion.verTodo.to)"
+            >
+              <span class="ver-mas"
+                >{{ $t('buscador.verTodo', { n: seccion.total }) }}
+                <base-chevron size="w-3.5 h-3.5" class="-rotate-90"
+              /></span>
+            </li>
+          </ul>
+
+          <p
+            v-if="!isLoadingPokemonNames && !pokemonVisibles.length && !seccionesAhora.length"
+            class="px-3 py-2 text-xs text-gray-600 dark:text-gray-300"
+          >
+            {{ $t('buscador.nada', { texto: inputValue?.trim() ?? '' }) }}
+          </p>
+        </div>
       </div>
     </section>
   </section>

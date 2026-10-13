@@ -20,7 +20,9 @@ const props = defineProps({
   /** Dentro del detalle del evento: cartel en grande y sin abrir nada al pulsar. */
   detalle: Boolean,
   /** Bonus de la noticia oficial, si la hay (ya en el idioma de la app). */
-  bonus: { type: Array, default: () => [] }
+  bonus: { type: Array, default: () => [] },
+  /** Los Pokémon que debutan, entradas del roster (useEventos.debutsDeEvento). */
+  debuts: { type: Array, default: () => [] }
 })
 const emit = defineEmits(['abrir'])
 
@@ -292,6 +294,25 @@ defineExpose({ titulo, todosLosBonus })
             >{{ countdownText }}</span
           >
         </p>
+
+        <!--
+          Un debut es lo más gordo que puede traer un evento: va lo primero, con
+          su sprite, y no enterrado en la noticia.
+        -->
+        <div
+          v-if="debuts.length"
+          class="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3 pt-3 border-t border-gray-300 dark:border-gray-700"
+        >
+          <span class="insignia insignia-debut">{{ $t('events.debut') }}</span>
+          <event-mon
+            v-for="mon in debuts"
+            :key="mon.dex"
+            :name="mon.name"
+            :image="spriteUrl(mon.spriteId)"
+            sprite-class="w-8 h-8"
+            class="text-sm font-bold"
+          />
+        </div>
 
         <!--
           Combate Max: la marca dice de un vistazo si es Dinamax (hueca) o Gigamax

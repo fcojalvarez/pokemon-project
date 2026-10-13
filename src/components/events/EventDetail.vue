@@ -15,13 +15,13 @@ import { useEventos } from '../../composables/useEventos'
 import { enlaceSeguro } from '../../utils/safeUrl'
 import { esApple, urlGoogleCalendar, urlIcs } from '../../utils/ics'
 import BaseModal from '../base/BaseModal.vue'
-import BaseSprite from '../base/BaseSprite.vue'
 import BaseChevron from '../base/BaseChevron.vue'
 import EventCard from './EventCard.vue'
 import EventBonus from './EventBonus.vue'
 import { useGameDataStore } from '../../stores/gameData'
 import { localName } from '../../composables/useTranslate'
-import { pokemonEnTexto } from '../../utils/pokemonEnTexto'
+import { conAsterisco, debutsEnNoticia, pokemonEnTexto } from '../../utils/pokemonEnTexto'
+import SpriteMarcado from '../pokemon/SpriteMarcado.vue'
 import { spriteUrl } from '../../utils/sprites'
 
 const props = defineProps({
@@ -71,6 +71,11 @@ const noticia = computed(() => {
  * noticia larga (un Pase de GO) nombra muchos de pasada.
  */
 const gameData = useGameDataStore()
+/**
+ * Cada uno lleva la marca de shiny si lo tiene liberado o si la noticia lo
+ * marca con asterisco («Ponyta*», que es como avisa de que puede salir shiny).
+ * Los que debutan van primero y con su insignia: es lo más gordo del evento.
+ */
 const pokemonDelEvento = computed(() => {
   if (!noticia.value || !gameData.isReady) return []
   const texto = noticia.value.secciones
@@ -79,7 +84,19 @@ const pokemonDelEvento = computed(() => {
       ...seccion.bloques.flatMap((b) => (b.t === 'ul' ? b.items : [b.x]))
     ])
     .join(' ')
-  return pokemonEnTexto(texto, gameData.roster).slice(0, 20)
+  const debuts = new Set(
+    debutsEnNoticia(noticia.value, gameData.roster).map((entrada) => entrada.dex)
+  )
+  return pokemonEnTexto(texto, gameData.roster)
+    .slice(0, 20)
+    .map((entrada) => ({
+      ...entrada,
+      debut: debuts.has(entrada.dex),
+      shiny: Boolean(entrada.shinyReleased) || conAsterisco(texto, entrada),
+      dynamax: Boolean(gameData.maxInfoFor(entrada)),
+      gigantamax: Boolean(gameData.maxInfoFor(entrada)?.gigantamax)
+    }))
+    .sort((a, b) => b.debut - a.debut)
 })
 
 /** La noticia va plegada; al abrir otro evento, vuelve a plegarse. */
@@ -214,14 +231,20 @@ const agrupar = (bloques) => {
                   :to="`/pokemon/${mon.dex}`"
                   class="flex flex-col items-center gap-0.5 p-1 rounded-lg text-center hover:bg-gray-150 hover:dark:bg-gray-800"
                 >
-                  <base-sprite
-                    :src="spriteUrl(mon.spriteId)"
-                    class="w-12 h-12"
-                    img-class="drop-shadow-contorno dark:drop-shadow-none"
-                  />
                   <span class="text-mini leading-tight line-clamp-2 break-words">{{
                     localName(mon)
                   }}</span>
+                  <span v-if="mon.debut" class="insignia insignia-debut">{{
+                    $t('events.debut')
+                  }}</span>
+                  <!-- Detrás en el HTML y arriba a la vista: se lee primero el nombre. -->
+                  <sprite-marcado
+                    class="order-first"
+                    :src="spriteUrl(mon.spriteId)"
+                    :shiny="mon.shiny"
+                    :dynamax="mon.dynamax"
+                    :gigantamax="mon.gigantamax"
+                  />
                 </router-link>
               </li>
             </ul>

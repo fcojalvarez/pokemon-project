@@ -8,6 +8,20 @@ describe('iconoDeBonus', () => {
     expect(iconoDeBonus('Un Caramelo adicional por intercambiar Pokémon.')).toBe('candy')
     expect(iconoDeBonus('Los Módulos Cebo Musgosos durarán una hora.')).toBe('lure')
     expect(iconoDeBonus('1/2 Hatch Distance')).toBe('egg')
+    // Los tres inciensos: el de evento (dura más), el diario y el normal. Lo
+    // de «excepto el de aventura diaria» no lo hace diario.
+    expect(
+      iconoDeBonus('El Incienso (excepto el Incienso de aventura diaria) durará dos horas.')
+    ).toBe('incenseEvent')
+    expect(iconoDeBonus('Incense (excluding Daily Adventure Incense) will last two hours.')).toBe(
+      'incenseEvent'
+    )
+    expect(iconoDeBonus('El Incienso de aventura diaria atraerá a más Pokémon.')).toBe(
+      'incenseDaily'
+    )
+    expect(iconoDeBonus('Más Pokémon atraídos por el Incienso.')).toBe('incense')
+    // Con shiny delante, manda el shiny aunque hable del incienso.
+    expect(iconoDeBonus('Más Growlithe de Hisui shiny gracias al Incienso')).toBe('shiny')
     expect(iconoDeBonus('Más Polvo Estelar al derrotar a los Reclutas')).toBe('stardust')
     expect(iconoDeBonus('Más Pokémon salvajes de tipo Planta')).toBe('wild')
     expect(iconoDeBonus('Increased wild spawns')).toBe('wild')

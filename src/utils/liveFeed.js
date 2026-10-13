@@ -66,15 +66,17 @@ export function isCacheExpired(fetchedAt, now = new Date(), maxAgeMs = MAX_CACHE
 
 /**
  * Número de Pokédex a partir de la imagen de LeekDuck.
- * Los ficheros se llaman `pm147.icon.png` o `pokemon_icon_147_00.png`, así que
- * el número sale de ahí sin tener que adivinarlo por el nombre.
+ * Los ficheros se llaman `pm147.icon.png`, `pokemon_icon_147_00.png` o, desde
+ * octubre de 2026 en algunos, `poke_capture_0824_000_mf_n_00000000_f_n.png`
+ * (Blipbug), así que el número sale de ahí sin tener que adivinarlo por el
+ * nombre.
  */
 export function dexFromImage(url) {
   const file =
     String(url ?? '')
       .split('/')
       .pop() ?? ''
-  const match = /pm(\d+)|pokemon_icon_(\d+)/.exec(file)
+  const match = /pm(\d+)|pokemon_icon_(\d+)|poke_capture_(\d+)/.exec(file)
   if (!match) return null
-  return Number(match[1] ?? match[2])
+  return Number(match[1] ?? match[2] ?? match[3]) || null
 }

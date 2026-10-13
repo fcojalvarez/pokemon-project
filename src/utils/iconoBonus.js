@@ -9,6 +9,7 @@
  */
 const REGLAS = [
   ['shiny', /\b(shiny|variocolor)/i],
+  ['incense', /incienso|incense/i],
   ['candyXl', /caramelo\s*\+\+|caramelos\s*\+\+|candy\s*xl/i],
   ['candy', /caramelo|candy/i],
   ['lure', /cebo|lure/i],
@@ -24,7 +25,21 @@ const REGLAS = [
 
 export function iconoDeBonus(texto) {
   const t = String(texto ?? '')
-  return REGLAS.find(([, patron]) => patron.test(t))?.[0] ?? null
+  const clave = REGLAS.find(([, patron]) => patron.test(t))?.[0] ?? null
+  return clave === 'incense' ? tipoDeIncienso(t) : clave
+}
+
+/**
+ * El juego tiene tres inciensos, cada uno con su color: el normal, el de
+ * evento (el que dura más) y el de aventura diaria. Lo que va entre paréntesis
+ * con «excepto» no cuenta: «El Incienso (excepto el Incienso de aventura
+ * diaria) durará dos horas» habla del que dura más, no del diario.
+ */
+function tipoDeIncienso(texto) {
+  const t = texto.replace(/\((excepto|salvo|except|excluding)[^)]*\)/gi, '')
+  if (/aventura diaria|daily adventure/i.test(t)) return 'incenseDaily'
+  if (/\bdura|\blast|minut|\bhora|\bhour/i.test(t)) return 'incenseEvent'
+  return 'incense'
 }
 
 /**

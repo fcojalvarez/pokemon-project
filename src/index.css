@@ -177,7 +177,7 @@
      * el tipo de evento, STAB, Tiene versión oscura). Fondo suave y sin borde,
      * porque el borde es de lo que se pulsa (botones y filtros), y sin
      * mayúsculas. Antes había cinco estilos. El color, solo si dice algo:
-     * ámbar la rareza y verde el STAB.
+     * ámbar la rareza, verde el STAB y violeta el debut.
      */
   .insignia {
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-mini font-medium leading-tight bg-gray-150 dark:bg-gray-800 text-gray-700 dark:text-gray-200;
@@ -187,6 +187,10 @@
   }
   .insignia-verde {
     @apply bg-emerald-100 dark:bg-emerald-400/15 text-emerald-800 dark:text-emerald-300;
+  }
+  /* El Pokémon que sale por primera vez en el juego (eventos). */
+  .insignia-debut {
+    @apply bg-violet-100 dark:bg-violet-400/15 text-violet-800 dark:text-violet-300;
   }
 
   /*

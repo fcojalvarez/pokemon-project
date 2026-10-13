@@ -15,7 +15,7 @@ import RaidCountersPanel from './RaidCountersPanel.vue'
 import { useGameDataStore } from '../../stores/gameData'
 import { useTranslate } from '../../composables/useTranslate'
 import { dexFromImage } from '../../utils/liveFeed'
-import { piezasRecluta, puestosRocket } from '../../utils/rocket'
+import { nombreAlineacion, puestosRocket } from '../../utils/rocket'
 
 const props = defineProps({
   /** Una entrada de rocketLineups.json. */
@@ -31,16 +31,7 @@ const { t, te } = useTranslate()
 const nombreTipo = (tipo) => (te(`types.${tipo}`) ? t(`types.${tipo}`) : tipo)
 
 /** «Recluta de tipo Fuego (chica)»; Giovanni y los líderes, tal cual. */
-const nombre = computed(() => {
-  const piezas = piezasRecluta(props.lineup.name)
-  if (!piezas) return props.lineup.name
-  const base = piezas.senuelo
-    ? t('raids.rocket.decoy')
-    : piezas.tipo
-    ? t('raids.rocket.gruntType', { type: nombreTipo(piezas.tipo) })
-    : t('raids.rocket.grunt')
-  return `${base} (${t(`raids.rocket.${piezas.sexo}`)})`
-})
+const nombre = computed(() => nombreAlineacion(props.lineup, t, nombreTipo))
 
 const puestos = computed(() =>
   puestosRocket(props.lineup).map((lista) =>

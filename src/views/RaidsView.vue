@@ -26,9 +26,11 @@ import { maxCounters } from '../utils/maxBattle'
 import { useTranslate } from '../composables/useTranslate'
 import { entre, useFiltrosEnUrl } from '../composables/useFiltrosEnUrl'
 import { formatDuration } from '../utils/time'
-import { plainText } from '../utils/gameText'
 import { vDifuminado } from '../composables/useDifuminado'
 import { usePorTandas } from '../composables/usePorTandas'
+import BaseIcon from '../components/base/BaseIcon.vue'
+import { TIPO_EVENTO, useBuscarAhora } from '../composables/useBuscarAhora'
+import { casa, palabrasDe } from '../utils/buscar'
 
 const live = useLiveStore()
 const gameData = useGameDataStore()
@@ -39,6 +41,17 @@ const edadMax = computed(() => gameData.maxLiveEdad(live.statusClock))
 const maxCaducado = computed(() => gameData.maxLiveCaducado(live.statusClock))
 const route = useRoute()
 const { t, te, locale, localName } = useTranslate()
+const {
+  nivelIncursion,
+  tipoMision,
+  etiquetaMision,
+  textoMision,
+  camposMision,
+  camposJefe,
+  camposHuevo,
+  camposMax,
+  camposRocket
+} = useBuscarAhora()
 
 const tab = ref('raids')
 
@@ -53,12 +66,19 @@ const tab = ref('raids')
  * permanente que confunda al que siga navegando por la vista.
  */
 const destacado = ref(null)
+/**
+ * Si la tarjeta de ese número es la señalada. Uno sin número (una imagen de
+ * LeekDuck que no se sabe leer) nunca: con nadie señalado, null === null
+ * dejaba el aro puesto para siempre (le pasó a Blipbug).
+ */
+const esDestacado = (dex) => dex != null && destacado.value === dex
 let temporizador = null
 
 const senalar = (dex) => {
   clearTimeout(temporizador)
-  // Que no se quede escondido tras un filtro.
+  // Que no se quede escondido tras un filtro ni tras una búsqueda.
   filtro.value = 'all'
+  consulta.value = ''
   destacado.value = dex
   // Tras pintar, se lleva a la vista; el aro aguanta unos segundos.
   requestAnimationFrame(() => {
@@ -74,11 +94,18 @@ const openMax = ref(null)
 
 const TABS = ['raids', 'eggs', 'research', 'rocket']
 
+const ICONO_LUPA = 'm17 17 4 4M3 11a8 8 0 1 0 16 0 8 8 0 0 0-16 0z'
+
 // La pestaña, en la URL (?tab=, la misma que usan los enlaces desde la ficha).
 // El ?dex= con el que se llega señalando a un Pokémon es de un solo uso: al
 // cambiar de pestaña se quita, para no volver a señalarlo.
 /** Qué grupo de la pestaña se ve: 'all', o el id de uno (nivel, km, tipo de tarea). */
 const filtro = ref('all')
+/**
+ * Lo escrito en el buscador de la página. Se queda al cambiar de pestaña: si
+ * se busca un Pokémon, en otra puede salir en huevos o en misiones.
+ */
+const consulta = ref('')
 
 // En la URL, para volver de una ficha con la misma pestaña y el mismo grupo.
 // Antes del watch de abajo: si no, al leer la pestaña de la URL se borraría el
@@ -90,9 +117,11 @@ useFiltrosEnUrl(
       valor: filtro,
       defecto: 'all',
       leer: (texto) => (/^[\w-]+$/.test(texto) ? texto : undefined)
-    }
+    },
+    // El buscador de la cabecera llega aquí con ?q= puesto.
+    q: { valor: consulta, defecto: '', leer: (texto) => texto.slice(0, 60) }
   },
-  { quitar: ['dex'] }
+  { quitar: ['dex', 'buscar'] }
 )
 
 // Cada pestaña tiene sus grupos: el elegido en otra no existe aquí.
@@ -131,36 +160,77 @@ const rocketGrupos = computed(() =>
 /** Qué alineación tiene los counters abiertos (por su nombre, que es único). */
 const openRocket = ref(null)
 
+/**
+ * Lo que deja el buscador de la página: en cada grupo, solo lo que casa, y
+ * fuera los grupos que se quedan vacíos.
+ */
+const palabras = computed(() => palabrasDe(consulta.value))
+const buscando = computed(() => palabras.value.length > 0)
+const filtrar = (grupos, campos) =>
+  buscando.value
+    ? grupos
+        .map((grupo) => ({
+          ...grupo,
+          list: grupo.list.filter((uno) => casa(palabras.value, campos(uno)))
+        }))
+        .filter((grupo) => grupo.list.length)
+    : grupos
+
+const raidsFiltradas = computed(() => filtrar(live.raidsByTier, camposJefe))
+const maxFiltrados = computed(() => filtrar(maxPorNivel.value, camposMax))
+const huevosFiltrados = computed(() => filtrar(live.eggsByType, camposHuevo))
+const tareasFiltradas = computed(() => filtrar(researchGroups.value, camposMision))
+const rocketFiltrados = computed(() => filtrar(rocketGrupos.value, camposRocket))
+
+const cuantos = (grupos) => grupos.reduce((suma, grupo) => suma + grupo.list.length, 0)
+/** Cuántos hay en cada pestaña con la búsqueda puesta, y cuántos sin ella. */
+const encontrados = computed(() => ({
+  raids: cuantos(raidsFiltradas.value) + cuantos(maxFiltrados.value),
+  eggs: cuantos(huevosFiltrados.value),
+  research: cuantos(tareasFiltradas.value),
+  rocket: cuantos(rocketFiltrados.value)
+}))
+const totales = computed(() => ({
+  raids: cuantos(live.raidsByTier) + cuantos(maxPorNivel.value),
+  eggs: cuantos(live.eggsByType),
+  research: cuantos(researchGroups.value),
+  rocket: cuantos(rocketGrupos.value)
+}))
+/** Sin nada en esta pestaña, las otras donde sí sale, para saltar a ellas. */
+const enOtras = computed(() =>
+  TABS.filter((nombre) => nombre !== tab.value && encontrados.value[nombre] > 0)
+)
+
 /** Los grupos de la pestaña, con cuántos tiene cada uno, y «Todas» delante. */
 const filtros = computed(() => {
   let grupos
   if (tab.value === 'raids') {
     grupos = [
-      ...live.raidsByTier.map((grupo) => ({
+      ...raidsFiltradas.value.map((grupo) => ({
         value: idIncursion(grupo),
         label: grupo.shadow ? t('raids.tiers.shadow') : tierLabel(grupo.name),
         count: grupo.list.length
       })),
-      ...maxPorNivel.value.map((grupo) => ({
+      ...maxFiltrados.value.map((grupo) => ({
         value: idMax(grupo),
         label: `Max · ${t('max.tier', { n: grupo.tier })}`,
         count: grupo.list.length
       }))
     ]
   } else if (tab.value === 'eggs') {
-    grupos = live.eggsByType.map((grupo) => ({
+    grupos = huevosFiltrados.value.map((grupo) => ({
       value: idHuevo(grupo),
       label: grupo.name,
       count: grupo.list.length
     }))
   } else if (tab.value === 'rocket') {
-    grupos = rocketGrupos.value.map((grupo) => ({
+    grupos = rocketFiltrados.value.map((grupo) => ({
       value: idRocket(grupo),
       label: t(`raids.rocket.groups.${grupo.grupo}`),
       count: grupo.list.length
     }))
   } else {
-    grupos = researchGroups.value.map((grupo) => ({
+    grupos = tareasFiltradas.value.map((grupo) => ({
       value: idTarea(grupo),
       label: grupo.label,
       count: grupo.list.length
@@ -175,12 +245,14 @@ const filtros = computed(() => {
 const seVe = (id) => !ancho.value || filtro.value === 'all' || filtro.value === id
 
 const incursionesVisibles = computed(() =>
-  live.raidsByTier.filter((grupo) => seVe(idIncursion(grupo)))
+  raidsFiltradas.value.filter((grupo) => seVe(idIncursion(grupo)))
 )
-const maxVisibles = computed(() => maxPorNivel.value.filter((grupo) => seVe(idMax(grupo))))
-const huevosVisibles = computed(() => live.eggsByType.filter((grupo) => seVe(idHuevo(grupo))))
-const tareasVisibles = computed(() => researchGroups.value.filter((grupo) => seVe(idTarea(grupo))))
-const rocketVisibles = computed(() => rocketGrupos.value.filter((grupo) => seVe(idRocket(grupo))))
+const maxVisibles = computed(() => maxFiltrados.value.filter((grupo) => seVe(idMax(grupo))))
+const huevosVisibles = computed(() => huevosFiltrados.value.filter((grupo) => seVe(idHuevo(grupo))))
+const tareasVisibles = computed(() => tareasFiltradas.value.filter((grupo) => seVe(idTarea(grupo))))
+const rocketVisibles = computed(() =>
+  rocketFiltrados.value.filter((grupo) => seVe(idRocket(grupo)))
+)
 
 /** La leyenda del final: las marcas Max solo en la pestaña que tiene combates Max. */
 const marcasLeyenda = computed(() =>
@@ -296,37 +368,35 @@ const weaknesses = computed(() => {
     : []
 })
 
-const tierLabel = (tier) => (te(`raids.tiers.${tier}`) ? t(`raids.tiers.${tier}`) : tier)
+const tierLabel = nivelIncursion
 
 const weatherLabel = (name) => {
   const key = `raids.weather.${String(name).toLowerCase()}`
   return te(key) ? t(key) : name
 }
 
+/** Las misiones por tipo, por orden alfabético salvo las del evento, que van primero. */
 const researchGroups = computed(() => {
   const groups = new Map()
   for (const task of live.research) {
-    const type = task.type ?? 'misc'
+    const type = tipoMision(task)
     if (!groups.has(type)) groups.set(type, [])
     groups.get(type).push(task)
   }
   return [...groups.entries()]
-    .map(([type, list]) => ({
-      type,
-      // Un tipo que aún no está traducido sale tal cual, pero con mayúscula:
-      // «rocket» y «training» se colaron así en la lista.
-      label: te(`raids.researchTypes.${type}`)
-        ? t(`raids.researchTypes.${type}`)
-        : type.charAt(0).toUpperCase() + type.slice(1),
-      list
-    }))
-    .sort((a, b) => a.label.localeCompare(b.label, locale()))
+    .map(([type, list]) => ({ type, label: etiquetaMision(type), list }))
+    .sort(
+      (a, b) =>
+        (b.type === TIPO_EVENTO) - (a.type === TIPO_EVENTO) ||
+        a.label.localeCompare(b.label, locale())
+    )
 })
 
-/** Las tareas llegan en inglés: se traducen con las frases del juego. */
-const taskText = (html) => gameData.translateText(plainText(html))
-
-// Llegada desde la ficha: ?tab=raids&dex=113
+// Llegada desde la ficha (?tab=raids&dex=113) o desde el buscador de la
+// cabecera (?tab=research&buscar=caramelo). El ?buscar= es de un solo uso, como
+// el ?dex=: no se lee del ?q= porque este watch también salta con cada letra
+// que escribe el buscador de la página, y una URL que va por detrás podía
+// pisar lo último tecleado.
 watch(
   () => route.query,
   (query) => {
@@ -334,9 +404,18 @@ watch(
     if (TABS.includes(pestana)) tab.value = pestana
     const dex = Number(query.dex)
     if (Number.isInteger(dex) && dex > 0) senalar(dex)
+    if (typeof query.buscar === 'string') consulta.value = query.buscar.slice(0, 60)
   },
   { immediate: true }
 )
+
+// Si la búsqueda deja sin nada el grupo elegido en la barra lateral, a «Todas»:
+// si no, la página se quedaba en blanco sin decir por qué. Aquí abajo y no
+// junto a `filtros`: el watch lo lee al momento, y tira de computeds de más abajo.
+watch(filtros, (opciones) => {
+  if (!buscando.value || filtro.value === 'all') return
+  if (!opciones.some((opcion) => opcion.value === filtro.value)) filtro.value = 'all'
+})
 
 onUnmounted(() => clearTimeout(temporizador))
 
@@ -350,7 +429,7 @@ onMounted(() => {
  * debajo de las incursiones, así que empiezan en la segunda tanda. Si se
  * llega señalado desde una ficha, todo de golpe, para poder llevarlo a la vista.
  */
-const todoDeGolpe = () => destacado.value !== null
+const todoDeGolpe = () => destacado.value !== null || buscando.value
 const incursionesPorTandas = usePorTandas(incursionesVisibles, {
   primera: 3,
   paso: 2,
@@ -394,49 +473,123 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
         <base-segmented v-if="!ancho" v-model="tab" :options="tabOptions" class="mb-3" />
 
         <!--
-          En móvil no hay barra lateral y las pestañas son listas largas: una
-          fila de chips fija arriba lleva a cada grupo. Son los mismos grupos
-          de la barra lateral, pero aquí solo saltan, no filtran.
-          top-16 / sm:top-14: justo debajo de la cabecera fija (64 px en móvil, 56 desde sm).
-        -->
-        <!--
-          Mientras carga, el hueco de la fila de grupos: al llegar los datos
-          aparecía de golpe y bajaba toda la lista.
+          El buscador de la página, fijo arriba justo debajo de la cabecera
+          (top-16 / sm:top-14: 64 px en móvil, 56 desde sm). Filtra la pestaña
+          por el texto de cada cosa o por sus Pokémon: en «Misiones», la que
+          buscas estaba la última, debajo de veinte más.
+          En móvil, debajo, una fila de chips que lleva a cada grupo (en
+          escritorio ancho son los de la barra lateral). Solo saltan, no filtran.
         -->
         <div
-          v-if="!ancho && (live.status === 'loading' || live.status === 'idle')"
-          class="py-2 mb-3 flex gap-2 overflow-hidden"
-          aria-hidden="true"
+          class="sticky top-16 sm:top-14 z-10 py-2 mb-3 bg-gray-100 dark:bg-gray-700"
+          :class="ancho ? '' : '-mx-4'"
         >
-          <span
-            v-for="(medida, i) in ['w-24', 'w-24', 'w-24', 'w-20']"
-            :key="i"
-            class="esqueleto shrink-0 h-[30px] rounded-full"
-            :class="medida"
-          ></span>
-        </div>
-        <nav
-          v-else-if="live.status === 'ready' && !ancho && atajos.length > 1"
-          :aria-label="tabLabel(tab)"
-          class="sticky top-16 sm:top-14 z-10 -mx-4 py-2 mb-3 bg-gray-100 dark:bg-gray-700"
-        >
-          <!-- Lo que se desliza va dentro: la máscara del difuminado no puede tapar el fondo fijo. -->
-          <div v-difuminado class="px-4 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+          <div class="relative" :class="ancho ? '' : 'mx-4'">
+            <base-icon
+              :stroke-width="1.5"
+              icon-class="w-5"
+              class="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+              class-path="stroke-gray-500 dark:stroke-gray-300"
+              :d="ICONO_LUPA"
+            />
+            <input
+              v-model="consulta"
+              type="search"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              enterkeyhint="search"
+              maxlength="60"
+              class="campo shadow-md !pl-9 !pr-10 [&::-webkit-search-cancel-button]:appearance-none"
+              :placeholder="$t(`raids.buscar.${tab}`)"
+              :aria-label="$t(`raids.buscar.${tab}`)"
+              @keydown.enter="$event.target.blur()"
+            />
             <button
-              v-for="atajo in atajos"
-              :key="atajo.value"
+              v-if="consulta"
               type="button"
-              class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
-              @click="irACategoria(atajo.value)"
+              class="zona-tactil absolute right-0.5 top-1/2 -translate-y-1/2 w-9 h-9 rounded-lg text-gray-600 dark:text-gray-200 hover:bg-gray-150 hover:dark:bg-gray-800"
+              :aria-label="$t('raids.buscar.quitar')"
+              @click="consulta = ''"
             >
-              {{ atajo.label }}
-              <!-- Entre paréntesis: con «Nivel 1» o «5 km» delante, «Nivel 1 4» no se leía. -->
-              <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums"
-                >({{ atajo.count }})</span
-              >
+              <span aria-hidden="true">✕</span>
             </button>
           </div>
-        </nav>
+
+          <!--
+            Mientras carga, el hueco de la fila de grupos: al llegar los datos
+            aparecía de golpe y bajaba toda la lista.
+          -->
+          <div
+            v-if="!ancho && (live.status === 'loading' || live.status === 'idle')"
+            class="mt-2 px-4 flex gap-2 overflow-hidden"
+            aria-hidden="true"
+          >
+            <span
+              v-for="(medida, i) in ['w-24', 'w-24', 'w-24', 'w-20']"
+              :key="i"
+              class="esqueleto shrink-0 h-[30px] rounded-full"
+              :class="medida"
+            ></span>
+          </div>
+          <nav
+            v-else-if="live.status === 'ready' && !ancho && atajos.length > 1"
+            :aria-label="tabLabel(tab)"
+            class="mt-2"
+          >
+            <!-- Lo que se desliza va dentro: la máscara del difuminado no puede tapar el fondo fijo. -->
+            <div v-difuminado class="px-4 flex gap-2 overflow-x-auto [scrollbar-width:none]">
+              <button
+                v-for="atajo in atajos"
+                :key="atajo.value"
+                type="button"
+                class="shrink-0 px-3 py-1.5 text-xs rounded-full border border-gray-400 dark:border-gray-500 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+                @click="irACategoria(atajo.value)"
+              >
+                {{ atajo.label }}
+                <!-- Entre paréntesis: con «Nivel 1» o «5 km» delante, «Nivel 1 4» no se leía. -->
+                <span class="text-mini text-gray-600 dark:text-gray-300 tabular-nums"
+                  >({{ atajo.count }})</span
+                >
+              </button>
+            </div>
+          </nav>
+        </div>
+
+        <!-- Con la búsqueda puesta: cuántos quedan y, si no queda nada, dónde sí sale. -->
+        <p
+          v-if="buscando && live.status === 'ready' && encontrados[tab] > 0"
+          class="mb-3 text-mini text-gray-600 dark:text-gray-300"
+          aria-live="polite"
+        >
+          {{ $t('raids.buscar.cuenta', { n: encontrados[tab], total: totales[tab] }) }}
+        </p>
+        <div
+          v-if="buscando && live.status === 'ready' && encontrados[tab] === 0 && totales[tab] > 0"
+          class="mb-4 p-4 flex flex-col items-center gap-3 text-center border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
+        >
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            {{ $t('raids.buscar.nada', { texto: consulta.trim(), pestana: tabLabel(tab) }) }}
+          </p>
+          <template v-if="enOtras.length">
+            <p class="text-xs text-gray-600 dark:text-gray-300">{{ $t('raids.buscar.enOtras') }}</p>
+            <div class="flex flex-wrap justify-center gap-2">
+              <button
+                v-for="nombre in enOtras"
+                :key="nombre"
+                type="button"
+                class="boton"
+                @click="tab = nombre"
+              >
+                {{ tabLabel(nombre) }}
+                <span class="font-normal tabular-nums">({{ encontrados[nombre] }})</span>
+              </button>
+            </div>
+          </template>
+          <button type="button" class="boton" @click="consulta = ''">
+            {{ $t('raids.buscar.quitar') }}
+          </button>
+        </div>
 
         <skeleton-loader v-if="live.status === 'loading' || live.status === 'idle'">
           <section v-for="grupo in 2" :key="grupo" class="mb-5">
@@ -477,7 +630,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
             v-for="group in incursionesPorTandas"
             :id="idIncursion(group)"
             :key="group.name"
-            class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
+            class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-44 xl:scroll-mt-32"
           >
             <h2 class="text-sm font-bold mb-2">
               {{ group.shadow ? $t('raids.tiers.shadow') : tierLabel(group.name) }}
@@ -496,7 +649,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
               <template v-for="boss in group.list" :key="boss.name">
                 <live-mon-card
                   :id="`mon-${dexFromImage(boss.image)}`"
-                  :highlight="destacado === dexFromImage(boss.image)"
+                  :highlight="esDestacado(dexFromImage(boss.image))"
                   :name="gameData.nombreEs(boss.name)"
                   :image="boss.image"
                   :dex="dexFromImage(boss.image)"
@@ -546,7 +699,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
               v-for="grupo in maxPorTandas"
               :id="idMax(grupo)"
               :key="grupo.tier"
-              class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
+              class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-44 xl:scroll-mt-32"
             >
               <h3 class="text-sm font-bold mb-2">
                 {{ $t('max.tier', { n: grupo.tier }) }}
@@ -567,7 +720,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
                   v-for="uno in grupo.list"
                   :id="`mon-${uno.dex}`"
                   :key="`${grupo.tier}-${uno.dex}`"
-                  :highlight="destacado === uno.dex"
+                  :highlight="esDestacado(uno.dex)"
                   :name="localName(uno)"
                   :image="uno.image"
                   :dex="uno.dex"
@@ -619,7 +772,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
             v-for="group in huevosPorTandas"
             :id="idHuevo(group)"
             :key="group.name"
-            class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
+            class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-44 xl:scroll-mt-32"
           >
             <h2 class="text-sm font-bold mb-2">
               {{ group.name }}
@@ -639,7 +792,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
                 :id="`mon-${dexFromImage(egg.image)}`"
                 class="!w-auto"
                 vertical
-                :highlight="destacado === dexFromImage(egg.image)"
+                :highlight="esDestacado(dexFromImage(egg.image))"
                 :name="gameData.nombreEs(egg.name)"
                 :image="egg.image"
                 :dex="dexFromImage(egg.image)"
@@ -662,7 +815,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
               v-for="grupo in rocketVisibles"
               :id="idRocket(grupo)"
               :key="grupo.grupo"
-              class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
+              class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-44 xl:scroll-mt-32"
             >
               <h2 class="text-sm font-bold mb-2">
                 {{ $t(`raids.rocket.groups.${grupo.grupo}`) }}
@@ -695,7 +848,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
             v-for="group in tareasPorTandas"
             :id="idTarea(group)"
             :key="group.type"
-            class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-36"
+            class="diferido mb-4 -mx-1 px-1 pb-1 scroll-mt-44 xl:scroll-mt-32"
           >
             <h2 class="text-sm font-bold mb-2">
               {{ group.label }}
@@ -709,7 +862,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
                 :key="`${group.type}-${index}`"
                 class="mb-2 break-inside-avoid p-2.5 border border-gray-300 dark:border-gray-700 rounded-xl shadow-md bg-white dark:bg-gray-900"
               >
-                <p class="text-xs font-semibold mb-1">{{ taskText(task.text) }}</p>
+                <p class="text-xs font-semibold mb-1">{{ textoMision(task) }}</p>
                 <!-- Las recompensas, sin caja: antes eran tarjetas dentro de la tarjeta. -->
                 <div class="flex flex-wrap gap-1">
                   <live-mon-card
@@ -718,7 +871,7 @@ const tareasPorTandas = usePorTandas(tareasVisibles, { primera: 3, paso: 3, comp
                     v-for="reward in task.rewards"
                     :key="reward.name"
                     :id="`mon-${dexFromImage(reward.image)}`"
-                    :highlight="destacado === dexFromImage(reward.image)"
+                    :highlight="esDestacado(dexFromImage(reward.image))"
                     :name="gameData.nombreEs(reward.name)"
                     :image="reward.image"
                     :dex="dexFromImage(reward.image)"

@@ -139,7 +139,9 @@ describe('computeTypeRankings', () => {
     const jefes = jefesDebilesA(roster, typechart.chart, 'dragon')
     expect(jefes.length).toBeGreaterThan(3)
     for (const jefe of jefes) {
-      expect(typechart.chart.dragon[jefe.types[0]] * (typechart.chart.dragon[jefe.types[1]] ?? 1)).toBeGreaterThan(1)
+      expect(
+        typechart.chart.dragon[jefe.types[0]] * (typechart.chart.dragon[jefe.types[1]] ?? 1)
+      ).toBeGreaterThan(1)
       expect(jefe.peso).toBeGreaterThan(0)
     }
     expect(jefesDebilesA(roster, typechart.chart, 'normal')).toBeNull()
@@ -306,6 +308,12 @@ describe('dexFromImage', () => {
       dexFromImage('https://cdn.leekduck.com/assets/img/pokemon_icons/pm687.fMEGA.icon.png')
     ).toBe(687)
     expect(dexFromImage('.../pokemon_icon_025_00.png')).toBe(25)
+    // El formato nuevo de LeekDuck (octubre de 2026, Blipbug en las misiones).
+    expect(
+      dexFromImage(
+        'https://cdn.leekduck.com/assets/img/pokemon_icons_crop/poke_capture_0824_000_mf_n_00000000_f_n.png'
+      )
+    ).toBe(824)
   })
 
   it('devuelve null si no hay número', () => {
@@ -409,7 +417,9 @@ describe('movimientos exclusivos de supermega', () => {
     // Las que lo tienen abierto, sí: Mega Raichu X con Placaje Eléctrico+.
     const raichu = roster.find((p) => p.id === 'raichu_mega_x')
     expect(raichu.superMax).toBe(true)
-    expect(evaluatePokemon(raichu, moves).some((s) => s.charged.id === 'VOLT_TACKLE_PLUS')).toBe(true)
+    expect(evaluatePokemon(raichu, moves).some((s) => s.charged.id === 'VOLT_TACKLE_PLUS')).toBe(
+      true
+    )
   })
 
   it('el ataque «+» pega ×1,3, lo de su nivel mega 4: pesa como el normal con un 30 % más de potencia', () => {
@@ -425,7 +435,8 @@ describe('movimientos exclusivos de supermega', () => {
       ...moves,
       CLON: { ...plus, pve: { ...plus.pve, power: plus.pve.power * SUPERMEGA_PLUS } }
     }
-    const deUno = (sets, id) => sets.find((s) => s.fast.id === 'THUNDER_SHOCK' && s.charged.id === id)
+    const deUno = (sets, id) =>
+      sets.find((s) => s.fast.id === 'THUNDER_SHOCK' && s.charged.id === id)
     const real = deUno(evaluatePokemon(raichu, moves), 'VOLT_TACKLE_PLUS')
     const clon = deUno(evaluatePokemon(comoNormal, conClon), 'CLON')
     expect(SUPERMEGA_PLUS).toBe(1.3)
@@ -670,10 +681,16 @@ describe('clima', () => {
 
 describe('ideas de Dittobase', () => {
   it('«Solo lo común» deja fuera megas, oscuros, legendarios y ultraentes', () => {
-    const lista = computeCounters(roster, moves, typechart.chart, { types: ['steel', 'dragon'] }, {
-      limit: 30,
-      soloComunes: true
-    })
+    const lista = computeCounters(
+      roster,
+      moves,
+      typechart.chart,
+      { types: ['steel', 'dragon'] },
+      {
+        limit: 30,
+        soloComunes: true
+      }
+    )
     const porId = new Map(roster.map((p) => [p.id, p]))
     expect(lista.length).toBeGreaterThan(0)
     for (const fila of lista) {
